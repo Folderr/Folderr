@@ -1,0 +1,24 @@
+{
+  "name": "evolve-x",
+  "version": "0.0.1",
+  "description": "A host for images, videos, shortened urls, ect..",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "echo \"ERROR - Not implemented. Goodbye\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/evolve-x/evolve-x.git"
+  },
+  "author": "evolve-x",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/evolve-x/evolve-x/issues"
+  },
+  "homepage": "https://gitlab.com/evolve-x/evolve-x#readme",
+  "dependencies": {
+    "esm": "^3.2.25",
+    "mongoose": "^5.6.5",
+    "superagent": "^5.1.0"
+  }
+}
