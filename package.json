@@ -18,6 +18,7 @@
   "homepage": "https://gitlab.com/evolve-x/evolve-x#readme",
   "dependencies": {
     "esm": "^3.2.25",
+    "express": "^4.17.1",
     "mongoose": "^5.6.5",
     "superagent": "^5.1.0"
   }
