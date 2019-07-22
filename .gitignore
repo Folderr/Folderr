@@ -5,3 +5,7 @@ yarn.lock
 # Ignore node modules
 
 node_modules/
+
+# Ignore config
+
+config.json
