@@ -6,4 +6,4 @@ const Image = new Schema( {
     format: { type: String, required: true, default: 'png' }
 } );
 
-export default model(Image);
+export default model('image', Image);
