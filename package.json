@@ -1,10 +1,11 @@
 {
   "name": "evolve-x",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "A host for images, videos, shortened urls, ect..",
   "main": "src/index.js",
   "scripts": {
-    "start": "echo \"ERROR - Not implemented. Goodbye\" && exit 1"
+    "start": "echo \"ERROR - Not implemented. Goodbye\" && exit 1",
+    "initfirst": "node -r esm scripts/initFirst.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,7 @@
   },
   "homepage": "https://gitlab.com/evolve-x/evolve-x#readme",
   "dependencies": {
+    "bcrypt": "^3.0.6",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "mongoose": "^5.6.5",

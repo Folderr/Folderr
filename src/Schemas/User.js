@@ -5,7 +5,8 @@ const User = new Schema( {
     password: { type: String, required: true },
     token: { type: String, required: true },
     first: { type: Boolean, required: false },
-    username: { type: String, required: true }
+    username: { type: String, required: true },
+    admin: { type: Boolean, default: false }
 } );
 
-export default model(User);
+export default model('user', User);
