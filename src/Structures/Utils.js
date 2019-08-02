@@ -129,8 +129,8 @@ class Utils {
     }
 
 
-    async authPassword(password, userID) {
-        const user = await User.findOne( { uID: userID } );
+    async authPassword(password, username) {
+        const user = await User.findOne( { username } );
         if (!user) {
             return;
         }

@@ -21,12 +21,12 @@ const superagent = require('superagent');
 ```
 
 Password auth (`**`)
-- Your headers will need to include `uid`, and `password`
+- Your headers will need to include `username`, and `password`
 
 Example:
 ```js
 const superagent = require('superagent');
-/* Superagent request */.set({ uid: 'Your user ID', password: 'Your password' });
+/* Superagent request */.set({ username: 'Your useranme', password: 'Your password' });
 ```
 
 Also, paths marked with an `$` will require you to be an admin
@@ -115,6 +115,30 @@ const superagent = require('superagent');
 superagent.delete('your_url_here/api/verify').send({ uid: '545996854785731475959', token: 'bmpp2e2550-zFyBNHlL0LqSJRHAJw8v4dVk358wHgVAjI+FarmSR_Ga9pxioYl7l.VWV5bE5oR2ttajYzcExWUTFBTnc4UUZiOXlwQVk1R01EZHQ5bUpXWDU0aFUySlhzRmJodDY3UkplMlV3UUpuLQ==.NDQ2' });
 // Expected: "[SUCCESS] Denied user!"
 ```
+
+`DELETE /api/account`
+
+flags: `**`
+
+Delete your account.
+This is irreversible.
+
+### Notice
+
+This will not work if you are the owner.
+
+Example:
+```js
+const superagent = require('superagent');
+superagent.delete('your_url_here/api/account');
+// Epected: "[SUCCESS] Account deleted!"
+```
+
+`GET api/account`
+
+flags: `**`
+
+Get some account details
 
 # Actual paths, frontend
 (we will not be using superagent)
