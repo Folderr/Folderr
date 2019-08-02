@@ -4,3 +4,5 @@ export { default as APIPVerify } from './API/Verify_Acc';
 export { default as APIDVerify } from './API/Deny_Acc';
 export { default as APINotifs } from './API/Notifs';
 export { default as APIDNotifs } from './API/Clear_Notifs';
+export { default as APIDAccount } from './API/Delete_Account';
+export { default as APIAccount } from './API/Account';

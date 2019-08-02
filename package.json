@@ -4,7 +4,7 @@
   "description": "A host for images, videos, shortened urls, ect..",
   "main": "src/index.js",
   "scripts": {
-    "start": "node -r essm src/index.js",
+    "start": "node -r esm src/index.js",
     "initfirst": "node -r esm scripts/initFirst.js"
   },
   "repository": {
