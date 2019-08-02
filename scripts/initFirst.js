@@ -4,17 +4,19 @@ import Base from '../src/Structures/Base';
 
 const base = new Base(null, config, '--init-first');
 
-const rl = readline.createInterface({
+const rl = readline.createInterface( {
     input: process.stdin,
     output: process.stdout,
     terminal: true,
-    history: 0
-});
+    history: 0,
+} );
 
 let a;
 
+const second = 1000;
+
 async function verify() {
-    await base.Utils.sleep(1000);
+    await base.Utils.sleep(second); // Sleep for a second
     if (!a) return verify(a);
     return a;
 }
@@ -38,7 +40,9 @@ function _username() {
             rl.write('This is required!\n');
             process.exit();
         }
-        if (answer.length > 12 || answer.length < 3) {
+        const maxName = 12;
+        const minName = 3;
+        if (answer.length > maxName || answer.length < minName) {
             rl.write('Username length is invalid! Length must be between 3 & 12\n');
             process.exit();
         }
@@ -53,8 +57,8 @@ function _username() {
 
 (async function _initFirst() {
     await base.init();
-    const User = base.schemas.User;
-    const user = await User.findOne({ first: true }).exec();
+    const { User } = base.schemas;
+    const user = await User.findOne( { first: true } ).exec();
     if (user) {
         rl.write('First user already initiated!\n');
         rl.close();
@@ -62,9 +66,9 @@ function _username() {
     }
     rl.write('We have to initiate the first account (yours) as admin. First we will do your username\n');
 
-    await base.Utils.sleep(1000);
+    await base.Utils.sleep(second); // Sleep for a second
 
-    let name = await _username();
+    const name = await _username();
     a = undefined;
     let password = await _password();
     const uID = await base.Utils.genUID();
@@ -73,7 +77,9 @@ function _username() {
     password = await base.Utils.hashPass(password);
     const token = await base.Utils.genToken(uID);
     console.log(`Account created successfully! See your details below...\n\nAccount name: ${name}\nAccount password: ${passBase}\nAccount ID: ${uID}\nAccount API token (Keep this very safe): ${token.token}`);
-    const owner = new User({ username: name, uID, first: true, admin: true, token: token.hash, password });
+    const owner = new User( {
+        username: name, uID, first: true, admin: true, token: token.hash, password,
+    } );
     await owner.save();
     process.exit();
-}());
+}() );
