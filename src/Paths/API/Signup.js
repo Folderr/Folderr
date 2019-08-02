@@ -12,7 +12,7 @@ class Signup extends Path {
 
     async genUID() {
         const uID = await this.Utils.genUID();
-        const user = await this.base.schemas.User.findOne({ uID });
+        const user = await this.base.schemas.User.findOne( { uID } );
         if (user) {
             return this.genUID();
         }
@@ -21,26 +21,28 @@ class Signup extends Path {
 
     async execute(req, res) {
         if (!this.base.options.signups) {
-            return res.status(423).send('[WARN] Signups are closed.');
+            return res.status(this.codes.locked).send('[WARN] Signups are closed.');
         }
 
         if (!req.body || (req.body && (!req.body.username || !req.body.password) ) ) {
             if (req.body && (req.body.email || req.body.username || req.body.password) ) {
-                return res.status(206).send('[ERROR] You have one part of the signup process, but not all.');
+                return res.status(this.codes.partial_content).send('[ERROR] You have one part of the signup process, but not all.');
             }
-            return res.status(204).send('[ERROR] You have none of the content needed for account creation.');
+            return res.status(this.codes.no_content).send('[ERROR] You have none of the content needed for account creation.');
         }
 
         const { username, password } = req.body;
-        if (username.length > 12 || username.length < 3) {
-            return res.status(400).send('[ERROR] Password must be between 3 and 12 characters!');
-        } else if (username.length !== username.match(/[a-z0-9_]/g).length) {
-            return res.status(400).send('[ERROR] Password may only contain lowercase letters, numbers, and an underscore.');
+        const maxUsername = 12;
+        const minUsername = 3;
+        if (username.length > maxUsername || username.length < minUsername) {
+            return res.status(this.codes.bad_req).send('[ERROR] Password must be between 3 and 12 characters!');
+        } if (username.length !== username.match(/[a-z0-9_]/g).length) {
+            return res.status(this.codes.bad_req).send('[ERROR] Password may only contain lowercase letters, numbers, and an underscore.');
         }
 
-        let user = await this.base.schemas.User.findOne({ username }) || await this.base.schemas.VerifyingUser.findOne({ username });
+        const user = await this.base.schemas.User.findOne( { username } ) || await this.base.schemas.VerifyingUser.findOne( { username } );
         if (user) {
-            return res.status(226).send('[ERRORR] Username taken!');
+            return res.status(this.codes.used).send('[ERRORR] Username taken!');
         }
 
         let pswd;
@@ -48,29 +50,28 @@ class Signup extends Path {
             pswd = await this.Utils.hashPass(password);
         } catch (err) {
             console.log(`[ERROR] [Signup -  Create password] - ${err}`);
-            return res.status(400).send(`[ERROR] ${err.message}`);
+            return res.status(this.codes.internal_err).send(`[ERROR] ${err.message}`);
         }
 
-        let failed = false;
-        let failedMess = '';
+        const failed = false;
+        const failedMess = '';
 
         const uID = await this.genUID();
         const validationToken = await this.Utils.genValidationToken(uID);
-        const nUser = new this.base.schemas.VerifyingUser({ uID, password: pswd , username, validationToken: validationToken.hash });
+        const nUser = new this.base.schemas.VerifyingUser( { uID, password: pswd, username, validationToken: validationToken.hash } );
         await nUser.save();
 
-        const admins = await this.base.schemas.User.find({ admin: true });
+        const admins = await this.base.schemas.User.find( { admin: true } );
         let success = 0;
         for (let admin of admins) {
-            const bAdmin = admin;
             try {
                 const notifyID = await this.Utils.genNotifyID(admin.notifs);
-                admin.notifs.push({
+                admin.notifs.push( {
                     ID: notifyID,
                     notify: `User ID: ${uID}\nValidation Token: ${validationToken.token}`,
-                    title: 'New user signup!'
+                    title: 'New user signup!',
                 } );
-                admin = await this.base.schemas.User.findOneAndUpdate({ uID: admin.uID }, admin).exec();
+                admin = await this.base.schemas.User.findOneAndUpdate( { uID: admin.uID }, admin).exec();
                 success++;
             } catch (err) {
                 console.log(`[ERROR] - [Signup.execute] - Error updating notifications for admin ${admin.uID} - ${err.message || err}`);
@@ -78,9 +79,9 @@ class Signup extends Path {
         }
         console.log(`[SIGNUP] Notified ${success}/${admins.length} admins about verifying user ${uID}`);
         if (failed) {
-            return res.status(500).send(failedMess);
+            return res.status(this.codes.internal_err).send(failedMess);
         }
-        return res.status(200).send('[SUCCESS] The admins have been notified of your account request!');
+        return res.status(this.codes.created).send('[SUCCESS] The admins have been notified of your account request!');
     }
 }
 

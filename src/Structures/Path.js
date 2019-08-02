@@ -1,3 +1,5 @@
+import codes from './Status_Codes';
+
 class Path {
     constructor(evolve, base) {
         this.label = 'label'; // Label for the path.
@@ -8,6 +10,7 @@ class Path {
         this.base = base;
         this.Utils = this.base.Utils;
         this.load = true;
+        this.codes = codes;
     }
 
     toString() {
@@ -15,43 +18,42 @@ class Path {
     }
 
     // Place holder. Replace in child
-    execute (req, res) {
+    execute(req, res) {
         throw Error('Not implemented!');
     }
 
     _execute(req, res) {
+        const twoSec = 2000;
+        const maxTrys = 3;
+        const hour = 3600000;
         // If ratelimited, tell the user
         if (this.evolve.ipBans.includes(req.ip) ) {
-            return res.status(403).send('Rate limited (Banned)');
+            return res.status(this.codes.foribidden).send('Rate limited (Banned)');
         }
 
         let check = this.evolve.ips.get(req.ip);
         // You get three requestrs in two seconds and you get banned on the fourth.
         this.evolve.ips.set(req.ip, !isNaN(check) ? check + 1 : 0);
         if (!check && this.evolve.ips.get(req.ip) ) {
-            setTimeout(() => {
+            setTimeout( () => {
                 this.evolve.ips.delete(req.ip);
-            }, 2000);
+            }, twoSec);
         }
 
         check = this.evolve.ips.get(req.ip);
-        if (check > 3) {
+        if (check > maxTrys) {
             // Ban the IP if check is greater than or equal to three
             this.evolve.ipBans.push(req.ip);
             console.log(`IP ${req.ip} banned!`);
 
-            setTimeout(() => {
+            setTimeout( () => {
                 this.evolve.ipBans = this.evolve.ipBans.filter(ip => ip !== req.ip);
                 console.log(this.evolve.ipBans);
-            }, 3600000);
-            return res.status(403).send('Rate limited (Banned)'); // Tell the user they are rate limited
+            }, hour);
+            return res.status(this.codes.forbidden).send('Rate limited (Banned)'); // Tell the user they are rate limited
         }
 
-        // If the path does not need authentication
-        if (!this.reqAuth) {
-            return this.execute(req, res);
-        }
-        // Uh...
+        return this.execute(req, res);
     }
 }
 

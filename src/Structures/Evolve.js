@@ -2,7 +2,7 @@ import Base from './Base';
 import * as paths from '../Paths/index';
 
 class Evolve {
-    constructor(options = {}) {
+    constructor(options = {} ) {
         this._options = options;
         this.paths = new Map();
         this.ips = new Map();
@@ -21,25 +21,17 @@ class Evolve {
         this.paths.set(path.label, path);
 
         if (path.type === 'post') {
-            base.web.post(path.path, (req, res) => {
-                return path._execute(req, res);
-            } );
+            base.web.post(path.path, (req, res) => path._execute(req, res) );
         } else if (path.type === 'delete') {
-            base.web.delete(path.path, (req, res) => {
-                return path._execute(req, res);
-            } );
+            base.web.delete(path.path, (req, res) => path._execute(req, res) );
         } else if (path.type === 'patch') {
-            base.web.patch(path.path, (req, res) => {
-                return path._execute(req, res);
-            } );
+            base.web.patch(path.path, (req, res) => path._execute(req, res) );
         } else {
-            base.web.get(path.path, (req, res) => {
-                return path._execute(req, res);
-            } );
+            base.web.get(path.path, (req, res) => path._execute(req, res) );
         }
     }
 
-    async init () {
+    async init() {
         const base = new Base(this, this._options);
         delete this._options;
         // Initiate paths

@@ -2,16 +2,16 @@ import superagent from 'superagent';
 import express from 'express';
 import mongoose from 'mongoose';
 import { platform } from 'os';
-import events from 'events';
+import Events from 'events';
 import User from '../Schemas/User';
 import Image from '../Schemas/Image';
 import VerifyingUser from '../Schemas/VerifyingUser';
 import Utils from './Utils';
-const ee = new events();
+const ee = new Events();
 const bodyParser = require('body-parser');
 
 ee.on('fail', () => {
-    setTimeout(() => {
+    setTimeout( () => {
         process.exit();
     }, 1000);
 } );
@@ -64,19 +64,19 @@ class Base {
     _initConfig(options) {
         if (!options) return;
         for (const key in optionsBase) {
-            if (!options[key]) {
+            if (!options[key] ) {
                 options[key] = optionsBase[key];
             }
             // Handle database config, hopefully this will reduce the amount of errors people get
-            if (key === 'mongoUrl' && options[key].startsWith('mongodb://')) {
+            if (key === 'mongoUrl' && options[key].startsWith('mongodb://') ) {
                 let mUrl = options[key].slice(10);
                 mUrl = mUrl.split('/');
-                if (!mUrl[1]) {
+                if (!mUrl[1] ) {
                     options[key] += '/evolve-x';
                 }
-            } else if (key === 'mongoUrl' && !options[key].startsWith('mongodb://')) {
+            } else if (key === 'mongoUrl' && !options[key].startsWith('mongodb://') ) {
                 const mUrl = options.mongoUrl.split('/');
-                if (!mUrl[1]) {
+                if (!mUrl[1] ) {
                     options[key] = `mongodb://${options[key]}/evolve-x`;
                 } else {
                     options[key] = `mongodb://${options[key]}`;
@@ -102,9 +102,15 @@ class Base {
         if (this.flags !== '--init-first') {
             // If you are on linux and trying to listen to a port under 1024, you cannot if you are not root.
             // Handle this if you are not root
-            if ((process.getuid && process.getuid() !== 0) && this.options.port < 1024 && platform() === 'linux') {
+            const linuxRootPorts = 1024;
+            const linuxRootUid = 0;
+            if ( (process.getuid && process.getuid() !== linuxRootUid) && this.options.port < linuxRootPorts && platform() === 'linux') {
                 ee.emit('fail');
                 throw Error(`[FAIL] Cannot listen to port ${this.options.port} as you are not root!`);
+            }
+            // Please dont run apps as root on linux..
+            if (process.getuid && process.getuid() === linuxRootUid) {
+                console.log('[WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!"');
             }
 
             const uhm = await this.superagent.get(`localhost:${this.options.port}`).catch( (err) => {
@@ -113,17 +119,15 @@ class Base {
                 } else {
                     throw Error(err);
                 }
-            });
+            } );
             if (uhm && this.flags !== '--init-first') {
                 ee.emit('fail');
                 throw Error('You are trying to listen on a port in use!');
             }
 
             this.web.listen(this.options.port);
-            let owner = await this.schemas.User.findOne({ first: true });
             console.log(`[INFO] Signups are: ${!this.signups ? 'disabled' : 'enabled'}`);
         }
-
     }
 }
 
