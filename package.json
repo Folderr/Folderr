@@ -1,10 +1,10 @@
 {
   "name": "evolve-x",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "A host for images, videos, shortened urls, ect..",
   "main": "src/index.js",
   "scripts": {
-    "start": "echo \"ERROR - Not implemented. Goodbye\" && exit 1",
+    "start": "node -r essm src/index.js",
     "initfirst": "node -r esm scripts/initFirst.js"
   },
   "repository": {
@@ -25,5 +25,9 @@
     "mongoose": "^5.6.5",
     "nodemailer": "^6.3.0",
     "superagent": "^5.1.0"
+  },
+  "devDependencies": {
+    "@axonteam/eslint-config": "^2.1.1",
+    "eslint": "^6.1.0"
   }
 }
