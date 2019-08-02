@@ -1,0 +1,124 @@
+## Lets talk about Evolve-X's paths..
+
+In the demos below we will be using superagent
+
+# Notes on the API
+
+If there was an error while processing your request the response text should start with `[ERROR]`.
+
+If the API was successful it should return `[SUCCESS]`
+
+# API Authentication
+Currently Evolve-X has special authentication, this being token (`*`) and password (`**`) authentication types.
+
+Token auth (`*`)
+- Your headers will need to include `uid`, and `token`
+
+Example:
+```js
+const superagent = require('superagent');
+/* Superagent request */.set({ uid: 'Your user ID', token: 'Your special token' });
+```
+
+Password auth (`**`)
+- Your headers will need to include `uid`, and `password`
+
+Example:
+```js
+const superagent = require('superagent');
+/* Superagent request */.set({ uid: 'Your user ID', password: 'Your password' });
+```
+
+Also, paths marked with an `$` will require you to be an admin
+
+# Actual paths, API
+
+`POST /api/signup`
+
+Signup for evolve-x
+
+- * Requires a body with your desired username and password
+
+
+* Username cannot be taken, and can be no more than 12 characters and no less than 3
+- * Username may only contain lowercase letters, numbers, and an underscore.
+* Passwords cannot be more than 32 characters, less than 8.
+- * Passwords may only contain letters, numbers, the underscore, the `&` symbol, and a period.
+
+### Notice
+
+If the user has chosen to disable signups, your will get a status code 423 (locked) and the message `[WARN] Signups are closed.`
+
+Example:
+```js
+const superagent = require('superagent');
+superagent.post('your_url_here/api/signup').send({ username: 'hell_raiser420', password: 'omgItsNull9000' });
+// Expected: "[SUCCESS] The admins have been notified of your account request!"
+```
+
+`GET /api/notifs`
+
+flags: `*`
+
+Returns your notifications.
+
+Example:
+```js
+const superagent = require('superagent');
+superagent.get('your_url_here/api/notifs');
+```
+
+*`DELETE /api/notifs`
+
+Clear your notifications
+
+Example:
+```js
+const superagent = require('superagent');
+superagent.delete('your_url_here/api/notifs');
+```
+
+`POST /api/verify`
+
+flags: `*`, `$`
+
+Verify a user.
+
+- Body needs the validation token and user ID
+
+### Notice
+
+- This will return a 404 (not found) if it cannot find the user to verify!
+
+Example:
+```js
+const superagent = require('superagent');
+superagent.post('your_url_here/api/verify').send({ uid: '545996854785731475959', token: 'bmpp2e2550-zFyBNHlL0LqSJRHAJw8v4dVk358wHgVAjI+FarmSR_Ga9pxioYl7l.VWV5bE5oR2ttajYzcExWUTFBTnc4UUZiOXlwQVk1R01EZHQ5bUpXWDU0aFUySlhzRmJodDY3UkplMlV3UUpuLQ==.NDQ2' });
+// Expected: "[SUCCESS] Verified user!"
+```
+
+`DELETE /api/verify`
+
+flags: `*`, `$`
+
+Deny a user.
+
+- Body needs the validation token and user ID
+
+### Notice
+
+- This will return a 404 (not found) if it cannot find the user to verify!
+
+Example:
+```js
+const superagent = require('superagent');
+superagent.delete('your_url_here/api/verify').send({ uid: '545996854785731475959', token: 'bmpp2e2550-zFyBNHlL0LqSJRHAJw8v4dVk358wHgVAjI+FarmSR_Ga9pxioYl7l.VWV5bE5oR2ttajYzcExWUTFBTnc4UUZiOXlwQVk1R01EZHQ5bUpXWDU0aFUySlhzRmJodDY3UkplMlV3UUpuLQ==.NDQ2' });
+// Expected: "[SUCCESS] Denied user!"
+```
+
+# Actual paths, frontend
+(we will not be using superagent)
+
+`/`
+
+The home page.
