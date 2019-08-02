@@ -31,7 +31,7 @@ function _password() {
     return verify();
 }
 
-async function _username() {
+function _username() {
     const q = 'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\n';
     rl.question(q, (answer) => {
         if (!answer) {
@@ -67,14 +67,13 @@ async function _username() {
     let name = await _username();
     a = undefined;
     let password = await _password();
-    rl.close();
     const uID = await base.Utils.genUID();
 
     const passBase = password;
     password = await base.Utils.hashPass(password);
     const token = await base.Utils.genToken(uID);
     console.log(`Account created successfully! See your details below...\n\nAccount name: ${name}\nAccount password: ${passBase}\nAccount ID: ${uID}\nAccount API token (Keep this very safe): ${token.token}`);
-    const owner = new User({ username: name, uID, first: true, admin: true, token: token.hash, password: password });
+    const owner = new User({ username: name, uID, first: true, admin: true, token: token.hash, password });
     await owner.save();
     process.exit();
 }());

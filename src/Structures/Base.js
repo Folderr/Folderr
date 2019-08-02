@@ -5,8 +5,10 @@ import { platform } from 'os';
 import events from 'events';
 import User from '../Schemas/User';
 import Image from '../Schemas/Image';
+import VerifyingUser from '../Schemas/VerifyingUser';
 import Utils from './Utils';
 const ee = new events();
+const bodyParser = require('body-parser');
 
 ee.on('fail', () => {
     setTimeout(() => {
@@ -17,8 +19,12 @@ ee.on('fail', () => {
 const optionsBase = {
     port: 8888,
     url: 'localhost',
-    mongoUrl: 'mongodb://localhost/evolve-x'
+    mongoUrl: 'mongodb://localhost/evolve-x',
+    signups: true,
+    apiOnly: false,
 };
+
+const web = express();
 
 class Base {
     /**
@@ -39,11 +45,45 @@ class Base {
     constructor(evolve, options = {}, flags = '') {
         this.evolve = evolve;
         this.superagent = superagent;
-        this._options = options;
-        this.web = express();
-        this.schemas = { User, Image };
-        this.Utils = Utils;
+        this.web = web;
+        this.web.use(bodyParser.json() );
+        this.schemas = { User, Image, VerifyingUser };
+        this.Utils = new Utils();
         this.flags = flags;
+        this.signups = this._fetchAuthType(options);
+        this.options = this._initConfig(options);
+    }
+
+    _fetchAuthType(options) {
+        if (!options) return true;
+        if (!options.signups) return true;
+        if (![true, false].includes(options.signups) ) return true;
+        return options.signups;
+    }
+
+    _initConfig(options) {
+        if (!options) return;
+        for (const key in optionsBase) {
+            if (!options[key]) {
+                options[key] = optionsBase[key];
+            }
+            // Handle database config, hopefully this will reduce the amount of errors people get
+            if (key === 'mongoUrl' && options[key].startsWith('mongodb://')) {
+                let mUrl = options[key].slice(10);
+                mUrl = mUrl.split('/');
+                if (!mUrl[1]) {
+                    options[key] += '/evolve-x';
+                }
+            } else if (key === 'mongoUrl' && !options[key].startsWith('mongodb://')) {
+                const mUrl = options.mongoUrl.split('/');
+                if (!mUrl[1]) {
+                    options[key] = `mongodb://${options[key]}/evolve-x`;
+                } else {
+                    options[key] = `mongodb://${options[key]}`;
+                }
+            }
+        }
+        return options;
     }
 
     async init() {
@@ -54,32 +94,9 @@ class Base {
                 process.exit();
             }
         }
-        // Verify the config
-        for (const key in optionsBase) {
-            if (!this._options[key] ) {
-                this._options[key] = optionsBase[key];
-            }
-            // Handle database config, hopefully this will reduce the amount of errors people get
-            if (key === 'mongoUrl' && this._options[key].startsWith('mongodb://') ) {
-                let mUrl = this._options[key].slice(10);
-                mUrl = mUrl.split('/');
-                if (!mUrl[1]) {
-                    this._options[key] += '/evolve-x';
-                }
-            } else if (key === 'mongoUrl' && !this._options[key].startsWith('mongodb://') ) {
-                const mUrl = this._options.mongoUrl.split('/');
-                if (!mUrl[1]) {
-                    this._options[key] = `mongodb://${this._options[key]}/evolve-x`;
-                } else {
-                    this._options[key] = `mongodb://${this._options[key]}`;
-                }
-            }
-        }
-        this.options = this._options;
-        delete this._options;
 
         // Initiate the database
-        mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true } );
+        mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true, useFindAndModify: false } );
 
         // Make sure you do not try to listen on a port in use (also its a more helpful error message)
         if (this.flags !== '--init-first') {
@@ -103,6 +120,8 @@ class Base {
             }
 
             this.web.listen(this.options.port);
+            let owner = await this.schemas.User.findOne({ first: true });
+            console.log(`[INFO] Signups are: ${!this.signups ? 'disabled' : 'enabled'}`);
         }
 
     }

@@ -6,6 +6,7 @@ class Home extends Path {
         this.label = 'Homepage';
         this.path = '/';
         this.type = 'get';
+        this.load = !this.base.options.apiOnly;
     }
 
     execute(req, res) {

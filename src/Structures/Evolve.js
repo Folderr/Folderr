@@ -9,47 +9,55 @@ class Evolve {
         this.ipBans = [];
     }
 
+    _initPath(path, base) {
+        // Handle if the path is a bad path
+        if (!path.label || !path.path) {
+            throw Error(`[ERROR] Path ${path.path || path.label} label and or path not found!`);
+        }
+        if (!path.execute) {
+            throw Error(`[ERROR] Path ${path.label} does not have an execute method!`);
+        }
+        // Set the path, then initiate the path on the web server. I will probably set up a better method later
+        this.paths.set(path.label, path);
+
+        if (path.type === 'post') {
+            base.web.post(path.path, (req, res) => {
+                return path._execute(req, res);
+            } );
+        } else if (path.type === 'delete') {
+            base.web.delete(path.path, (req, res) => {
+                return path._execute(req, res);
+            } );
+        } else if (path.type === 'patch') {
+            base.web.patch(path.path, (req, res) => {
+                return path._execute(req, res);
+            } );
+        } else {
+            base.web.get(path.path, (req, res) => {
+                return path._execute(req, res);
+            } );
+        }
+    }
+
     async init () {
         const base = new Base(this, this._options);
         delete this._options;
         // Initiate paths
+        let pathNums = 0;
         for (let Path in paths) {
-            console.log(`[INFO] Initializing Path ${Path}`);
             const mName = Path;
             Path = paths[Path];
-            const path = new Path(this, base._options);
-            // Handle if the path is a bad path
-            if (!path.label || !path.path) {
-                throw Error(`[ERROR] Path ${path.path || path.label} label and or path not found!`);
+            const path = new Path(this, base);
+            if (path.load) { // If the path should be loaded
+                console.log(`[INFO] [INIT PATH] - Initializing Path ${path.label}`);
+                // Init the path
+                this._initPath(path, base);
+                // Tell the user the path was initialized
+                console.log(`[INFO] - [INIT PATH] - Initialized path ${path.label} (${mName}) with type ${path.type}!`);
+                pathNums++;
             }
-            if (!path.execute) {
-                throw Error(`[ERROR] Path ${path.label} does not have an execute method!`);
-            }
-            // Set the path, then initiate the path on the web server. I will probably set up a better method later
-            this.paths.set(path.label, path);
-
-            switch (path.type) {
-                case 'put': {
-                    base.web.put(path.path, (req, res) => {
-                        return path._execute(req, res);
-                    } );
-                } case 'delete': {
-                    base.web.delete(path.path, (req, res) => {
-                        return path._execute(req, res);
-                    } );
-                } case 'patch': {
-                    base.web.patch(path.path, (req, res) => {
-                        return path._execute(req, res);
-                    } );
-                }
-                default: {
-                    base.web.get(path.path, (req, res) => {
-                        return path._execute(req, res);
-                    } );
-                }
-            }
-            console.log(`[INFO] Initialized Path ${path.label} (${mName})!`);
         }
+        console.log(`[INFO] - [INIT] Initialized ${pathNums} paths`);
         // Initiate the base of the project
         await base.init();
 
