@@ -1,12 +1,17 @@
-import Base from './Base';
-
-class Path extends Base {
-    constructor(evolve, options) {
-        super(evolve, options);
+class Path {
+    constructor(evolve, base) {
         this.label = 'label'; // Label for the path.
         this.path = ''; // The path to server for
         this.type = 'get'; // What type of request it needs
         // this.reqAuth = false;
+        this.evolve = evolve;
+        this.base = base;
+        this.Utils = this.base.Utils;
+        this.load = true;
+    }
+
+    toString() {
+        return `[Path ${this.path}]`;
     }
 
     // Place holder. Replace in child
@@ -34,6 +39,7 @@ class Path extends Base {
             // Ban the IP if check is greater than or equal to three
             this.evolve.ipBans.push(req.ip);
             console.log(`IP ${req.ip} banned!`);
+
             setTimeout(() => {
                 this.evolve.ipBans = this.evolve.ipBans.filter(ip => ip !== req.ip);
                 console.log(this.evolve.ipBans);
