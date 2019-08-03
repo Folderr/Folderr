@@ -62,6 +62,10 @@ flags: `*`
 
 Returns your notifications.
 
+### Notes
+
+- If you append `?admin=true` to the end of the url, you will get admin notifications if you are an admin. If you are not an admin and try that, you will get an unauthorized status code.
+
 Example:
 ```js
 const superagent = require('superagent');
@@ -90,6 +94,8 @@ Verify a user.
 
 - This will return a 404 (not found) if it cannot find the user to verify!
 
+- Deletes admin notification automatically
+
 Example:
 ```js
 const superagent = require('superagent');
@@ -108,6 +114,8 @@ Deny a user.
 ### Notice
 
 - This will return a 404 (not found) if it cannot find the user to verify!
+
+- Deletes admin notification automatically
 
 Example:
 ```js
