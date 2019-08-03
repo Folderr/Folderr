@@ -60,10 +60,10 @@ class Signup extends Path {
 
         const notifs = await this.base.schemas.AdminNotifs.find();
         const notifyID = await this.Utils.genNotifyID(notifs);
-        const notify = new this.base.schemas.AdminNotifs({
+        const notify = new this.base.schemas.AdminNotifs( {
             ID: notifyID,
             title: 'New user signup!',
-            notify: `Username: ${username}\nUser ID: ${uID}\nValidation Token: ${validationToken.token}`
+            notify: `Username: ${username}\nUser ID: ${uID}\nValidation Token: ${validationToken.token}`,
         } );
         await notify.save();
         console.log(`[SIGNUP] Notified admins about verifying user ${uID}`);

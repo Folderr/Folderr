@@ -25,9 +25,9 @@ class Account extends Path {
             token_generated: !!auth.token,
             uID: auth.uID,
             admin: !!auth.admin,
-            owner: !!auth.first
+            owner: !!auth.first,
         };
-        return res.status(200).send(acc);
+        return res.status(this.codes.ok).send(acc);
     }
 }
 

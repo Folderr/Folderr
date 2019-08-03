@@ -132,21 +132,22 @@ class Utils {
     async authPassword(password, username) {
         const user = await User.findOne( { username } );
         if (!user) {
-            return;
+            return false;
         }
         if (!bcrypt.compareSync(password, user.password) ) {
-            return;
+            return false;
         }
         return user;
     }
 
+    // eslint disable-next-line consistent-return
     async findVerifying(validationToken, userID) {
         const user = await VerifyingUser.findOne( { uID: userID } );
         if (!user) {
-            return;
+            return false;
         }
         if (!bcrypt.compareSync(validationToken, user.validationToken) ) {
-            return;
+            return false;
         }
         return user;
     }

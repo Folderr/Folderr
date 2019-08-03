@@ -18,6 +18,7 @@ class Path {
     }
 
     // Place holder. Replace in child
+    // eslint-disable-next-line no-unused-vars
     execute(req, res) {
         throw Error('Not implemented!');
     }

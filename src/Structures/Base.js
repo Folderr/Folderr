@@ -6,7 +6,7 @@ import Events from 'events';
 import User from '../Schemas/User';
 import Image from '../Schemas/Image';
 import VerifyingUser from '../Schemas/VerifyingUser';
-import AdminNotifs from "../Schemas/Admin_Notifs";
+import AdminNotifs from '../Schemas/Admin_Notifs';
 import Utils from './Utils';
 const ee = new Events();
 const bodyParser = require('body-parser');

@@ -20,17 +20,17 @@ class DelAccount extends Path {
             return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         }
         if (auth.first) {
-            return res.status(this.codes.foribidden).send('[ERROR] You can not delete account as you are the owner!')
+            return res.status(this.codes.foribidden).send('[ERROR] You can not delete account as you are the owner!');
         }
 
         try {
-            await this.base.schemas.User.findOneAndDelete({ uID: auth.uID });
-            await this.base.schemas.Image.deleteMany({ owner: auth.uID });
+            await this.base.schemas.User.findOneAndDelete( { uID: auth.uID } );
+            await this.base.schemas.Image.deleteMany( { owner: auth.uID } );
             console.log(`[INFO] - Account ${req.headers.username} (${auth.uID}) deleted!`);
             return res.status(this.codes.ok).send('[SUCCESS] Account deleted!');
         } catch (err) {
             console.log(`[ERROR] - Account deletion error - ${err.message || err}`);
-            return res.status(this.codes.internal_err).send(`[ERROR] Account deletion error - ${err.message || err}`)
+            return res.status(this.codes.internal_err).send(`[ERROR] Account deletion error - ${err.message || err}`);
         }
     }
 }
