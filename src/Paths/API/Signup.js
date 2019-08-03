@@ -21,7 +21,7 @@ class Signup extends Path {
 
     async execute(req, res) {
         if (!this.base.options.signups) {
-            return res.status(this.codes.locked).send('[WARN] Signups are closed.');
+            return res.status(this.codes.locked).send('[WARN] Signup\'s are closed.');
         }
 
         if (!req.body || (req.body && (!req.body.username || !req.body.password) ) ) {
@@ -42,45 +42,31 @@ class Signup extends Path {
 
         const user = await this.base.schemas.User.findOne( { username } ) || await this.base.schemas.VerifyingUser.findOne( { username } );
         if (user) {
-            return res.status(this.codes.used).send('[ERRORR] Username taken!');
+            return res.status(this.codes.used).send('[ERROR] Username taken!');
         }
 
         let pswd;
         try {
             pswd = await this.Utils.hashPass(password);
         } catch (err) {
-            console.log(`[ERROR] [Signup -  Create password] - ${err}`);
+            console.log(`[ERROR] [SIGNUP -  Create password] - ${err}`);
             return res.status(this.codes.internal_err).send(`[ERROR] ${err.message}`);
         }
-
-        const failed = false;
-        const failedMess = '';
 
         const uID = await this.genUID();
         const validationToken = await this.Utils.genValidationToken(uID);
         const nUser = new this.base.schemas.VerifyingUser( { uID, password: pswd, username, validationToken: validationToken.hash } );
         await nUser.save();
 
-        const admins = await this.base.schemas.User.find( { admin: true } );
-        let success = 0;
-        for (let admin of admins) {
-            try {
-                const notifyID = await this.Utils.genNotifyID(admin.notifs);
-                admin.notifs.push( {
-                    ID: notifyID,
-                    notify: `User ID: ${uID}\nValidation Token: ${validationToken.token}`,
-                    title: 'New user signup!',
-                } );
-                admin = await this.base.schemas.User.findOneAndUpdate( { uID: admin.uID }, admin).exec();
-                success++;
-            } catch (err) {
-                console.log(`[ERROR] - [Signup.execute] - Error updating notifications for admin ${admin.uID} - ${err.message || err}`);
-            }
-        }
-        console.log(`[SIGNUP] Notified ${success}/${admins.length} admins about verifying user ${uID}`);
-        if (failed) {
-            return res.status(this.codes.internal_err).send(failedMess);
-        }
+        const notifs = await this.base.schemas.AdminNotifs.find();
+        const notifyID = await this.Utils.genNotifyID(notifs);
+        const notify = new this.base.schemas.AdminNotifs({
+            ID: notifyID,
+            title: 'New user signup!',
+            notify: `Username: ${username}\nUser ID: ${uID}\nValidation Token: ${validationToken.token}`
+        } );
+        await notify.save();
+        console.log(`[SIGNUP] Notified admins about verifying user ${uID}`);
         return res.status(this.codes.created).send('[SUCCESS] The admins have been notified of your account request!');
     }
 }
