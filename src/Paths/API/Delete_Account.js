@@ -24,13 +24,13 @@ class DelAccount extends Path {
         }
 
         try {
-            await this.base.schemas.User.findOneAndDelete({ uID: req.headers.uid });
+            await this.base.schemas.User.findOneAndDelete({ uID: auth.uID });
             await this.base.schemas.Image.deleteMany({ owner: auth.uID });
             console.log(`[INFO] - Account ${req.headers.username} (${auth.uID}) deleted!`);
             return res.status(this.codes.ok).send('[SUCCESS] Account deleted!');
         } catch (err) {
             console.log(`[ERROR] - Account deletion error - ${err.message || err}`);
-            return res.status(this.codes.internal_err).send(`[ERROR] - Account deletion error - ${err.message || err}`)
+            return res.status(this.codes.internal_err).send(`[ERROR] Account deletion error - ${err.message || err}`)
         }
     }
 }

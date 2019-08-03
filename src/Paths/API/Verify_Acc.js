@@ -27,7 +27,10 @@ class VerifyAccount extends Path {
         const nUser = new this.base.schemas.User( { username, uID, password } );
         await this.base.schemas.VerifyingUser.findOneAndRemove( { uID } );
         await nUser.save();
-        console.log(`[INFO] - User ${nUser.uid}'s account has been verified by admin ${req.headers.uid}`);
+        let notifs = await this.base.schemas.AdminNotifs.find();
+        let notify = notifs.find(notify => notify.notify.includes(user.uID) );
+        await this.base.schemas.AdminNotifs.deleteOne(notify);
+        console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${req.headers.uid}`);
         return res.status(this.codes.created).send('[SUCCESS] Verified user!');
     }
 }

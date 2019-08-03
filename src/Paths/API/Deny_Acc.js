@@ -24,7 +24,10 @@ class DenyAccount extends Path {
             return res.status(this.codes.not_found).send('[ERROR] User not found!');
         }
         await this.base.schemas.VerifyingUser.findOneAndRemove( { uID: user.uID } );
-        console.log(`[INFO] - User ${user.id}'s account was denied by admin ${req.headers.uid}`);
+        let notifs = await this.base.schemas.AdminNotifs.find();
+        let notify = notifs.find(notify => notify.notify.includes(user.uID) );
+        await this.base.schemas.AdminNotifs.deleteOne(notify);
+        console.log(`[INFO] - User ${user.uID}'s account was denied by admin ${req.headers.uid}`);
         return res.status(this.codes.ok).send('[SUCCESS] Denied user!');
     }
 }
