@@ -6,6 +6,7 @@ import Events from 'events';
 import User from '../Schemas/User';
 import Image from '../Schemas/Image';
 import VerifyingUser from '../Schemas/VerifyingUser';
+import AdminNotifs from "../Schemas/Admin_Notifs";
 import Utils from './Utils';
 const ee = new Events();
 const bodyParser = require('body-parser');
@@ -47,7 +48,7 @@ class Base {
         this.superagent = superagent;
         this.web = web;
         this.web.use(bodyParser.json() );
-        this.schemas = { User, Image, VerifyingUser };
+        this.schemas = { User, Image, VerifyingUser, AdminNotifs };
         this.Utils = new Utils();
         this.flags = flags;
         this.signups = this._fetchAuthType(options);

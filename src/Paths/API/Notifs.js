@@ -19,8 +19,23 @@ class Notifs extends Path {
         if (!auth) {
             return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         }
+        let notifs = auth.notifs;
+        if (req.query && req.query.admin === 'true') {
+            if (!auth.admin) {
+                return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+            }
+            const anotifs = await this.base.schemas.AdminNotifs.find();
+            notifs = [];
+            for (const notify of anotifs) {
+                notifs.push({
+                    ID: notify.id,
+                    title: notify.title,
+                    notify: notify.notify
+                } );
+            }
+        }
 
-        return res.status(this.codes.ok).send(auth.notifs);
+        return res.status(this.codes.ok).send(notifs);
     }
 }
 
