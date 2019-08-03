@@ -1,3 +1,7 @@
 {
-    "extends": "@axonteam"
+    "extends": "@axonteam",
+    "rules": {
+        "consistent-return": "warn",
+        "new-cap": "warn"
+    }
 }
