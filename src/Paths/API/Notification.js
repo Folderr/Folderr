@@ -1,12 +1,12 @@
 import Path from '../../Structures/Path';
 
-class ClearNotifs extends Path {
+class Notification extends Path {
     constructor(evolve, base) {
         super(evolve, base);
-        this.label = '[API] Clear Notifications';
-        this.path = '/api/notifications';
+        this.label = '[API] Notification';
+        this.path = '/api/notification';
 
-        this.type = 'delete';
+        this.type = 'get';
     }
 
     async execute(req, res) {
@@ -15,15 +15,22 @@ class ClearNotifs extends Path {
         } if (!req.headers.token || !req.headers.uid) {
             return res.status(this.codes.partial_content).send('[ERROR] Missing either authorization token or user ID!');
         }
+        if (!req.query || (req.query && !req.query.id) ) {
+            return res.status(this.codes.partial_content).send('[ERROR] Missing notification ID');
+        }
         const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);
         if (!auth) {
             return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         }
 
-        auth.notifs = [];
-        await this.base.schemas.User.findOneAndUpdate( { uID: auth.uID }, auth);
-        return res.status(this.codes.ok).send('[SUCCESS] Notifications cleared!');
+        const { notifs } = auth;
+        const notify = notifs.find(notification => notification.ID === req.query.id);
+        if (!notify) {
+            return res.status(this.codes.not_found).send('[ERROR] Notification not found!');
+        }
+
+        return res.status(this.codes.ok).send(notify);
     }
 }
 
-export default ClearNotifs;
+export default Notification;
