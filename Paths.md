@@ -69,7 +69,7 @@ Returns your notifications.
 Example:
 ```js
 const superagent = require('superagent');
-superagent.get('your_url_here/api/notifs');
+superagent.get('your_url_here/api/notifications');
 ```
 
 *`DELETE /api/notifs`
@@ -79,7 +79,7 @@ Clear your notifications
 Example:
 ```js
 const superagent = require('superagent');
-superagent.delete('your_url_here/api/notifs');
+superagent.delete('your_url_here/api/notifications');
 ```
 
 `POST /api/verify`
@@ -135,11 +135,14 @@ This is irreversible.
 
 This will not work if you are the owner.
 
+- Admins can delete other accounts, just not other admin accounts or the owners account.
+- Owners can delete admin accounts
+
 Example:
 ```js
 const superagent = require('superagent');
 superagent.delete('your_url_here/api/account');
-// Epected: "[SUCCESS] Account deleted!"
+// Expected: "[SUCCESS] Account deleted!"
 ```
 
 `GET api/account`
@@ -147,6 +150,56 @@ superagent.delete('your_url_here/api/account');
 flags: `**`
 
 Get some account details
+
+`GET api/admin_notification`
+
+flags: `*`, `$`
+
+Get some admin notification by ID
+
+```js
+const superagent = require('superagent');
+superagent.get('your_url_here/api/admin_notification?id=[ID here]');
+```
+
+`DELETE api/admin_notification`
+
+flags: `*`, `$`
+
+Delete some admin notification by ID
+
+### Notice
+
+- Signup notifications are protected from manual deletion.
+
+```js
+const superagent = require('superagent');
+superagent.delete('your_url_here/api/admin_notification?id=[ID here]');
+// Expected: "[SUCCESS] Notification deleted!"
+```
+
+`GET api/notification`
+
+flags: `*`
+
+Get some notification by ID
+
+```js
+const superagent = require('superagent');
+superagent.get('your_url_here/api/notification?id=[ID here]');
+```
+
+`DELETE api/notification`
+
+flags: `*`
+
+Delete some notification by ID
+
+```js
+const superagent = require('superagent');
+superagent.delete('your_url_here/api/notification?id=[ID here]');
+// Expected: "[SUCCESS] Notification deleted!"
+```
 
 # Actual paths, frontend
 (we will not be using superagent)

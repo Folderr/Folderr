@@ -4,7 +4,7 @@ class Notifs extends Path {
     constructor(evolve, base) {
         super(evolve, base);
         this.label = '[API] Notifications';
-        this.path = '/api/notifs';
+        this.path = '/api/notifications';
 
         this.type = 'get';
     }
@@ -28,7 +28,7 @@ class Notifs extends Path {
             notifs = [];
             for (const notify of anotifs) {
                 notifs.push( {
-                    ID: notify.id,
+                    ID: notify.ID,
                     title: notify.title,
                     notify: notify.notify,
                 } );

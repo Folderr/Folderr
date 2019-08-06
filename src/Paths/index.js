@@ -6,3 +6,7 @@ export { default as APINotifs } from './API/Notifs';
 export { default as APIDNotifs } from './API/Clear_Notifs';
 export { default as APIDAccount } from './API/Delete_Account';
 export { default as APIAccount } from './API/Account';
+export { default as APINotify } from './API/Notification';
+export { default as APIAdminNotify } from './API/Admin_Notification';
+export { default as APIDNotify } from './API/Delete_Notify';
+export { default as APIDAdminNotify } from './API/Delete_Admin_Notification';

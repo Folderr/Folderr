@@ -7,7 +7,7 @@ const User = new Schema( {
     first: { type: Boolean, required: false },
     username: { type: String, required: true },
     admin: { type: Boolean, default: false },
-    notifs: { type: [], required: false, default: [] },
+    notifs: { type: [{ ID: { type: String }, title: { type: String }, notify: { type: String } }], required: false, default: [] },
 } );
 
 export default model('user', User);

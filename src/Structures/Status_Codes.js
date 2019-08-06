@@ -6,7 +6,7 @@ const codes = {
     used: 226,
     bad_req: 400,
     unauth: 401,
-    foribidden: 403,
+    forbidden: 403,
     not_found: 404,
     locked: 423,
     too_many_req: 429,
