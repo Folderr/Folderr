@@ -6,28 +6,54 @@ import { promisify } from 'util';
 
 const sleep = promisify(setTimeout);
 
+/**
+ * @class Utils
+ *
+ * @author Null#0515
+ */
 class Utils {
+    /**
+     * @prop {Number} saltRounds The rounds to salt with
+     * @prop {Number} byteSize The amount of random bytes to generate
+     */
     constructor() {
         this.saltRounds = 10;
         this.byteSize = 48;
     }
 
+    /**
+     * @returns {string}
+     */
     toString() {
         return '[Evolve-X Utils]';
     }
 
     /**
      * Returns a random number between min (inclusive) and max (exclusive)
+     *
+     * @returns {Number}
      */
     genRandomNum() {
         return Math.random() * (9);
     }
 
+    /**
+     * Wait for a certain time
+     * - Async/wait only
+     *
+     * @param {Number} ms The milliseconds to sleep for
+     * @returns {Promise<void>}
+     */
     async sleep(ms) {
         await sleep(ms);
         return Promise.resolve();
     }
 
+    /**
+     * Generate a user ID
+     *
+     * @returns {Promise<string>}
+     */
     genUID() {
         const max = 22;
         const min = 18;
@@ -42,6 +68,12 @@ class Utils {
         return Promise.resolve(uID);
     }
 
+    /**
+     * Hash a password
+     *
+     * @param {String} password The password to hash
+     * @returns {String}
+     */
     hashPass(password) {
         const minPass = 8;
         const maxPass = 32;
@@ -54,6 +86,12 @@ class Utils {
         return bcrypt.hash(password, this.saltRounds);
     }
 
+    /**
+     * Generate a notification ID
+     *
+     * @param {Object[]} notifs The notifications IDs to ignore
+     * @returns {Promise<string|Promise<*>>}
+     */
     async genNotifyID(notifs) {
         const ID = await this.genUID();
         const notify = notifs.find(notif => notif.id === ID);
@@ -63,6 +101,12 @@ class Utils {
         return ID;
     }
 
+    /**
+     * Generate a users token
+     *
+     * @param userID
+     * @returns {Promise<{hash: *, token: *}>}
+     */
     async genToken(userID) {
         const random = crypto.randomBytes(this.byteSize).toString('base64')
             .replace(/[+\\]/, '-')
@@ -74,15 +118,11 @@ class Utils {
         return { token, hash };
     }
 
-    async validateToken(token) {
-        token = await bcrypt.hash(token, this.saltRounds);
-        const user = await VerifyingUser.findOne( { validationToken: token } );
-        if (user) {
-            return { success: true, uID: user.uID };
-        }
-        return { success: false };
-    }
-
+    /**
+     * Generate a validation token
+     *
+     * @returns {Promise<{hash: String, token: String}>}
+     */
     async genValidationToken() {
         const random = crypto.randomBytes(this.byteSize).toString('base64')
             .replace(/[+\\]/, '-')
@@ -97,6 +137,13 @@ class Utils {
         return { token, hash };
     }
 
+    /**
+     * Authenticate a user using token and user ID
+     *
+     * @param {String} token The users token
+     * @param {String} userID The users ID
+     * @returns {Promise<void|Object>}
+     */
     async authToken(token, userID) {
         const user = await User.findOne( { uID: userID } );
         if (!user) {
@@ -108,7 +155,13 @@ class Utils {
         return user;
     }
 
-
+    /**
+     * Authenticate a user using password and username
+     *
+     * @param {String} password The users password
+     * @param {String} username The users username
+     * @returns {Promise<boolean>}
+     */
     async authPassword(password, username) {
         const user = await User.findOne( { username } );
         if (!user) {
@@ -120,7 +173,13 @@ class Utils {
         return user;
     }
 
-    // eslint disable-next-line consistent-return
+    /**
+     * Find and return a verifying user from the schema if any
+     *
+     * @param {String} validationToken The validation token to search for
+     * @param {String} userID The user IDs to look for
+     * @returns {Promise<boolean>}
+     */
     async findVerifying(validationToken, userID) {
         const user = await VerifyingUser.findOne( { uID: userID } );
         if (!user) {

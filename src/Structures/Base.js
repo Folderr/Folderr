@@ -27,6 +27,11 @@ const optionsBase = {
 
 const web = express();
 
+/**
+ * @class Base
+ *
+ * @author Null#0515
+ */
 class Base {
     /**
      * @param {Object} evolve The Evolve client
@@ -55,6 +60,13 @@ class Base {
         this.options = this._initConfig(options);
     }
 
+    /**
+     * Fetch the configs auth type
+     *
+     * @param {Object} options Configuration
+     * @returns {boolean|*}
+     * @private
+     */
     _fetchAuthType(options) {
         if (!options) return true;
         if (!options.signups) return true;
@@ -62,6 +74,13 @@ class Base {
         return options.signups;
     }
 
+    /**
+     * Initialize the config
+     *
+     * @param {Object} options The configuration
+     * @returns {Object} The new configuration
+     * @private
+     */
     _initConfig(options) {
         if (!options) return;
         for (const key in optionsBase) {
@@ -87,6 +106,11 @@ class Base {
         return options;
     }
 
+    /**
+     * Initialize the mongoose connection, and the express app
+     *
+     * @returns {Promise<void>}
+     */
     async init() {
         if (this.flags !== '--init-first') {
             // If there are no paths, exit

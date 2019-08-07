@@ -1,3 +1,5 @@
+// HTTP status codes we use
+
 const codes = {
     ok: 200,
     created: 201,
