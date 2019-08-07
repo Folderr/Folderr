@@ -201,6 +201,28 @@ superagent.delete('your_url_here/api/notification?id=[ID here]');
 // Expected: "[SUCCESS] Notification deleted!"
 ```
 
+`PATCH api/account`
+
+flags: `**`
+
+Update your account.
+
+Keys: 
+- `0` - `username`
+- `1` - `password` 
+
+It will not let you update your new key to your old one
+
+### Notice
+The new key is in the body as `new_key`
+
+Example url: `localhost:7200?key=0`
+
+```js
+const superagent = require('superagent');
+superagent.patch('your_url_here/api/account?key=[key]').send({ new_key: 'Your new key' });
+```
+
 # Actual paths, frontend
 (we will not be using superagent)
 
