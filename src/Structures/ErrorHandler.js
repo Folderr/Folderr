@@ -1,4 +1,12 @@
+/**
+ * @class ErrorHandler
+ *
+ * @author Null#0515
+ */
 class ErrorHandler {
+    /**
+     * @param {Object} Path The Path to use
+     */
     constructor(Path) {
         this.Path = Path;
     }

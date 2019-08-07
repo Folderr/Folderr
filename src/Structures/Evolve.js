@@ -1,7 +1,20 @@
 import Base from './Base';
 import * as paths from '../Paths/index';
 
+/**
+ * @class Evolve
+ *
+ * @author Null#0515
+ */
 class Evolve {
+    /**
+     * @param {Object} options The options to pass to the base of the client
+     *
+     * @prop {Object} _options The options
+     * @prop {Map} paths The Evolve-X paths
+     * @prop {Map} ips The ips requesting evolve-x
+     * @prop {String[]} ipBans The IPs temporarily banned
+     */
     constructor(options = {} ) {
         this._options = options;
         this.paths = new Map();
@@ -9,6 +22,13 @@ class Evolve {
         this.ipBans = [];
     }
 
+    /**
+     * Initialize a path
+     *
+     * @param {Object} path The path to initialize
+     * @param {Object} base The base of evolve-x
+     * @private
+     */
     _initPath(path, base) {
         // Handle if the path is a bad path
         if (!path.label || !path.path) {
@@ -31,6 +51,11 @@ class Evolve {
         }
     }
 
+    /**
+     * Initialize the base and evolve-x
+     *
+     * @returns {Promise<void>}
+     */
     async init() {
         const base = new Base(this, this._options);
         delete this._options;

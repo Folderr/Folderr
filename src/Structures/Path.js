@@ -1,12 +1,13 @@
 import codes from './Status_Codes';
 import ErrorHandler from "./ErrorHandler";
 
-const severities = {
-    '[FATAL]': 'fatal',
-    '[MEDIUM]': 'medium',
-    '[LOW]': 'low'
-};
-
+/**
+ * Path structure
+ *
+ * @class Path
+ *
+ * @author Null#0515
+ */
 class Path {
     /**
      *
@@ -44,16 +45,32 @@ class Path {
         this._fatalErrors = 0;
     }
 
+    /**
+     * Just toString the path, lol.
+     * @returns {string}
+     */
     toString() {
         return `[Path ${this.path}]`;
     }
 
-    // Place holder. Replace in child
-    // eslint-disable-next-line no-unused-vars
+    /**
+     * Actual endpoint execution
+     *
+     * @param {Object} req The request object
+     * @param {Object} res Some object used for sending data back
+     */
     execute(req, res) {
         throw Error('Not implemented!');
     }
 
+    /**
+     * Handle rate limits, unhandled errors, execute actual endpoint
+     *
+     * @param {Object} req The request object
+     * @param {Object} res Some object used for sending data back
+     * @returns {*}
+     * @private
+     */
     _execute(req, res) {
         if (!this.enabled && !this.lean) {
             return res.status(this.codes.locked).send('[FATAL] Endpoint locked due to fatal errors!');
