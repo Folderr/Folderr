@@ -1,4 +1,4 @@
-import Path from "../../Structures/Path";
+import Path from '../../Structures/Path';
 
 class UpdateAcc extends Path {
     constructor(evolve, base) {
@@ -11,8 +11,8 @@ class UpdateAcc extends Path {
 
         this.keys = {
             0: 'username',
-            1: 'password'
-        }
+            1: 'password',
+        };
     }
 
     async updateUsername(user, name) {
@@ -34,7 +34,7 @@ class UpdateAcc extends Path {
             user.username = name;
             await user.save();
         } catch (err) {
-            return { code: thios.codes.internal_err, mess: `[ERROR] ${err.message || err}` };
+            return { code: this.codes.internal_err, mess: `[ERROR] ${err.message || err}` };
         }
 
         return { code: this.codes.ok, mess: '[SUCCESS] Account Updated!' };
@@ -52,7 +52,7 @@ class UpdateAcc extends Path {
         try {
             user.password = pswd;
             await user.save();
-        } catch(err) {
+        } catch (err) {
             console.log(`[ERROR] [Update Account - Update password] - ${err}`);
             return { code: this.codes.internal_err, mess: `[ERROR] ${err.message}` };
         }

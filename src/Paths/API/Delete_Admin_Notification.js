@@ -27,7 +27,7 @@ class DelANotify extends Path {
         }
 
         // Find the notification, and if it cant tell the user it  cannot find the notification with a code 404
-        const notify = await this.base.schemas.AdminNotifs.findOne({ ID: req.query.id });
+        const notify = await this.base.schemas.AdminNotifs.findOne( { ID: req.query.id } );
         if (!notify) {
             return res.status(this.codes.not_found).send('[ERROR] Notification not found!');
         }
