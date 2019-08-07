@@ -4,7 +4,7 @@ class DenyAccount extends Path {
     constructor(evolve, base) {
         super(evolve, base);
         this.label = '[API] Deny Account';
-        this.load = true;
+
         this.path = '/api/verify';
         this.type = 'delete';
     }

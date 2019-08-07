@@ -7,7 +7,6 @@ class Signup extends Path {
 
         this.path = '/api/signup';
         this.type = 'post';
-        this.load = true;
     }
 
     async genUID() {

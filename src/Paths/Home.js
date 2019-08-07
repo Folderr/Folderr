@@ -4,9 +4,10 @@ class Home extends Path {
     constructor(evolve, options) {
         super(evolve, options);
         this.label = 'Homepage';
+
         this.path = '/';
         this.type = 'get';
-        this.load = !this.base.options.apiOnly;
+        this.enabled = !this.base.options.apiOnly;
     }
 
     execute(req, res) {
