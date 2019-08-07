@@ -1,16 +1,28 @@
 import codes from './Status_Codes';
+import ErrorHandler from "./ErrorHandler";
+
+const severities = {
+    '[FATAL]': 'fatal',
+    '[MEDIUM]': 'medium',
+    '[LOW]': 'low'
+};
 
 class Path {
     constructor(evolve, base) {
         this.label = 'label'; // Label for the path.
         this.path = ''; // The path to server for
         this.type = 'get'; // What type of request it needs
-        // this.reqAuth = false;
+        this.enabled = true;
+        this.lean = false;
+
+
+        this.codes = codes;
         this.evolve = evolve;
         this.base = base;
         this.Utils = this.base.Utils;
-        this.load = true;
-        this.codes = codes;
+
+        this.eHandler = new ErrorHandler(this);
+        this._fatalErrors = 0;
     }
 
     toString() {
@@ -24,6 +36,9 @@ class Path {
     }
 
     _execute(req, res) {
+        if (!this.enabled && !path.lean) {
+            return res.status(this.codes.locked).send('[FATAL] Endpoint locked due to fatal errors!');
+        }
         const twoSec = 2000;
         const maxTrys = 3;
         const hour = 3600000;
@@ -54,7 +69,21 @@ class Path {
             return res.status(this.codes.forbidden).send('Rate limited (Banned)'); // Tell the user they are rate limited
         }
 
-        return this.execute(req, res);
+        try {
+            return this.execute(req, res);
+        } catch (err) {
+            let severity;
+            if (err.message && !err.message.startsWith('[ERROR]') ) {
+                if (this._fatalErrors > 2) {
+                    severity = 'fatal';
+                } else {
+                    this._fatalErrors++;
+                }
+            }
+            const handled = err.eHandler.handlePathError(err, severity);
+            console.log(`[ERROR] [PATH ${this.label}] ${handled.message} \n  Culprit: ${handled.culprit}\n  File: ${handled.file}\n  Severity: ${handled.severity}`);
+            return res.status(this.codes.internal_err).send(err.stack);
+        }
     }
 }
 

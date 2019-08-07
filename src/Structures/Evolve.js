@@ -40,7 +40,7 @@ class Evolve {
             const mName = Path;
             Path = paths[Path];
             const path = new Path(this, base);
-            if (path.load) { // If the path should be loaded
+            if (path.enabled) { // If the path should be loaded
                 console.log(`[INFO] [INIT PATH] - Initializing Path ${path.label}`);
                 // Init the path
                 this._initPath(path, base);
