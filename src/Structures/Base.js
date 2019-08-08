@@ -68,8 +68,10 @@ class Base {
      * @private
      */
     _fetchAuthType(options) {
+        // If no options or signup options
         if (!options) return true;
         if (!options.signups) return true;
+        // Handle if signups is not boolean or return
         if (![true, false].includes(options.signups) ) return true;
         return options.signups;
     }
@@ -82,8 +84,10 @@ class Base {
      * @private
      */
     _initConfig(options) {
+        // If options, loop through keys
         if (!options) return;
         for (const key in optionsBase) {
+            // If no key, add it from defaults
             if (!options[key] ) {
                 options[key] = optionsBase[key];
             }
@@ -94,7 +98,7 @@ class Base {
                 if (!mUrl[1] ) {
                     options[key] += '/evolve-x';
                 }
-            } else if (key === 'mongoUrl' && !options[key].startsWith('mongodb://') ) {
+            } else if (key === 'mongoUrl' && !options[key].startsWith('mongodb://') ) { // More database handling
                 const mUrl = options.mongoUrl.split('/');
                 if (!mUrl[1] ) {
                     options[key] = `mongodb://${options[key]}/evolve-x`;
@@ -140,15 +144,18 @@ class Base {
 
             const uhm = await this.superagent.get(`localhost:${this.options.port}`).catch( (err) => {
                 if (err.message.startsWith('connect ECONNREFUSED') ) {
-                    //
+                    // I dont care about this error
                 } else {
                     throw Error(err);
                 }
             } );
+            // If a user is trying to listen to a port already used
             if (uhm && this.flags !== '--init-first') {
                 ee.emit('fail');
                 throw Error('You are trying to listen on a port in use!');
             }
+
+            // Init the server
 
             this.web.listen(this.options.port);
             console.log(`[INFO] Signups are: ${!this.signups ? 'disabled' : 'enabled'}`);

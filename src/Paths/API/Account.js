@@ -10,6 +10,7 @@ class Account extends Path {
     }
 
     async execute(req, res) {
+        // Check headers, and check auth
         if (!req.headers.password && !req.headers.username) {
             return res.status(this.codes.no_content).send('[ERROR] Missing authorization password and username!');
         } if (!req.headers.password || !req.headers.username) {
@@ -20,6 +21,7 @@ class Account extends Path {
             return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         }
 
+        // Return a nice version of this users account.
         const acc = {
             username: auth.username,
             token_generated: !!auth.token,

@@ -40,6 +40,7 @@ class Evolve {
         // Set the path, then initiate the path on the web server. I will probably set up a better method later
         this.paths.set(path.label, path);
 
+        // Init the path with the web app
         if (path.type === 'post') {
             base.web.post(path.path, (req, res) => path._execute(req, res) );
         } else if (path.type === 'delete') {
@@ -57,6 +58,7 @@ class Evolve {
      * @returns {Promise<void>}
      */
     async init() {
+        // Init the base, remove options
         const base = new Base(this, this._options);
         delete this._options;
         // Initiate paths
@@ -69,7 +71,7 @@ class Evolve {
                 console.log(`[INFO] [INIT PATH] - Initializing Path ${path.label}`);
                 // Init the path
                 this._initPath(path, base);
-                // Tell the user the path was initialized
+                // Tell the user the path was initialized and add the number of paths loaded by 1
                 console.log(`[INFO] - [INIT PATH] - Initialized path ${path.label} (${mName}) with type ${path.type}!`);
                 pathNums++;
             }

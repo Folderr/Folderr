@@ -10,6 +10,7 @@ class ClearNotifs extends Path {
     }
 
     async execute(req, res) {
+        // Check headers, and check auth
         if (!req.headers.token && !req.headers.uid) {
             return res.status(this.codes.no_content).send('[ERROR] Missing authorization token and user ID!');
         } if (!req.headers.token || !req.headers.uid) {
@@ -20,6 +21,7 @@ class ClearNotifs extends Path {
             return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         }
 
+        // Clear the notifications and tell the user that happened
         auth.notifs = [];
         await this.base.schemas.User.findOneAndUpdate( { uID: auth.uID }, auth);
         return res.status(this.codes.ok).send('[SUCCESS] Notifications cleared!');

@@ -72,9 +72,11 @@ class Path {
      * @private
      */
     _execute(req, res) {
+        // If path is not enabled, and it is not lean... end the endpoint here
         if (!this.enabled && !this.lean) {
             return res.status(this.codes.locked).send('[FATAL] Endpoint locked due to fatal errors!');
         }
+        // Define number variables
         const twoSec = 2000;
         const maxTrys = 3;
         const hour = 3600000;
@@ -83,7 +85,7 @@ class Path {
             return res.status(this.codes.forbidden).send('Rate limited (Banned)');
         }
 
-        let check = this.evolve.ips.get(req.ip);
+        let check = this.evolve.ips.get(req.ip); // Requests in 2 seconds
         // You get three requesters in two seconds and you get banned on the fourth.
         this.evolve.ips.set(req.ip, !isNaN(check) ? check + 1 : 0);
         if (!check && this.evolve.ips.get(req.ip) ) {
@@ -92,12 +94,14 @@ class Path {
             }, twoSec);
         }
 
+        // Check the requests and see if the user is banned
         check = this.evolve.ips.get(req.ip);
         if (check > maxTrys) {
             // Ban the IP if check is greater than or equal to three
             this.evolve.ipBans.push(req.ip);
             console.log(`IP ${req.ip} banned!`);
 
+            // Remove the ip ban after an hour
             setTimeout( () => {
                 this.evolve.ipBans = this.evolve.ipBans.filter(ip => ip !== req.ip);
                 console.log(this.evolve.ipBans);
@@ -105,6 +109,7 @@ class Path {
             return res.status(this.codes.forbidden).send('Rate limited (Banned)'); // Tell the user they are rate limited
         }
 
+        // Execute the endpoint and catch errors
         try {
             return this.execute(req, res);
         } catch (err) {
@@ -118,6 +123,7 @@ class Path {
                     severity = '[fatal]';
                 }
             }
+            // Parse error and log the error
             const handled = this.eHandler.handlePathError(err, severity);
             console.log(`[INTERNAL ERROR] [PATH ${this.label}] ${handled.message} \n  Culprit: ${handled.culprit}\n  File: (file://${handled.file.slice(1)}\n  Severity: ${handled.severity}`);
             return res.status(this.codes.internal_err).send(err.stack);
