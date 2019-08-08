@@ -10,6 +10,7 @@ class DelNotify extends Path {
     }
 
     async execute(req, res) {
+        // Check headers and query
         if (!req.headers.token && !req.headers.uid) {
             return res.status(this.codes.no_content).send('[ERROR] Missing authorization token and user ID!');
         } if (!req.headers.token || !req.headers.uid) {
@@ -18,16 +19,20 @@ class DelNotify extends Path {
         if (!req.query || (req.query && !req.query.id) ) {
             return res.status(this.codes.partial_content).send('[ERROR] Missing notification ID');
         }
+        // Check auth
         const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);
         if (!auth) {
             return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         }
 
+        // Grab the users notifications, and find the one they are looking for
         const { notifs } = auth;
         const notify = notifs.find(notification => notification.ID === req.query.id);
+        // If no notification, tell the user that notification does not exist
         if (!notify) {
             return res.status(this.codes.not_found).send('[ERROR] Notification not found!');
         }
+        // Remove the notification, update the users account, and return success
         auth.notifs = notifs.filter(notification => notification.ID !== req.query.id);
         await this.base.schemas.User.findOneAndUpdate( { uID: auth.uID }, auth);
         return res.status(this.codes.ok).send('[SUCCESS] Notification removed!');

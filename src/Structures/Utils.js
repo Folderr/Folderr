@@ -55,13 +55,18 @@ class Utils {
      * @returns {Promise<string>}
      */
     genUID() {
+        // Minimum and max id length
         const max = 22;
         const min = 18;
+        // What is wut??
         const wut = 1;
+        // pick between 18 and 22
         const num = Math.floor(Math.random() * (max - min + wut) ) + min;
         let uID = '';
+        // Min and max numbers
         const maxChar = 9;
         const minChar = 1;
+        // Generate the user ID
         for (let i = 0; i < num; i++) {
             uID += String(Math.floor(Math.random() * (maxChar - minChar + wut) ) + minChar);
         }
@@ -75,14 +80,19 @@ class Utils {
      * @returns {String}
      */
     hashPass(password) {
+        // Minimum and max password lengths
         const minPass = 8;
         const maxPass = 32;
+        // If the password is not over min length
+        // If password does not match the regex completely
         if (password.length < minPass || password.match(/[A-Za-z0-9_.&]/g).length !== password.length) {
             throw Error('Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`');
         }
+        // If the password is too long
         if (password.length > maxPass) {
             throw Error('Password is too long, password must be under 32 characters long');
         }
+        // Hash and return
         return bcrypt.hash(password, this.saltRounds);
     }
 
@@ -93,11 +103,14 @@ class Utils {
      * @returns {Promise<string|Promise<*>>}
      */
     async genNotifyID(notifs) {
+        // Gen the ID, and dont let the ID equal a already nmade notiy id
         const ID = await this.genUID();
         const notify = notifs.find(notif => notif.id === ID);
         if (notify) {
+            // Retry if notify exists
             return this.genNotifyID();
         }
+        // Return the ID
         return ID;
     }
 
@@ -108,11 +121,14 @@ class Utils {
      * @returns {Promise<{hash: *, token: *}>}
      */
     async genToken(userID) {
+        // Generate random bytes, create buffer from user id
+        // Oh and get a base64 date in milliseconds
         const random = crypto.randomBytes(this.byteSize).toString('base64')
             .replace(/[+\\]/, '-')
             .replace(/[=/.]/, '_');
         const uID = new Buffer.from(userID).toString('base64');
         const date = Buffer.from(new Date().getUTCMilliseconds().toString() ).toString('base64');
+        // Combine, hash, and return the hashed and unhashed token
         const token = `${uID}.${random}.${date}`;
         const hash = await bcrypt.hash(token, this.saltRounds);
         return { token, hash };
@@ -124,6 +140,8 @@ class Utils {
      * @returns {Promise<{hash: String, token: String}>}
      */
     async genValidationToken() {
+        // Generate random bytes, gen more random bytes
+        // Oh and get a base64 date in milliseconds
         const random = crypto.randomBytes(this.byteSize).toString('base64')
             .replace(/[+\\]/, '-')
             .replace(/[=/.]/, '_');
@@ -132,6 +150,7 @@ class Utils {
             .replace(/[=/.]/, '_');
         const uID = new Buffer.from(randomID).toString('base64');
         const date = Buffer.from(new Date().getUTCMilliseconds().toString() ).toString('base64');
+        // Combine, hash, and return unhashed and hashed versions
         const token = `${random}.${uID}.${date}`;
         const hash = await bcrypt.hash(token, this.saltRounds);
         return { token, hash };
@@ -145,10 +164,12 @@ class Utils {
      * @returns {Promise<void|Object>}
      */
     async authToken(token, userID) {
+        // Find the user via ID, if no user the auth failed
         const user = await User.findOne( { uID: userID } );
         if (!user) {
             return;
         }
+        // IO tokens do not match, auth failed... Else return user
         if (!bcrypt.compareSync(token, user.token) ) {
             return;
         }
@@ -163,13 +184,16 @@ class Utils {
      * @returns {Promise<boolean>}
      */
     async authPassword(password, username) {
+        // Find user on username, and if no user auth failed
         const user = await User.findOne( { username } );
         if (!user) {
             return false;
         }
+        // Compare actual password and inputted password. If they do not match, fail
         if (!bcrypt.compareSync(password, user.password) ) {
             return false;
         }
+        // Return the user
         return user;
     }
 

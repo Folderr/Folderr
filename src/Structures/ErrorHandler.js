@@ -18,12 +18,14 @@ class ErrorHandler {
      * @returns {{severity: String, culprit: String, file: String, message: String}}
      */
     handlePathError(err, severity) {
+        // Define variables
         let base = err.stack.split('\n');
         let culprit = base[2].slice(7);
         const file = culprit;
         culprit = culprit.split(' ')[0];
         const message = { culprit, file: file.slice(culprit.length + 1), message: base[0], severity };
 
+        // Disable path if the error was fatal
         if (severity && severity === 'fatal') {
             this.Path.enabled = false;
         }

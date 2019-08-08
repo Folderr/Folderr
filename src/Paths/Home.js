@@ -11,6 +11,7 @@ class Home extends Path {
     }
 
     execute(req, res) {
+        // Basic hellow world page
         return res.send('Hello World!');
     }
 }
