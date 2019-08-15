@@ -8,9 +8,9 @@ class DeleteAdmin extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Delete Admin';
-        this.path = '/api/del_admin';
+        this.path = '/api/admin';
 
-        this.type = 'post';
+        this.type = 'delete';
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
