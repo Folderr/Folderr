@@ -1,8 +1,8 @@
 import Path from '../../Structures/Path';
-import Base from "../../Structures/Base";
-import Evolve from "../../Structures/Evolve";
-import {Request, Response} from "express";
-import {isArray} from "util";
+import Base from '../../Structures/Base';
+import Evolve from '../../Structures/Evolve';
+import { Request, Response } from 'express';
+import { isArray } from 'util';
 
 class AdminNotification extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -16,15 +16,15 @@ class AdminNotification extends Path {
     async execute(req: Request, res: Response): Promise<Response> {
         // Check headers, and query (make sure it ais all there)
         if (!req.headers.token && !req.headers.uid) {
-            return res.status(this.codes.no_content).send('[ERROR] Missing authorization token and user ID!');
+            return res.status(this.codes.noContent).send('[ERROR] Missing authorization token and user ID!');
         } if (!req.headers.token || !req.headers.uid) {
-            return res.status(this.codes.partial_content).send('[ERROR] Missing either authorization token or user ID!');
+            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization token or user ID!');
         }
         if (!req.query || (req.query && !req.query.id) ) {
-            return res.status(this.codes.partial_content).send('[ERROR] Missing notification ID');
+            return res.status(this.codes.partialContent).send('[ERROR] Missing notification ID');
         }
         if (isArray(req.headers.token) || isArray(req.headers.uid) ) {
-            return res.status(this.codes.bad_req).send('[ERROR] Neither header auth field may be an array!');
+            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
         }
         // Check auth
         const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);
@@ -35,7 +35,7 @@ class AdminNotification extends Path {
         // Find notification. If not found, return a not found status code
         const notify = await this.base.schemas.AdminNotifs.findOne( { ID: req.query.id } );
         if (!notify) {
-            return res.status(this.codes.not_found).send('[ERROR] Notification not found!');
+            return res.status(this.codes.notFound).send('[ERROR] Notification not found!');
         }
 
         // Oh look a notification!

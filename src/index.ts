@@ -1,5 +1,5 @@
 import Evolve from './Structures/Evolve';
-const config = require('../config');
+import config from '../config.json';
 
 const evolve = new Evolve(config);
 

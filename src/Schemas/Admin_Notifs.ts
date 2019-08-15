@@ -1,4 +1,4 @@
-import {Schema, model, Model, Document} from 'mongoose';
+import { Schema, model, Model, Document } from 'mongoose';
 
 const AdminNotifs: Schema = new Schema( {
     title: { type: String, required: true },
@@ -6,12 +6,12 @@ const AdminNotifs: Schema = new Schema( {
     ID: { type: String, required: true },
 } );
 
-interface iAdminNotifs extends Document {
+export interface Notification extends Document {
     title: string;
     notify: string;
     ID: string;
 }
 
-const mod: Model<iAdminNotifs> = model<iAdminNotifs>('admin_notifs', AdminNotifs);
+const mod: Model<Notification> = model<Notification>('admin_notifs', AdminNotifs);
 
 export default mod;

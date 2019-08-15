@@ -1,4 +1,4 @@
-import {Schema, model, Model, Document} from 'mongoose';
+import { Schema, model, Model, Document } from 'mongoose';
 
 const User: Schema = new Schema( {
     uID: { type: String, required: true },
@@ -7,13 +7,13 @@ const User: Schema = new Schema( {
     validationToken: { type: String, required: true },
 } );
 
-interface IUser extends Document {
+export interface VUser extends Document {
     uID: string;
     password: string;
     username: string;
     validationToken: string;
 }
 
-const mod: Model<IUser> = model<IUser>('verifying_user', User);
+const mod: Model<VUser> = model<VUser>('verifying_user', User);
 
 export default mod;

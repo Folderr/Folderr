@@ -1,14 +1,7 @@
-import Base from './Base';
+import Base, { Options } from './Base';
 import * as paths from '../Paths';
 import Path from './Path';
 
-interface options {
-    port?: number;
-    url?: string;
-    mongoUrl?: string;
-    signups?: boolean;
-    apiOnly?: boolean;
-}
 
 /**
  * @class Evolve
@@ -16,10 +9,14 @@ interface options {
  * @author Null#0515
  */
 class Evolve {
-    private _options: options;
+    private _options: Options;
+
     public paths: Map<string, object>;
+
     public ips: Map<string, number>;
+
     public ipBans: string[];
+
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -28,7 +25,7 @@ class Evolve {
      * @prop {Map} ips The ips requesting evolve-x
      * @prop {String[]} ipBans The IPs temporarily banned
      */
-    constructor(options: options = {} ) {
+    constructor(options: Options = {} ) {
         this._options = options;
         this.paths = new Map();
         this.ips = new Map();
@@ -42,7 +39,7 @@ class Evolve {
      * @param {Object} base The base of evolve-x
      * @private
      */
-    _initPath(path:Path, base: Base): void {
+    _initPath(path: Path, base: Base): void {
         // Handle if the path is a bad path
         if (!path.label || !path.path) {
             throw Error(`[ERROR] Path ${path.path || path.label} label and or path not found!`);
@@ -76,8 +73,9 @@ class Evolve {
         delete this._options;
         // Initiate paths
         let pathNums = 0;
-        for (let path in paths) {
+        for (const path in paths) {
             const mName: string = path;
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
             const Ok = paths[path];
             const apath: Path = new Ok(this, base);
