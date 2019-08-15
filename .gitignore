@@ -16,4 +16,5 @@ src/index.js
 src/Structures/*.js
 src/Schemas/*.js
 src/Paths/*.js
+src/Paths/**/*.js
 scripts/*.js

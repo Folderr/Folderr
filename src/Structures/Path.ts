@@ -90,7 +90,7 @@ class Path {
      * @param {Object} req The request object
      * @param {Object} res Some object used for sending data back
      */
-    execute(req: express.Request, res: express.Response): any|Promise<any> {
+    execute(req: express.Request, res: express.Response): express.Response|Promise<express.Response> {
         throw Error('Not implemented!');
     }
 
@@ -102,7 +102,7 @@ class Path {
      * @returns {*}
      * @private
      */
-    _execute(req: express.Request, res: express.Response): any {
+    _execute(req: express.Request, res: express.Response): express.Response | Promise<express.Response> {
         // If path is not enabled, and it is not lean... end the endpoint here
         if (!this.enabled && !this.lean) {
             return res.status(this.codes.locked).send('[FATAL] Endpoint locked due to fatal errors!');
