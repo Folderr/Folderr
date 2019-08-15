@@ -1,4 +1,4 @@
-import {Schema, model, Model, Document} from 'mongoose';
+import { Schema, model, Model, Document } from 'mongoose';
 
 const User: Schema = new Schema( {
     uID: { type: String, required: true },
@@ -10,22 +10,22 @@ const User: Schema = new Schema( {
     notifs: { type: [{ ID: { type: String }, title: { type: String }, notify: { type: String } }], required: false, default: [] },
 } );
 
-interface notification {
+export interface Notification {
     ID: string;
     title: string;
     notify: string;
 }
 
-interface IUser extends Document {
+export interface UserI extends Document {
     uID: string;
     password: string;
     token: string;
     first?: boolean;
     username: string;
     admin?: boolean;
-    notifs?: notification[];
+    notifs?: Notification[];
 }
 
-const mod: Model<IUser> = model<IUser>('user', User);
+const mod: Model<UserI> = model<UserI>('user', User);
 
-export default mod
+export default mod;

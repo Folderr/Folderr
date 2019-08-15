@@ -8,9 +8,10 @@ const rl = readline.createInterface( {
     input: process.stdin,
     output: process.stdout,
     terminal: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     history: 0,
-    // I read the docs and this exists, so TS...
+    // I read the docs and this exists, so TS & ESLint...
     // Shut up.
 } );
 
@@ -21,7 +22,7 @@ const second = 1000;
 async function verify(): Promise<string> {
     await base.Utils.sleep(second); // Sleep for a second
     if (!a) return verify();
-    return <string>a;
+    return a as string;
 }
 
 function _password(): Promise<string> {
@@ -49,7 +50,7 @@ function _username(): Promise<string> {
             rl.write('Username length is invalid! Length must be between 3 & 12\n');
             process.exit();
         }
-        const match = answer.match(/[a-z0-9_]/g)
+        const match = answer.match(/[a-z0-9_]/g);
         if (!match || answer.length !== match.length) {
             rl.write('Username is invalid\n');
             process.exit();

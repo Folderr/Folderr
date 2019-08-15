@@ -1,17 +1,17 @@
-import superagent from 'superagent';
+import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
-import mongoose, {Document} from 'mongoose';
-import {platform} from 'os';
+import mongoose from 'mongoose';
+import { platform } from 'os';
+import bodyParser from 'body-parser';
 import Events from 'events';
-import User from '../Schemas/User';
-import Image from '../Schemas/Image';
-import VerifyingUser from '../Schemas/VerifyingUser';
-import AdminNotifs from '../Schemas/Admin_Notifs';
+import User, { UserI } from '../Schemas/User';
+import Image, { ImageI } from '../Schemas/Image';
+import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
+import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
 import Utils from './Utils';
-import Evolve from "./Evolve";
+import Evolve from './Evolve';
 
 const ee = new Events();
-const bodyParser = require('body-parser');
 
 ee.on('fail', () => {
     setTimeout( () => {
@@ -29,7 +29,7 @@ const optionsBase = {
 
 const web = express();
 
-interface options {
+export interface Options {
     port?: number;
     url?: string;
     mongoUrl?: string;
@@ -37,7 +37,7 @@ interface options {
     apiOnly?: boolean;
 }
 
-interface aOptions {
+interface ActualOptions {
     port: number;
     url: string;
     mongoUrl: string;
@@ -45,46 +45,11 @@ interface aOptions {
     apiOnly: boolean;
 }
 
-interface iNotifs extends mongoose.Document {
-    title: string;
-    notify: string;
-    ID: string;
-}
-
-interface notification {
-    title: string;
-    notify: string;
-    ID: string;
-}
-
-interface IImage extends Document {
-    id: string;
-    owner: string;
-    format: string;
-}
-
-interface IUser extends Document {
-    uID: string;
-    password: string;
-    token: string;
-    first?: boolean;
-    username: string;
-    admin?: boolean;
-    notifs?: notification[];
-}
-
-interface IVUser extends Document {
-    uID: string;
-    password: string;
-    username: string;
-    validationToken: string;
-}
-
-interface schemas {
-    User: mongoose.Model<IUser>;
-    Image: mongoose.Model<IImage>;
-    VerifyingUser: mongoose.Model<IVUser>;
-    AdminNotifs: mongoose.Model<iNotifs>;
+interface Schemas {
+    User: mongoose.Model<UserI>;
+    Image: mongoose.Model<ImageI>;
+    VerifyingUser: mongoose.Model<VUser>;
+    AdminNotifs: mongoose.Model<Notification>;
 }
 
 /**
@@ -108,16 +73,23 @@ class Base {
      *
      * @prop {Object} options The Evolve-X options, initiated later
      * */
-    public evolve: Evolve;
-    // @ts-ignore
-    public superagent: superagent.SuperAgent;
+    public evolve: Evolve | void;
+
+    public superagent: SuperAgent<SuperAgentRequest>;
+
     public web: express.Application;
-    public schemas: schemas;
+
+    public schemas: Schemas;
+
     public Utils: Utils;
+
     public flags?: string;
+
     public signups: boolean;
-    public options: aOptions;
-    constructor(evolve: any, options: options, flags?: string) {
+
+    public options: ActualOptions;
+
+    constructor(evolve: Evolve | null, options: Options, flags?: string) {
         this.evolve = evolve;
         this.superagent = superagent;
         this.web = web;
@@ -136,7 +108,7 @@ class Base {
      * @returns {boolean|*}
      * @private
      */
-    _fetchAuthType(options: options): boolean {
+    _fetchAuthType(options: Options): boolean {
         // If no options or signup options
         if (!options) return true;
         if (!options.signups) return true;
@@ -152,15 +124,14 @@ class Base {
      * @returns {Object} The new configuration
      * @private
      */
-    _initConfig(options: options): aOptions {
+    _initConfig(options: Options): ActualOptions {
         // If options, loop through keys
-        const opts = {};
+        const opts = {}; /* eslint-disable */
         if (!options) return optionsBase;
         for (const key in optionsBase) {
             // If no key, add it from defaults
             // @ts-ignore
             if (!options[key] ) {
-
                 // @ts-ignore
                 opts[key] = optionsBase[key];
             } else {
@@ -171,7 +142,7 @@ class Base {
             // @ts-ignore
             if (key === 'mongoUrl' && opts[key].startsWith('mongodb://') ) {
                 // @ts-ignore
-                let mUrl = opts[key].slice(10);
+                const mUrl = opts[key].slice(10);
                 if (!mUrl.split('/')[1] ) {
                     // @ts-ignore
                     opts[key] += '/evolve-x';
@@ -182,7 +153,7 @@ class Base {
                     // @ts-ignore
                     const mUrl = opts.mongoUrl.split('/');
                     if (!mUrl[1] ) {
-                       // @ts-ignore
+                        // @ts-ignore
                         opts[key] = `mongodb://${opts[key]}/evolve-x`;
                     } else {
                         // @ts-ignore
@@ -190,8 +161,8 @@ class Base {
                     }
                 }
             }
-        }
-        return <aOptions>opts;
+        } /* eslint-enable */
+        return opts as ActualOptions;
     }
 
     /**
@@ -209,7 +180,6 @@ class Base {
         }
 
         // Initiate the database
-        // @ts-ignore
         mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true, useFindAndModify: false } );
 
         // Make sure you do not try to listen on a port in use (also its a more helpful error message)
@@ -218,7 +188,6 @@ class Base {
             // Handle this if you are not root
             const linuxRootPorts = 1024;
             const linuxRootUid = 0;
-            // @ts-ignore
             if ( (process.getuid && process.getuid() !== linuxRootUid) && this.options.port < linuxRootPorts && platform() === 'linux') {
                 ee.emit('fail');
                 throw Error(`[FAIL] Cannot listen to port ${this.options.port} as you are not root!`);
@@ -231,7 +200,7 @@ class Base {
             let uhm;
 
             try {
-                uhm = await this.superagent.get(`localhost:${this.options.port}`)
+                uhm = await this.superagent.get(`localhost:${this.options.port}`);
             } catch (err) {
                 if (err.message.startsWith('connect ECONNREFUSED') ) {
                     // I dont care about this error

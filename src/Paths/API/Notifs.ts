@@ -1,8 +1,8 @@
 import Path from '../../Structures/Path';
-import Evolve from "../../Structures/Evolve";
-import Base from "../../Structures/Base";
-import {Request, Response} from "express";
-import {isArray} from "util";
+import Evolve from '../../Structures/Evolve';
+import Base from '../../Structures/Base';
+import { Request, Response } from 'express';
+import { isArray } from 'util';
 
 class Notifs extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -16,12 +16,12 @@ class Notifs extends Path {
     async execute(req: Request, res: Response): Promise<Response> {
         // Check headers for auth stuff
         if (!req.headers.token && !req.headers.uid) {
-            return res.status(this.codes.no_content).send('[ERROR] Missing authorization token and user ID!');
+            return res.status(this.codes.noContent).send('[ERROR] Missing authorization token and user ID!');
         } if (!req.headers.token || !req.headers.uid) {
-            return res.status(this.codes.partial_content).send('[ERROR] Missing either authorization token or user ID!');
+            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization token or user ID!');
         }
         if (isArray(req.headers.token) || isArray(req.headers.uid) ) {
-            return res.status(this.codes.bad_req).send('[ERROR] Neither header auth field may be an array!');
+            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
         }
         // Check auth by token/id
         const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);

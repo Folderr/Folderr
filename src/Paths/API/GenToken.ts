@@ -1,8 +1,8 @@
 import { Response, Request } from 'express';
-import Path from "../../Structures/Path";
-import Evolve from "../../Structures/Evolve";
-import Base from "../../Structures/Base";
-import {isArray} from "util";
+import Path from '../../Structures/Path';
+import Evolve from '../../Structures/Evolve';
+import Base from '../../Structures/Base';
+import { isArray } from 'util';
 
 class GenToken extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -14,12 +14,12 @@ class GenToken extends Path {
     async execute(req: Request, res: Response): Promise<Response> {
         // Make sure auth stuff is present
         if (!req.headers.password && !req.headers.username) {
-            return res.status(this.codes.no_content).send('[ERROR] Missing authorization password and username!');
+            return res.status(this.codes.noContent).send('[ERROR] Missing authorization password and username!');
         } if (!req.headers.password || !req.headers.username) {
-            return res.status(this.codes.partial_content).send('[ERROR] Missing either authorization password or username!');
+            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization password or username!');
         }
         if (isArray(req.headers.password) || isArray(req.headers.username) ) {
-            return res.status(this.codes.bad_req).send('[ERROR] Neither header auth field may be an array!');
+            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
         }
         // Check auth
         const auth = await this.Utils.authPassword(req.headers.password, req.headers.username);

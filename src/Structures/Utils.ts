@@ -1,44 +1,14 @@
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import User from '../Schemas/User';
-import VerifyingUser from '../Schemas/VerifyingUser';
+import User, { Notification, UserI } from '../Schemas/User';
+import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
 import { promisify } from 'util';
-import {Document} from "mongoose";
 
 const sleep = promisify(setTimeout);
 
-interface notification {
-    title: string;
-    notify: string;
-    ID: string;
-}
-
-interface IUser extends Document {
-    uID: string;
-    password: string;
-    token?: string;
-    first?: boolean;
-    username: string;
-    admin?: boolean;
-    notifs?: notification[];
-}
-
-interface tokenReturn {
+interface TokenReturn {
     token: string;
     hash: string;
-}
-
-interface notification {
-    ID: string;
-    title: string;
-    notify: string;
-}
-
-interface IVUser extends Document {
-    uID: string;
-    password: string;
-    username: string;
-    validationToken: string;
 }
 
 /**
@@ -48,7 +18,9 @@ interface IVUser extends Document {
  */
 class Utils {
     public saltRounds: number;
+
     public byteSize: number;
+
     /**
      * @prop {Number} saltRounds The rounds to salt with
      * @prop {Number} byteSize The amount of random bytes to generate
@@ -140,10 +112,10 @@ class Utils {
      * @param {Object[]} notifs The notifications IDs to ignore
      * @returns {Promise<string|Promise<*>>}
      */
-    async genNotifyID(notifs: notification[]): Promise<string> {
+    async genNotifyID(notifs: Notification[] ): Promise<string> {
         // Gen the ID, and dont let the ID equal a already made notify id
         const ID: string = await this.genUID();
-        const notify: notification | undefined = notifs.find(notif => notif.ID === ID);
+        const notify: Notification | undefined = notifs.find(notif => notif.ID === ID);
         if (notify) {
             // Retry if notify exists
             return this.genNotifyID(notifs);
@@ -158,13 +130,15 @@ class Utils {
      * @param userID
      * @returns {Promise<{hash: *, token: *}>}
      */
-    async genToken(userID: string): Promise<tokenReturn> {
+    async genToken(userID: string): Promise<TokenReturn> {
         // Generate random bytes, create buffer from user id
         // Oh and get a base64 date in milliseconds
         const random: string = crypto.randomBytes(this.byteSize).toString('base64')
             .replace(/[+\\]/, '-')
             .replace(/[=/.]/, '_');
-        const uID = Buffer.from(userID).toString('base64');
+        const uID = Buffer.from(userID).toString('base64')
+            .replace(/[+\\]/, '-')
+            .replace(/[=/.]/, '_');
         const date = Buffer.from(new Date().getUTCMilliseconds().toString() ).toString('base64');
         // Combine, hash, and return the hashed and unhashed token
         const token = `${uID}.${random}.${date}`;
@@ -177,21 +151,11 @@ class Utils {
      *
      * @returns {Promise<{hash: String, token: String}>}
      */
-    async genValidationToken(): Promise<tokenReturn> {
+    async genValidationToken(): Promise<TokenReturn> {
         // Generate random bytes, gen more random bytes
         // Oh and get a base64 date in milliseconds
-        const random: string = crypto.randomBytes(this.byteSize).toString('base64')
-            .replace(/[+\\]/, '-')
-            .replace(/[=/.]/, '_');
-        const randomID: string = crypto.randomBytes(this.byteSize).toString('base64')
-            .replace(/[+\\]/, '-')
-            .replace(/[=/.]/, '_');
-        const uID: string = Buffer.from(randomID).toString('base64');
-        const date: string = Buffer.from(new Date().getUTCMilliseconds().toString() ).toString('base64');
-        // Combine, hash, and return unhashed and hashed versions
-        const token: string = `${random}.${uID}.${date}`;
-        const hash: string = await bcrypt.hash(token, this.saltRounds);
-        return { token, hash };
+        const random: string = crypto.randomBytes(this.byteSize).toString();
+        return this.genToken(random);
     }
 
     /**
@@ -201,7 +165,7 @@ class Utils {
      * @param {String} userID The users ID
      * @returns {Promise<void|Object>}
      */
-    async authToken(token: string, userID: string): Promise<IUser|false> {
+    async authToken(token: string, userID: string): Promise<UserI|false> {
         // Find the user via ID, if no user the auth failed
         const user = await User.findOne( { uID: userID } );
         if (!user) {
@@ -221,7 +185,7 @@ class Utils {
      * @param {String} username The users username
      * @returns {Promise<boolean>}
      */
-    async authPassword(password: string, username: string): Promise<IUser|false> {
+    async authPassword(password: string, username: string): Promise<UserI|false> {
         // Find user on username, and if no user auth failed
         const user = await User.findOne( { username } );
         if (!user) {
@@ -242,8 +206,8 @@ class Utils {
      * @param {String} userID The user IDs to look for
      * @returns {Promise<boolean>}
      */
-    async findVerifying(validationToken: string, userID: string): Promise<IUser|false> {
-        const user: IVUser | null = await VerifyingUser.findOne( { uID: userID } );
+    async findVerifying(validationToken: string, userID: string): Promise<VUser|false> {
+        const user: VUser | null = await VerifyingUser.findOne( { uID: userID } );
         if (!user) {
             return false;
         }

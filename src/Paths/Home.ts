@@ -1,15 +1,7 @@
 import Path from '../../src/Structures/Path';
-import Evolve from "../Structures/Evolve";
-import {Request, Response} from "express";
-import Base from "../Structures/Base";
-
-interface options {
-    port?: number;
-    url?: string;
-    mongoUrl?: string;
-    signups?: boolean;
-    apiOnly?: boolean;
-}
+import Evolve from '../Structures/Evolve';
+import { Request, Response } from 'express';
+import Base from '../Structures/Base';
 
 class Home extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -22,7 +14,7 @@ class Home extends Path {
     }
 
     execute(req: Request, res: Response): Response {
-        // Basic hellow world page
+        // Basic hello world page
         return res.send('Hello World!');
     }
 }

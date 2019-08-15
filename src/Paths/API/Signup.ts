@@ -1,7 +1,7 @@
 import Path from '../../Structures/Path';
-import Evolve from "../../Structures/Evolve";
-import Base from "../../Structures/Base";
-import {Request, Response} from "express";
+import Evolve from '../../Structures/Evolve';
+import Base from '../../Structures/Base';
+import { Request, Response } from 'express';
 
 class Signup extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -32,9 +32,9 @@ class Signup extends Path {
         // Check all required body is there
         if (!req.body || (req.body && (!req.body.username || !req.body.password) ) ) {
             if (req.body && (req.body.email || req.body.username || req.body.password) ) {
-                return res.status(this.codes.partial_content).send('[ERROR] You have one part of the signup process, but not all.');
+                return res.status(this.codes.partialContent).send('[ERROR] You have one part of the signup process, but not all.');
             }
-            return res.status(this.codes.no_content).send('[ERROR] You have none of the content needed for account creation.');
+            return res.status(this.codes.noContent).send('[ERROR] You have none of the content needed for account creation.');
         }
 
         // Fetch the username and password from the body
@@ -44,9 +44,9 @@ class Signup extends Path {
         const minUsername = 3;
         // If the username length does not match criteria
         if (username.length > maxUsername || username.length < minUsername) {
-            return res.status(this.codes.bad_req).send('[ERROR] Password must be between 3 and 12 characters!');
+            return res.status(this.codes.badReq).send('[ERROR] Password must be between 3 and 12 characters!');
         } if (username.length !== username.match(/[a-z0-9_]/g).length) { // If the username doess not match our username pattern
-            return res.status(this.codes.bad_req).send('[ERROR] Password may only contain lowercase letters, numbers, and an underscore.');
+            return res.status(this.codes.badReq).send('[ERROR] Password may only contain lowercase letters, numbers, and an underscore.');
         }
 
         // See if the username is already taken. If its taken error the request with a code of "IM USED"
@@ -62,7 +62,7 @@ class Signup extends Path {
         } catch (err) {
             // Errors shouldnt happen here, so notify the console.. Also notify the user
             console.log(`[ERROR] [SIGNUP -  Create password] - ${err}`);
-            return res.status(this.codes.internal_err).send(`[ERROR] ${err.message}`);
+            return res.status(this.codes.internalErr).send(`[ERROR] ${err.message}`);
         }
 
         // Generate the user ID and validation token.

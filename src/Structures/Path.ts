@@ -1,22 +1,22 @@
 import codes from './Status_Codes';
-import ErrorHandler from "./ErrorHandler";
+import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
 import Base from './Base';
 import express from 'express';
 
 interface Codes {
-    ok: number,
-    created: number,
-    no_content: number,
-    partial_content: number,
-    used: number,
-    bad_req: number,
-    unauth: number,
-    forbidden: number,
-    not_found: number,
-    locked: number,
-    too_many_req: number,
-    internal_err: number,
+    ok: number;
+    created: number;
+    noContent: number;
+    partialContent: number;
+    used: number;
+    badReq: number;
+    unauth: number;
+    forbidden: number;
+    notFound: number;
+    locked: number;
+    tooManyReq: number;
+    internalErr: number;
 }
 
 /**
@@ -28,18 +28,27 @@ interface Codes {
  */
 class Path {
     public label: string;
+
     public path: string;
+
     public type?: string;
+
     public enabled?: boolean;
+
     public lean?: boolean;
 
     public codes: Codes;
+
     public evolve: Evolve;
+
     public base: Base;
-    public Utils: Base["Utils"];
+
+    public Utils: Base['Utils'];
 
     private eHandler: ErrorHandler;
+
     private _fatalErrors: number;
+
     /**
      *
      * @param {Object<Evolve>} evolve The Evolve-X client
@@ -80,10 +89,11 @@ class Path {
      * Just toString the path, lol.
      * @returns {string}
      */
-    toString() {
+    toString(): string {
         return `[Path ${this.path}]`;
     }
 
+    /* eslint-disable */
     /**
      * Actual endpoint execution
      *
@@ -93,6 +103,7 @@ class Path {
     execute(req: express.Request, res: express.Response): express.Response|Promise<express.Response> {
         throw Error('Not implemented!');
     }
+    /* eslint-enable */
 
     /**
      * Handle rate limits, unhandled errors, execute actual endpoint
@@ -118,7 +129,7 @@ class Path {
 
         let check: number | undefined = this.evolve.ips.get(req.ip); // Requests in 2 seconds
         // You get three requesters in two seconds and you get banned on the fourth.
-        this.evolve.ips.set(req.ip, (check && !isNaN(check)) ? check + 1 : 0);
+        this.evolve.ips.set(req.ip, (check && !isNaN(check) ) ? check + 1 : 0);
         if (!check && this.evolve.ips.get(req.ip) ) {
             setTimeout( () => {
                 this.evolve.ips.delete(req.ip);
@@ -145,7 +156,7 @@ class Path {
             return this.execute(req, res);
         } catch (err) {
             let severity;
-            let e = err.message;
+            const e = err.message;
             if (!e.startsWith('[ERROR]') ) {
                 if (this._fatalErrors > 2) {
                     severity = 'fatal';
@@ -157,7 +168,7 @@ class Path {
             // Parse error and log the error
             const handled = this.eHandler.handlePathError(err, severity);
             console.log(`[INTERNAL ERROR] [PATH ${this.label}] ${handled.message} \n  Culprit: ${handled.culprit}\n  File: (file://${handled.file.slice(1)}\n  Severity: ${handled.severity}`);
-            return res.status(this.codes.internal_err).send(err.stack);
+            return res.status(this.codes.internalErr).send(err.stack);
         }
     }
 }

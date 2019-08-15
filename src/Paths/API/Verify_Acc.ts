@@ -1,8 +1,8 @@
 import Path from '../../Structures/Path';
-import Evolve from "../../Structures/Evolve";
-import Base from "../../Structures/Base";
-import {Request, Response} from "express";
-import {isArray} from "util";
+import Evolve from '../../Structures/Evolve';
+import Base from '../../Structures/Base';
+import { Request, Response } from 'express';
+import { isArray } from 'util';
 
 class VerifyAccount extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -16,13 +16,13 @@ class VerifyAccount extends Path {
     async execute(req: Request, res: Response): Promise<Response> {
         // Handle if someone forgot something for authentication and finding the user
         if (!req.headers.token && !req.body.token && !req.body.uid && !req.headers.uid) {
-            return res.status(this.codes.no_content).send('[ERROR] Missing auth token and user validation token!');
+            return res.status(this.codes.noContent).send('[ERROR] Missing auth token and user validation token!');
         }
         if (!req.headers.token || !req.body.token || !req.body.uid || !req.headers.uid) {
-            return res.status(this.codes.partial_content).send('[ERROR] Missing auth token, auth id, user validation token, or the users id!');
+            return res.status(this.codes.partialContent).send('[ERROR] Missing auth token, auth id, user validation token, or the users id!');
         }
         if (isArray(req.headers.token) || isArray(req.headers.uid) ) {
-            return res.status(this.codes.bad_req).send('[ERROR] Neither header auth field may be an array!');
+            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
         }
 
         // Handle authorization
@@ -34,7 +34,7 @@ class VerifyAccount extends Path {
         // Look for the user
         const user = await this.Utils.findVerifying(req.body.token, req.body.uid);
         if (!user) {
-            return res.status(this.codes.not_found).send('[ERROR] User not found!');
+            return res.status(this.codes.notFound).send('[ERROR] User not found!');
         }
 
         // Remove the user from verifying schema and add them to the actual user base

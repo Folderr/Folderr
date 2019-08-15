@@ -3,16 +3,16 @@
 const codes = {
     ok: 200,
     created: 201,
-    no_content: 204,
-    partial_content: 206,
+    noContent: 204,
+    partialContent: 206,
     used: 226,
-    bad_req: 400,
+    badReq: 400,
     unauth: 401,
     forbidden: 403,
-    not_found: 404,
+    notFound: 404,
     locked: 423,
-    too_many_req: 429,
-    internal_err: 500,
+    tooManyReq: 429,
+    internalErr: 500,
 };
 
 export default codes;
