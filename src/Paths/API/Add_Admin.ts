@@ -8,7 +8,7 @@ class AddAdmin extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Add Admin';
-        this.path = '/api/add_admin';
+        this.path = '/api/admin';
 
         this.type = 'post';
     }

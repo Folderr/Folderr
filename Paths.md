@@ -29,7 +29,8 @@ const superagent = require('superagent');
 /* Superagent request */.set({ username: 'Your useranme', password: 'Your password' });
 ```
 
-Also, paths marked with an `$` will require you to be an admin
+Also, paths marked with an `$` will require you to be an admin.
+Paths marked with `su` require you to be an owner.
 
 # Actual paths, API
 
@@ -216,11 +217,66 @@ It will not let you update your new key to your old one
 ### Notice
 The new key is in the body as `new_key`
 
-Example url: `localhost:7200?key=0`
+Example url: `localhost:7200/api/account?key=0`
 
 ```js
 const superagent = require('superagent');
 superagent.patch('your_url_here/api/account?key=[key]').send({ new_key: 'Your new key' });
+```
+
+`POST /api/token`
+
+flags: `**`
+
+Generate your api token.
+
+### Notice
+
+If you already have a token, you will need to add a force flags query to the end of the url, otherwise you may not regen a new token.
+
+Example: `localhost:7200/api/token?flags=force`
+
+```js
+const superagent = require('superagent');
+superagent.post('your_url_here/api/token');
+```
+
+`POST api/admin`
+
+flags: `su`
+
+Make an account into admin
+
+### Notice
+
+This can only be done on existing accounts
+
+You have to use a query with id to make the account admin (ID must be an evolve-x ID)
+
+Example: `?id=1337694201337694201337`
+
+```js
+const superagent = require('superagent');
+superagent.post('your_url_here/api/admin?id=[new admin id here]');
+```
+
+`DELETE api/admin`
+
+flags: `su`
+
+Remove an account from admin powers
+
+### Notice
+
+This can only be done on existing accounts
+
+You have to use a query with id to make the account admin (ID must be an evolve-x ID)
+
+Example: `?id=1337694201337694201337`
+
+```js
+const superagent = require('superagent');
+superagent.delete('your_url_here/api/admin?id=[new admin id here]');
 ```
 
 # Actual paths, frontend

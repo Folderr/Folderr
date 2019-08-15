@@ -9,6 +9,8 @@ class GenToken extends Path {
         super(evolve, base);
         this.label = '[API] Generate Token';
         this.path = '/api/token';
+
+        this.type = 'post';
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
