@@ -9,3 +9,12 @@ node_modules/
 # Ignore config
 
 config.json
+
+# Ignore files from converting to ts
+
+src/index.js
+src/Structures/*.js
+src/Schemas/*.js
+src/Paths/*.js
+src/Paths/**/*.js
+scripts/*.js
