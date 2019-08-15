@@ -73,7 +73,7 @@ class Base {
      *
      * @prop {Object} options The Evolve-X options, initiated later
      * */
-    public evolve: Evolve | void;
+    public evolve: Evolve | null;
 
     public superagent: SuperAgent<SuperAgentRequest>;
 
@@ -173,7 +173,7 @@ class Base {
     async init(): Promise<void> {
         if (this.flags !== '--init-first') {
             // If there are no paths, exit
-            if (!this.evolve.paths || this.evolve.paths.size < 1) {
+            if (!this.evolve || !this.evolve.paths || this.evolve.paths.size < 1) {
                 console.log('No paths. Exiting...');
                 process.exit();
             }
