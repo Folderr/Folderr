@@ -11,3 +11,6 @@ export { default as APIAdminNotify } from './API/Admin_Notification';
 export { default as APIDNotify } from './API/Delete_Notify';
 export { default as APIDAdminNotify } from './API/Delete_Admin_Notification';
 export { default as APIUpdateAcc } from './API/Update_Account';
+export { default as APIAddAdmin } from './API/Add_Admin';
+export { default as APIDelAdmin } from './API/Del_Admin';
+export { default as APIGenToken } from './API/GenToken';
