@@ -21,7 +21,9 @@ const second = 1000;
 
 async function verify(): Promise<string> {
     await base.Utils.sleep(second); // Sleep for a second
-    if (!a) return verify();
+    if (!a) {
+        return verify();
+    }
     return a as string;
 }
 
