@@ -6,10 +6,6 @@ yarn.lock
 
 node_modules/
 
-# Ignore config
-
-config.json
-
 # Ignore files from converting to ts
 
 src/index.js
