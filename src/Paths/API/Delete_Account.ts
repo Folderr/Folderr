@@ -2,7 +2,6 @@ import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { Request, Response } from 'express';
-import { isArray } from 'util';
 
 interface DelReturns {
     code: number;
@@ -35,17 +34,9 @@ class DelAccount extends Path {
 
     async execute(req: Request, res: Response): Promise<Response> {
         // Check headers, and check auth
-        if (!req.headers.password && !req.headers.username) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization password and username!');
-        } if (!req.headers.password || !req.headers.username) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization password or username!');
-        }
-        if (isArray(req.headers.password) || isArray(req.headers.username) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
-        const auth = await this.Utils.authPassword(req.headers.password, req.headers.username);
-        if (!auth) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        const auth = await this.Utils.authPassword(req);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
         // If you are an admin you can delete someones account by ID
@@ -77,7 +68,9 @@ class DelAccount extends Path {
         }
 
         // Delete the users account
-        const out = await this.deleteAccount(req.query.uid, req.headers.username);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        const out = await this.deleteAccount(req.query.uid, req.headers.username); // Eslint, TS, I checked this at the top of the function. Please shut up
         return res.status(out.code).send(out.mess);
     }
 }

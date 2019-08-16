@@ -215,7 +215,7 @@ class Base {
             }
             // Please dont run apps as root on linux..
             if (process.getuid && process.getuid() === linuxRootUid) {
-                console.log('[WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!"');
+                console.log('[WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
             }
 
             let uhm;

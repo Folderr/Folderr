@@ -2,7 +2,6 @@ import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { Request, Response } from 'express';
-import { isArray } from 'util';
 
 class DelANotify extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -14,23 +13,15 @@ class DelANotify extends Path {
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
-        // If someone forgot some authorization stuff, or the ID to delete.
-        if (!req.headers.token && !req.headers.uid) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization token and user ID!');
-        } if (!req.headers.token || !req.headers.uid) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization token or user ID!');
-        }
-        if (!req.query || (req.query && !req.query.id) ) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing notification ID');
-        }
-        if (isArray(req.headers.token) || isArray(req.headers.uid) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
+        // Authorize the user as admin, or throw error.
+        const auth = await this.Utils.authToken(req, (user) => !!user.admin);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?'); // Fuck off
         }
 
-        // Authorize the user as admin, or throw error.
-        const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);
-        if (!auth || !auth.admin) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?'); // Fuck off
+        // In case they fforgot the ID for the notification
+        if (!req.query || (req.query && !req.query.id) ) {
+            return res.status(this.codes.badReq).send('[ERROR] Missing notification ID');
         }
 
         // Find the notification, and if it cant tell the user it  cannot find the notification with a code 404

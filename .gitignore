@@ -14,3 +14,7 @@ src/Schemas/*.js
 src/Paths/*.js
 src/Paths/**/*.js
 scripts/*.js
+
+# Ignore yarn error
+
+yarn-error.log
