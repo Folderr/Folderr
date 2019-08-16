@@ -3,6 +3,7 @@ image: node:11
 before_script:
   - touch config.json
   - npm install
+  - npm install typescipt -g
   - tsc
 
 test:
