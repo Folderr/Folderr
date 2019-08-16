@@ -1,0 +1,10 @@
+image: node:11.x.x
+
+before_script:
+  - mkfile config.json
+  - npm install
+  - tsc
+
+test:
+    script:
+      - npm test

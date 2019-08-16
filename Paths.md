@@ -279,9 +279,52 @@ const superagent = require('superagent');
 superagent.delete('your_url_here/api/admin?id=[new admin id here]');
 ```
 
+`POST api/short`
+
+flags: `*`
+
+Shorten a link!
+
+Link will be in body under field `url`
+
+```js
+const superagent = require('superagent');
+superagent.post('your_url_here/api/short').send({ url: 'http://expressjs.com/en/4x/api.html#req' });
+```
+
+`DELETE api/short`
+
+flags: `*`
+
+Remove a short!
+
+Use ID with query under field `id`
+
+```js
+const superagent = require('superagent');
+superagent.delete('your_url_here/api/short?id=gqgj96m4zb');
+```
+
+`GET api/shorts`
+
+flags: `*`
+
+Get all shorts associated with your account!
+
+```js
+const superagent = require('superagent');
+superagent.get('your_url_here/api/shorts');
+```
+
 # Actual paths, frontend
 (we will not be using superagent)
 
 `/`
 
 The home page.
+
+
+`/short/:id`
+
+Access a shortened link.
+The ID will tell the app what link you get redirected to.

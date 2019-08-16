@@ -8,6 +8,7 @@ import User, { UserI } from '../Schemas/User';
 import Image, { ImageI } from '../Schemas/Image';
 import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
 import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
+import Shorten, { Short } from '../Schemas/Short';
 import Utils from './Utils';
 import Evolve from './Evolve';
 
@@ -50,6 +51,7 @@ interface Schemas {
     Image: mongoose.Model<ImageI>;
     VerifyingUser: mongoose.Model<VUser>;
     AdminNotifs: mongoose.Model<Notification>;
+    Shorten: mongoose.Model<Short>;
 }
 
 /**
@@ -94,7 +96,9 @@ class Base {
         this.superagent = superagent;
         this.web = web;
         this.web.use(bodyParser.json() );
-        this.schemas = { User, Image, VerifyingUser, AdminNotifs };
+        this.schemas = {
+            User, Image, VerifyingUser, AdminNotifs, Shorten,
+        };
         this.Utils = new Utils();
         this.flags = flags;
         this.signups = this._fetchAuthType(options);

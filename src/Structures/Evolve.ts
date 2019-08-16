@@ -93,6 +93,9 @@ class Evolve {
         await base.init();
 
         console.log('[INFO] Initialized!');
+        if (process.env.NODE_ENV === 'test') {
+            process.exit();
+        }
     }
 }
 
