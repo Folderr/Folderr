@@ -100,7 +100,7 @@ class Path {
      * @param {Object} req The request object
      * @param {Object} res Some object used for sending data back
      */
-    execute(req: express.Request, res: express.Response): express.Response|Promise<express.Response> {
+    execute(req: express.Request, res: express.Response): express.Response | Promise<express.Response | void> | void {
         throw Error('Not implemented!');
     }
     /* eslint-enable */
@@ -113,7 +113,7 @@ class Path {
      * @returns {*}
      * @private
      */
-    _execute(req: express.Request, res: express.Response): express.Response | Promise<express.Response> {
+    _execute(req: express.Request, res: express.Response): express.Response | Promise<express.Response | void> | void {
         // If path is not enabled, and it is not lean... end the endpoint here
         if (!this.enabled && !this.lean) {
             return res.status(this.codes.locked).send('[FATAL] Endpoint locked due to fatal errors!');
