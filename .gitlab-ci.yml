@@ -1,9 +1,12 @@
-image: node:11.x.x
+image: node:11
 
 before_script:
-  - mkfile config.json
   - npm install
+  - npm install typescript -g
   - tsc
+
+stages:
+  - test
 
 test:
     script:
