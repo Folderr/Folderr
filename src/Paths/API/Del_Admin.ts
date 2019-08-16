@@ -2,7 +2,6 @@ import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { Request, Response } from 'express';
-import { isArray } from 'util';
 
 class DeleteAdmin extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -14,19 +13,10 @@ class DeleteAdmin extends Path {
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
-        // Make sure auth stuff is present
-        if (!req.headers.password && !req.headers.username) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization password and username!');
-        } if (!req.headers.password || !req.headers.username) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization password or username!');
-        }
-        if (isArray(req.headers.password) || isArray(req.headers.username) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
         // Actually check auth, and make sure they are the owner
-        const auth = await this.Utils.authPassword(req.headers.password, req.headers.username);
-        if (!auth || (auth && !auth.first) ) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        const auth = await this.Utils.authPassword(req, (user) => !!user.first);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
         // You need to supply the ID for the user via query

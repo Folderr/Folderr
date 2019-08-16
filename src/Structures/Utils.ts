@@ -4,7 +4,8 @@ import User, { Notification, UserI } from '../Schemas/User';
 import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
 import { ImageI } from '../Schemas/Image';
 import { Short } from '../Schemas/Short';
-import { promisify } from 'util';
+import { isBoolean, promisify } from 'util';
+import { Request } from 'express';
 
 const sleep = promisify(setTimeout);
 
@@ -19,6 +20,7 @@ interface TokenReturn {
  * @author Null#0515
  */
 class Utils {
+
     public saltRounds: number;
 
     public byteSize: number;
@@ -194,35 +196,71 @@ class Utils {
      * @param {String} userID The users ID
      * @returns {Promise<void|Object>}
      */
-    async authToken(token: string, userID: string): Promise<UserI|false> {
+    async authToken(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Make sure all of the auth stuff is there
+        if (!req.headers.uid && !req.headers.token) {
+            return '[ERROR] REQUEST TOKEN AUTHORIZATION HEADERS MISSING!';
+        } if (!req.headers.uid || !req.headers.token) {
+            return '[ERROR] REQUEST TOKEN AUTHORIZATION HEADERS INCOMPLETE!';
+        }
+        // Make sure the auth is not an array. Arrays are bad for auth
+        if (Array.isArray(req.headers.uid) || Array.isArray(req.headers.token) ) {
+            return '[ERROR] ARRAY AUTHENTICATION HEADERS NOT ALLOWED!';
+        }
         // Find the user via ID, if no user the auth failed
-        const user = await User.findOne( { uID: userID } );
+        const user = await User.findOne( { uID: req.headers.uid } );
         if (!user) {
             return false;
         }
         // IO tokens do not match, auth failed... Else return user
-        if (!bcrypt.compareSync(token, user.token) ) {
+        if (!bcrypt.compareSync(req.headers.token, user.token) ) {
             return false;
         }
+
+        if (fn) {
+            const funcOut = fn(user);
+            if (!funcOut || !isBoolean(funcOut) ) {
+                return false;
+            }
+        }
+
         return user;
     }
 
     /**
      * Authenticate a user using password and username
      *
-     * @param {String} password The users password
-     * @param {String} username The users username
+     * @param {Request} req The express request.
+     * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
+     *
      * @returns {Promise<boolean>}
      */
-    async authPassword(password: string, username: string): Promise<UserI|false> {
+    async authPassword(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Make sure all of the auth stuff is there
+        if (!req.headers.password && !req.headers.username) {
+            return '[ERROR] REQUEST PASSWORD AUTHORIZATION HEADERS MISSING!';
+        } if (!req.headers.password || !req.headers.username) {
+            return '[ERROR] REQUEST PASSWORD AUTHORIZATION HEADERS INCOMPLETE!';
+        }
+        // Make sure the auth is not an array. Arrays are bad for auth
+        if (Array.isArray(req.headers.password) || Array.isArray(req.headers.username) ) {
+            return '[ERROR] ARRAY AUTHENTICATION HEADERS NOT ALLOWED!';
+        }
         // Find user on username, and if no user auth failed
-        const user = await User.findOne( { username } );
+        const user = await User.findOne( { username: req.headers.username } );
         if (!user) {
             return false;
         }
         // Compare actual password and inputted password. If they do not match, fail
-        if (!bcrypt.compareSync(password, user.password) ) {
+        if (!bcrypt.compareSync(req.headers.password, user.password) ) {
             return false;
+        }
+        // If the custom function exists
+        if (fn) {
+            const funcOut = fn(user); // Run the custom function
+            if (!funcOut || !isBoolean(funcOut) ) { // If the custom function does not output true, return false
+                return false;
+            }
         }
         // Return the user
         return user;

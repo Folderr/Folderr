@@ -26,15 +26,15 @@ class Signup extends Path {
     async execute(req: Request, res: Response): Promise<Response> {
         // If signups are closed, state that and do not allow them tthrough
         if (!this.base.options.signups) {
-            return res.status(this.codes.locked).send('[WARN] Signup\'s are closed.');
+            return res.status(this.codes.locked).send('[ERROR] Signup\'s are closed.');
         }
 
         // Check all required body is there
         if (!req.body || (req.body && (!req.body.username || !req.body.password) ) ) {
-            if (req.body && (req.body.email || req.body.username || req.body.password) ) {
-                return res.status(this.codes.partialContent).send('[ERROR] You have one part of the signup process, but not all.');
+            if (req.body && (req.body.username || req.body.password) ) {
+                return res.status(this.codes.badReq).send('[ERROR] MISSING DETAIL');
             }
-            return res.status(this.codes.noContent).send('[ERROR] You have none of the content needed for account creation.');
+            return res.status(this.codes.badReq).send('[ERROR] MISSING ALL DETAILS');
         }
 
         // Fetch the username and password from the body

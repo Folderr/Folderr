@@ -3,7 +3,6 @@ import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { UserI } from '../../Schemas/User';
 import { Request, Response } from 'express';
-import { isArray } from 'util';
 
 interface UpdReturns {
     code: number;
@@ -82,24 +81,14 @@ class UpdateAcc extends Path {
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
-        // Check headers
-        if (!req.headers.password && !req.headers.username) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization password and username!');
-        }
-        if (!req.headers.password || !req.headers.username) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization password or username!');
-        }
-        if (isArray(req.headers.password) || isArray(req.headers.username) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
         // Check pass/username auth
-        const auth = await this.Utils.authPassword(req.headers.password, req.headers.username);
-        if (!auth) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        const auth = await this.Utils.authPassword(req);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
         // Check the query and new_key are correct
         if (!req.query || !req.query.key || !req.body || !req.body.new_key) {
-            return res.status(this.codes.noContent).send('[ERROR] Key you are updating is needed!');
+            return res.status(this.codes.badReq).send('[ERROR] Key you are updating is needed!');
         }
         // Verify the key
         const ke = Number(req.query.key) as 0|1;

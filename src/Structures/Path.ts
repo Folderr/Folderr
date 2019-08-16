@@ -1,23 +1,8 @@
-import codes from './Status_Codes';
+import codes, { Codes } from './Status_Codes';
 import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
 import Base from './Base';
 import express from 'express';
-
-interface Codes {
-    ok: number;
-    created: number;
-    noContent: number;
-    partialContent: number;
-    used: number;
-    badReq: number;
-    unauth: number;
-    forbidden: number;
-    notFound: number;
-    locked: number;
-    tooManyReq: number;
-    internalErr: number;
-}
 
 /**
  * Path structure

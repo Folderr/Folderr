@@ -2,7 +2,6 @@ import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { Request, Response } from 'express';
-import { isArray } from 'util';
 
 class AddAdmin extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -14,21 +13,9 @@ class AddAdmin extends Path {
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
-        // Make sure all of the auth stuff is there
-        // As this is rather sensitive, we will require username and password authentication
-        if (!req.headers.password && !req.headers.username) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization password and username!');
-        } if (!req.headers.password || !req.headers.username) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization password or username!');
-        }
-        // Make sure the auth is not an arrray. Arrays are bad for auth
-        if (isArray(req.headers.password) || isArray(req.headers.username) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
-        // Check auth, and make sure the user is owner. Only owner can update someones admin status
-        const auth = await this.Utils.authPassword(req.headers.password, req.headers.username);
-        if (!auth || (auth && !auth.first) ) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        const auth = await this.Utils.authPassword(req, (user) => !!user.first);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
         // You need to use the query to supply the users ID
