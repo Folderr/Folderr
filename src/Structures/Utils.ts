@@ -2,6 +2,8 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import User, { Notification, UserI } from '../Schemas/User';
 import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
+import { ImageI } from '../Schemas/Image';
+import { Short } from '../Schemas/Short';
 import { promisify } from 'util';
 
 const sleep = promisify(setTimeout);
@@ -80,6 +82,33 @@ class Utils {
             uID += String(Math.floor(Math.random() * (maxChar - minChar + wut) ) + minChar);
         }
         return Promise.resolve(uID);
+    }
+
+    /**
+     * Generate a ID
+     *
+     * @param {Object[]} things The things to avoid generating a duplicate ID for
+     *
+     * @returns {String}
+     */
+    genID(things: ImageI[] | Short[] ): string {
+        // Generate a random ID
+        const radix = 36;
+        const min = 0;
+        const total = 10;
+        const str = Math.random()
+            .toString(radix)
+            .replace(/[^a-zA-Z0-9]+/g, '')
+            .substr(min, total);
+        if (things) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            const thing = things.find(aThing => aThing.ID === str);
+            if (thing) {
+                return this.genID(things);
+            }
+        }
+        return str;
     }
 
     /**
