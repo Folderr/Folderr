@@ -20,7 +20,6 @@ interface TokenReturn {
  * @author Null#0515
  */
 class Utils {
-
     public saltRounds: number;
 
     public byteSize: number;
