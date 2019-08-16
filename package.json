@@ -10,7 +10,7 @@
     "startpm2": "pm2 start --name evolve-x --node-args=\"-r esm\" src/index.js",
     "lint": "eslint --ext .ts src scripts",
     "lintfix": "eslint --ext .ts --fix src scripts",
-    "test": "node -r esm src/index.js && exit"
+    "test": "NODE_ENV=test node -r esm src/index.js"
   },
   "repository": {
     "type": "git",
