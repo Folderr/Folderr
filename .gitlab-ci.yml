@@ -1,7 +1,7 @@
 image: node:11
 
 before_script:
-  - mkfile config.json
+  - touch config.json
   - npm install
   - tsc
 
