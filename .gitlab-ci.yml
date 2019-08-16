@@ -1,4 +1,4 @@
-image: node:11.x.x
+image: node:11.x
 
 before_script:
   - mkfile config.json
