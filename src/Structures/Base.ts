@@ -3,6 +3,9 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { platform } from 'os';
 import bodyParser from 'body-parser';
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import { fileParser } from 'express-multipart-file-parser';
 import Events from 'events';
 import User, { UserI } from '../Schemas/User';
 import Image, { ImageI } from '../Schemas/Image';
@@ -96,6 +99,14 @@ class Base {
         this.superagent = superagent;
         this.web = web;
         this.web.use(bodyParser.json() );
+        this.web.use(fileParser( {
+            busboyOptions: {
+                limits: {
+                    fileSize: 2097152000,
+                    files: 1,
+                },
+            },
+        } ) );
         this.schemas = {
             User, Image, VerifyingUser, AdminNotifs, Shorten,
         };
@@ -114,10 +125,16 @@ class Base {
      */
     _fetchAuthType(options: Options): boolean {
         // If no options or signup options
-        if (!options) return true;
-        if (!options.signups) return true;
+        if (!options) {
+            return true;
+        }
+        if (!options.signups) {
+            return true;
+        }
         // Handle if signups is not boolean or return
-        if (![true, false].includes(options.signups) ) return true;
+        if (![true, false].includes(options.signups) ) {
+            return true;
+        }
         return options.signups;
     }
 
