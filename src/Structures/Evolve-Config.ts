@@ -1,3 +1,5 @@
+import { isNullOrUndefined } from 'util';
+
 export interface Options {
     port?: number;
     url?: string;
@@ -53,7 +55,7 @@ class EvolveConfig implements ActualOptions {
         this.port = config.port || optionsBase.port;
         this.url = config.url || optionsBase.url;
         this.mongoUrl = config.mongoUrl || optionsBase.mongoUrl;
-        this.signups = config.signups || optionsBase.signups;
+        this.signups = config.signups === undefined ? true : config.signups;
         this.apiOnly = config.apiOnly || optionsBase.apiOnly;
         this.verify();
     }
