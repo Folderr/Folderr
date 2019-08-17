@@ -16,7 +16,7 @@ class Images extends Path {
         }
         const image = await this.base.schemas.Image.findOne( { ID: req.params.id } );
         if (!image) {
-            return res.status(this.codes.notFound);
+            return res.status(this.codes.notFound).send();
         }
 
         return res.status(this.codes.ok).sendFile(image.path);
