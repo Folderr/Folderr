@@ -1,7 +1,7 @@
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 class Signup extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -24,7 +24,7 @@ class Signup extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        // If signups are closed, state that and do not allow them tthrough
+        // If signups are closed, state that and do not allow them through
         if (!this.base.options.signups) {
             return res.status(this.codes.locked).send('[ERROR] Signup\'s are closed.');
         }
