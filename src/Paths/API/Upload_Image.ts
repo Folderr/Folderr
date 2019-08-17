@@ -33,6 +33,8 @@ class Image extends Path {
                 return res.status(this.codes.internalErr).send('[ERROR] Something went wrong!');
             }
 
+            console.log(files)
+
             if (!files) {
                 return res.status(this.codes.badReq).send('[ERROR] NO FILES RECIEVED!');
             }
