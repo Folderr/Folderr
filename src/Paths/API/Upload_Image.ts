@@ -33,7 +33,8 @@ class Image extends Path {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         form.parse(req, async(err, fields, files) => {
             if (err) {
-                throw Error(err);
+                console.log(`[INTERNAL ERROR] - ${err}\n${err.stack}`);
+                return res.status(this.codes.internalErr).send('[ERROR] Something went wrong!');
             }
 
             if (!files) {
