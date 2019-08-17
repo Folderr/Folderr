@@ -12,7 +12,7 @@ class Short extends Path {
 
     async execute(req: Request, res: Response): Promise<Response|void> {
         if (!req.params || !req.params.id) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing short ID.');
+            return res.status(this.codes.badReq).send('[ERROR] Missing short ID.');
         }
         const short = await this.base.schemas.Shorten.findOne( { ID: req.params.id } );
         if (!short) {
