@@ -2,6 +2,7 @@ image: node:11
 
 before_script:
   - npm install
+  - npm install typescript -g
   - npm run lint
   - tsc
 
