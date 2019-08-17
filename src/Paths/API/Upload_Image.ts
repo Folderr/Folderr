@@ -33,15 +33,13 @@ class Image extends Path {
                 return res.status(this.codes.internalErr).send('[ERROR] Something went wrong!');
             }
 
-            console.log(files)
-
-            if (!files) {
+            if (!files || !files.f || !files.f) {
                 return res.status(this.codes.badReq).send('[ERROR] NO FILES RECIEVED!');
             }
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
-            const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: files.path } );
+            const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: files.f.path } );
             await image.save();
             return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}`);
         } );
