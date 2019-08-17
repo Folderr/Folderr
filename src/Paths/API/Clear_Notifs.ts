@@ -1,7 +1,7 @@
 import Path from '../../Structures/Path';
 import Base from '../../Structures/Base';
 import Evolve from '../../Structures/Evolve';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 class ClearNotifs extends Path {
     constructor(evolve: Evolve, base: Base) {

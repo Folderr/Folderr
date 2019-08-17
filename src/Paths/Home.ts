@@ -1,6 +1,6 @@
 import Path from '../../src/Structures/Path';
 import Evolve from '../Structures/Evolve';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Base from '../Structures/Base';
 
 class Home extends Path {

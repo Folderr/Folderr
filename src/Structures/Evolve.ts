@@ -1,4 +1,5 @@
-import Base, { Options } from './Base';
+import Base from './Base';
+import { Options } from './Evolve-Config';
 import * as paths from '../Paths';
 import Path from './Path';
 
@@ -25,7 +26,7 @@ class Evolve {
      * @prop {Map} ips The ips requesting evolve-x
      * @prop {String[]} ipBans The IPs temporarily banned
      */
-    constructor(options: Options = {} ) {
+    constructor(options: Options) {
         this._options = options;
         this.paths = new Map();
         this.ips = new Map();

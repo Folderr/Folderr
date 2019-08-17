@@ -14,6 +14,7 @@ import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
 import Shorten, { Short } from '../Schemas/Short';
 import Utils from './Utils';
 import Evolve from './Evolve';
+import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 
 const ee = new Events();
 
@@ -23,31 +24,7 @@ ee.on('fail', () => {
     }, 1000);
 } );
 
-const optionsBase = {
-    port: 8888,
-    url: 'localhost',
-    mongoUrl: 'mongodb://localhost/evolve-x',
-    signups: true,
-    apiOnly: false,
-};
-
 const web = express();
-
-export interface Options {
-    port?: number;
-    url?: string;
-    mongoUrl?: string;
-    signups?: boolean;
-    apiOnly?: boolean;
-}
-
-interface ActualOptions {
-    port: number;
-    url: string;
-    mongoUrl: string;
-    signups: boolean;
-    apiOnly: boolean;
-}
 
 interface Schemas {
     User: mongoose.Model<UserI>;
@@ -90,8 +67,6 @@ class Base {
 
     public flags?: string;
 
-    public signups: boolean;
-
     public options: ActualOptions;
 
     constructor(evolve: Evolve | null, options: Options, flags?: string) {
@@ -112,78 +87,7 @@ class Base {
         };
         this.Utils = new Utils();
         this.flags = flags;
-        this.signups = this._fetchAuthType(options);
-        this.options = this._initConfig(options);
-    }
-
-    /**
-     * Fetch the configs auth type
-     *
-     * @param {Object} options Configuration
-     * @returns {boolean|*}
-     * @private
-     */
-    _fetchAuthType(options: Options): boolean {
-        // If no options or signup options
-        if (!options) {
-            return true;
-        }
-        if (!options.signups) {
-            return true;
-        }
-        // Handle if signups is not boolean or return
-        if (![true, false].includes(options.signups) ) {
-            return true;
-        }
-        return options.signups;
-    }
-
-    /**
-     * Initialize the config
-     *
-     * @param {Object} options The configuration
-     * @returns {Object} The new configuration
-     * @private
-     */
-    _initConfig(options: Options): ActualOptions {
-        // If options, loop through keys
-        const opts = {}; /* eslint-disable */
-        if (!options) return optionsBase;
-        for (const key in optionsBase) {
-            // If no key, add it from defaults
-            // @ts-ignore
-            if (!options[key] ) {
-                // @ts-ignore
-                opts[key] = optionsBase[key];
-            } else {
-                // @ts-ignore
-                opts[key] = options[key];
-            }
-            // Handle database config, hopefully this will reduce the amount of errors people get
-            // @ts-ignore
-            if (key === 'mongoUrl' && opts[key].startsWith('mongodb://') ) {
-                // @ts-ignore
-                const mUrl = opts[key].slice(10);
-                if (!mUrl.split('/')[1] ) {
-                    // @ts-ignore
-                    opts[key] += '/evolve-x';
-                }
-            } else {
-                // @ts-ignore
-                if (key === 'mongoUrl' && !opts[key].startsWith('mongodb://') ) { // More database handling
-                    // @ts-ignore
-                    const mUrl = opts.mongoUrl.split('/');
-                    if (!mUrl[1] ) {
-                        // @ts-ignore
-                        opts[key] = `mongodb://${opts[key]}/evolve-x`;
-                    } else {
-                        // @ts-ignore
-                        opts[key] = `mongodb://${opts[key]}`;
-                    }
-                }
-            }
-        } /* eslint-enable */
-        return opts as ActualOptions;
+        this.options = new EvolveConfig(options);
     }
 
     /**
@@ -238,7 +142,7 @@ class Base {
             // Init the server
 
             this.web.listen(this.options.port);
-            console.log(`[INFO] Signups are: ${!this.signups ? 'disabled' : 'enabled'}`);
+            console.log(`[INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
 }
