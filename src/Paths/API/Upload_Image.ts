@@ -25,11 +25,6 @@ class Image extends Path {
         form.uploadDir = path;
         form.type = 'multipart';
         form.multiples = false;
-        form.onPart = (part): any => {
-            if (part.filename) {
-                form.handlePart(part);
-            }
-        };
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         form.parse(req, async(err, fields, files) => {
             if (err) {
@@ -37,9 +32,13 @@ class Image extends Path {
                 return res.status(this.codes.internalErr).send('[ERROR] Something went wrong!');
             }
 
+            console.log(files);
+            console.log(fields);
+
             if (!files) {
                 return res.status(this.codes.badReq).send('[ERROR] NO FILES RECIEVED!');
             }
+
             const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: files[0].path } );
             await image.save();
             return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}`);
