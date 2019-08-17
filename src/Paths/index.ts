@@ -21,3 +21,4 @@ export { default as APIDeleteShort } from './API/Delete_Short';
 export { default as APIShorts } from './API/Shorts';
 export { default as APIUploadImage } from './API/Upload_Image';
 export { default as APIImages } from './API/Images';
+export { default as APIDeleteImage } from './API/Delete_Image';
