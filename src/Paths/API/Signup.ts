@@ -23,7 +23,7 @@ class Signup extends Path {
         return uID;
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // If signups are closed, state that and do not allow them tthrough
         if (!this.base.options.signups) {
             return res.status(this.codes.locked).send('[ERROR] Signup\'s are closed.');

@@ -11,7 +11,7 @@ class Shorten extends Path {
         this.type = 'post';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         const auth = await this.Utils.authToken(req);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');

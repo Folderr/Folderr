@@ -12,7 +12,7 @@ class DelANotify extends Path {
         this.type = 'delete';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Authorize the user as admin, or throw error.
         const auth = await this.Utils.authToken(req, (user) => !!user.admin);
         if (!auth || typeof auth === 'string') {
