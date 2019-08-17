@@ -12,7 +12,7 @@ class VerifyAccount extends Path {
         this.type = 'post';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Handle authorization
         const auth = await this.Utils.authToken(req, (user) => !!user.admin);
         if (!auth || typeof auth === 'string') {

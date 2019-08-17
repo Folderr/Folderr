@@ -13,7 +13,7 @@ class Notifs extends Path {
         this.type = 'get';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Check auth by token/id
         const auth = await this.Utils.authToken(req);
         if (!auth || typeof auth === 'string') {

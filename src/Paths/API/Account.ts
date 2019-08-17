@@ -12,7 +12,7 @@ class Account extends Path {
         this.type = 'get';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Check headers, and check auth
         const auth = await this.Utils.authPassword(req);
         if (!auth || typeof auth === 'string') {

@@ -2,7 +2,8 @@
     "extends": ["@axonteam", "plugin:@typescript-eslint/recommended"],
     "rules": {
         "consistent-return": "warn",
-        "new-cap": "warn"
+        "new-cap": "warn",
+        "@typescript-eslint/no-explicit-any": "off"
     },
     "parser": "@typescript-eslint/parser",
     "plugins": ["@typescript-eslint"]

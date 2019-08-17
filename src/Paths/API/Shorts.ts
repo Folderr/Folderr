@@ -10,7 +10,7 @@ class Shorts extends Path {
         this.path = '/api/shorts';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Check auth
         const auth = await this.Utils.authToken(req);
         if (!auth || typeof auth === 'string') {

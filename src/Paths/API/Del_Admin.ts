@@ -12,7 +12,7 @@ class DeleteAdmin extends Path {
         this.type = 'delete';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Actually check auth, and make sure they are the owner
         const auth = await this.Utils.authPassword(req, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {

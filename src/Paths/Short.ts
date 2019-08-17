@@ -10,7 +10,7 @@ class Short extends Path {
         this.path = '/short/:id';
     }
 
-    async execute(req: Request, res: Response): Promise<Response|void> {
+    async execute(req: any, res: any): Promise<Response|void> {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing short ID.');
         }
