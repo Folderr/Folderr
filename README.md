@@ -10,6 +10,7 @@ Looking for the config perhaps? Check out [The config documentation](./Config.md
 - Node
 - Typescript
 - Git
+- Yarn, for the update command.
 
 # Cheat sheet
 
