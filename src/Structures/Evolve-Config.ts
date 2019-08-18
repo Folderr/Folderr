@@ -1,5 +1,3 @@
-import { isNullOrUndefined } from 'util';
-
 export interface Options {
     port?: number;
     url?: string;

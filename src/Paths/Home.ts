@@ -13,7 +13,7 @@ class Home extends Path {
         this.enabled = !this.base.options.apiOnly;
     }
 
-    execute(req: any, res: any): Response {
+    async execute(req: any, res: any): Promise<Response> {
         // Basic hello world page
         return res.send('Hello World!');
     }
