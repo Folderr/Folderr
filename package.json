@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node -r esm src/index.js",
     "first": "tsc && node -r esm scripts/initFirst.js",
-    "update": "git pull && yarn install && tsc",
+    "update": "echo \"updating\" && git pull && yarn install && tsc && echo \"Update Success\"",
     "startpm2": "pm2 start --name evolve-x --node-args=\"-r esm\" src/index.js",
     "lint": "eslint --ext .ts src scripts",
     "lintfix": "eslint --ext .ts --fix src scripts",
