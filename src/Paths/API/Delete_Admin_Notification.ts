@@ -36,6 +36,7 @@ class DelANotify extends Path {
 
         // Remove the admin notification and tell the admin it was removed
         await this.base.schemas.AdminNotifs.findOneAndRemove( { ID: req.query.id } );
+        console.log(`[SYSTEM INFO - NOTIFICATIONS] - Admin notification ${notify.ID} removed by ${auth.username}!`);
         return res.status(this.codes.ok).send('[SUCCESS] Notification removed!');
     }
 }

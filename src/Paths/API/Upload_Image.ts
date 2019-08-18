@@ -26,7 +26,7 @@ class Image extends Path {
                 if (err) {
                     return reject(err);
                 }
-                resolve(files);
+                return resolve(files);
             } );
         } );
     }
@@ -46,9 +46,11 @@ class Image extends Path {
             throw Error(err);
         }
 
+        console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name} added!`);
+
         const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.f.path } );
         await image.save();
-        return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}`);
+        return res.status(this.codes.ok).send(`[SUCCESS] ${this.base.options.url}/images/${name}`);
     }
 }
 

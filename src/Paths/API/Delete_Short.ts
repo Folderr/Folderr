@@ -28,6 +28,7 @@ class DeleteShort extends Path {
         if (!short) {
             return res.status(this.codes.notFound).send('[ERROR] Short not found!');
         }
+        console.log(`[INFO - SHORTS] - Short ${short.ID} removed!`);
 
         return res.status(this.codes.ok).send('[SUCCESS] Short removed!');
     }

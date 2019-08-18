@@ -36,6 +36,7 @@ class DeleteAdmin extends Path {
         }
         user.admin = false;
         await user.save();
+        console.log(`[SYSTEM INFO - ADMIN] - Admin removed for user ${user.username}`);
         return res.status(this.codes.ok).send(`[SUCCESS] Updated users admin status!`);
     }
 }

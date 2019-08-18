@@ -108,7 +108,7 @@ class Base {
             }
             // Please dont run apps as root on linux..
             if (process.getuid && process.getuid() === linuxRootUid) {
-                console.log('[WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
+                console.log('[SYSTEM WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
             }
 
             let uhm;
@@ -125,13 +125,13 @@ class Base {
             // If a user is trying to listen to a port already used
             if (uhm && this.flags !== '--init-first') {
                 ee.emit('fail');
-                throw Error('You are trying to listen on a port in use!');
+                throw Error('[FATAL] You are trying to listen on a port in use!');
             }
 
             // Init the server
 
             this.web.listen(this.options.port);
-            console.log(`[INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
+            console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
 }

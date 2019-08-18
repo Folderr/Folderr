@@ -35,6 +35,8 @@ class Shorten extends Path {
         const ID = this.Utils.genID(links);
         const short = new this.base.schemas.Shorten( { ID, owner: auth.uID, link: req.body.url } );
 
+        console.log(`[INFO - SHORTS] Short ${this.base.options.url}/short/${ID} added!`);
+
         await short.save();
         return res.status(this.codes.created).send(`[SUCCESS] ${this.base.options.url}/short/${ID}`);
     }

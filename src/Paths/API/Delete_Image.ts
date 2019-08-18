@@ -31,6 +31,7 @@ class DeleteImage extends Path {
             fs.unlinkSync(Image.path);
         }
         await this.base.schemas.Image.deleteOne(Image);
+        console.log(`[INFO - IMAGES] - Image ${Image.ID} removed!`);
         return res.status(this.codes.noContent);
     }
 }
