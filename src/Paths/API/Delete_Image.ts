@@ -32,7 +32,7 @@ class DeleteImage extends Path {
         }
         await this.base.schemas.Image.deleteOne(Image);
         console.log(`[INFO - IMAGES] - Image ${Image.ID} removed!`);
-        return res.status(this.codes.noContent);
+        return res.status(this.codes.ok).send('[SUCCESS] Image removed!');
     }
 }
 

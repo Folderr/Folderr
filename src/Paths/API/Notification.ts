@@ -23,12 +23,12 @@ class NotificationClass extends Path {
         // aGrab the notifications, and find the notification the user is looking for
         const { notifs } = auth;
         if (!notifs) {
-            return res.status(this.codes.notFound).send('[ERROR] You have no notifications!');
+            return res.status(this.codes.noContent).send();
         }
         const notify = notifs.find( (notification: Notification) => notification.ID === req.query.id);
         // If the notification is not found, tell the user
         if (!notify) {
-            return res.status(this.codes.notFound).send('[ERROR] Notification not found!');
+            return res.status(this.codes.noContent).send();
         }
 
         // Send found notification

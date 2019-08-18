@@ -18,6 +18,9 @@ class Shorts extends Path {
         }
 
         const shorts = await this.base.schemas.Shorten.find( { owner: auth.uID } );
+        if (!shorts) {
+            return res.status(this.codes.ok).send( [] );
+        }
         const aShorts = shorts.map(short => `{ ID: ${short.ID}, link: ${short.link} }`);
 
         return res.status(this.codes.ok).send(aShorts);
