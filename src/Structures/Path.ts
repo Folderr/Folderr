@@ -154,7 +154,7 @@ class Path {
         if (check > maxTrys) {
             // Ban the IP if check is greater than or equal to three
             this.evolve.ipBans.push(req.ip);
-            console.log(`IP ${req.ip} banned!`);
+            console.log(`[SYSTEM INFO] IP ${req.ip} banned!`);
 
             // Remove the ip ban after an hour
             setTimeout( () => {

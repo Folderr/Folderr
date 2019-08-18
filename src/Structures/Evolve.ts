@@ -81,19 +81,19 @@ class Evolve {
             const Ok = paths[path];
             const apath: Path = new Ok(this, base);
             if (apath.enabled) { // If the path should be loaded
-                console.log(`[INFO] [INIT PATH] - Initializing Path ${apath.label}`);
+                console.log(`[SYSTEM INIT PATH] - Initializing Path ${apath.label}`);
                 // Init the path
                 this._initPath(apath, base);
                 // Tell the user the path was initialized and add the number of paths loaded by 1
-                console.log(`[INFO] - [INIT PATH] - Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
+                console.log(`[SYSTEM INIT PATH] - Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
                 pathNums++;
             }
         }
-        console.log(`[INFO] - [INIT] Initialized ${pathNums} paths`);
+        console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         // Initiate the base of the project
         await base.init();
 
-        console.log('[INFO] Initialized!');
+        console.log('[SYSTEM INFO] Initialized!');
         if (process.env.NODE_ENV === 'test') {
             process.exit();
         }

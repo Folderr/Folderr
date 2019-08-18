@@ -83,7 +83,7 @@ class Signup extends Path {
         } );
         await notify.save();
         // Notify the console, and the user that the admins have been notified.
-        console.log(`[SIGNUP] Notified admins about verifying user ${uID}`);
+        console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${uID}`);
         return res.status(this.codes.created).send('[SUCCESS] The admins have been notified of your account request!');
     }
 }
