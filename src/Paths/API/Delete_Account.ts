@@ -23,6 +23,7 @@ class DelAccount extends Path {
             // Delete account by uID, and delete their pictures
             await this.base.schemas.User.findOneAndDelete( { uID: id } );
             await this.base.schemas.Image.deleteMany( { owner: id } );
+            await this.base.schemas.Shorten.deleteMany( { owner: id } );
             // Notify all that an account has been deleted, and tell the user as well
             const end = auth.uID !== id ? ` by admin ${auth.uID}!` : '!';
             console.log(`[SYSTEM INFO] - Account ${username} (${id}) deleted${end}`);
