@@ -13,36 +13,42 @@ class Image extends Path {
         this.type = 'post';
     }
 
+    _formidablePromise(req: any): Promise<any> {
+        return new Promise( (resolve, reject): formidable.File | void => {
+            const path = join(__dirname, '../../Images/');
+            const form = new formidable.IncomingForm();
+            form.uploadDir = path;
+            form.type = 'multipart';
+            form.multiples = false;
+            form.keepExtensions = true;
+
+            form.parse(req, (err, fields, files) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(files);
+            } );
+        } );
+    }
+
     async execute(req: any, res: any): Promise<Response|void> {
         const auth = await this.Utils.authToken(req);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
         const images = await this.base.schemas.Image.find();
-        const path = join(__dirname, '../../Images/');
         const name = this.Utils.genID(images);
-        const form = new formidable.IncomingForm();
-        form.uploadDir = path;
-        form.type = 'multipart';
-        form.multiples = false;
-        form.keepExtensions = true;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        form.parse(req, async(err, fields, files) => {
-            if (err) {
-                console.log(`[INTERNAL ERROR] - ${err}\n${err.stack}`);
-                return res.status(this.codes.internalErr).send('[ERROR] Something went wrong!');
-            }
+        let file;
+        try {
+            file = await this._formidablePromise(req);
+        } catch (err) {
+            res.status(this.codes.internalErr).send(`[ERROR] Parser error!\n${err}`);
+            throw Error(err);
+        }
 
-            if (!files || !files.f || !files.f) {
-                return res.status(this.codes.badReq).send('[ERROR] NO FILES RECIEVED!');
-            }
-
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
-            const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: files.f.path } );
-            await image.save();
-            return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}`);
-        } );
+        const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.f.path } );
+        await image.save();
+        return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}`);
     }
 }
 
