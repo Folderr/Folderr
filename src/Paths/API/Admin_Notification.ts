@@ -22,7 +22,7 @@ class AdminNotification extends Path {
         // Find notification. If not found, return a not found status code
         const notify = await this.base.schemas.AdminNotifs.findOne( { ID: req.query.id } );
         if (!notify) {
-            return res.status(this.codes.notFound).send('[ERROR] Notification not found!');
+            return res.status(this.codes.noContent).send();
         }
 
         // Oh look a notification!

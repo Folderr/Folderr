@@ -18,6 +18,9 @@ class Images extends Path {
         }
 
         let images: ImageI[] | string[] = await this.base.schemas.Image.find( { owner: auth.uID } );
+        if (!images) {
+            return res.status(this.codes.ok).send( [] );
+        }
         images = images.map(image => `${this.base.options.url}/images/${image.ID}`);
         return res.status(this.codes.ok).send(images);
     }

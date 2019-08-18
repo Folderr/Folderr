@@ -34,7 +34,7 @@ class Notifs extends Path {
         }
 
         if (!notifs || notifs.length === 0) {
-            return res.status(this.codes.noContent).send();
+            return res.status(this.codes.ok).send( [] );
         }
 
         // Return whatever notifications there are
