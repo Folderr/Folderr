@@ -19,6 +19,11 @@ class AdminNotification extends Path {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
+        // Verify query
+        if (!req.query || !req.query.id) {
+            return res.status(this.codes.badReq).send('[ERROR] Notification ID required!');
+        }
+
         // Find notification. If not found, return a not found status code
         const notify = await this.base.schemas.AdminNotifs.findOne( { ID: req.query.id } );
         if (!notify) {
