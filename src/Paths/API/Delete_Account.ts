@@ -71,9 +71,7 @@ class DelAccount extends Path {
         }
 
         // Delete the users account
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
-        const out = await this.deleteAccount(auth, req.query.uid, req.headers.username); // Eslint, TS, I checked this at the top of the function. Please shut up
+        const out = await this.deleteAccount(auth, req.headers.uid, req.headers.username); // Eslint, TS, I checked this at the top of the function. Please shut up
         return res.status(out.code).send(out.mess);
     }
 }
