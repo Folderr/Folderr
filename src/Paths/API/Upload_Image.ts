@@ -22,7 +22,7 @@ class Image extends Path {
             form.multiples = false;
             form.keepExtensions = true;
 
-            form.parse(req, (err, fields, files) => {
+            form.parse(req, (err: Error, fields: any, files: any) => {
                 if (err) {
                     return reject(err);
                 }
@@ -46,9 +46,13 @@ class Image extends Path {
             throw Error(err);
         }
 
+        if (!file) {
+            return res.status(this.codes.badReq).send('[ERROR] Files not parsed/found!');
+        }
+        
         console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name} added!`);
 
-        const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.f.path } );
+        const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path } );
         await image.save();
         return res.status(this.codes.ok).send(`[SUCCESS] ${this.base.options.url}/images/${name}`);
     }
