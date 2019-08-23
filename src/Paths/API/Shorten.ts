@@ -38,7 +38,7 @@ class Shorten extends Path {
         console.log(`[INFO - SHORTS] Short ${this.base.options.url}/short/${ID} added!`);
 
         await short.save();
-        return res.status(this.codes.created).send(`[SUCCESS] ${this.base.options.url}/short/${ID}`);
+        return res.status(this.codes.created).send(`${this.base.options.url}/short/${ID}`);
     }
 }
 

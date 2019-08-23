@@ -54,7 +54,7 @@ class Image extends Path {
 
         const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path } );
         await image.save();
-        return res.status(this.codes.ok).send(`[SUCCESS] ${this.base.options.url}/images/${name}`);
+        return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}`);
     }
 }
 
