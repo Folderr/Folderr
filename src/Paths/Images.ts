@@ -18,6 +18,8 @@ class Images extends Path {
         if (!image) {
             return res.status(this.codes.notFound).send('Image not found!');
         }
+        const ext = image.type || `image/${image.path.split('.')[1]}`;
+        res.set('Content-Type', ext);
 
         return res.status(this.codes.ok).sendFile(image.path);
     }
