@@ -3,7 +3,8 @@
     "rules": {
         "consistent-return": "warn",
         "new-cap": "warn",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "linebreak-style": "off"
     },
     "parser": "@typescript-eslint/parser",
     "plugins": ["@typescript-eslint"]
