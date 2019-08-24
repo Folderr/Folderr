@@ -4,7 +4,7 @@ const Image: Schema = new Schema( {
     ID: { type: String, required: true },
     owner: { type: String, required: true },
     path: { type: String, required: true },
-    type: { type: String }
+    type: { type: String },
 } );
 /* eslint-disable */
 export interface ImageI extends Document {
