@@ -4,6 +4,7 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import formidable from 'formidable';
 import { join } from 'path';
+import { unlinkSync } from 'fs';
 
 class Image extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -48,6 +49,10 @@ class Image extends Path {
 
         if (!file) {
             return res.status(this.codes.badReq).send('[ERROR] Files not parsed/found!');
+        }
+        if (!file.image.type || !file.image.type.startsWith('image') ) {
+            unlinkSync(file.image.path);
+            return res.status(this.codes.badReq).send('[ERROR] Not an image!');
         }
         
         console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name} added!`);
