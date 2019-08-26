@@ -2,6 +2,7 @@ import Path from '../Structures/Path';
 import Evolve from '../Structures/Evolve';
 import Base from '../Structures/Base';
 import { Response } from 'express';
+import mime from 'mime-types';
 
 class Images extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -18,10 +19,13 @@ class Images extends Path {
         if (!image) {
             return res.status(this.codes.notFound).send('Image not found!');
         }
-        const ext = image.type || `image/${image.path.split('.')[1]}`;
-        res.setHeader('Content-Type', ext);
+        const content = mime.contentType(image.path);
+        if (!content) {
+            return res.status(this.codes.notFound).send('Image type not found!');
+        }
+        res.setHeader('Content-Type', content);
 
-        return res.status(this.codes.ok).sendFile(image.path);
+        return res.sendFile(image.path);
     }
 }
 

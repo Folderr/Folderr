@@ -57,7 +57,7 @@ class Image extends Path {
         
         console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name} added!`);
 
-        const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path, type: file.image.type } );
+        const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path } );
         await image.save();
         return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}`);
     }

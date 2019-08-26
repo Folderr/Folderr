@@ -4,7 +4,6 @@ const Image: Schema = new Schema( {
     ID: { type: String, required: true },
     owner: { type: String, required: true },
     path: { type: String, required: true },
-    type: { type: String },
 } );
 /* eslint-disable */
 export interface ImageI extends Document {
@@ -12,7 +11,6 @@ export interface ImageI extends Document {
     owner: string;
     format: string;
     path: string;
-    type: string;
 }
 
 const mod: Model<ImageI> = model<ImageI>('image', Image);
