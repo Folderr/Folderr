@@ -21,8 +21,7 @@ class Images extends Path {
         const ext = image.type || `image/${image.path.split('.')[1]}`;
         res.setHeader('Content-Type', ext);
 
-        res.status(this.codes.ok).sendFile(image.path);
-        return res.end();
+        return res.status(this.codes.ok).sendFile(image.path);
     }
 }
 
