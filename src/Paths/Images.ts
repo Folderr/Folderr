@@ -23,7 +23,7 @@ class Images extends Path {
         if (!content) {
             return res.status(this.codes.notFound).send('Image type not found!');
         }
-        console.log(content);
+        console.log(content === image.path);
         res.setHeader('Content-Type', content);
 
         return res.sendFile(image.path);
