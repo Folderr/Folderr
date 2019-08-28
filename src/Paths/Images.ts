@@ -19,12 +19,16 @@ class Images extends Path {
         if (!image) {
             return res.status(this.codes.notFound).send('Image not found!');
         }
-        const content = mime.contentType(image.path);
+        let content = mime.contentType(image.path);
         if (!content) {
             return res.status(this.codes.notFound).send('Image type not found!');
         }
-        console.log(content === image.path);
-        res.setHeader('Content-Type', content);
+        if (content !== image.path) {
+            res.setHeader('Content-Type', content);
+        } else {
+            const arr = image.path.split('.');
+            content = `image/${arr[arr.length-1].toLowerCase()}`;
+        }
 
         return res.sendFile(image.path);
     }
