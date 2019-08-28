@@ -18,7 +18,7 @@ class Short extends Path {
         if (!short) {
             return res.status(this.codes.notFound).send('Short not found!');
         }
-        return res.redirect(short.link);
+        return res.redirect(short.link.trim() );
     }
 }
 

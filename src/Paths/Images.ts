@@ -27,7 +27,7 @@ class Images extends Path {
             res.setHeader('Content-Type', content);
         } else {
             const arr = image.path.split('.');
-            content = `image/${arr[arr.length-1].toLowerCase()}`;
+            content = `image/${arr[arr.length - 1].toLowerCase()}`;
         }
 
         return res.sendFile(image.path);
