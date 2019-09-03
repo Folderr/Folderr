@@ -21,7 +21,11 @@ class Images extends Path {
         if (!images) {
             return res.status(this.codes.ok).send( [] );
         }
-        images = images.map(image => `${this.base.options.url}/images/${image.ID}`);
+        images = images.map(image => {
+            const split = image.path.split('.');
+            const type = split[split.length-1];
+            return `${this.base.options.url}/images/${image.ID}.${type}`;
+        });
         return res.status(this.codes.ok).send(images);
     }
 }
