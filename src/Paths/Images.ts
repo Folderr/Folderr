@@ -15,20 +15,29 @@ class Images extends Path {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing image ID.');
         }
-        const image = await this.base.schemas.Image.findOne( { ID: req.params.id } );
+        const parts = req.params.split('.');
+        if (!parts[1] ) {
+            return res.status(this.codes.internalErr);
+        }
+        const image = await this.base.schemas.Image.findOne( { ID: parts[0] } );
         if (!image) {
             return res.status(this.codes.notFound).send('Image not found!');
         }
         let content = mime.contentType(image.path);
+        const arr = image.path.split('.');
+        if (arr[arr.length - 1] !== parts[1]) {
+            return res.status(this.codes.internalErr);
+        }
         if (!content) {
             return res.status(this.codes.notFound).send('Image type not found!');
         }
         if (content !== image.path) {
             res.setHeader('Content-Type', content);
         } else {
-            const arr = image.path.split('.');
-            res.setHeader('Content-Type', `image/${arr[arr.length - 1].toLowerCase()}`);
+            content = `image/${arr[arr.length - 1].toLowerCase()}`;
+            res.setHeader('Content-Type', content);
         }
+
 
         return res.sendFile(image.path);
     }
