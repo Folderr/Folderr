@@ -15,7 +15,7 @@ class Images extends Path {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing image ID.');
         }
-        const parts = req.params.split('.');
+        const parts = req.params.id.split('.');
         if (!parts[1] ) {
             return res.status(this.codes.internalErr);
         }
