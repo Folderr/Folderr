@@ -55,12 +55,13 @@ class Image extends Path {
             return res.status(this.codes.badReq).send('[ERROR] Not an image!');
         }
         
-        console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name} added!`);
+        let ext = file.image.path.split('.');
+        ext = ext[ext.length-1];
+        
+        console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
 
         const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path } );
         await image.save();
-        let ext = file.image.path.split('.');
-        ext = ext[ext.length-1];
         return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}.${ext}`);
     }
 }
