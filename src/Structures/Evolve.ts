@@ -3,6 +3,8 @@ import { Options } from './Evolve-Config';
 import * as paths from '../Paths';
 import Path from './Path';
 
+const notFound = 404;
+
 
 /**
  * @class Evolve
@@ -92,6 +94,7 @@ class Evolve {
         console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         // Initiate the base of the project
         await base.init();
+        base.web.all('/*', (req, res) => res.status(notFound).send('Image not found!') );
 
         console.log('[SYSTEM INFO] Initialized!');
         if (process.env.NODE_ENV === 'test') {

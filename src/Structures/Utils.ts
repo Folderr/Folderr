@@ -191,8 +191,8 @@ class Utils {
     /**
      * Authenticate a user using token and user ID
      *
-     * @param {String} token The users token
-     * @param {String} userID The users ID
+     * @param {Object<Request>} req The request
+     * @param {function} [fn] Optional function for auth
      * @returns {Promise<void|Object>}
      */
     async authToken(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
@@ -252,6 +252,83 @@ class Utils {
         }
         // Compare actual password and inputted password. If they do not match, fail
         if (!bcrypt.compareSync(req.headers.password, user.password) ) {
+            return false;
+        }
+        // If the custom function exists
+        if (fn) {
+            const funcOut = fn(user); // Run the custom function
+            if (!funcOut || !isBoolean(funcOut) ) { // If the custom function does not output true, return false
+                return false;
+            }
+        }
+        // Return the user
+        return user;
+    }
+
+    /**
+     * Authenticate a user using token and user ID via Body
+     *
+     * @param {Object<Request>} req The request
+     * @param {function} [fn] Optional function for auth
+     * @returns {Promise<void|Object>}
+     */
+    async authTokenBody(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Make sure all of the auth stuff is there
+        if (!req.body.uid && !req.body.token) {
+            return '[ERROR] REQUEST TOKEN AUTHORIZATION MISSING!';
+        } if (!req.body.uid || !req.body.token) {
+            return '[ERROR] REQUEST TOKEN AUTHORIZATION INCOMPLETE!';
+        }
+        // Make sure the auth is not an array. Arrays are bad for auth
+        if (Array.isArray(req.body.uid) || Array.isArray(req.body.token) ) {
+            return '[ERROR] ARRAY AUTHENTICATION NOT ALLOWED!';
+        }
+        // Find the user via ID, if no user the auth failed
+        const user = await User.findOne( { uID: req.body.uid } );
+        if (!user) {
+            return false;
+        }
+        // IO tokens do not match, auth failed... Else return user
+        if (!bcrypt.compareSync(req.body.token, user.token) ) {
+            return false;
+        }
+
+        if (fn) {
+            const funcOut = fn(user);
+            if (!funcOut || !isBoolean(funcOut) ) {
+                return false;
+            }
+        }
+
+        return user;
+    }
+
+    /**
+     * Authenticate a user using password and username
+     *
+     * @param {Request} req The express request.
+     * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
+     *
+     * @returns {Promise<boolean>}
+     */
+    async authPasswordBody(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Make sure all of the auth stuff is there
+        if (!req.body.password && !req.body.username) {
+            return '[ERROR] REQUEST PASSWORD AUTHORIZATION HEADERS MISSING!';
+        } if (!req.body.password || !req.body.username) {
+            return '[ERROR] REQUEST PASSWORD AUTHORIZATION HEADERS INCOMPLETE!';
+        }
+        // Make sure the auth is not an array. Arrays are bad for auth
+        if (Array.isArray(req.body.password) || Array.isArray(req.body.username) ) {
+            return '[ERROR] ARRAY AUTHENTICATION HEADERS NOT ALLOWED!';
+        }
+        // Find user on username, and if no user auth failed
+        const user = await User.findOne( { username: req.body.username } );
+        if (!user) {
+            return false;
+        }
+        // Compare actual password and inputted password. If they do not match, fail
+        if (!bcrypt.compareSync(req.body.password, user.password) ) {
             return false;
         }
         // If the custom function exists

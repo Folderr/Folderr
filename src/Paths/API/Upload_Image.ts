@@ -56,7 +56,7 @@ class Image extends Path {
         }
         
         let ext = file.image.path.split('.');
-        ext = ext[ext.length-1];
+        ext = ext[ext.length - 1];
         
         console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
 

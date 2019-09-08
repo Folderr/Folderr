@@ -28,7 +28,7 @@ class Images extends Path {
         }
         let content = mime.contentType(image.path);
         const arr = image.path.split('.');
-        if (arr[arr.length - 1] !== parts[1]) {
+        if (arr[arr.length - 1] !== parts[1] ) {
             return res.status(this.codes.internalErr);
         }
         if (!content) {
