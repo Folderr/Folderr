@@ -20,6 +20,8 @@ class Path {
 
     public enabled?: boolean;
 
+    public secureOnly?: boolean;
+
     public lean?: boolean;
 
     public codes: Codes;
@@ -59,7 +61,7 @@ class Path {
         this.type = 'get'; // What type of request it needs
         this.enabled = true;
         this.lean = false;
-
+        this.secureOnly = false;
 
         this.codes = codes;
         this.evolve = evolve;
@@ -129,7 +131,11 @@ class Path {
     async _execute(req: any, res: any): Promise<express.Response | void> {
         // If path is not enabled, and it is not lean... end the endpoint here
         if (!this.enabled && !this.lean) {
-            return res.status(this.codes.locked).send('[FATAL] Endpoint locked due to fatal errors!');
+            return res.status(this.codes.locked).send('[FATAL] Endpoint locked!');
+        }
+
+        if (this.secureOnly && !req.secure) {
+            return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
         }
         // Define number variables
         const twoSec = 2000;
