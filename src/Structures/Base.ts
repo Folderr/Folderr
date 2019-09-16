@@ -102,6 +102,10 @@ class Base {
             }
         }
 
+        if (this.options.trustProxies) {
+            this.web.enable('trust proxy');
+        }
+
         // Initiate the database
         mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true, useFindAndModify: false } );
 
