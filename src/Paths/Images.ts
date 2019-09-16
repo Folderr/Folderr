@@ -25,7 +25,7 @@ class Images extends Path {
         }
         const image = await this.base.schemas.Image.findOne( { ID: parts[0] } );
         if (!image) {
-            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/Not_Found.html') );
+            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
         }
         let content = mime.contentType(image.path);
         const arr = image.path.split('.');

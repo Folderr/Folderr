@@ -17,7 +17,7 @@ class Short extends Path {
         }
         const short = await this.base.schemas.Shorten.findOne( { ID: req.params.id } );
         if (!short) {
-            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/Not_Found.html') );
+            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
         }
         return res.redirect(short.link.trim() );
     }
