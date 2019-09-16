@@ -14,7 +14,7 @@ class Signup extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         if (!req.secure) {
-            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/SecureOnly.html') );
+            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/HTML/SecureOnly.html') );
         }
         if (req.cookies && req.cookies.token) {
             const auth = await this.Utils.authBearerToken(req.cookies);

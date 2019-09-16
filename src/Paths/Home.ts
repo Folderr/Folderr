@@ -22,7 +22,7 @@ class Home extends Path {
                 res.clearCookie('token');
                 return res.sendFile(dir);
             }
-            return res.sendFile(join(__dirname, '../Frontend/Home_LoggedIn.html') );
+            return res.sendFile(join(__dirname, '../Frontend/HTML/Home_LoggedIn.html') );
         }
         return res.sendFile(dir);
     }
