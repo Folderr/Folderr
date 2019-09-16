@@ -1,6 +1,11 @@
 export { default as Home } from './Home';
 export { default as Short } from './Short';
 export { default as Images } from './Images';
+export { default as Login } from './Login';
+export { default as Logout } from './Logout';
+export { default as Signup } from './Signup';
+export { default as Shorten } from './Shorten';
+export { default as Account } from './Account';
 export { default as APISignup } from './API/Signup';
 export { default as APIPVerify } from './API/Verify_Acc';
 export { default as APIDVerify } from './API/Deny_Acc';
@@ -22,3 +27,4 @@ export { default as APIShorts } from './API/Shorts';
 export { default as APIUploadImage } from './API/Upload_Image';
 export { default as APIImages } from './API/Images';
 export { default as APIDeleteImage } from './API/Delete_Image';
+export { default as APILogin } from './API/Login';

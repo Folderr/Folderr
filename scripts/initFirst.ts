@@ -8,7 +8,7 @@ const rl = readline.createInterface( {
     input: process.stdin,
     output: process.stdout,
     terminal: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line
     // @ts-ignore
     history: 0,
     // I read the docs and this exists, so TS & ESLint...

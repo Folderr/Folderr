@@ -2,6 +2,7 @@ import { Response } from 'express';
 import Path from '../Structures/Path';
 import Evolve from '../Structures/Evolve';
 import Base from '../Structures/Base';
+import { join } from 'path';
 
 class Short extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -16,7 +17,7 @@ class Short extends Path {
         }
         const short = await this.base.schemas.Shorten.findOne( { ID: req.params.id } );
         if (!short) {
-            return res.status(this.codes.notFound).send('Short not found!');
+            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/Not_Found.html') );
         }
         return res.redirect(short.link.trim() );
     }

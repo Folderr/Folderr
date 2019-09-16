@@ -7,14 +7,15 @@ class Login extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Login';
-        this.secureOnly = true;
+        this.path = '/api/login';
+        this.secureOnly = false;
 
         this.type = 'post';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
-        if (!req.body || (req.body && (!req.body.username || !req.body.password || !req.body.token) ) ) {
-            if (req.body && (req.body.username || req.body.password || req.body.token) ) {
+    async execute(req: any, res: any): Promise<Response|void> {
+        if (!req.body || (req.body && (!req.body.username || !req.body.password) ) ) {
+            if (req.body && (req.body.username || req.body.password) ) {
                 return res.status(this.codes.badReq).send('[ERROR] MISSING DETAIL(S)');
             }
             return res.status(this.codes.badReq).send('[ERROR] MISSING ALL DETAILS');
@@ -24,29 +25,17 @@ class Login extends Path {
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
-        if (!req.body.uid) {
-            // eslint-disable-next-line require-atomic-updates
-            req.body.uid = auth.uID;
-        }
-        if (!req.body.token) {
-            const authToken = await this.Utils.authTokenBody(req);
-            if (!authToken || typeof authToken === 'string') {
-                return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
-            }
-        }
         // Set the cookie to expire in a weeks time
         const week = 604800000;
         const endTime = new Date(Date.now() + week);
+        const token = await this.Utils.genBearerToken(auth.uID);
+        const tokenSchema = new this.base.schemas.BearerTokens( { uID: auth.uID, token: token.hash } );
+        tokenSchema.save();
 
         // Set cookies
-        res.cookie('pass', req.body.password, { secure: true, expires: endTime } );
-        res.cookie('name', req.body.username, { secure: true, expires: endTime } );
-        if (req.body.token) {
-            res.cookie('token', req.headers.token, { secure: true, expires: endTime } );
-            res.cookie('uid', req.headers.uid, { secure: true, expires: endTime } );
-        }
-
-        return res.status(this.codes.noContent).send();
+        await auth.save();
+        return res.cookie('token', token.token, { expires: endTime, secure: false } )
+            .redirect('../');
     }
 }
 
