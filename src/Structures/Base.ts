@@ -1,5 +1,6 @@
 import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import { platform } from 'os';
 import bodyParser from 'body-parser';
@@ -9,9 +10,11 @@ import Image, { ImageI } from '../Schemas/Image';
 import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
 import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
 import Shorten, { Short } from '../Schemas/Short';
+import BearerTokens, { BearerTokenSchema } from '../Schemas/BearerTokens';
 import Utils from './Utils';
 import Evolve from './Evolve';
 import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
+import { join } from 'path';
 
 const ee = new Events();
 
@@ -29,7 +32,10 @@ interface Schemas {
     VerifyingUser: mongoose.Model<VUser>;
     AdminNotifs: mongoose.Model<Notification>;
     Shorten: mongoose.Model<Short>;
+    BearerTokens: mongoose.Model<BearerTokenSchema>;
 }
+
+console.log(join(__dirname, '../Frontend') );
 
 /**
  * @class Base
@@ -71,8 +77,11 @@ class Base {
         this.superagent = superagent;
         this.web = web;
         this.web.use(bodyParser.json() );
+        this.web.use(express.urlencoded() );
+        this.web.use(express.static(join(__dirname, '../Frontend') ) );
+        this.web.use(cookieParser() );
         this.schemas = {
-            User, Image, VerifyingUser, AdminNotifs, Shorten,
+            User, Image, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
         };
         this.Utils = new Utils();
         this.flags = flags;

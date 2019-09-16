@@ -2,6 +2,8 @@ import Base from './Base';
 import { Options } from './Evolve-Config';
 import * as paths from '../Paths';
 import Path from './Path';
+import { join } from 'path';
+import { Request } from 'express';
 
 const notFound = 404;
 
@@ -20,6 +22,8 @@ class Evolve {
 
     public ipBans: string[];
 
+    private clearingTokens: boolean;
+
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -33,6 +37,7 @@ class Evolve {
         this.paths = new Map();
         this.ips = new Map();
         this.ipBans = [];
+        this.clearingTokens = false;
     }
 
     /**
@@ -94,11 +99,37 @@ class Evolve {
         console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         // Initiate the base of the project
         await base.init();
-        base.web.all('/*', (req, res) => res.status(notFound).send('Image not found!') );
+        base.web.all('/*', (req: Request, res) => {
+            console.log(`${req.path} not found with method: ${req.method}!`);
+            res.status(notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
+        } );
+
+        const mins = 120000;
+        setTimeout(async() => {
+            if (this.clearingTokens) {
+                return;
+            }
+            await this.removeTokens(base);
+        }, mins);
 
         console.log('[SYSTEM INFO] Initialized!');
         if (process.env.NODE_ENV === 'test') {
             process.exit();
+        }
+    }
+
+    async removeTokens(base: Base): Promise<void> {
+        this.clearingTokens = true;
+        const tokens = await base.schemas.BearerTokens.find();
+        if (!tokens || tokens.length === 0) {
+            return;
+        }
+        const atokens = tokens.filter(token => new Date() > token.expires);
+        if (!atokens || atokens.length === 0) {
+            return;
+        }
+        for (const token of atokens) {
+            await base.schemas.BearerTokens.findOneAndRemove( { _id: token._id } );
         }
     }
 }

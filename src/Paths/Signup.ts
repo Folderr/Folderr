@@ -1,31 +1,31 @@
-import Path from '../../src/Structures/Path';
+import Path from '../Structures/Path';
 import Evolve from '../Structures/Evolve';
-import { Response } from 'express';
 import Base from '../Structures/Base';
+import { Response } from 'express';
 import { join } from 'path';
 
-class Home extends Path {
+class Signup extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
-        this.label = 'Homepage';
-
-        this.path = '/';
-        this.type = 'get';
+        this.label = 'Sign up';
+        this.path = '/signup';
         this.enabled = !this.base.options.apiOnly;
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        const dir = join(__dirname, '../Frontend/Home.html');
+        if (!req.secure) {
+            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/SecureOnly.html') );
+        }
         if (req.cookies && req.cookies.token) {
             const auth = await this.Utils.authBearerToken(req.cookies);
             if (!auth || typeof auth === 'string') {
-                res.clearCookie('token');
-                return res.sendFile(dir);
+                return res.redirect('./logout');
             }
-            return res.sendFile(join(__dirname, '../Frontend/Home_LoggedIn.html') );
+            return res.redirect('./');
         }
-        return res.sendFile(dir);
+
+        return res.sendFile(join(__dirname, '../Frontend/HTML/Signup.html') );
     }
 }
 
-export default Home;
+export default Signup;

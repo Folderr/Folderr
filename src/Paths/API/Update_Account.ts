@@ -15,7 +15,6 @@ class UpdateAcc extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Update Account';
-        // this.load = false;
         this.path = '/api/account';
 
         this.type = 'patch';
