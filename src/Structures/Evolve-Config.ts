@@ -4,6 +4,7 @@ export interface Options {
     mongoUrl?: string;
     signups?: boolean;
     apiOnly?: boolean;
+    trustProxies?: boolean;
 }
 
 export interface ActualOptions {
@@ -12,6 +13,7 @@ export interface ActualOptions {
     mongoUrl: string;
     signups: boolean;
     apiOnly: boolean;
+    trustProxies: boolean;
 }
 
 const optionsBase: ActualOptions = {
@@ -20,6 +22,7 @@ const optionsBase: ActualOptions = {
     mongoUrl: 'mongodb://localhost/evolve-x',
     signups: true,
     apiOnly: false,
+    trustProxies: false,
 };
 
 /**
@@ -49,12 +52,15 @@ class EvolveConfig implements ActualOptions {
 
     public apiOnly: boolean;
 
+    public trustProxies: boolean;
+
     constructor(config: Options = optionsBase) {
         this.port = config.port || optionsBase.port;
         this.url = config.url || optionsBase.url;
         this.mongoUrl = config.mongoUrl || optionsBase.mongoUrl;
         this.signups = config.signups === undefined ? true : config.signups;
         this.apiOnly = config.apiOnly || optionsBase.apiOnly;
+        this.trustProxies = config.trustProxies || optionsBase.trustProxies;
         this.verify();
     }
 
