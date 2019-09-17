@@ -6,6 +6,7 @@ export { default as Logout } from './Logout';
 export { default as Signup } from './Signup';
 export { default as Shorten } from './Shorten';
 export { default as Account } from './Account';
+export { default as About } from './About';
 export { default as APISignup } from './API/Signup';
 export { default as APIPVerify } from './API/Verify_Acc';
 export { default as APIDVerify } from './API/Deny_Acc';
