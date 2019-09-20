@@ -1,8 +1,8 @@
-import Path from "../Structures/Path";
-import Evolve from "../Structures/Evolve";
-import Base from "../Structures/Base";
-import {Response} from "express";
-import {join} from "path";
+import Path from '../Structures/Path';
+import Evolve from '../Structures/Evolve';
+import Base from '../Structures/Base';
+import { Response } from 'express';
+import { join } from 'path';
 
 class About extends Path {
     constructor(evolve: Evolve, base: Base) {

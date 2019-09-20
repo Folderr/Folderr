@@ -12,7 +12,17 @@ url - The url this app is going to have. This is only so Evolve-X can reference 
 
 apiOnly - If you only want the api and no frontend, set this to true
 
-Signups - Whether or not to allow people to signup to your app.
+signups - Whether or not to allow people to signup to your app.
+
+certOptions - Object containing options for https.
+
+certOptions.cert - COMPLETE path to cert (Not relative).
+
+certOptions.ca - Only useful to people who use self signed certs.
+
+certOptions.key - Exact path to certificate key.
+
+certOptions.requestCert - This is necessary only if using client certificate authentication.
 
 ### Example config
 
