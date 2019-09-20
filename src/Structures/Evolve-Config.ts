@@ -1,3 +1,10 @@
+interface certOptions {
+    key?: string | any;
+    cert?: string | any;
+    requestCert?: boolean;
+    ca?: string[] | any[];
+}
+
 export interface Options {
     port?: number;
     url?: string;
@@ -5,6 +12,7 @@ export interface Options {
     signups?: boolean;
     apiOnly?: boolean;
     trustProxies?: boolean;
+    certOptions?: certOptions;
 }
 
 export interface ActualOptions {
@@ -14,6 +22,7 @@ export interface ActualOptions {
     signups: boolean;
     apiOnly: boolean;
     trustProxies: boolean;
+    certOptions?: certOptions;
 }
 
 const optionsBase: ActualOptions = {
@@ -54,6 +63,8 @@ class EvolveConfig implements ActualOptions {
 
     public trustProxies: boolean;
 
+    public certOptions?: certOptions;
+
     constructor(config: Options = optionsBase) {
         this.port = config.port || optionsBase.port;
         this.url = config.url || optionsBase.url;
@@ -61,6 +72,12 @@ class EvolveConfig implements ActualOptions {
         this.signups = config.signups === undefined ? true : config.signups;
         this.apiOnly = config.apiOnly || optionsBase.apiOnly;
         this.trustProxies = config.trustProxies || optionsBase.trustProxies;
+        this.certOptions = {
+            key: (config && config.certOptions && config.certOptions.key),
+            cert: (config && config.certOptions && config.certOptions.cert),
+            ca: (config && config.certOptions && config.certOptions.ca),
+            requestCert: (config && config.certOptions && Boolean(config.certOptions.requestCert) ),
+        };
         this.verify();
     }
 

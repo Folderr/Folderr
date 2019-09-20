@@ -15,7 +15,7 @@ class Notifs extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth by token/id
-        const auth = await this.Utils.authToken(req);
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authToken(req) : await this.Utils.authBearerToken(req.cookies, (user) => !!user.admin);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
@@ -30,7 +30,7 @@ class Notifs extends Path {
             }
             // Get the notifications, and reset the notifications array
             const anotifs = await this.base.schemas.AdminNotifs.find();
-            notifs = anotifs.map( (notification: Notification) => `{ ID: ${notification.ID}, title: ${notification.title}, notify: ${notification.notify} }`);
+            notifs = anotifs.map( (notification: Notification) => `{ ID: "${notification.ID}", title: "${notification.title}", notify: "${notification.notify}" }`);
         }
 
         if (!notifs || notifs.length === 0) {

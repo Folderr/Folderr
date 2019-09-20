@@ -15,6 +15,8 @@ import Utils from './Utils';
 import Evolve from './Evolve';
 import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 import { join } from 'path';
+import { readFileSync } from 'fs';
+import https from 'https';
 
 const ee = new Events();
 
@@ -142,8 +144,19 @@ class Base {
             }
 
             // Init the server
-
-            this.web.listen(this.options.port);
+            if (this.options.certOptions && this.options.certOptions.key && this.options.certOptions.cert) {
+                this.options.certOptions.key = readFileSync(this.options.certOptions.key);
+                this.options.certOptions.cert = readFileSync(this.options.certOptions.cert);
+                if (this.options.certOptions.ca && Array.isArray(this.options.certOptions.ca) ) {
+                    const cas = [];
+                    for (const ca of this.options.certOptions.ca) {
+                        cas.push(readFileSync(ca) );
+                    }
+                    this.options.certOptions.ca = cas;
+                }
+            }
+            const httpOptions = this.options.certOptions || {};
+            https.createServer(httpOptions, this.web).listen(this.options.port);
             console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
