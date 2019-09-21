@@ -1,4 +1,4 @@
-interface certOptions {
+interface CertOptions {
     key?: string | any;
     cert?: string | any;
     requestCert?: boolean;
@@ -12,7 +12,7 @@ export interface Options {
     signups?: boolean;
     apiOnly?: boolean;
     trustProxies?: boolean;
-    certOptions?: certOptions;
+    certOptions?: CertOptions;
 }
 
 export interface ActualOptions {
@@ -22,7 +22,7 @@ export interface ActualOptions {
     signups: boolean;
     apiOnly: boolean;
     trustProxies: boolean;
-    certOptions?: certOptions;
+    certOptions?: CertOptions;
 }
 
 const optionsBase: ActualOptions = {
@@ -63,7 +63,7 @@ class EvolveConfig implements ActualOptions {
 
     public trustProxies: boolean;
 
-    public certOptions?: certOptions;
+    public certOptions?: CertOptions;
 
     constructor(config: Options = optionsBase) {
         this.port = config.port || optionsBase.port;
