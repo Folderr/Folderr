@@ -17,6 +17,7 @@ import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
+import http from 'http';
 
 const ee = new Events();
 
@@ -154,9 +155,11 @@ class Base {
                     }
                     this.options.certOptions.ca = cas;
                 }
+                const httpOptions = this.options.certOptions;
+                const server = https.createServer(httpOptions, this.web);
+                server.listen(this.options.port);
             }
-            const httpOptions = this.options.certOptions || {};
-            https.createServer(httpOptions, this.web).listen(this.options.port);
+            this.web.listen(this.options.port);
             console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
