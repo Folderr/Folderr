@@ -20,7 +20,15 @@ function resetForm() {
     uh.reset();
 }
 
+function unerror() {
+    const box = document.getElementsByClassName('errbox')[0];
+    const erName = document.getElementById('err');
+    erName.innerHTML = '';
+    box.style.display = 'none';
+}
+
 function deny() {
+    unerror();
     const token = document.getElementById('token');
     const uID = document.getElementById('uID');
     if (!uID.value || !token.value) {
@@ -29,8 +37,8 @@ function deny() {
     }
     superagent.delete('/api/verify').send( { token: token.value.trim(), uid: uID.value.trim() } ).end( (err, res) => {
         if (err || codes.includes(res.status) ) {
-            if (err && err.message && err.message.startsWith('[ERROR]') ) {
-                error(err.slice('[ERROR] '.length) );
+            if (codes.includes(res.status) && res.text.startsWith('[ERROR]') ) {
+                error(res.text.slice('[ERROR] '.length) );
             } else {
                 error(err || res.text);
             }
@@ -47,6 +55,7 @@ function deny() {
 }
 
 function accept() {
+    unerror();
     const token = document.getElementById('token');
     const uID = document.getElementById('uID');
     if (!uID.value || !token.value) {
@@ -55,8 +64,8 @@ function accept() {
     }
     superagent.post('/api/verify').send( { token: token.value.trim(), uid: uID.value.trim() } ).end( (err, res) => {
         if (err || codes.includes(res.status) ) {
-            if (err && err.message && err.message.startsWith('[ERROR]') ) {
-                error(err.slice('[ERROR] '.length) );
+            if (codes.includes(res.status) && res.text.startsWith('[ERROR]') ) {
+                error(res.text.slice('[ERROR] '.length) );
             } else {
                 error(err || res.text);
             }

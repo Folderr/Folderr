@@ -21,7 +21,7 @@ function loadNotifications() {
             return;
         }
         const uh = document.getElementById('status');
-        if (res.status === noContent || !res.text) {
+        if (res.status === noContent || !res.text || !JSON.parse(res.text).length) {
             uh.innerHTML = 'No notifications!';
             return false;
         }

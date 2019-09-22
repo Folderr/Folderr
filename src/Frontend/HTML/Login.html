@@ -7,9 +7,17 @@
         <meta name="description" content="Login to Evolve-X">
         <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.from,Promise,Symbol,Object.setPrototypeOf,Object.getOwnPropertySymbols"></script>
+        <script src="https://unpkg.com/superagent"></script>
+        <script src="../JS/Login.js"></script>
     </head>
     <body>
     <div class="aligned">
+        <div class="errbox">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <p id="err"></p>
+            <br>
+        </div>
         <h1>Login to Evolve-X</h1>
         <form action="./api/login" method="post">
             Username:<br>
@@ -20,7 +28,7 @@
             <br>
             <br>
             <input type="reset" value="Reset">
-            <input type="submit" value="Login">
+            <button type="button" onclick="login()">Login</button>
         </form>
         <br>
         <br>
