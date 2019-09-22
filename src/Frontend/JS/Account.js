@@ -52,8 +52,23 @@ function getAccount() {
             }
             eh = JSON.parse(res.text);
             username.placeholder = eh.username;
+            const greeting = document.getElementById('greeting');
+            const name = `${eh.username[0].toUpperCase()}${eh.username.slice(1)}`;
+            if (eh.owner) {
+                greeting.innerHTML += ` ${name} (Owner)!`;
+            } else if (eh.admin) {
+                greeting.innerHTML += ` administrator ${name}!`;
+            } else {
+                greeting.innerHTML += ` ${name}`;
+            }
+            const images = document.createElement('h3');
+            images.innerHTML = `${eh.images || 'No'} images`;
+            const shorts = document.createElement('h3');
+            shorts.innerHTML = `${eh.images || 'No'} shorts`;
             tokenGen = eh.token_generated;
             const hidden = hiddens[0];
+            hidden.appendChild(images);
+            hidden.appendChild(shorts);
             hidden.style.display = 'block';
         } );
 }

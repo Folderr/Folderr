@@ -18,6 +18,8 @@ class Account extends Path {
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
+        const images = await this.base.schemas.Image.find( { owner: auth.uID } );
+        const shorts = await this.base.schemas.Shorten.find( { owner: auth.uID } );
 
         // Return a nice version of this users account.
         const acc = {
@@ -26,6 +28,8 @@ class Account extends Path {
             uID: auth.uID,
             admin: !!auth.admin,
             owner: !!auth.first,
+            images: images.length,
+            shorts: shorts.length,
         };
         return res.status(this.codes.ok).send(acc);
     }
