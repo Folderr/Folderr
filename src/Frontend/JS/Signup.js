@@ -25,14 +25,13 @@ const codes = [
 ];
 
 function signup() {
-    unerror()
+    unerror();
     const username = document.getElementById('username');
     const password = document.getElementById('password');
     if (!username.value || !password.value) {
         error('Username and password are required.');
         return false;
     }
-    console.log('Fuck yourself');
     superagent.post('/api/signup').send( { username: username.value, password: password.value } ).end( (err, res) => {
         if (err || (res && codes.includes(res.status) ) ) {
             error(res.text.slice('[ERROR] '.length) );

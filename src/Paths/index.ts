@@ -7,6 +7,7 @@ export { default as Signup } from './Signup';
 export { default as Shorten } from './Shorten';
 export { default as Account } from './Account';
 export { default as About } from './About';
+export { default as UploadImage } from './Upload_Image';
 export { default as Admin } from './Admin/Admin';
 export { default as AdminNotifications } from './Admin/Notifications';
 export { default as AdminVerification } from './Admin/Verification';
