@@ -8,11 +8,6 @@ const rl = readline.createInterface( {
     input: process.stdin,
     output: process.stdout,
     terminal: true,
-    // eslint-disable-next-line
-    // @ts-ignore
-    history: 0,
-    // I read the docs and this exists, so TS & ESLint...
-    // Shut up.
 } );
 
 let a: string | undefined;
