@@ -124,6 +124,15 @@ form
     display: none;
 }
 
+.verifys {
+    justify-content: center;
+}
+
+.verify {
+    justify-content: center;
+    text-align: center;
+}
+
 body {margin: 0;}
 
 ul.topnav {

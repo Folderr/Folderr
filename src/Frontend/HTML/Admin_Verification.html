@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <link rel='shortcut icon' href='../favicon.ico' type='image/x-icon'/>
-        <title>Verify/Deny Account</title>
+        <title>New Verification</title>
         <meta name="description" content="Evolve X, a open-source url and image host.">
         <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
         <meta name="charset" content="UTF-8">
@@ -11,10 +11,10 @@
         <script src="https://unpkg.com/superagent"></script>
         <script src="../JS/Admin_Verification.js"></script>
     </head>
-    <body onload="load()">
-        <ul class="topnav">
-            <li><a href="./">Home</a></li>
-            <li><a href="https://gitlab.com/evolve-x/evolve-x">Gitlab</a></li>
+    <body onload="loadNotifications()">
+    <ul class="topnav">
+        <li><a href="./">Home</a></li>
+        <li><a href="https://gitlab.com/evolve-x/evolve-x">Gitlab</a></li>
             <li><a href="/shorten">Shorten URL</a></li>
             <li><a href="/upload">Upload Image</a></li>
             <li class="right"><a href="./account">Account</a></li>
@@ -30,18 +30,7 @@
             <p id="err"></p>
             <br>
         </div>
-        <form id="form" action="#">
-            <br>
-            Account ID:
-            <input placeholder="2785194836461821716" type="text" id="uID" size="22">
-            <br>
-            <br>
-            Token:
-            <input placeholder="" type="text" id="token">
-            <br>
-            <br>
-            <button onclick="accept()" type="button">Accept</button>
-            <button onclick="deny()" type="button">Deny</button>
-        </form>
+        <h1 id="status">Loading users for verification... This may take a bit</h1>
+        <div class="verifys"></div>
     </body>
 </html>
