@@ -64,7 +64,7 @@ function getAccount() {
             const images = document.createElement('h3');
             images.innerHTML = `${eh.images || 'No'} images`;
             const shorts = document.createElement('h3');
-            shorts.innerHTML = `${eh.images || 'No'} shorts`;
+            shorts.innerHTML = `${eh.shorts || 'No'} shorts`;
             tokenGen = eh.token_generated;
             const hidden = hiddens[0];
             hidden.appendChild(images);
