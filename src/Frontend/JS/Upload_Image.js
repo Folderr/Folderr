@@ -62,7 +62,7 @@ async function upload() {
 }
 
 function copy() {
-    const link = document.getElementById('imgs');
+    const link = document.getElementById('img');
     link.select();
     link.setSelectionRange(0, 99999);
     const box = document.getElementsByClassName('successbox')[0];
