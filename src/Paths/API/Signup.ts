@@ -44,9 +44,9 @@ class Signup extends Path {
         const minUsername = 3;
         // If the username length does not match criteria
         if (username.length > maxUsername || username.length < minUsername) {
-            return res.status(this.codes.badReq).send('[ERROR] Password must be between 3 and 12 characters!');
+            return res.status(this.codes.badReq).send('[ERROR] Username must be between 3 and 12 characters!');
         } if (username.length !== username.match(/[a-z0-9_]/g).length) { // If the username doess not match our username pattern
-            return res.status(this.codes.badReq).send('[ERROR] Password may only contain lowercase letters, numbers, and an underscore.');
+            return res.status(this.codes.badReq).send('[ERROR] Username may only contain lowercase letters, numbers, and an underscore.');
         }
 
         // See if the username is already taken. If its taken error the request with a code of "IM USED"
