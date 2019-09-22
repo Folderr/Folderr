@@ -18,32 +18,30 @@
             <li class="right"><a href="/signup" class="active">Signup</a></li>
             <li class="right"><a href="/login">Login</a></li>
         </ul>
-        <div class="aligned">
-            <div class="successbox">
-                <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
-                <p id="success"></p>
-                <br>
-            </div>
-            <div class="errbox">
-                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                <p id="err"></p>
-                <br>
-            </div>
-            <h1>Evolve-X Sign-ups</h1>
-            <form action="#" class="form">
-                * Username:<br>
-                <input id="username" type="text" required="" placeholder="null_0515" autocomplete="off">
-                <br>
-                * Password:<br>
-                <input id="password" type="password" required="" placeholder="Password" autocomplete="off">
-                <br>
-                <br>
-                <input type="reset" value="Reset">
-                <button onclick="signup()">Sign up!</button>
-            </form>
+        <div class="successbox">
+            <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+            <p id="success"></p>
             <br>
-            <a href="javascript:history.go(-1)">Go Back</a>
         </div>
+        <div class="errbox">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <p id="err"></p>
+            <br>
+        </div>
+        <h1>Evolve-X Sign-ups</h1>
+        <form action="#" class="form">
+            * Username:<br>
+            <input id="username" type="text" required="" placeholder="null_0515" autocomplete="off">
+            <br>
+            * Password:<br>
+            <input id="password" type="password" required="" placeholder="Password" autocomplete="off">
+            <br>
+            <br>
+            <input type="reset" value="Reset">
+            <button onclick="signup()">Sign up!</button>
+        </form>
+        <br>
+        <a href="javascript:history.go(-1)">Go Back</a>
     </body>
 
 </html>

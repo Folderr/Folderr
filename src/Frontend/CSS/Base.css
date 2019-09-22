@@ -12,24 +12,6 @@ html, body {
 
 }
 
-
-.left-block {
-    text-align: center;
-    padding: 1%;
-    margin-left: auto;
-}
-
-.right-block {
-    text-align: center;
-    padding: 1%;
-    padding-left: 2%;
-    margin-right: auto;
-}
-
-.blocks {
-    display: flex;
-}
-
 .notification {
     text-align: left;
     padding: 1%;
@@ -53,10 +35,6 @@ a:hover {
 
 .links-list {
     list-style-type: none;
-}
-
-.aligned {
-    text-align: center;
 }
 
 div.form

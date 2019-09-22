@@ -20,30 +20,28 @@
             <li class="right"><a href="./account">Account</a></li>
             <li class="right"><a href="/logout">Logout</a></li>
         </ul>
-        <div class="aligned">
-            <div class="successbox">
-                <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
-                <p id="success"></p>
-                <br>
-            </div>
-            <div class="errbox">
-                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                <p id="err"></p>
-                <br>
-            </div>
-            <form id="form" action="#">
-                <br>
-                Account ID:
-                <input placeholder="2785194836461821716" type="text" id="uID" size="22">
-                <br>
-                <br>
-                Token:
-                <input placeholder="" type="text" id="token">
-                <br>
-                <br>
-                <button onclick="accept()" type="button">Accept</button>
-                <button onclick="deny()" type="button">Deny</button>
-            </form>
+        <div class="successbox">
+            <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+            <p id="success"></p>
+            <br>
         </div>
+        <div class="errbox">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <p id="err"></p>
+            <br>
+        </div>
+        <form id="form" action="#">
+            <br>
+            Account ID:
+            <input placeholder="2785194836461821716" type="text" id="uID" size="22">
+            <br>
+            <br>
+            Token:
+            <input placeholder="" type="text" id="token">
+            <br>
+            <br>
+            <button onclick="accept()" type="button">Accept</button>
+            <button onclick="deny()" type="button">Deny</button>
+        </form>
     </body>
 </html>
