@@ -81,6 +81,7 @@ class Base {
         this.web.use(bodyParser.json() );
         this.web.use(express.urlencoded() );
         this.web.use(express.static(join(__dirname, '../Frontend') ) );
+        this.web.use(express.static(join(__dirname, '../assets') ) );
         this.web.use(cookieParser() );
         this.schemas = {
             User, Image, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
