@@ -12,6 +12,13 @@ function unerror() {
     box.style.display = 'none';
 }
 
+function unsuccess() {
+    const box = document.getElementsByClassName('successbox')[0];
+    const succ = document.getElementByClassId('success');
+    succ.innerHTML = '';
+    box.style.display = '';
+}
+
 const notFound = 404;
 const unauthorized = 401;
 const badReq = 400;
@@ -26,6 +33,7 @@ const codes = [
 
 function signup() {
     unerror();
+    unsuccess();
     const username = document.getElementById('username');
     const password = document.getElementById('password');
     if (!username.value || !password.value) {
