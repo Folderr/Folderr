@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel='shortcut icon' href='../favicon.ico' type='image/x-icon'/>
+        <title>Account</title>
+        <meta name="description" content="Evolve X, a open-source url and image host.">
+        <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
+        <meta name="charset" content="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.from,Promise,Symbol,Object.setPrototypeOf,Object.getOwnPropertySymbols"></script>
+        <script src="https://unpkg.com/superagent"></script>
+        <script src="../JS/Upload_Image.js"></script>
+    </head>
+    <body onload="reset()">
+        <div class="aligned">
+            <div class="successbox">
+                <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+                <p id="success"></p>
+            </div>
+            <div class="errbox">
+                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <p id="err"></p>
+            </div>
+            <h1>Upload an Image</h1>
+            <form id="iForm" action="#" onsubmit="return false;">
+                Select image to upload:<br>
+                <input type="file" name="file" id="file">
+                <br>
+                <button onclick="upload()" type="button">Upload!</button>
+            </form>
+            <br>
+            <br>
+            <div class="centered">
+                <input id="img" type="text" readonly size="30">
+                <br>
+                <br>
+                <button class="hideBtn" onclick="copy()">Copy link!</button>
+            </div>
+        </div>
+    </body>
+</html>

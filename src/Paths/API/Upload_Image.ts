@@ -33,7 +33,7 @@ class Image extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response|void> {
-        const auth = await this.Utils.authToken(req);
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authToken(req) : await this.Utils.authBearerToken(req.cookies);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
@@ -54,10 +54,10 @@ class Image extends Path {
             unlinkSync(file.image.path);
             return res.status(this.codes.badReq).send('[ERROR] Not an image!');
         }
-        
+
         let ext = file.image.path.split('.');
         ext = ext[ext.length - 1];
-        
+
         console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
 
         const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path } );

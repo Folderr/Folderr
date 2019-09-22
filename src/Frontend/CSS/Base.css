@@ -113,7 +113,7 @@ form
     display: none;
 }
 
-#shorts {
+#shorts, #img {
     display: none;
     background-color: inherit;
     color: white;
