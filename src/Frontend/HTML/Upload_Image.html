@@ -20,30 +20,28 @@
             <li class="right"><a href="./account">Account</a></li>
             <li class="right"><a href="/logout">Logout</a></li>
         </ul>
-        <div class="aligned">
-            <div class="successbox">
-                <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
-                <p id="success"></p>
-            </div>
-            <div class="errbox">
-                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                <p id="err"></p>
-            </div>
-            <h1>Upload an Image</h1>
-            <form id="iForm" action="#" onsubmit="return false;">
-                Select image to upload:<br>
-                <input type="file" name="file" id="file">
-                <br>
-                <button onclick="upload()" type="button">Upload!</button>
-            </form>
+        <div class="successbox">
+            <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+            <p id="success"></p>
+        </div>
+        <div class="errbox">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <p id="err"></p>
+        </div>
+        <h1>Upload an Image</h1>
+        <form id="iForm" action="#" onsubmit="return false;">
+            Select image to upload:<br>
+            <input type="file" name="file" id="file">
+            <br>
+            <button onclick="upload()" type="button">Upload!</button>
+        </form>
+        <br>
+        <br>
+        <div class="centered">
+            <input id="img" type="text" readonly size="30">
             <br>
             <br>
-            <div class="centered">
-                <input id="img" type="text" readonly size="30">
-                <br>
-                <br>
-                <button class="hideBtn" onclick="copy()">Copy link!</button>
-            </div>
+            <button class="hideBtn" onclick="copy()">Copy link!</button>
         </div>
     </body>
 </html>
