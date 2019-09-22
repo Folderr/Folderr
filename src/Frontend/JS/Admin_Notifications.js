@@ -8,9 +8,30 @@ const codes = [
     badReq,
 ];
 
+function load() {
+    const div = document.getElementsByClassName('topnav')[0];
+    superagent.get('/api/account')
+        .end( (err, res) => {
+            if (err) {
+                console.log(err.message || err);
+            }
+            const eh = JSON.parse(res.text);
+            if (eh.admin) {
+                const li = document.createElement('li');
+                const link = document.createElement('a');
+                const linkText = document.createTextNode('Admin');
+                link.href = '/admin';
+                link.appendChild(linkText);
+                li.appendChild(link);
+                div.appendChild(li);
+            }
+        } );
+}
+
 const noContent = 204;
 
 function loadNotifications() {
+    load();
     const parent = document.getElementsByClassName('notificationsDiv')[0];
     const erName = document.getElementById('err');
     const erbox = document.getElementsByClassName('errbox')[0];

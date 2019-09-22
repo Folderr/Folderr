@@ -1,5 +1,5 @@
 function load() {
-    const div = document.getElementsByClassName('left-block')[0];
+    const div = document.getElementsByClassName('topnav')[0];
     superagent.get('/api/account')
         .end( (err, res) => {
             if (err) {
@@ -7,12 +7,13 @@ function load() {
             }
             const eh = JSON.parse(res.text);
             if (eh.admin) {
-                div.innerHTML += '<br><br>';
+                const li = document.createElement('li');
                 const link = document.createElement('a');
-                const linkText = document.createTextNode('Admin Hub');
+                const linkText = document.createTextNode('Admin');
                 link.href = '/admin';
                 link.appendChild(linkText);
-                div.appendChild(link);
+                li.appendChild(link);
+                div.appendChild(li);
             }
         } );
 }

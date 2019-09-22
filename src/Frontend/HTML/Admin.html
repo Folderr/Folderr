@@ -7,14 +7,22 @@
         <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
         <meta name="charset" content="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../JS/Admin.js"></script>
     </head>
-    <body>
-        <div class="aligned">
-            <h1>Evolve-X Admin panel</h1>
-            <p>Yea there isn't much here currently...</p>
-            <a href="/admin/notifications">Notifications</a>
-            <br>
-            <a href="/admin/verify">Verify/Deny accounts</a>
-        </div>
+    <body onload="load()">
+        <ul class="topnav">
+            <li><a href="./">Home</a></li>
+            <li><a href="https://gitlab.com/evolve-x/evolve-x">Gitlab</a></li>
+            <li><a href="/shorten">Shorten URL</a></li>
+            <li><a href="/upload">Upload Image</a></li>
+            <li class="right"><a href="./account">Account</a></li>
+            <li class="right"><a href="/logout">Logout</a></li>
+        </ul>
+        <h1>Evolve-X Admin panel</h1>
+        <p>Yea there isn't much here currently...</p>
+        <a href="/admin/notifications">Notifications</a>
+        <br>
+        <br>
+        <a href="/admin/verify">Verify/Deny accounts</a>
     </body>
 </html>

@@ -12,23 +12,25 @@
         <script src="../JS/LoggedIn.js"></script>
     </head>
     <body onload="load()">
-        <div class="blocks">
-            <div class="left-block">
-                <h1>Manage your account</h1>
-                <a href="/account">Manage your account</a>
-                <br><br>
-                <a href="/logout">Logout</a>
-            </div>
-            <div class="right-block">
-                <h1>Uploaders</h1>
-                <a href="/shorten">Shorten a link!</a>
-                <br>
-                <a href="/upload">Upload a image!</a>
-            </div>
-        </div>
-        <br><br>
-        <div class="aligned">
-            <a href="javascript:history.go(-1)">Go back</a>
-        </div>
+        <ul class="topnav">
+            <li><a href="./" class="active">Home</a></li>
+            <li><a href="https://gitlab.com/evolve-x/evolve-x">Gitlab</a></li>
+            <li><a href="/shorten">Shorten URL</a></li>
+            <li><a href="/upload">Upload Image</a></li>
+            <li class="right"><a href="./account">Account</a></li>
+            <li class="right"><a href="/logout">Logout</a></li>
+        </ul>
+        <h1>About</h1>
+        <p>Evolve-X - A lightweight nodejs image host<br><br>But why?<br><br>Well, I wanted something that was easy to setup, had a nice interface, and wasn't a resource hog<br>I also did not want to rely on python.<br>I mean for the endpoints to be well documented and complete. That will come soon.<br>The API is meant to be very strict. This is too enforce efficiency and so nothing can easily break.</p>
+        <h1>Team and Special thanks</h1>
+        <ul style="list-style-type: none">
+            <li><a href="https://gitlab.com/VoidNulll">Null</a> - Founder/backend dev</li>
+            <br>
+            <li><a href="https://gitlab.com/Decease">Decease</a> - Frontend expert, feedback, help, ideas</li>
+            <br>
+            <li><a href="https://gitlab.com/Tohu">Tohu</a> - Ideas, help, & feedback</li>
+            <br>
+            <li><a href="https://gitlab.libraryofcode.us/matthew">Matthew</a> - Help</li>
+        </ul>
     </body>
 </html>
