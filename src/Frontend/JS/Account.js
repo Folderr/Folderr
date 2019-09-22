@@ -37,8 +37,6 @@ function getAccount() {
         } );
 }
 
-const secs = 15000;
-
 function savePass(pass) {
     const form = document.getElementById('form');
     const pas = document.getElementById('password');

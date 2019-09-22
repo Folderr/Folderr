@@ -14,7 +14,7 @@ class VerifyAccount extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Handle authorization
-        const auth = await this.Utils.authToken(req, (user) => !!user.admin);
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authBearerToken(req.cookies, (user) => !!user.admin);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
@@ -44,7 +44,7 @@ class VerifyAccount extends Path {
         await this.base.schemas.AdminNotifs.deleteOne(notify);
 
         // Alert the console and the admin that the user was verified
-        console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${req.headers.uid}`);
+        console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${auth.username} (${auth.uID})`);
         return res.status(this.codes.created).send('[SUCCESS] Verified user!');
     }
 }
