@@ -2,7 +2,6 @@ function load() {
     const div = document.getElementsByClassName('left-block')[0];
     superagent.get('/api/account')
         .end( (err, res) => {
-            console.log(res.text);
             if (err) {
                 console.log(err.message || err);
             }
