@@ -17,7 +17,6 @@ import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
-import http from 'http';
 
 const ee = new Events();
 

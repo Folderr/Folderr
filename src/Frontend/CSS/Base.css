@@ -29,6 +29,11 @@ html, body {
     display: flex;
 }
 
+.notification {
+    text-align: left;
+    padding: 1%;
+}
+
 a:link {
     color: rgb(156, 194, 255);
 }

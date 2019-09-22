@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel='shortcut icon' href='../favicon.ico' type='image/x-icon'/>
+        <title>Verify/Deny Account</title>
+        <meta name="description" content="Evolve X, a open-source url and image host.">
+        <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
+        <meta name="charset" content="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.from,Promise,Symbol,Object.setPrototypeOf,Object.getOwnPropertySymbols"></script>
+        <script src="https://unpkg.com/superagent"></script>
+        <script src="../JS/Admin_Verification.js"></script>
+    </head>
+    <body onload="resetForm()">
+        <div class="aligned">
+            <div class="successbox">
+                <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+                <p id="success"></p>
+                <br>
+            </div>
+            <div class="errbox">
+                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <p id="err"></p>
+                <br>
+            </div>
+            <form id="form" action="#">
+                <br>
+                Account ID:
+                <input placeholder="2785194836461821716" type="text" id="uID" size="22">
+                <br>
+                <br>
+                Token:
+                <input placeholder="" type="text" id="token">
+                <br>
+                <br>
+                <button onclick="accept()" type="button">Accept</button>
+                <button onclick="deny()" type="button">Deny</button>
+            </form>
+        </div>
+    </body>
+</html>

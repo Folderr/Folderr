@@ -30,7 +30,7 @@ class Notifs extends Path {
             }
             // Get the notifications, and reset the notifications array
             const anotifs = await this.base.schemas.AdminNotifs.find();
-            notifs = anotifs.map( (notification: Notification) => `{ ID: "${notification.ID}", title: "${notification.title}", notify: "${notification.notify}" }`);
+            notifs = anotifs.map( (notification: Notification) => `{ "ID":"${notification.ID}","title":"${notification.title}","notify":"${notification.notify.replace(/\n/g, ',')}" }`);
         }
 
         if (!notifs || notifs.length === 0) {

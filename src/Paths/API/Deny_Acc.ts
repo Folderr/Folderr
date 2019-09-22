@@ -14,7 +14,7 @@ class DenyAccount extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth by id/token
-        const auth = await this.Utils.authToken(req, (user) => !!user.admin);
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authBearerToken(req.cookies, (user) => !!user.admin);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
@@ -37,7 +37,7 @@ class DenyAccount extends Path {
         const notify = notifs.find(notif => notif.notify.includes(user.uID) );
         await this.base.schemas.AdminNotifs.deleteOne(notify);
         // Log that the account was denied by admin x, and tell the admin the account wa denied
-        console.log(`[INFO] - User ${user.uID}'s account was denied by admin ${req.headers.uid}`);
+        console.log(`[INFO] - User ${user.uID}'s account was denied by admin ${auth.username} (${auth.uID})`);
         return res.status(this.codes.ok).send('[SUCCESS] Denied user!');
     }
 }
