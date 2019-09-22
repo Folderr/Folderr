@@ -12,6 +12,7 @@ let tokenGen = false;
 let eh;
 
 function load() {
+    getAccount();
     const div = document.getElementsByClassName('topnav')[0];
     superagent.get('/api/account')
         .end( (err, res) => {
@@ -32,7 +33,6 @@ function load() {
 }
 
 function getAccount() {
-    load();
     const hiddens = document.getElementsByClassName('hidden');
     const erName = document.getElementById('err');
     const erbox = document.getElementsByClassName('errbox')[0];

@@ -25,6 +25,7 @@ const codes = [
 ];
 
 function load() {
+    reset();
     const div = document.getElementsByClassName('topnav')[0];
     superagent.get('/api/account')
         .end( (err, res) => {

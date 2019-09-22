@@ -15,6 +15,7 @@ html, body {
 .notification {
     text-align: left;
     padding: 1%;
+    max-width: inherit;
 }
 
 a:link {

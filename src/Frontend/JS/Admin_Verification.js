@@ -17,6 +17,7 @@ const codes = [
 
 
 function load() {
+    resetForm();
     const div = document.getElementsByClassName('topnav')[0];
     superagent.get('/api/account')
         .end( (err, res) => {
@@ -37,7 +38,6 @@ function load() {
 }
 
 function resetForm() {
-    load();
     const uh = document.getElementById('form');
     uh.reset();
 }

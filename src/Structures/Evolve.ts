@@ -100,7 +100,7 @@ class Evolve {
         // Initiate the base of the project
         await base.init();
         base.web.all('/*', (req: Request, res) => {
-            console.log(`${req.path} not found with method: ${req.method}!`);
+            console.log(`${req.path} not found with method: ${req.method}. Originated from ${req.ip}!`);
             res.status(notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
         } );
 
