@@ -9,7 +9,7 @@ class Verification extends Path {
         super(evolve, base);
         this.label = 'Admin Verification';
         this.path = '/admin/verify';
-        this.enabled = true; // !this.base.options.apiOnly;
+        this.enabled = !this.base.options.apiOnly;
     }
 
     async execute(req: any, res: any): Promise<Response | void> {

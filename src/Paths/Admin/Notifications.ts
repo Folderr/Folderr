@@ -9,7 +9,7 @@ class AdminNotifications extends Path {
         super(evolve, base);
         this.label = 'Admin Notifications';
         this.path = '/admin/notifications';
-        this.enabled = true; // !this.base.options.apiOnly;
+        this.enabled = !this.base.options.apiOnly;
     }
 
     async execute(req: any, res: any): Promise<Response | void> {

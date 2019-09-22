@@ -9,7 +9,7 @@ class Admin extends Path {
         super(evolve, base);
         this.label = 'Admin Hub';
         this.path = '/admin';
-        this.enabled = true; // !this.base.options.apiOnly;
+        this.enabled = !this.base.options.apiOnly;
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
