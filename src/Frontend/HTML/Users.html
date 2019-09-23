@@ -3,15 +3,19 @@
     <head>
         <link rel='shortcut icon' href='../favicon.ico' type='image/x-icon'/>
         <title>Evolve-X</title>
-        <meta name="description" content="Evolve X, a open-source url and image host.">
+        <meta name="description" content="Evolve-X, a open source, efficient, and effective url and image host.">
+        <meta name="og:title" content="Evolve-X Light, Open source, efficient">
+        <meta name="og:image" content="./assets/Idea_2_Icon.png">
+        <meta name="og:description" content="Evolve X, a open source, efficient, and effective url and image host.">
+        <meta name="og:site_name" content="Evolve-X">
         <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
         <meta name="charset" content="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.from,Promise,Symbol,Object.setPrototypeOf,Object.getOwnPropertySymbols"></script>
         <script src="https://unpkg.com/superagent"></script>
-        <script src="../JS/Admin_Verification.js"></script>
+        <script src="../JS/Users.js"></script>
     </head>
-    <body onload="loadNotifications()">
+    <body onload="load()">
         <ul class="topnav">
             <li><a href="./">Home</a></li>
             <li><a href="https://gitlab.com/evolve-x/evolve-x">Gitlab</a></li>
@@ -30,7 +34,7 @@
             <p id="err"></p>
             <br>
         </div>
-        <h1 id="status">Loading users for verification... This may take a bit</h1>
-        <div class="verifys"></div>
+        <h1 id="status">Loading users... This may take a while.</h1>
+        <div class="users"></div>
     </body>
 </html>
