@@ -146,6 +146,11 @@ ul.topnav li a {
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
+    overflow: hidden;
+}
+
+.logo {
+    margin-top: 15px;
 }
 
 ul.topnav li a:hover:not(.active) {background-color: #111;}
