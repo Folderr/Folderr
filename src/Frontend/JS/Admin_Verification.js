@@ -32,6 +32,15 @@ function load() {
                 li.appendChild(link);
                 div.appendChild(li);
             }
+            if (eh.owner) {
+                const li = document.createElement('li');
+                const link = document.createElement('a');
+                const linkText = document.createTextNode('Manage');
+                link.href = '/owner/manage';
+                link.appendChild(linkText);
+                li.appendChild(link);
+                div.appendChild(li);
+            }
         } );
 }
 
