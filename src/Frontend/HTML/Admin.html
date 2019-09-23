@@ -3,6 +3,7 @@
     <head>
         <link rel='shortcut icon' href='../favicon.ico' type='image/x-icon'/>
         <title>Evolve-X</title>
+        <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
         <meta name="description" content="Evolve-X, a open source, efficient, and effective url and image host.">
         <meta name="og:title" content="Evolve-X Light, Open source, efficient">
         <meta name="og:image" content="./assets/Idea_2_Icon.png">
@@ -10,6 +11,8 @@
         <meta name="og:site_name" content="Evolve-X">
         <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
         <meta name="charset" content="UTF-8">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.from,Promise,Symbol,Object.setPrototypeOf,Object.getOwnPropertySymbols"></script>
+        <script src="https://unpkg.com/superagent"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="../JS/Admin.js"></script>
     </head>
@@ -19,7 +22,7 @@
             <li><a href="https://gitlab.com/evolve-x/evolve-x">Gitlab</a></li>
             <li><a href="/shorten">Shorten URL</a></li>
             <li><a href="/upload">Upload Image</a></li>
-            <li class="right"><a href="./account">Account</a></li>
+            <li class="right"><a href="/account">Account</a></li>
             <li class="right"><a href="/logout">Logout</a></li>
         </ul>
         <h1>Evolve-X Admin panel</h1>
@@ -28,5 +31,8 @@
         <br>
         <br>
         <a href="/admin/verify">Verify/Deny accounts</a>
+        <br>
+        <br>
+        <a href="/admin/userrs">Manage Users</a>
     </body>
 </html>

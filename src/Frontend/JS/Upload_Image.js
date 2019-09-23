@@ -24,6 +24,12 @@ const codes = [
     used,
 ];
 
+function reset() {
+    const form = document.getElementById('iForm');
+    form.reset();
+    return false;
+}
+
 function load() {
     reset();
     const div = document.getElementsByClassName('topnav')[0];
@@ -42,15 +48,16 @@ function load() {
                 li.appendChild(link);
                 div.appendChild(li);
             }
+            if (eh.owner) {
+                const li = document.createElement('li');
+                const link = document.createElement('a');
+                const linkText = document.createTextNode('Manage');
+                link.href = '/owner/manage';
+                link.appendChild(linkText);
+                li.appendChild(link);
+                div.appendChild(li);
+            }
         } );
-}
-
-
-function reset() {
-    load();
-    const form = document.getElementById('iForm');
-    form.reset();
-    return false;
 }
 
 async function upload() {

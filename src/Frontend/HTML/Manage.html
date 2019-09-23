@@ -2,19 +2,15 @@
 <html lang="en">
     <head>
         <link rel='shortcut icon' href='../favicon.ico' type='image/x-icon'/>
-        <title>Evolve-X</title>
+        <title>Manage your Evolve-X instance</title>
         <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
-        <meta name="description" content="Evolve-X, a open source, efficient, and effective url and image host.">
-        <meta name="og:title" content="Evolve-X Light, Open source, efficient">
-        <meta name="og:image" content="./assets/Idea_2_Icon.png">
-        <meta name="og:description" content="Evolve X, a open source, efficient, and effective url and image host.">
-        <meta name="og:site_name" content="Evolve-X">
+        <meta name="description" content="Evolve X, a open-source url and image host.">
         <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
         <meta name="charset" content="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.from,Promise,Symbol,Object.setPrototypeOf,Object.getOwnPropertySymbols"></script>
         <script src="https://unpkg.com/superagent"></script>
-        <script src="../JS/Users.js"></script>
+        <script src="../JS/Manage.js"></script>
     </head>
     <body onload="load()">
         <ul class="topnav">
@@ -35,7 +31,15 @@
             <p id="err"></p>
             <br>
         </div>
-        <h1 id="status">Loading users... This may take a while.</h1>
-        <div class="users"></div>
+        <h1>Manage Evolve-X</h1>
+        <br><br>
+        <button onclick="update()">Update</button>
+        <br>
+        <button onclick="tsc()">Run the typescript compiler</button>
+        <br>
+        <button onclick="stop()">Stop</button>
+        <h1>Notice:</h1>
+        <h3>Evolve-X Will restart if you are on a automated process manager</h3>
+        <div class="info"></div>
     </body>
 </html>
