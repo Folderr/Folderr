@@ -14,7 +14,7 @@ function unerror() {
 
 function unsuccess() {
     const box = document.getElementsByClassName('successbox')[0];
-    const succ = document.getElementByClassId('success');
+    const succ = document.getElementById('success');
     succ.innerHTML = '';
     box.style.display = '';
 }

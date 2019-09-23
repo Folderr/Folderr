@@ -13,7 +13,7 @@ class AddAdmin extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        const auth = await this.Utils.authPassword(req, (user) => !!user.first);
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authPassword(req, (user) => !!user.first) : await this.Utils.authBearerToken(req.cookies, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
@@ -22,8 +22,8 @@ class AddAdmin extends Path {
         if (!req.query || !req.query.id) {
             return res.status(this.codes.badReq).send('[ERROR] Users ID is required!');
         }
-        const match = req.query.id.match(/[0-9]{18, 22}/);
-        if (!match || match.length !== req.query.id.length) {
+        const match = req.query.id.match(/[0-9]+/);
+        if (!match || match[0].length !== req.query.id.length) {
             return res.status(this.codes.badReq).send('[ERROR] ID is not a valid Evolve-X ID!');
         }
         const user = await this.base.schemas.User.findOne( { uID: req.query.id } );
