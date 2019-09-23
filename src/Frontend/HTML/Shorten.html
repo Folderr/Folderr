@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel='shortcut icon' href='../favicon.ico' type='image/x-icon'/>
+    <meta charset="UTF-8">
+    <title>Shorten link</title>
+    <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+    <meta name="description" content="Sign up for Evolve-X">
+    <link rel="stylesheet" type="text/css" href="../CSS/Base.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.from,Promise,Symbol,Object.setPrototypeOf,Object.getOwnPropertySymbols"></script>
+    <script src="https://unpkg.com/superagent"></script>
+    <script src="../JS/Shorten.js"></script>
+</head>
+<body onload="load()">
+    <ul class="topnav">
+        <li><a href="/">Home</a></li>
+        <li><a href="https://gitlab.com/evolve-x/evolve-x">Gitlab</a></li>
+        <li><a href="/shorten" class="active">Shorten URL</a></li>
+        <li><a href="/upload">Upload Image</a></li>
+        <li class="right"><a href="/account">Account</a></li>
+        <li class="right"><a href="/logout">Logout</a></li>
+    </ul>
+    <h1>Shorten URL</h1>
+    <div class="successbox">
+        <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+        <p id="success"></p>
+    </div>
+    <div class="errbox">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+        <p id="err"></p>
+    </div>
+    <form class="form" action="">
+        URL:<br>
+        <input name="url" id="url" type="text" required="" placeholder="Ex: https://google.com">
+        <br>
+        <br>
+        <button onclick="req()" value="Shorten!" type="button">Shorten it!</button>
+    </form>
+    <br>
+    <br>
+    <a href="javascript:history.go(-1)">Go Back</a>
+    <br>
+    <div class="centered">
+        <input id="shorts" type="text" readonly size="30">
+        <br>
+        <br>
+        <button class="hideBtn" onclick="copy()">Copy link!</button>
+    </div>
+</body>
+
+</html>

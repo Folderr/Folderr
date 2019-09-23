@@ -1,0 +1,166 @@
+html, body {
+    background-color: #393939;
+    color: white;
+    width: 100%;
+    height: 95%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-family: 'Raleway', sans-serif;
+}
+
+@media (min-width: 600px) {
+
+}
+
+.notification {
+    text-align: left;
+    padding: 1%;
+    max-width: inherit;
+}
+
+a:link {
+    color: rgb(156, 194, 255);
+}
+
+a:visited {
+    color: rgb(133, 180, 255);
+}
+
+a:hover {
+    color: rgb(219, 233, 255);
+}
+
+.links {
+    text-align: center;
+}
+
+.links-list {
+    list-style-type: none;
+}
+
+div.form
+{
+    display: block;
+    text-align: center;
+}
+form
+{
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
+.errbox {
+    padding: 5px;
+    background-color: #f44336;
+    color: white;
+    width: 50%;
+    margin: 0 auto 15px;
+    display: none;
+}
+
+.successbox {
+    padding: 5px;
+    background-color: #4077f7;
+    color: #ffffff;
+    width: 65%;
+    margin: 0 auto 15px;
+    display: none;
+}
+
+
+.closebtn, .closebtn2 {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 1s;
+}
+
+.hideBtn {
+    display: none;
+}
+
+#shorts, #img {
+    display: none;
+    background-color: inherit;
+    color: white;
+    border: 0;
+    text-align: center;
+}
+
+.centered {
+    display: flex;
+    justify-content: center;
+}
+
+.closebtn:hover {
+    color: black;
+}
+
+.closebtn2:hover {
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+.token {
+    background-color: #4077f7;
+    color: white;
+    width: 65%;
+    margin: 0 auto 15px;
+    display: none;
+}
+
+.verifys, .users {
+    justify-content: center;
+}
+
+.verify, .user {
+    justify-content: center;
+    text-align: center;
+}
+
+body {margin: 0;}
+
+ul.topnav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+
+ul.topnav li {float: left;}
+
+ul.topnav li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    overflow: hidden;
+}
+
+.logo {
+    margin-top: 15px;
+}
+
+ul.topnav li a:hover:not(.active) {background-color: #111;}
+
+ul.topnav li a.active {background-color: #4077f7;}
+
+ul.topnav li.right {float: right;}
+
+@media screen and (max-width: 600px) {
+    ul.topnav li.right,
+    ul.topnav li {float: none;}
+    .notification, .notificationsDiv { max-width: 600px }
+}

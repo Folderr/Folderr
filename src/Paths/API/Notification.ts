@@ -1,10 +1,10 @@
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
-import { Request, Response } from 'express';
-import { isArray } from 'util';
+import { Response } from 'express';
+import { Notification } from '../../Schemas/User';
 
-class Notification extends Path {
+class NotificationClass extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Notification';
@@ -13,35 +13,22 @@ class Notification extends Path {
         this.type = 'get';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        // Check headers for auth stuff and query for the notify id
-        if (!req.headers.token && !req.headers.uid) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization token and user ID!');
-        } if (!req.headers.token || !req.headers.uid) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization token or user ID!');
-        }
-        if (!req.query || (req.query && !req.query.id) ) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing notification ID');
-        }
-        if (isArray(req.headers.token) || isArray(req.headers.uid) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
-
+    async execute(req: any, res: any): Promise<Response> {
         // Check auth by token/id
-        const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);
-        if (!auth) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        const auth = await this.Utils.authToken(req);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
         // aGrab the notifications, and find the notification the user is looking for
         const { notifs } = auth;
         if (!notifs) {
-            return res.status(this.codes.notFound).send('[ERROR] You have no notifications!');
+            return res.status(this.codes.noContent).send();
         }
-        const notify = notifs.find(notification => notification.ID === req.query.id);
+        const notify = notifs.find( (notification: Notification) => notification.ID === req.query.id);
         // If the notification is not found, tell the user
         if (!notify) {
-            return res.status(this.codes.notFound).send('[ERROR] Notification not found!');
+            return res.status(this.codes.noContent).send();
         }
 
         // Send found notification
@@ -49,4 +36,4 @@ class Notification extends Path {
     }
 }
 
-export default Notification;
+export default NotificationClass;

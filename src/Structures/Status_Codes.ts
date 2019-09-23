@@ -13,6 +13,23 @@ const codes = {
     locked: 423,
     tooManyReq: 429,
     internalErr: 500,
+    notAccepted: 406,
 };
+
+export interface Codes {
+    ok: number;
+    created: number;
+    noContent: number;
+    partialContent: number;
+    used: number;
+    badReq: number;
+    unauth: number;
+    forbidden: number;
+    notFound: number;
+    locked: number;
+    tooManyReq: number;
+    internalErr: number;
+    notAccepted: number;
+}
 
 export default codes;
