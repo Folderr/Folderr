@@ -80,6 +80,9 @@ function loadInfo() {
             return false;
         }
         const information = JSON.parse(res.text);
+        const i = document.createElement('h1');
+        i.innerHTML = 'Git info';
+        infoParent.appendChild(i);
         const info = document.createElement('h4');
         info.innerHTML = `Commit: ${information.commit}<br>Branch: ${information.branch}`;
         infoParent.appendChild(info);
