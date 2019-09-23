@@ -2,7 +2,15 @@
     "extends": ["@axonteam", "plugin:@typescript-eslint/recommended"],
     "rules": {
         "consistent-return": "warn",
-        "new-cap": "warn"
+        "new-cap": "warn",
+        "@typescript-eslint/no-explicit-any": "off",
+        "linebreak-style": "off",
+        "builtinGlobals": 0,
+        "no-shadow": "off"
+    },
+    "env": {
+        "browser": true,
+        "node": true
     },
     "parser": "@typescript-eslint/parser",
     "plugins": ["@typescript-eslint"]

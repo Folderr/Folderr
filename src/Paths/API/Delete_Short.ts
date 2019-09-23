@@ -1,8 +1,7 @@
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
-import { Request, Response } from 'express';
-import { isArray } from 'util';
+import { Response } from 'express';
 
 class DeleteShort extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -13,27 +12,23 @@ class DeleteShort extends Path {
         this.type = 'delete';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        if (!req.headers.token && !req.headers.uid) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization token and user ID!');
-        } if (!req.headers.token || !req.headers.uid) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization token or user ID!');
+    async execute(req: any, res: any): Promise<Response> {
+        // Check auth
+        const auth = await this.Utils.authToken(req);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
-        if (isArray(req.headers.token) || isArray(req.headers.uid) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
-        const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);
-        if (!auth) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
-        }
+
+        // Check query
         if (!req.query || !req.query.id) {
-            return res.status(this.codes.badReq).send('[ERROR] ID needed in query!');
+            return res.status(this.codes.badReq).send('[ERROR] MISSING ID!');
         }
 
         const short = await this.base.schemas.Shorten.findOneAndRemove( { ID: req.query.id } );
         if (!short) {
             return res.status(this.codes.notFound).send('[ERROR] Short not found!');
         }
+        console.log(`[INFO - SHORTS] - Short ${short.ID} removed!`);
 
         return res.status(this.codes.ok).send('[SUCCESS] Short removed!');
     }

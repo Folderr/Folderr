@@ -1,8 +1,7 @@
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
-import { Request, Response } from 'express';
-import { isArray } from 'util';
+import { Response } from 'express';
 
 class Account extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -13,20 +12,14 @@ class Account extends Path {
         this.type = 'get';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Check headers, and check auth
-        if (!req.headers.password && !req.headers.username) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization password and username!');
-        } if (!req.headers.password || !req.headers.username) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization password or username!');
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authPassword(req) : await this.Utils.authBearerToken(req.cookies);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
-        if (isArray(req.headers.password) || isArray(req.headers.username) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
-        const auth = await this.Utils.authPassword(req.headers.password, req.headers.username);
-        if (!auth) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
-        }
+        const images = await this.base.schemas.Image.find( { owner: auth.uID } );
+        const shorts = await this.base.schemas.Shorten.find( { owner: auth.uID } );
 
         // Return a nice version of this users account.
         const acc = {
@@ -35,6 +28,8 @@ class Account extends Path {
             uID: auth.uID,
             admin: !!auth.admin,
             owner: !!auth.first,
+            images: images.length,
+            shorts: shorts.length,
         };
         return res.status(this.codes.ok).send(acc);
     }

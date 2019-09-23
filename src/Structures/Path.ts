@@ -1,23 +1,8 @@
-import codes from './Status_Codes';
+import codes, { Codes } from './Status_Codes';
 import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
 import Base from './Base';
 import express from 'express';
-
-interface Codes {
-    ok: number;
-    created: number;
-    noContent: number;
-    partialContent: number;
-    used: number;
-    badReq: number;
-    unauth: number;
-    forbidden: number;
-    notFound: number;
-    locked: number;
-    tooManyReq: number;
-    internalErr: number;
-}
 
 /**
  * Path structure
@@ -34,6 +19,8 @@ class Path {
     public type?: string;
 
     public enabled?: boolean;
+
+    public secureOnly?: boolean;
 
     public lean?: boolean;
 
@@ -74,7 +61,7 @@ class Path {
         this.type = 'get'; // What type of request it needs
         this.enabled = true;
         this.lean = false;
-
+        this.secureOnly = false;
 
         this.codes = codes;
         this.evolve = evolve;
@@ -100,10 +87,38 @@ class Path {
      * @param {Object} req The request object
      * @param {Object} res Some object used for sending data back
      */
-    execute(req: express.Request, res: express.Response): express.Response | Promise<express.Response | void> | void {
+    execute(req: any, res: any): Promise<express.Response | void> {
         throw Error('Not implemented!');
     }
     /* eslint-enable */
+
+    /**
+     * Handle uncaught errors.
+     *
+     * @param {Object<Error>} err The error that occurred
+     * @param {Object<express.Response>} res Express response that is with the error
+     *
+     * @returns {Object<express.Response>}
+     * @private
+     */
+    _handleError(err: Error, res: any): express.Response {
+        let severity;
+        const e = err.message;
+        if (!e.startsWith('[ERROR]') ) {
+            if (this._fatalErrors > 2) {
+                severity = 'fatal';
+            } else {
+                this._fatalErrors++;
+                severity = '[fatal]';
+            }
+        }
+        // Parse error and log the error
+        const handled = this.eHandler.handlePathError(err, severity);
+        const formattedMessage = `[INTERNAL ERROR] [PATH ${this.label}] ${handled.message}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file.slice(1).replace(/\)$/, '')}\n  Severity: ${handled.severity}`;
+        console.log(formattedMessage);
+        const out = err.stack ? err.stack.replace(/\n/g, '<br>') : formattedMessage.replace(/\n/g, '<br>');
+        return res.status(this.codes.internalErr).send(out);
+    }
 
     /**
      * Handle rate limits, unhandled errors, execute actual endpoint
@@ -113,10 +128,14 @@ class Path {
      * @returns {*}
      * @private
      */
-    _execute(req: express.Request, res: express.Response): express.Response | Promise<express.Response | void> | void {
+    async _execute(req: any, res: any): Promise<express.Response | void> {
         // If path is not enabled, and it is not lean... end the endpoint here
         if (!this.enabled && !this.lean) {
-            return res.status(this.codes.locked).send('[FATAL] Endpoint locked due to fatal errors!');
+            return res.status(this.codes.locked).send('[FATAL] Endpoint locked!');
+        }
+
+        if (this.secureOnly && !req.secure) {
+            return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
         }
         // Define number variables
         const twoSec = 2000;
@@ -141,7 +160,7 @@ class Path {
         if (check > maxTrys) {
             // Ban the IP if check is greater than or equal to three
             this.evolve.ipBans.push(req.ip);
-            console.log(`IP ${req.ip} banned!`);
+            console.log(`[SYSTEM INFO] IP ${req.ip} banned!`);
 
             // Remove the ip ban after an hour
             setTimeout( () => {
@@ -153,22 +172,10 @@ class Path {
 
         // Execute the endpoint and catch errors
         try {
-            return this.execute(req, res);
+            const out = await this.execute(req, res);
+            return out;
         } catch (err) {
-            let severity;
-            const e = err.message;
-            if (!e.startsWith('[ERROR]') ) {
-                if (this._fatalErrors > 2) {
-                    severity = 'fatal';
-                } else {
-                    this._fatalErrors++;
-                    severity = '[fatal]';
-                }
-            }
-            // Parse error and log the error
-            const handled = this.eHandler.handlePathError(err, severity);
-            console.log(`[INTERNAL ERROR] [PATH ${this.label}] ${handled.message} \n  Culprit: ${handled.culprit}\n  File: (file://${handled.file.slice(1)}\n  Severity: ${handled.severity}`);
-            return res.status(this.codes.internalErr).send(err.stack);
+            return this._handleError(err, res);
         }
     }
 }

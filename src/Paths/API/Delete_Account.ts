@@ -1,8 +1,8 @@
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
-import { Request, Response } from 'express';
-import { isArray } from 'util';
+import { Response } from 'express';
+import { UserI } from '../../Schemas/User';
 
 interface DelReturns {
     code: number;
@@ -18,34 +18,28 @@ class DelAccount extends Path {
         this.type = 'delete';
     }
 
-    async deleteAccount(id: string, username: string): Promise<DelReturns> {
+    async deleteAccount(auth: UserI, id: string, username: string): Promise<DelReturns> {
         try {
             // Delete account by uID, and delete their pictures
             await this.base.schemas.User.findOneAndDelete( { uID: id } );
             await this.base.schemas.Image.deleteMany( { owner: id } );
+            await this.base.schemas.Shorten.deleteMany( { owner: id } );
             // Notify all that an account has been deleted, and tell the user as well
-            console.log(`[INFO] - Account ${username} (${id}) deleted!`);
+            const end = auth.uID !== id ? ` by admin ${auth.uID}!` : '!';
+            console.log(`[SYSTEM INFO] - Account ${username} (${id}) deleted${end}`);
             return { code: this.codes.ok, mess: '[SUCCESS] Account deleted!' };
         } catch (err) {
             // If an error occurs, log this (as there should not be an error), and tell the user that an error occured
-            console.log(`[ERROR] - Account deletion error - ${err.message || err}`);
+            console.log(`[SYSTEM ERROR] - Account deletion error - ${err.message || err}`);
             return { code: this.codes.internalErr, mess: `[ERROR] Account deletion error - ${err.message || err}` };
         }
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response> {
         // Check headers, and check auth
-        if (!req.headers.password && !req.headers.username) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing authorization password and username!');
-        } if (!req.headers.password || !req.headers.username) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing either authorization password or username!');
-        }
-        if (isArray(req.headers.password) || isArray(req.headers.username) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
-        }
-        const auth = await this.Utils.authPassword(req.headers.password, req.headers.username);
-        if (!auth) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authPassword(req) : await this.Utils.authBearerToken(req.cookies);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
         // If you are an admin you can delete someones account by ID
@@ -68,7 +62,7 @@ class DelAccount extends Path {
             }
 
             // Delete the account
-            const out = await this.deleteAccount(req.query.uid, mem.username);
+            const out = await this.deleteAccount(auth, req.query.uid, mem.username);
             return res.status(out.code).send(out.mess);
         }
         // Owner account may never be deleted
@@ -77,7 +71,7 @@ class DelAccount extends Path {
         }
 
         // Delete the users account
-        const out = await this.deleteAccount(req.query.uid, req.headers.username);
+        const out = await this.deleteAccount(auth, req.headers.uid, req.headers.username); // Eslint, TS, I checked this at the top of the function. Please shut up
         return res.status(out.code).send(out.mess);
     }
 }

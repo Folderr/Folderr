@@ -1,5 +1,6 @@
 import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import { platform } from 'os';
 import bodyParser from 'body-parser';
@@ -9,8 +10,13 @@ import Image, { ImageI } from '../Schemas/Image';
 import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
 import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
 import Shorten, { Short } from '../Schemas/Short';
+import BearerTokens, { BearerTokenSchema } from '../Schemas/BearerTokens';
 import Utils from './Utils';
 import Evolve from './Evolve';
+import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
+import { join } from 'path';
+import { readFileSync } from 'fs';
+import https from 'https';
 
 const ee = new Events();
 
@@ -20,31 +26,7 @@ ee.on('fail', () => {
     }, 1000);
 } );
 
-const optionsBase = {
-    port: 8888,
-    url: 'localhost',
-    mongoUrl: 'mongodb://localhost/evolve-x',
-    signups: true,
-    apiOnly: false,
-};
-
 const web = express();
-
-export interface Options {
-    port?: number;
-    url?: string;
-    mongoUrl?: string;
-    signups?: boolean;
-    apiOnly?: boolean;
-}
-
-interface ActualOptions {
-    port: number;
-    url: string;
-    mongoUrl: string;
-    signups: boolean;
-    apiOnly: boolean;
-}
 
 interface Schemas {
     User: mongoose.Model<UserI>;
@@ -52,6 +34,7 @@ interface Schemas {
     VerifyingUser: mongoose.Model<VUser>;
     AdminNotifs: mongoose.Model<Notification>;
     Shorten: mongoose.Model<Short>;
+    BearerTokens: mongoose.Model<BearerTokenSchema>;
 }
 
 /**
@@ -87,8 +70,6 @@ class Base {
 
     public flags?: string;
 
-    public signups: boolean;
-
     public options: ActualOptions;
 
     constructor(evolve: Evolve | null, options: Options, flags?: string) {
@@ -96,77 +77,16 @@ class Base {
         this.superagent = superagent;
         this.web = web;
         this.web.use(bodyParser.json() );
+        this.web.use(express.urlencoded() );
+        this.web.use(express.static(join(__dirname, '../Frontend') ) );
+        this.web.use('/assets', express.static(join(__dirname, '../assets') ) );
+        this.web.use(cookieParser() );
         this.schemas = {
-            User, Image, VerifyingUser, AdminNotifs, Shorten,
+            User, Image, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
         };
         this.Utils = new Utils();
         this.flags = flags;
-        this.signups = this._fetchAuthType(options);
-        this.options = this._initConfig(options);
-    }
-
-    /**
-     * Fetch the configs auth type
-     *
-     * @param {Object} options Configuration
-     * @returns {boolean|*}
-     * @private
-     */
-    _fetchAuthType(options: Options): boolean {
-        // If no options or signup options
-        if (!options) return true;
-        if (!options.signups) return true;
-        // Handle if signups is not boolean or return
-        if (![true, false].includes(options.signups) ) return true;
-        return options.signups;
-    }
-
-    /**
-     * Initialize the config
-     *
-     * @param {Object} options The configuration
-     * @returns {Object} The new configuration
-     * @private
-     */
-    _initConfig(options: Options): ActualOptions {
-        // If options, loop through keys
-        const opts = {}; /* eslint-disable */
-        if (!options) return optionsBase;
-        for (const key in optionsBase) {
-            // If no key, add it from defaults
-            // @ts-ignore
-            if (!options[key] ) {
-                // @ts-ignore
-                opts[key] = optionsBase[key];
-            } else {
-                // @ts-ignore
-                opts[key] = options[key];
-            }
-            // Handle database config, hopefully this will reduce the amount of errors people get
-            // @ts-ignore
-            if (key === 'mongoUrl' && opts[key].startsWith('mongodb://') ) {
-                // @ts-ignore
-                const mUrl = opts[key].slice(10);
-                if (!mUrl.split('/')[1] ) {
-                    // @ts-ignore
-                    opts[key] += '/evolve-x';
-                }
-            } else {
-                // @ts-ignore
-                if (key === 'mongoUrl' && !opts[key].startsWith('mongodb://') ) { // More database handling
-                    // @ts-ignore
-                    const mUrl = opts.mongoUrl.split('/');
-                    if (!mUrl[1] ) {
-                        // @ts-ignore
-                        opts[key] = `mongodb://${opts[key]}/evolve-x`;
-                    } else {
-                        // @ts-ignore
-                        opts[key] = `mongodb://${opts[key]}`;
-                    }
-                }
-            }
-        } /* eslint-enable */
-        return opts as ActualOptions;
+        this.options = new EvolveConfig(options);
     }
 
     /**
@@ -181,6 +101,10 @@ class Base {
                 console.log('No paths. Exiting...');
                 process.exit();
             }
+        }
+
+        if (this.options.trustProxies) {
+            this.web.enable('trust proxy');
         }
 
         // Initiate the database
@@ -198,7 +122,7 @@ class Base {
             }
             // Please dont run apps as root on linux..
             if (process.getuid && process.getuid() === linuxRootUid) {
-                console.log('[WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!"');
+                console.log('[SYSTEM WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
             }
 
             let uhm;
@@ -215,13 +139,26 @@ class Base {
             // If a user is trying to listen to a port already used
             if (uhm && this.flags !== '--init-first') {
                 ee.emit('fail');
-                throw Error('You are trying to listen on a port in use!');
+                throw Error('[FATAL] You are trying to listen on a port in use!');
             }
 
             // Init the server
-
+            if (this.options.certOptions && this.options.certOptions.key && this.options.certOptions.cert) {
+                this.options.certOptions.key = readFileSync(this.options.certOptions.key);
+                this.options.certOptions.cert = readFileSync(this.options.certOptions.cert);
+                if (this.options.certOptions.ca && Array.isArray(this.options.certOptions.ca) ) {
+                    const cas = [];
+                    for (const ca of this.options.certOptions.ca) {
+                        cas.push(readFileSync(ca) );
+                    }
+                    this.options.certOptions.ca = cas;
+                }
+                const httpOptions = this.options.certOptions;
+                const server = https.createServer(httpOptions, this.web);
+                server.listen(this.options.port);
+            }
             this.web.listen(this.options.port);
-            console.log(`[INFO] Signups are: ${!this.signups ? 'disabled' : 'enabled'}`);
+            console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
 }

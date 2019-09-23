@@ -1,8 +1,7 @@
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
-import { Request, Response } from 'express';
-import { isArray } from 'util';
+import { Response } from 'express';
 
 class VerifyAccount extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -13,22 +12,18 @@ class VerifyAccount extends Path {
         this.type = 'post';
     }
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        // Handle if someone forgot something for authentication and finding the user
-        if (!req.headers.token && !req.body.token && !req.body.uid && !req.headers.uid) {
-            return res.status(this.codes.noContent).send('[ERROR] Missing auth token and user validation token!');
-        }
-        if (!req.headers.token || !req.body.token || !req.body.uid || !req.headers.uid) {
-            return res.status(this.codes.partialContent).send('[ERROR] Missing auth token, auth id, user validation token, or the users id!');
-        }
-        if (isArray(req.headers.token) || isArray(req.headers.uid) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Neither header auth field may be an array!');
+    async execute(req: any, res: any): Promise<Response> {
+        // Handle authorization
+        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authBearerToken(req.cookies, (user) => !!user.admin);
+        if (!auth || typeof auth === 'string') {
+            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
-        // Handle authorization
-        const auth = await this.Utils.authToken(req.headers.token, req.headers.uid);
-        if (!auth || !auth.admin) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        if (!req.body.token && !req.body.uid) {
+            return res.status(this.codes.badReq).send('[ERROR] BODY MISSING!');
+        }
+        if (!req.body.token || !req.body.uid) {
+            return res.status(this.codes.badReq).send('[ERROR] BODY INCOMPLETE!');
         }
 
         // Look for the user
@@ -49,7 +44,7 @@ class VerifyAccount extends Path {
         await this.base.schemas.AdminNotifs.deleteOne(notify);
 
         // Alert the console and the admin that the user was verified
-        console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${req.headers.uid}`);
+        console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${auth.username} (${auth.uID})`);
         return res.status(this.codes.created).send('[SUCCESS] Verified user!');
     }
 }

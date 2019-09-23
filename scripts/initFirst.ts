@@ -8,11 +8,6 @@ const rl = readline.createInterface( {
     input: process.stdin,
     output: process.stdout,
     terminal: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    // @ts-ignore
-    history: 0,
-    // I read the docs and this exists, so TS & ESLint...
-    // Shut up.
 } );
 
 let a: string | undefined;
@@ -21,7 +16,9 @@ const second = 1000;
 
 async function verify(): Promise<string> {
     await base.Utils.sleep(second); // Sleep for a second
-    if (!a) return verify();
+    if (!a) {
+        return verify();
+    }
     return a as string;
 }
 

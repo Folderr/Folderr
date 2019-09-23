@@ -1,15 +1,16 @@
 import { Schema, model, Model, Document } from 'mongoose';
 
 const Image: Schema = new Schema( {
-    id: { type: String, required: true },
+    ID: { type: String, required: true },
     owner: { type: String, required: true },
-    format: { type: String, required: true, default: 'png' },
+    path: { type: String, required: true },
 } );
 /* eslint-disable */
 export interface ImageI extends Document {
-    id: string;
+    ID: string;
     owner: string;
     format: string;
+    path: string;
 }
 
 const mod: Model<ImageI> = model<ImageI>('image', Image);
