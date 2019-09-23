@@ -46,8 +46,10 @@ function getAccount() {
     const erName = document.getElementById('err');
     const erbox = document.getElementsByClassName('errbox')[0];
     hiddens[1].style.color = 'black';
-    hiddens[1].style.background = '#ffa94d';
-    hiddens[2].style.background = '#6bff4d';
+    hiddens[1].style.background = '#EC7E00';
+    hiddens[1].style.margin = '0 auto 15px';
+    hiddens[1].style.width = '65%';
+    hiddens[2].style.background = '#4077f7';
     hiddens[2].style.color = 'black';
     erName.innerHTML = '';
     erbox.style.display = 'none';
