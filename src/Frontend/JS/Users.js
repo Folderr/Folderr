@@ -148,7 +148,7 @@ function getUsers() {
                 delAccBtn.id = `delete_${user.uID}`;
                 el.appendChild(delAccBtn);
             }
-            if (!user.title && title === 'owner') {
+            if ( (!user.title || user.title.length === 0) && title === 'owner') {
                 const promoteBtn = document.createElement('button');
                 promoteBtn.onclick = function () {
                     promote(user.uID);
