@@ -79,6 +79,26 @@ class Evolve {
         // Init the base, remove options
         const base = new Base(this, this._options);
         delete this._options;
+        // eslint-disable-next-line consistent-return
+        base.web.get(['/admin', '/admin/*'], async(req, res, next) => {
+            if (!req.cookies || !req.cookies.token) {
+                console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips ? req.ips[0] : req.ip}!`);
+                return res.redirect('/');
+            }
+            if (req.cookies && req.cookies.token) {
+                const auth = await base.Utils.authBearerToken(req.cookies);
+                if (!auth || typeof auth === 'string') {
+                    console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips ? req.ips[0] : req.ip}!`);
+                    return res.redirect('/');
+                }
+                if (auth && !auth.admin) {
+                    console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips ? req.ips[0] : req.ip}!`);
+                    res.clearCookie('token');
+                    return res.redirect('/');
+                }
+            }
+            next();
+        } );
         // Initiate paths
         let pathNums = 0;
         for (const path in paths) {
@@ -100,7 +120,7 @@ class Evolve {
         // Initiate the base of the project
         await base.init();
         base.web.all('/*', (req: Request, res) => {
-            console.log(`${req.path} not found with method: ${req.method}. Originated from ${req.ip}!`);
+            console.log(`[INFO] ${req.path} not found with method: ${req.method}. Originated from ${req.ips ? req.ips[0] : req.ip}!`);
             res.status(notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
         } );
 
