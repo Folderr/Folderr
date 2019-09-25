@@ -171,17 +171,21 @@ function loadNotifications() {
             } else {
                 eh.innerHTML = `Name: ${obj.name}<br>ID: ${obj.uid}<br>`;
             }
+            eh.innerHTML += '<br>';
             const denyBtn = document.createElement('button');
             denyBtn.innerText = 'Deny';
             denyBtn.onclick = function () {
                 deny(obj.uid);
             };
+            denyBtn.className = 'smallBtn';
             eh.appendChild(denyBtn);
             const acceptBtn = document.createElement('button');
             acceptBtn.innerText = 'Accept';
             acceptBtn.onclick = function () {
                 accept(obj.uid);
             };
+            acceptBtn.className = 'smallBtn';
+            acceptBtn.style.marginLeft = '1%';
             eh.appendChild(acceptBtn);
             eh.appendChild(document.createElement('br') );
             parent.appendChild(eh);
