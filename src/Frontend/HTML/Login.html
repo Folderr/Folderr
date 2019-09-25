@@ -28,16 +28,16 @@
         <form action="./api/login" method="post">
             Username:<br>
             <input name="username" id="username" type="text" required placeholder="null_0515">
-            <br>
+            <br><br>
             Password:<br>
             <input name="password" id="password" type="password" required placeholder="Password">
             <br>
             <br>
-            <input type="reset" value="Reset">
-            <button type="button" onclick="login()">Login</button>
+            <input type="reset" value="Reset" class="reset">
+            <button type="button" onclick="login()" class="smallBtn">Login</button>
+            <br><br>
         </form>
         <br>
-        <br>
-        <a href="javascript:history.go(-1)">Go Back</a>
+        <a href="javascript:history.go(-1)" class="colored">Go Back</a>
     </body>
 </html>

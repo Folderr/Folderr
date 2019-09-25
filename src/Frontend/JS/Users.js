@@ -83,6 +83,7 @@ function promote(id) {
         };
         demoteBtn.innerHTML = 'Demote from Admin';
         demoteBtn.id = `demote_${id}`;
+        demoteBtn.style.marginLeft = '1%';
         promoteBtn.parentNode.appendChild(demoteBtn);
         promoteBtn.parentNode.removeChild(promoteBtn);
         success(`Promoted user ${id}`);
@@ -104,8 +105,9 @@ function demote(id) {
         promoteBtn.onclick = function () {
             promote(id);
         };
-        promoteBtn.innerHTML = 'Demote from Admin';
-        promoteBtn.id = `demote_${id}`;
+        promoteBtn.innerHTML = 'Promote to Admin';
+        promoteBtn.id = `promote_${id}`;
+        promoteBtn.style.marginLeft = '1%';
         demoteBtn.parentNode.appendChild(promoteBtn);
         demoteBtn.parentNode.removeChild(demoteBtn);
         success(`Demoted user ${id}`);
@@ -129,6 +131,7 @@ function getUsers() {
             el.className = ' user';
             el.id = user.uID;
             const userinfo = document.createElement('h3');
+            userinfo.className = ' user';
             if (multiple) {
                 userinfo.innerHTML = `<br><br>Username: ${user.username}<br>Images: ${user.images}<br>Shorts: ${user.shorts}<br>`;
             } else {
@@ -155,6 +158,7 @@ function getUsers() {
                 };
                 promoteBtn.id = `promote_${user.uID}`;
                 promoteBtn.innerHTML = 'Promote to Admin';
+                promoteBtn.style.marginLeft = '1%';
                 el.appendChild(promoteBtn);
             }
             if (user.title && user.title !== 'Owner' && title === 'owner') {
@@ -164,6 +168,7 @@ function getUsers() {
                 };
                 demoteBtn.innerHTML = 'Demote from Admin';
                 demoteBtn.id = `demote_${user.uID}`;
+                demoteBtn.style.marginLeft = '1%';
                 el.appendChild(demoteBtn);
             }
             usersDiv.appendChild(el);
