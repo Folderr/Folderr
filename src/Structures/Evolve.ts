@@ -3,7 +3,7 @@ import { Options } from './Evolve-Config';
 import * as paths from '../Paths';
 import Path from './Path';
 import { join } from 'path';
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 
 const notFound = 404;
 
