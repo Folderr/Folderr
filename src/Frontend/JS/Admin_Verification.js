@@ -122,7 +122,6 @@ function accept(id) {
         succ.style.display = 'block';
         node.parentNode.removeChild(node);
         wut = wut.filter(verify => verify.uid !== id);
-        console.log(wut);
         if (wut.length === 0) {
             const status = document.getElementById('status');
             status.innerHTML = 'No users!';
