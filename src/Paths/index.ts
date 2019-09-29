@@ -37,3 +37,4 @@ export { default as APILogin } from './API/Login';
 export { default as APIUsers } from './API/Users';
 export { default as APIInfo } from './API/Info';
 export { default as APIOwnerManage } from './API/Manage';
+export { default as APIPong } from './API/Pong';
