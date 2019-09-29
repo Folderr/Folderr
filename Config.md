@@ -14,6 +14,8 @@ apiOnly - If you only want the api and no frontend, set this to true
 
 signups - Whether or not to allow people to signup to your app.
 
+trustProxies - Whether or not to trust proxies (useful for if you are running behind a reverse proxy like nginx)
+
 certOptions - Object containing options for https.
 
 certOptions.cert - COMPLETE path to cert (Not relative).
