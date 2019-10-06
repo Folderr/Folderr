@@ -93,6 +93,11 @@ class Evolve {
                 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
             } );
         }
+        if (req.path.startsWith('/api') ) {
+            res.set( {
+                'Access-Control-Allow-Origin': '*',
+            } );
+        }
         next();
     }
 
