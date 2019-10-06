@@ -82,6 +82,7 @@ class Evolve {
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',
                 'X-Content-Type-Options': 'nosniff',
+                'Access-Control-Allow-Origin': '*',
             } );
         } else {
             res.set( {
@@ -91,10 +92,6 @@ class Evolve {
                 'X-XSS-Protection': '1; mode=block',
                 'X-Content-Type-Options': 'nosniff',
                 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
-            } );
-        }
-        if (req.path.startsWith('/api') ) {
-            res.set( {
                 'Access-Control-Allow-Origin': '*',
             } );
         }
