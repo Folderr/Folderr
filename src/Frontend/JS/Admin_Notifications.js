@@ -58,10 +58,7 @@ function loadNotifications() {
         uh.innerHTML = 'Notifications:';
         const notifs = JSON.parse(res.text);
         for (let notify of notifs) {
-            console.log(notify);
             notify = JSON.parse(notify);
-            console.log(typeof notify);
-            console.log(notify.notify);
             const el = document.createElement('DIV');
             el.className = ' notification';
             el.innerHTML = `Title: ${notify.title}<br>Notification:<br>${notify.notify.replace(/,/g, '<br>')}<p>ID: ${notify.ID}`;

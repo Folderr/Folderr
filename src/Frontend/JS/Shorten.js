@@ -74,7 +74,6 @@ function req() {
     superagent.post('/api/short')
         .send( { url: url.value } )
         .end( (err, res) => {
-            console.log(res.req);
             if (err || (res && codes.includes(res.status) ) ) {
                 erbox.style.display = 'block';
                 erName.innerHTML = `An error occurred: ${err.response.text.slice('[ERROR] '.length)}`;
