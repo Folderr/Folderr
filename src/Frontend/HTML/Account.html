@@ -71,13 +71,13 @@
             </form>
             <h1>You have...</h1>
         </div>
-        <div class="hidden">
+        <div class="hidden warningbox">
             <h1>Are you sure you want to regenerate your token?</h1>
             <p>Caution: All prior tokens in use will become invalid</p>
-            <button onclick="forceRegenToken()" type="button">Yes, do it!</button>
-            <button onclick="abortRegen()" type="button">No, abort!</button>
+            <button onclick="forceRegenToken()" type="button" class="smallBtn">Yes, do it!</button>
+            <button onclick="abortRegen()" type="button" class="smallBtn">No, abort!</button>
         </div>
-        <div class="hidden">
+        <div class="hidden successbox">
             <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
             <h1>Token regen aborted!</h1>
         </div>

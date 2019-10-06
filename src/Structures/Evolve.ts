@@ -3,7 +3,7 @@ import { Options } from './Evolve-Config';
 import * as paths from '../Paths';
 import Path from './Path';
 import { join } from 'path';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 const notFound = 404;
 
@@ -24,6 +24,8 @@ class Evolve {
 
     private clearingTokens: boolean;
 
+    private base?: Base;
+
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -38,6 +40,8 @@ class Evolve {
         this.ips = new Map();
         this.ipBans = [];
         this.clearingTokens = false;
+        this.handleAdminAuth = this.handleAdminAuth.bind(this);
+        this.handleHeaders = this.handleHeaders.bind(this);
     }
 
     /**
@@ -70,6 +74,51 @@ class Evolve {
         }
     }
 
+    handleHeaders(req: Request, res: Response, next: any): any {
+        if (!this.base || !this.base.options.certOptions || !this.base.options.certOptions.cert || !this.base.options.certOptions.key) {
+            res.set( {
+                'Content-Security-Policy': 'frame-ancestors \'none\'',
+                'X-Frame-Options': 'DENY',
+                'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
+                'X-XSS-Protection': '1; mode=block',
+                'X-Content-Type-Options': 'nosniff',
+            } );
+        } else {
+            res.set( {
+                'Content-Security-Policy': 'frame-ancestors \'none\'',
+                'X-Frame-Options': 'DENY',
+                'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
+                'X-XSS-Protection': '1; mode=block',
+                'X-Content-Type-Options': 'nosniff',
+                'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+            } );
+        }
+        next();
+    }
+
+    // eslint-disable-next-line consistent-return
+    async handleAdminAuth(req: Request, res: Response, next: any): Promise<any> {
+        if (!this.base) {
+            return res.redirect('/');
+        }
+        if (!req.cookies || !req.cookies.token) {
+            console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
+            return res.redirect('/');
+        }
+        if (req.cookies && req.cookies.token) {
+            const auth = await this.base.Utils.authBearerToken(req.cookies);
+            if (!auth || typeof auth === 'string') {
+                console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
+                return res.redirect('/');
+            }
+            if (auth && !auth.admin) {
+                console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
+                return res.redirect('/');
+            }
+        }
+        next();
+    }
+
     /**
      * Initialize the base and evolve-x
      *
@@ -78,7 +127,11 @@ class Evolve {
     async init(): Promise<void> {
         // Init the base, remove options
         const base = new Base(this, this._options);
+        this.base = base;
         delete this._options;
+        base.web.use('*', this.handleHeaders);
+        // eslint-disable-next-line no-return-await
+        base.web.use( ['/admin', '/admin/*'], this.handleAdminAuth);
         // Initiate paths
         let pathNums = 0;
         for (const path in paths) {
@@ -100,7 +153,7 @@ class Evolve {
         // Initiate the base of the project
         await base.init();
         base.web.all('/*', (req: Request, res) => {
-            console.log(`${req.path} not found with method: ${req.method}. Originated from ${req.ip}!`);
+            console.log(`[INFO] ${req.path} not found with method: ${req.method}. Originated from ${req.ips ? req.ips[0] : req.ip}!`);
             res.status(notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
         } );
 

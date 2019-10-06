@@ -14,7 +14,6 @@ function load() {
                 console.log(err.message || err);
             }
             const eh = JSON.parse(res.text);
-            console.log(eh);
             if (eh.owner) {
                 const li = document.createElement('li');
                 const link = document.createElement('a');

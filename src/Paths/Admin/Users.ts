@@ -13,18 +13,7 @@ class Users extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        if (req.cookies && req.cookies.token) {
-            const auth = await this.Utils.authBearerToken(req.cookies);
-            if (!auth || typeof auth === 'string') {
-                res.clearCookie('token');
-                return res.redirect('/');
-            }
-            if (!auth.admin) {
-                return res.redirect('/');
-            }
-            return res.sendFile(join(__dirname, '../../Frontend/HTML/Users.html') );
-        }
-        return res.redirect('/');
+        return res.sendFile(join(__dirname, '../../Frontend/HTML/Users.html') );
     }
 }
 
