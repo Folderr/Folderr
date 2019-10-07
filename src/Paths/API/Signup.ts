@@ -55,6 +55,20 @@ class Signup extends Path {
             return res.status(this.codes.used).send('[ERROR] Username taken!');
         }
 
+        // Minimum and max password lengths
+        const minPass = 8;
+        const maxPass = 32;
+        // If the password is not over min length
+        // If password does not match the regex completely
+        const match: RegExpMatchArray | null = password.match(/[A-Za-z0-9_.&]/g);
+        if (password.length < minPass || (match && match.length !== password.length) ) {
+            return res.status(this.codes.badReq).send('Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`');
+        }
+        // If the password is too long
+        if (password.length > maxPass) {
+            return res.status(this.codes.badReq).send('Password is too long, password must be under 32 characters long');
+        }
+
         // Hash the password and catch errors
         let pswd;
         try {
