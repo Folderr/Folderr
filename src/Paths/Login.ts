@@ -14,7 +14,7 @@ class Login extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         if (!req.secure) {
-            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/HTML/SecureOnly.html') );
+            // return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/HTML/SecureOnly.html') );
         }
         if (req.cookies && req.cookies.token) {
             if (req.cookies) {
@@ -23,10 +23,10 @@ class Login extends Path {
                     return res.redirect('./logout');
                 }
             }
-            return res.redirect('./');
+            return res.redirect('/');
         }
 
-        return res.sendFile(join(__dirname, '../Frontend/HTML/Login.html') );
+        return res.sendFile(join(__dirname, '../Frontend/Login.html') );
     }
 }
 
