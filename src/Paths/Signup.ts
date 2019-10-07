@@ -27,7 +27,7 @@ class Signup extends Path {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
         }
 
-        return res.sendFile(join(__dirname, '../Frontend/Signups.html') );
+        return res.sendFile(join(__dirname, '../Frontend/signups.html') );
     }
 }
 
