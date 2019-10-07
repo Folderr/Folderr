@@ -11,7 +11,6 @@ class Login extends Path {
         this.secureOnly = false;
 
         this.type = 'post';
-        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response|void> {
