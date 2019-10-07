@@ -8,6 +8,7 @@ class Account extends Path {
         super(evolve, base);
         this.label = '[API] View Account';
         this.path = '/api/account';
+        this.reqAuth = true;
 
         this.type = 'get';
     }

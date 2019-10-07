@@ -9,6 +9,7 @@ class Shorten extends Path {
         this.label = '[API] Shorten';
         this.path = '/api/short';
         this.type = 'post';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

@@ -24,6 +24,8 @@ class Path {
 
     public lean?: boolean;
 
+    public reqAuth?: boolean;
+
     public codes: Codes;
 
     public evolve: Evolve;
@@ -136,6 +138,9 @@ class Path {
 
         if (this.secureOnly && !req.secure) {
             return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
+        }
+        if (this.reqAuth && (!req.cookies || !req.cookies.token) ) {
+            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         }
         // Define number variables
         const twoSec = 2000;

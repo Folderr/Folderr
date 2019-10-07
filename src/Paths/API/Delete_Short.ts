@@ -10,6 +10,7 @@ class DeleteShort extends Path {
         this.path = 'api/short';
 
         this.type = 'delete';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

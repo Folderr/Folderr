@@ -10,6 +10,7 @@ class DeleteImage extends Path {
         this.label = '[API] Delete Image';
         this.path = '/api/image';
         this.type = 'delete';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

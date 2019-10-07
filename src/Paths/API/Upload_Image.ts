@@ -12,6 +12,7 @@ class Image extends Path {
         this.label = '[API] Upload Image';
         this.path = '/api/image';
         this.type = 'post';
+        this.reqAuth = true;
     }
 
     _formidablePromise(req: any): Promise<any> {

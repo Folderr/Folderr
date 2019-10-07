@@ -9,6 +9,7 @@ class Images extends Path {
         super(evolve, base);
         this.label = '[API] Images';
         this.path = '/api/images';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
