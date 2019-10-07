@@ -8,6 +8,7 @@ class DelANotify extends Path {
         super(evolve, base);
         this.label = '[API] Delete notification';
         this.path = '/api/admin_notification';
+        this.reqAuth = true;
 
         this.type = 'delete';
     }

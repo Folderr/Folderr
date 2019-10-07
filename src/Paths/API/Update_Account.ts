@@ -18,6 +18,7 @@ class UpdateAcc extends Path {
         this.path = '/api/account';
 
         this.type = 'patch';
+        this.reqAuth = true;
 
         this.keys = {
             0: 'username',

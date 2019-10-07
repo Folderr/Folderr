@@ -10,6 +10,7 @@ class VerifyAccount extends Path {
 
         this.path = '/api/verify';
         this.type = 'post';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

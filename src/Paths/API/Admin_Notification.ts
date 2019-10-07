@@ -9,6 +9,7 @@ class AdminNotification extends Path {
         super(evolve, base);
         this.label = '[API] Notification';
         this.path = '/api/admin_notification';
+        this.reqAuth = true;
 
         this.type = 'get';
     }

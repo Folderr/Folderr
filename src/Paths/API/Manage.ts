@@ -19,6 +19,7 @@ class Manage extends Path {
         this.path = '/api/manage';
 
         this.type = 'post';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response | void> {

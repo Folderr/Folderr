@@ -8,6 +8,7 @@ class ClearNotifs extends Path {
         super(evolve, base);
         this.label = '[API] Clear Notifications';
         this.path = '/api/notifications';
+        this.reqAuth = true;
 
         this.type = 'delete';
     }

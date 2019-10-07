@@ -14,6 +14,7 @@ class DelAccount extends Path {
         super(evolve, base);
         this.label = '[API] Delete account';
         this.path = '/api/account';
+        this.reqAuth = true;
 
         this.type = 'delete';
     }

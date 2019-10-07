@@ -12,6 +12,7 @@ class Info extends Path {
         super(evolve, base);
         this.label = '[API] Info';
         this.path = '/api/info';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

@@ -10,6 +10,7 @@ class DelNotify extends Path {
         this.path = '/api/notification';
 
         this.type = 'delete';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

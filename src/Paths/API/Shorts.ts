@@ -8,6 +8,7 @@ class Shorts extends Path {
         super(evolve, base);
         this.label = '[API] Shorts';
         this.path = '/api/shorts';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

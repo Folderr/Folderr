@@ -10,6 +10,7 @@ class GenToken extends Path {
         this.path = '/api/token';
 
         this.type = 'post';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

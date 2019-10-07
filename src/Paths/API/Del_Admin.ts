@@ -8,6 +8,7 @@ class DeleteAdmin extends Path {
         super(evolve, base);
         this.label = '[API] Delete Admin';
         this.path = '/api/admin';
+        this.reqAuth = true;
 
         this.type = 'delete';
     }

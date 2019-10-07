@@ -11,6 +11,7 @@ class Notifs extends Path {
         this.path = '/api/notifications';
 
         this.type = 'get';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {

@@ -8,6 +8,7 @@ class Users extends Path {
         super(evolve, base);
         this.label = '[API] Users';
         this.path = '/api/users';
+        this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
