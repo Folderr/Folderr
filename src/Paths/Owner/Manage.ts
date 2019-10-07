@@ -22,7 +22,7 @@ class Manage extends Path {
             if (!auth.admin) {
                 return res.redirect('/');
             }
-            return res.sendFile(join(__dirname, '../../Frontend/HTML/Manage.html') );
+            return res.sendFile(join(__dirname, '../../Frontend/manage.html') );
         }
         return res.redirect('/');
     }
