@@ -26,7 +26,7 @@ class Login extends Path {
             return res.redirect('/');
         }
 
-        return res.sendFile(join(__dirname, '../Frontend/Login.html') );
+        return res.sendFile(join(__dirname, '../Frontend/login.html') );
     }
 }
 
