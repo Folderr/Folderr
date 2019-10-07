@@ -62,7 +62,9 @@ $(document).ready( () => {
                 return false;
             }
             $(location).attr('href', '/');
+            return false;
         } );
+        return false;
     } );
     $('form').on('reset', () => {
         $('#noticetxt').text('Invalid Login Details');
