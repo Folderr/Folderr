@@ -15,14 +15,14 @@ class Home extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        const dir = join(__dirname, '../Frontend/HTML/Home.html');
+        const dir = join(__dirname, '../Frontend/Home.html');
         if (req.cookies && req.cookies.token) {
             const auth = await this.Utils.authBearerToken(req.cookies);
             if (!auth || typeof auth === 'string') {
                 res.clearCookie('token');
                 return res.sendFile(dir);
             }
-            return res.sendFile(join(__dirname, '../Frontend/HTML/Home_LoggedIn.html') );
+            return res.sendFile(join(__dirname, '../Frontend/LoggedIn.html') );
         }
         return res.sendFile(dir);
     }

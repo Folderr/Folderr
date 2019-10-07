@@ -31,7 +31,7 @@ a:visited {
     color: rgb(133, 180, 255);
 }
 
-button {
+button, input {
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     color: #15959D;
     background: #393939;
@@ -40,6 +40,48 @@ button {
     width: 203.08px;
     height: 51.66px;
     font-size: 18px;
+}
+
+input {
+    font-size: 20px;
+}
+
+form.center {
+    padding-top: 250px;
+}
+
+form.smCenter {
+    padding-top: 125px;
+}
+
+@media (max-width: 992px) {
+    form.center {
+        padding-top: 125px;
+    }
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #15959D;
+    opacity: 1; /* Firefox */
+    text-align: center;
+    font-size: 20px;
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #15959D;
+    text-align: center;
+    font-size: 20px;
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+    color: #15959D;
+    text-align: center;
+    font-size: 20px;
+}
+
+button.smallBtn, input.smallInput {
+    width: 100.08px;
+    height: 40.66px;
 }
 
 button:hover {
@@ -51,13 +93,7 @@ a:hover {
     color: rgb(219, 233, 255);
 }
 
-button.smallBtn {
-    width: 100.08px;
-    height: 40.66px;
-}
-
 input {
-    background-color: inherit;
     color: #15959D;
     border-color: #5b5b58;
     border-width: thin;
