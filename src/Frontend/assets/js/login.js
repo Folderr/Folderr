@@ -61,8 +61,9 @@ $(document).ready( () => {
                 $('#formContainer').addClass('mysm-auto');
                 return false;
             }
+            $(location).attr('href', '/');
+            return false;
         } );
-        $(location).attr('href', '/');
         return false;
     } );
     $('form').on('reset', () => {
