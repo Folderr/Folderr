@@ -29,8 +29,7 @@ html, body {
 }
 
 .sec {
-  padding: 0px;
-  padding-top: 15px;
+  padding: 15px 0px 0px;
 }
 
 .js-scroll-trigger, .active {
