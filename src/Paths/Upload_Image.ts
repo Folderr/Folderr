@@ -22,7 +22,7 @@ class UploadImage extends Path {
         if (!req.cookies || !req.cookies.token) {
             return res.redirect('./');
         }
-        return res.sendFile(join(__dirname, '../Frontend/HTML/Upload_Image.html') );
+        return res.sendFile(join(__dirname, '../Frontend/upload.html') );
     }
 }
 
