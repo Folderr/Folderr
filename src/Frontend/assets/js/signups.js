@@ -55,23 +55,36 @@ $(document).ready( () => {
             $('.notice').addClass('error');
             return false;
         }
-        $.post('/api/signup', { username, password }, (result, status, xhr) => {
+        const req = $.ajax( {
+            url: '/api/signup',
+            data: { username, password },
+            method: 'POST',
+            timeout: 5000,
+        } );
+
+        req.done( (result) => {
             if (result.startsWith('[ERROR]') ) {
                 $('#noticetxt').text(`Error: ${result.slice(8)}`);
                 $('.notice').addClass('error');
                 return false;
             }
-            if (status === 'error') {
-                $('#noticetxt').text('An error occurred.');
-                $('.notice').addClass('error');
+            $('#noticetxt').text('Request sent!');
+            return false;
+        } );
+        req.fail( (result) => {
+            console.log(result);
+            if (result.status === 200) {
+                $('#noticetxt').text('Request sent!');
                 return false;
             }
-            if (status === 'timeout') {
+            if (result.statusText === 'timeout') {
                 $('#noticetxt').text('Request timed out.');
                 $('.notice').addClass('error');
                 return false;
             }
-            $('#noticetxt').text('Your request has been sent to the admins!');
+            $('#noticetxt').text('An error occurred.');
+            $('.notice').addClass('error');
+            return false;
         } );
     } );
     $('form').on('reset', () => {
