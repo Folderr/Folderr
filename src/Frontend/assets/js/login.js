@@ -42,21 +42,21 @@ $(document).ready( () => {
             $('#formContainer').addClass('mysm-auto');
             return false;
         }
-        $.post('/api/login', { username, password }, (result, status) => {
+        const req = $.ajax( {
+            url: '/api/login',
+            data: { username, password },
+            method: 'POST',
+            timeout: 5000,
+        } );
+        req.done( (result) => {
+            console.log(result);
             if (result.startsWith('[ERROR]') ) {
                 $('#noticetxt').text(`Error: ${result.slice(8)}`);
                 $('.notice').removeClass('hidden');
                 $('#formContainer').addClass('mysm-auto');
                 return false;
             }
-            if (status === 'error') {
-                $('#noticetxt').text('An error occurred.');
-                $('.notice').removeClass('hidden');
-                $('#formContainer').addClass('mysm-auto');
-                return false;
-            }
-            if (status === 'timeout') {
-                $('#noticetxt').text('Request timed out.');
+            if (result.status === 401) {
                 $('.notice').removeClass('hidden');
                 $('#formContainer').addClass('mysm-auto');
                 return false;
@@ -64,7 +64,27 @@ $(document).ready( () => {
             $(location).attr('href', '/');
             return false;
         } );
-        return false;
+        req.fail( (result) => {
+            if (result.statusText === 'timeout') {
+                $('#noticetxt').text('Request timed out.');
+                $('.notice').removeClass('hidden');
+                $('#formContainer').addClass('mysm-auto');
+                return false;
+            }
+            if (result.status === 401) {
+                $('.notice').removeClass('hidden');
+                $('#formContainer').addClass('mysm-auto');
+                return false;
+            }
+            if (result.status === 200) {
+                $(location).attr('href', '/');
+                return false;
+            }
+            $('#noticetxt').text('An error occurred.');
+            $('.notice').removeClass('hidden');
+            $('#formContainer').addClass('mysm-auto');
+            return false;
+        } );
     } );
     $('form').on('reset', () => {
         $('#noticetxt').text('Invalid Login Details');
