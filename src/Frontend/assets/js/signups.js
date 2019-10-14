@@ -72,7 +72,6 @@ $(document).ready( () => {
             return false;
         } );
         req.fail( (result) => {
-            console.log(result);
             if (result.status === 200) {
                 $('#noticetxt').text('Request sent!');
                 return false;
