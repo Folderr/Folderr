@@ -22,7 +22,7 @@ class Shorten extends Path {
         if (!req.cookies || !req.cookies.token) {
             return res.redirect('./');
         }
-        return res.sendFile(join(__dirname, '../Frontend/HTML/Shorten.html') );
+        return res.sendFile(join(__dirname, '../Frontend/shorten.html') );
     }
 }
 

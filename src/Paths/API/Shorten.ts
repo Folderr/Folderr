@@ -27,7 +27,6 @@ class Shorten extends Path {
         try {
             await this.base.superagent.get(req.body.url);
         } catch (err) {
-            console.log(err);
             if (err.code === 'ENOTFOUND') {
                 return res.status(this.codes.notFound).send('[ERROR] URL not found!');
             }
