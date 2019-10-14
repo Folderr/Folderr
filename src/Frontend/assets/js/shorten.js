@@ -35,23 +35,15 @@ $(document).ready( () => {
     }() );
     $('#shorten').click( () => {
         const notice = $('.notice');
-        const myauto = $('.my-auto');
-        const mast = $('.masthead');
         const txt = $('#noticetxt');
         notice.removeClass('error');
         const link = $('#link').val();
         if (!link) {
             notice.addClass('error');
             txt.text('Uh, what link?');
-            notice.removeClass('hidden');
-            mast.addClass('smMasthead');
-            myauto.addClass('mysm-auto');
             return false;
         }
-        notice.removeClass('hidden');
         txt.text('Shortening...');
-        mast.addClass('smMasthead');
-        myauto.addClass('mysm-auto');
         const req = $.ajax( {
             url: '/api/short',
             method: 'POST',
@@ -80,12 +72,10 @@ $(document).ready( () => {
             if (result.statusText === 'timeout') {
                 txt.text('Request timed out.');
                 notice.addClass('error');
-                notice.removeClass('hidden');
                 return false;
             }
             txt.text('An error occurred.');
             notice.addClass('error');
-            notice.removeClass('hidden');
             return false;
         } );
     } );
