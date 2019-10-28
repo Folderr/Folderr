@@ -145,13 +145,9 @@ input {
   border-radius: 8px;
   width: 203.08px;
   height: 51.66px;
-  font-size: 18px;
-}
-
-input {
-  background-color: #222222;
   font-size: 20px;
 }
+
 button:hover,
 input.reset:hover {
   background: #15959D;
