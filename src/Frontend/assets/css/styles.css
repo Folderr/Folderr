@@ -340,3 +340,7 @@ input.smallInput {
   opacity: 0;
   filter: alpha(opacity=0);
 }
+
+.larger.smallBtn {
+  height: 60px;
+}
