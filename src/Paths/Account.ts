@@ -22,7 +22,7 @@ class Account extends Path {
         if (!req.cookies || !req.cookies.token) {
             return res.redirect('./');
         }
-        if (!req.secure && (!req.cookies || !req.cookies.i || req.cookies.i !== 't') ) {
+        if (!req.secure && !this.Utils.verifyInsecureCookies(req) ) {
             return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure_loggedIn.html') );
         }
 

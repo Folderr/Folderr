@@ -14,7 +14,9 @@ class Logout extends Path {
 
     execute(req: any, res: any): Promise<Response | void> {
         const dir = join(__dirname, '../Frontend/loggedout.html');
-        res.clearCookie('uid');
+        if (!req.cookies || !req.cookies.token) {
+            return res.redirect('/');
+        }
         res.clearCookie('token');
         return res.sendFile(dir);
     }

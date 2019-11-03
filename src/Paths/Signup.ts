@@ -13,7 +13,7 @@ class Signup extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        if (!req.secure && (!req.cookies || !req.cookies.i || req.cookies.i !== 't') ) {
+        if (!req.secure && !this.Utils.verifyInsecureCookies(req) ) {
             return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure.html') );
         }
         if (req.cookies && req.cookies.token) {
