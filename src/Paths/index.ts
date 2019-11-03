@@ -9,6 +9,7 @@ export { default as Account } from './Account';
 export { default as UploadImage } from './Upload_Image';
 export { default as Admin } from './Admin/Admin';
 export { default as Privacy } from './Privacy';
+export { default as Proceed } from './Proceed';
 export { default as AdminNotifications } from './Admin/Notifications';
 export { default as AdminVerification } from './Admin/Verification';
 export { default as AdminUsers } from './Admin/Users';

@@ -13,8 +13,8 @@ class Signup extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        if (!req.secure) {
-            // return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/HTML/SecureOnly.html') );
+        if (!req.secure && (!req.cookies || !req.cookies.i || req.cookies.i !== 't') ) {
+            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure.html') );
         }
         if (req.cookies && req.cookies.token) {
             const auth = await this.Utils.authBearerToken(req.cookies);
@@ -24,7 +24,7 @@ class Signup extends Path {
             return res.redirect('./');
         }
         if (!this.base.options.signups) {
-            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
+            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/closed.html') );
         }
 
         return res.sendFile(join(__dirname, '../Frontend/signups.html') );

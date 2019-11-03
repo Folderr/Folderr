@@ -13,9 +13,6 @@ class Account extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        if (!req.secure) {
-            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/HTML/SecureOnly.html') );
-        }
         if (req.cookies) {
             const auth = await this.Utils.authBearerToken(req.cookies);
             if (!auth || typeof auth === 'string') {
@@ -24,6 +21,9 @@ class Account extends Path {
         }
         if (!req.cookies || !req.cookies.token) {
             return res.redirect('./');
+        }
+        if (!req.secure && (!req.cookies || !req.cookies.i || req.cookies.i !== 't') ) {
+            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure_loggedIn.html') );
         }
 
         const dir = join(__dirname, '../Frontend/HTML/Account.html');

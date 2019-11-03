@@ -64,7 +64,7 @@ $(document).ready( () => {
             $(location).attr('href', '/');
             return false;
         } );
-        req.fail( (result) => {
+        req.fail( (result, textStatus, xhr) => {
             if (result.statusText === 'timeout') {
                 $('#noticetxt').text('Request timed out.');
                 $('.notice').removeClass('hidden');
