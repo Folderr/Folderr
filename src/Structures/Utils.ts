@@ -419,6 +419,19 @@ class Utils {
         return user;
     }
 
+    verifyInsecureCookies(req: any): boolean {
+        if (!req.cookies) {
+            return false;
+        }
+        if (!req.cookies.i) {
+            return false;
+        }
+        if (req.cookies.i !== 't') {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Find and return a verifying user from the schema if any
      *
