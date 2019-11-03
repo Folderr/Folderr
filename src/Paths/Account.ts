@@ -26,7 +26,7 @@ class Account extends Path {
             return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure_loggedIn.html') );
         }
 
-        const dir = join(__dirname, '../Frontend/HTML/Account.html');
+        const dir = join(__dirname, '../Frontend/account.html');
         return res.sendFile(dir);
     }
 }

@@ -47,6 +47,7 @@ $(document).ready( () => {
             data: { username, password },
             method: 'POST',
             timeout: 5000,
+            dataType: 'jsonp',
         } );
         req.done( (result) => {
             console.log(result);
@@ -86,6 +87,7 @@ $(document).ready( () => {
             return false;
         } );
     } );
+    $('form').submit((ev) => ev.preventDefault());
     $('form').on('reset', () => {
         $('#noticetxt').text('Invalid Login Details');
         $('.notice').addClass('hidden');

@@ -344,3 +344,54 @@ input.smallInput {
 .larger.smallBtn {
   height: 60px;
 }
+
+.flex, .flexw {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.wrap button,
+.wrap input {
+  margin-top: 30px;
+}
+
+.flex-item {
+  margin-right: 30px;
+  margin-left: 30px;
+  text-align: left;
+}
+
+.vContainer {
+  text-align: center;
+  padding-top: 10rem;
+  padding-bottom: 1rem;
+}
+
+@media screen and (max-device-width: 992px) {
+  .flex { flex-direction: column }
+  .flex-item.stats { margin-top: 30px }
+  .acc-footer {
+    padding-top: 0;
+    margin-top: 0;
+  }
+}
+
+.flex-button {
+  margin-top: 30px
+}
+
+.acc-button {
+  background-color: #191919;
+}
+
+.wrap ::placeholder {text-align: left;}
+
+#sure{margin-bottom:1rem;display:none;}
+
+.acc-notice{margin-bottom:50px;}
