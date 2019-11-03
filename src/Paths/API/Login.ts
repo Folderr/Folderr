@@ -34,8 +34,8 @@ class Login extends Path {
 
         // Set cookies
         await auth.save();
-        return res.cookie('token', token.token, { expires: endTime, secure: false, sameSite: 'Strict' } )
-            .redirect('../');
+        res.cookie('token', token.token, { expires: endTime, secure: false, sameSite: 'Strict' } )
+        return res.status(this.codes.ok).send('OK');
     }
 }
 

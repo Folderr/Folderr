@@ -13,8 +13,8 @@ class Login extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        if (!req.secure) {
-            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure_nochoice.html') );
+        if (!req.secure && (!req.cookies || !req.cookies.i || req.cookies.i !== 't') ) {
+            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure.html') );
         }
         if (req.cookies && req.cookies.token) {
             if (req.cookies) {
