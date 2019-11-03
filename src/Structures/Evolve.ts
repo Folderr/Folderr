@@ -154,9 +154,18 @@ class Evolve {
         console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         // Initiate the base of the project
         await base.init();
-        base.web.all('/*', (req: Request, res) => {
+        base.web.all('/*', async(req: Request, res) => {
             console.log(`[INFO] ${req.path} not found with method: ${req.method}. Originated from ${req.ips ? req.ips[0] : req.ip}!`);
-            res.status(notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
+            const dir = join(__dirname, '../Frontend/notfound.html');
+            if (req.cookies && req.cookies.token) {
+                const auth = await base.Utils.authBearerToken(req.cookies);
+                if (!auth || typeof auth === 'string') {
+                    res.clearCookie('token');
+                    return res.sendFile(dir);
+                }
+                return res.sendFile(join(__dirname, '../Frontend/notfound_loggedIn.html') );
+            }
+            return res.sendFile(dir);
         } );
 
         const mins = 120000;
