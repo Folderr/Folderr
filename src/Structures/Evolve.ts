@@ -145,21 +145,6 @@ class Evolve {
             console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
             return res.redirect('/');
         }
-        /* if (!req.cookies || !req.cookies.token) {
-            console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
-            return res.redirect('/');
-        }
-        if (req.cookies && req.cookies.token) {
-            const auth = await this.base.Utils.authBearerToken(req.cookies);
-            if (!auth || typeof auth === 'string') {
-                console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
-                return res.redirect('/');
-            }
-            if (auth && !auth.admin) {
-                console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
-                return res.redirect('/');
-            }
-        }*/
         next();
     }
 
