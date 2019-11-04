@@ -7,6 +7,7 @@ import { Short } from '../Schemas/Short';
 import { isBoolean, promisify } from 'util';
 import { Request } from 'express';
 import BearerTokens from '../Schemas/BearerTokens';
+import Evolve from "./Evolve";
 
 const sleep = promisify(setTimeout);
 
@@ -24,14 +25,16 @@ class Utils {
     public saltRounds: number;
 
     public byteSize: number;
+    private evolve: Evolve | null;
 
     /**
      * @prop {Number} saltRounds The rounds to salt with
      * @prop {Number} byteSize The amount of random bytes to generate
      */
-    constructor() {
+    constructor(evolve: Evolve | null) {
         this.saltRounds = 10;
         this.byteSize = 48;
+        this.evolve = evolve;
     }
 
     /**
@@ -448,6 +451,32 @@ class Utils {
             return false;
         }
         return user;
+    }
+
+    async authCookies(req: any, res: any, cb?: (arg0: UserI) => boolean): Promise<UserI | void | any> {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        this.evolve.Session.removeIfNeeded(req, res);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        const fa1 = this.evolve.Session.fetchSession(req);
+        if (fa1) {
+            if (cb) {
+                // eslint-disable-next-line callback-return
+                const funcOut = cb(fa1);
+                if (!funcOut || !isBoolean(funcOut) ) {
+                    return false;
+                }
+            }
+            return fa1;
+        }
+        if (req.cookies && req.cookies.token && req.cookies.token.startsWith('Bearer:') ) {
+            const fa2 = this.authBearerToken(req.cookies, cb);
+            if (fa2) {
+                return fa2;
+            }
+        }
+        return false;
     }
 }
 

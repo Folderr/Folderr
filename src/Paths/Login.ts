@@ -16,7 +16,10 @@ class Login extends Path {
         if (!req.secure && !this.Utils.verifyInsecureCookies(req) ) {
             return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure.html') );
         }
-        if (req.cookies && req.cookies.token) {
+        if (req.uauth) {
+            return res.redirect('/');
+        }
+        /* if (req.cookies && req.cookies.token) {
             if (req.cookies) {
                 const auth = await this.Utils.authBearerToken(req.cookies);
                 if (!auth || typeof auth === 'string') {
@@ -24,7 +27,7 @@ class Login extends Path {
                 }
             }
             return res.redirect('/');
-        }
+        }*/
 
         return res.sendFile(join(__dirname, '../Frontend/login.html') );
     }

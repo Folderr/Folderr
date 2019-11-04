@@ -25,6 +25,10 @@ class Login extends Path {
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
+        if (!req.query.isW) {
+            this.evolve.Session.newSession(auth, req, res);
+            return res.status(this.codes.ok).send('OK');
+        }
         // Set the cookie to expire in a weeks time
         const week = 604800000;
         const endTime = new Date(Date.now() + week);
@@ -34,7 +38,7 @@ class Login extends Path {
 
         // Set cookies
         await auth.save();
-        res.cookie('token', token.token, { expires: endTime, secure: false, sameSite: 'Strict' } )
+        res.cookie('token', token.token, { expires: endTime, secure: false, sameSite: 'Strict' } );
         return res.status(this.codes.ok).send('OK');
     }
 }

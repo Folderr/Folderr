@@ -13,13 +13,13 @@ class Shorten extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        if (req.cookies) {
+        /* if (req.cookies) {
             const auth = await this.Utils.authBearerToken(req.cookies);
             if (!auth || typeof auth === 'string') {
                 return res.redirect('./logout');
             }
-        }
-        if (!req.cookies || !req.cookies.token) {
+        }*/
+        if (!req.uauth) {
             return res.redirect('./');
         }
         return res.sendFile(join(__dirname, '../Frontend/shorten.html') );

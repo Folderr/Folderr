@@ -15,7 +15,7 @@ class Account extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check headers, and check auth
-        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authPassword(req) : await this.Utils.authBearerToken(req.cookies);
+        const auth = !req.cookies && !req.cookies.token && !req.cookies.sid ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }

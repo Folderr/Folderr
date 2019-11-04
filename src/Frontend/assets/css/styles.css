@@ -395,3 +395,5 @@ input.smallInput {
 #sure{margin-bottom:1rem;display:none;}
 
 .acc-notice{margin-bottom:50px;}
+
+input.checkbox{border:0;border-radius:0;width:auto;height:auto;}

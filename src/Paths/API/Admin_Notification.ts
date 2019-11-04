@@ -16,7 +16,7 @@ class AdminNotification extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth
-        const auth = !req.cookies || !req.cookies.token || !req.cookies.token.startsWith('Bearer') ? await this.Utils.authToken(req, (user: UserI) => !!user.admin) : await this.Utils.authBearerToken(req.cookies, (user: UserI) => !!user.admin);
+        const auth = !req.cookies && !req.cookies.token && !req.cookies.sid ? await this.Utils.authToken(req, (user: UserI) => !!user.admin) : await this.Utils.authCookies(req, res, (user: UserI) => !!user.admin);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }

@@ -85,7 +85,7 @@ class Base {
         this.schemas = {
             User, Image, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
         };
-        this.Utils = new Utils();
+        this.Utils = new Utils(evolve);
         this.flags = flags;
         this.options = new EvolveConfig(options);
     }

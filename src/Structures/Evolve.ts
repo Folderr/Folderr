@@ -4,9 +4,8 @@ import * as paths from '../Paths';
 import Path from './Path';
 import { join } from 'path';
 import { Request, Response } from 'express';
-
-const notFound = 404;
-
+import EvolveSession from './EvolveSession';
+import {UserI} from "../Schemas/User";
 
 /**
  * @class Evolve
@@ -22,9 +21,11 @@ class Evolve {
 
     public ipBans: string[];
 
+    public Session: EvolveSession;
+
     private clearingTokens: boolean;
 
-    private base?: Base;
+    private base: Base;
 
     /**
      * @param {Object} options The options to pass to the base of the client
@@ -42,6 +43,9 @@ class Evolve {
         this.clearingTokens = false;
         this.handleAdminAuth = this.handleAdminAuth.bind(this);
         this.handleHeaders = this.handleHeaders.bind(this);
+        this.Session = new EvolveSession();
+        this.base = new Base(this, this._options);
+        this.checkFAuth = this.checkFAuth.bind(this);
     }
 
     /**
@@ -74,6 +78,38 @@ class Evolve {
         }
     }
 
+    checkFrontendSessionAuth(req: any, res: any): any {
+        this.Session.removeIfNeeded(req, res);
+        return this.Session.fetchSession(req);
+    }
+
+    async checkFrontendAuth(req: any, res: any): Promise<UserI | false | undefined> {
+        if (req.cookies && req.cookies.token) {
+            const auth = this.base && await this.base.Utils.authBearerToken(req.cookies);
+            if (typeof auth === 'string' || !auth) {
+                if (req.cookies.token && !auth) {
+                    res.clearCookie('token', { secure: false, sameSite: 'Strict', path: '/' } );
+                }
+                return false;
+            }
+            return auth;
+        }
+    }
+
+    async checkFAuth(req: any, res: any, next: any) {
+        const fa1 = await this.checkFrontendAuth(req, res);
+        if (fa1) {
+            req.uauth = fa1;
+            return next();
+        }
+        const fa2 = this.checkFrontendSessionAuth(req, res);
+        if (fa2) {
+            req.uauth = fa2;
+            return next();
+        }
+        return next();
+    }
+
     handleHeaders(req: Request, res: Response, next: any): any {
         if (!this.base || !this.base.options.certOptions || !this.base.options.certOptions.cert || !this.base.options.certOptions.key) {
             res.set( {
@@ -103,7 +139,13 @@ class Evolve {
         if (!this.base) {
             return res.redirect('/');
         }
-        if (!req.cookies || !req.cookies.token) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        if (!req.uauth || !req.uauth.admin || typeof req.auth === 'string') {
+            console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
+            return res.redirect('/');
+        }
+        /* if (!req.cookies || !req.cookies.token) {
             console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
             return res.redirect('/');
         }
@@ -117,7 +159,7 @@ class Evolve {
                 console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
                 return res.redirect('/');
             }
-        }
+        }*/
         next();
     }
 
@@ -128,11 +170,22 @@ class Evolve {
      */
     async init(): Promise<void> {
         // Init the base, remove options
-        const base = new Base(this, this._options);
-        this.base = base;
+        const { base } = this;
         delete this._options;
         base.web.use('*', this.handleHeaders);
         // eslint-disable-next-line no-return-await
+        const authablePages = [
+            '/',
+            '/upload',
+            '/account',
+            '/privacy',
+            '/manage',
+            '/admin',
+            '/admin/notifications',
+            '/admin/users',
+            '/admin/verify',
+        ];
+        base.web.use(authablePages, this.checkFAuth);
         base.web.use( ['/admin', '/admin/*'], this.handleAdminAuth);
         // Initiate paths
         let pathNums = 0;

@@ -5,9 +5,8 @@ $(document).ready(function () {
         }
         $.get('/api/info', (result) => {
             if (typeof result === 'string' && result.startsWith('[ERROR] Authorization failed') ) {
-                console.log('Who the fuck are you?');
-                $(location).attr('href', '/');
-                return;
+                // $(location).attr('href', '/');
+                // return;
             }
             const eh = $('#gitinfo').text(`Git Commit: ${result.commit.replace(' ', ',\n')}\nEvolve-X branch: ${result.branch}`);
             eh.html(eh.html().replace(/\n/g, '<br/>') );
