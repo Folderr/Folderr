@@ -42,8 +42,14 @@ $(document).ready( () => {
             $('#formContainer').addClass('mysm-auto');
             return false;
         }
+        const isWeek = $('#keep').is(':checked');
+        console.log(isWeek);
+        let url = `/api/login`;
+        if (isWeek) {
+            url += '?isW=t';
+        }
         const req = $.ajax( {
-            url: '/api/login',
+            url,
             data: { username, password },
             method: 'POST',
             timeout: 5000,

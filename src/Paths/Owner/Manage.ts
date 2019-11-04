@@ -13,7 +13,7 @@ class Manage extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        if (req.cookies && req.cookies.token) {
+        /* if (req.cookies && req.cookies.token) {
             const auth = await this.Utils.authBearerToken(req.cookies, (user) => !!user.first);
             if (!auth || typeof auth === 'string') {
                 res.clearCookie('token');
@@ -22,6 +22,9 @@ class Manage extends Path {
             if (!auth.admin) {
                 return res.redirect('/');
             }
+            return res.sendFile(join(__dirname, '../../Frontend/manage.html') );
+        }*/
+        if (req.uauth && req.uauth.admin) {
             return res.sendFile(join(__dirname, '../../Frontend/manage.html') );
         }
         return res.redirect('/');
