@@ -1,5 +1,7 @@
 let name;
 let tokenGenerated = false;
+let owner = false;
+let txt = 'Are you sure you want to reset your token? The previous one will no longer be usable.';
 
 function load() {
     $.ajax( {
@@ -17,6 +19,8 @@ function load() {
             if (data.token_generated) {
                 tokenGenerated = true;
             }
+            $('#id').text(`ID: ${data.uID}`)
+            owner = data.owner;
         }, error: (eh, ehh, err) => {
             if (err === 'Unauthorized') {
                 return;
@@ -176,22 +180,32 @@ $(document).ready(() => {
         if (!name) return false;
         $('#cancel').addClass('hidden');
         $('#confirm').addClass('hidden');
+        $('#dconfirm').addClass('hidden');
+        $('#confirm_name').addClass('hidden');
         $('#ok').removeClass('hidden');
+        if (txt && txt === 'Are you sure you want to delete your account? Any information on your account will be permanently lost.') {
+            $('#sure_text').text('Cancelled deleting your account!');
+            return false;
+        }
         $('#sure_text').text('Cancelled updating your token!');
+        return false;
     } );
     $('#ok').click(() => {
         if (!name) return false;
         $('#sure').addClass('hidden');
         $('#sure_text').text('Are you sure you want to reset your token? The previous one will no longer be usable.');
+        txt = 'Are you sure you want to reset your token? The previous one will no longer be usable.';
         $('#ok').addClass('hidden');
         $('#copy_tkn').addClass('hidden');
         $('#cancel').addClass('hidden');
         $('#confirm').addClass('hidden');
+        $('#dconfirm').addClass('hidden');
         $('.notice').addClass('hidden');
     } );
     $('#token').click( () => {
         $('#sure').addClass('hidden');
         $('#sure_text').text('Are you sure you want to reset your token? The previous one will no longer be usable.');
+        txt = 'Are you sure you want to reset your token? The previous one will no longer be usable.';
         $('#ok').addClass('hidden');
         $('#copy_tkn').addClass('hidden');
         $('#cancel').addClass('hidden');
@@ -202,8 +216,9 @@ $(document).ready(() => {
         notice.addClass('error');
         $('#noticetxt').text('An error occured.');
         const password = $('#password').val();
-        if (!password.length) {
+        if (!password || !password.length) {
             $('#noticetxt').text('Missing Password!');
+            $('.notice').removeClass('hidden');
             return;
         }
         if (tokenGenerated) {
@@ -215,6 +230,7 @@ $(document).ready(() => {
         const req = $.ajax({
             url: '/api/token',
             headers: { username: name, password },
+            method: 'POST',
         } );
         req.done( (result) => {
             if (result.startsWith('[ERROR]') ) {
@@ -266,7 +282,6 @@ $(document).ready(() => {
     } );
     $('#confirm').click( () => {
         if (!name) return false;
-        console.log('Ok');
         $('#confirm').addClass('hidden');
         $('#cancel').addClass('hidden');
         const notice = $('.notice');
@@ -277,14 +292,12 @@ $(document).ready(() => {
             $('#noticetxt').text('Missing Password!');
             return;
         }
-        console.log('Sending req');
         const req = $.ajax({
             url: '/api/token?flags=force',
             headers: { username: name, password },
             method: 'POST',
         } );
         req.done( (result) => {
-            console.log('Req success');
             if (result.startsWith('[ERROR]') ) {
                 $('#noticetxt').text(`Error: ${result.slice(8)}`);
                 $('.notice').removeClass('hidden');
@@ -306,8 +319,6 @@ $(document).ready(() => {
             return false;
         } );
         req.fail( (result) => {
-            console.log('Req fail');
-            console.log(result);
             if (result.statusText === 'timeout') {
                 $('#noticetxt').text('Request timed out.');
                 $('.notice').removeClass('hidden');
@@ -342,6 +353,72 @@ $(document).ready(() => {
         document.execCommand('copy');
         $('#noticetxt').text('Copied!');
         tkn.addClass('hidden');
+    } );
+    $('#del').click( () => {
+        if (!name) return false;
+        if (owner) {
+            $('.notice').addClass('error');
+            $('#noticetxt').text('You\'re the owner. Your account cannot be deleted.');
+            $('.notice').removeClass('hidden');
+            return false;
+        }
+        alert('NOTICE: Deleting your account is permanent and cannot be undone. No data can be recovered from that point.');
+        $('#sure_text').text('Are you sure you want to delete your account? Any information on your account will be permanently lost.');
+        txt = 'Are you sure you want to delete your account? Any information on your account will be permanently lost.';
+        $('#cancel').removeClass('hidden');
+        $('#dconfirm').removeClass('hidden');
+        $('#confirm_name').removeClass('hidden');
+        $('#sure').removeClass('hidden');
+    } );
+    $('#dconfirm').click( () => {
+        if (!name) {
+            return false;
+        }
+        const cUsername = $('#confirm_name').val();
+        if (!cUsername || cUsername !== name) {
+            $('.notice').addClass('error');
+            $('.notice').removeClass('hidden');
+            $('#noticetxt').text('Confirmation failed');
+            return false;
+        }
+        alert('Goodbye.');
+        const req = $.ajax({
+            url: '/api/account',
+            method: 'DELETE',
+        } );
+        req.done( (result) => {
+            if (result.startsWith('[ERROR]') ) {
+                $('#noticetxt').text(`Error: ${result.slice(8)}`);
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.status === 401) {
+                $('#noticetxt').text('Authorization failed');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            $(location).attr('href', '/logout?d=t');
+            return false;
+        } );
+        req.fail( (result) => {
+            if (result.statusText === 'timeout') {
+                $('#noticetxt').text('Request timed out.');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.status === 401) {
+                $('#noticetxt').text('Authorization failed.');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.status === 200) {
+                $(location).attr('href', '/logout?d=t');
+                return false;
+            }
+            $('#noticetxt').text('An error occurred.');
+            $('.notice').removeClass('hidden');
+            return false;
+        } );
     } );
     $('form').submit((ev) => ev.preventDefault());
 })
