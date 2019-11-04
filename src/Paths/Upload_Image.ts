@@ -13,12 +13,6 @@ class UploadImage extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        /* if (req.cookies) {
-            const auth = await this.Utils.authBearerToken(req.cookies);
-            if (!auth || typeof auth === 'string') {
-                return res.redirect('./logout');
-            }
-        }*/
         if (!req.uauth) {
             return res.redirect('./');
         }

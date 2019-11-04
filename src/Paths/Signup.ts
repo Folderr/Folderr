@@ -19,13 +19,6 @@ class Signup extends Path {
         if (req.uauth) {
             return res.redirect('./');
         }
-        /* if (req.cookies && req.cookies.token) {
-            const auth = await this.Utils.authBearerToken(req.cookies);
-            if (!auth || typeof auth === 'string') {
-                return res.redirect('./logout');
-            }
-            return res.redirect('./');
-        }*/
         if (!this.base.options.signups) {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/closed.html') );
         }

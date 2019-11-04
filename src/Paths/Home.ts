@@ -19,14 +19,6 @@ class Home extends Path {
         if (req.uauth) {
             return res.sendFile(join(__dirname, '../Frontend/LoggedIn.html') );
         }
-        /* if (req.cookies && req.cookies.token) {
-            const auth = await this.Utils.authBearerToken(req.cookies);
-            if (!auth || typeof auth === 'string') {
-                res.clearCookie('token');
-                return res.sendFile(dir);
-            }
-            return res.sendFile(join(__dirname, '../Frontend/LoggedIn.html') );
-        }*/
         return res.sendFile(dir);
     }
 }

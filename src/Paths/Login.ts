@@ -19,15 +19,6 @@ class Login extends Path {
         if (req.uauth) {
             return res.redirect('/');
         }
-        /* if (req.cookies && req.cookies.token) {
-            if (req.cookies) {
-                const auth = await this.Utils.authBearerToken(req.cookies);
-                if (!auth || typeof auth === 'string') {
-                    return res.redirect('./logout');
-                }
-            }
-            return res.redirect('/');
-        }*/
 
         return res.sendFile(join(__dirname, '../Frontend/login.html') );
     }
