@@ -14,10 +14,16 @@ class Logout extends Path {
 
     execute(req: any, res: any): Promise<Response | void> {
         const dir = join(__dirname, '../Frontend/loggedout.html');
-        if (!req.cookies || !req.cookies.token) {
+        if (req.query && req.query.d === 't') {
+            res.clearCookie('token', { sameSite: 'Strict' } );
+            this.evolve.Session.removeSession(req, res);
+            return res.sendFile(join(__dirname, '../Frontend/deleted_account.html') );
+        }
+        if (!req.uauth) {
             return res.redirect('/');
         }
-        res.clearCookie('token');
+        res.clearCookie('token', { sameSite: 'Strict' } );
+        this.evolve.Session.removeSession(req, res);
         return res.sendFile(dir);
     }
 }

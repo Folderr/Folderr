@@ -3,6 +3,8 @@ import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { UserI } from '../../Schemas/User';
+import { ImageI } from '../../Schemas/Image';
+import { promises } from 'fs';
 
 interface DelReturns {
     code: number;
@@ -25,6 +27,7 @@ class DelAccount extends Path {
             await this.base.schemas.User.findOneAndDelete( { uID: id } );
             await this.base.schemas.Image.deleteMany( { owner: id } );
             await this.base.schemas.Shorten.deleteMany( { owner: id } );
+            await this.base.schemas.BearerTokens.deleteMany( { uID: id } );
             // Notify all that an account has been deleted, and tell the user as well
             const end = auth.uID !== id ? ` by admin ${auth.uID}!` : '!';
             console.log(`[SYSTEM INFO] - Account ${username} (${id}) deleted${end}`);
@@ -36,13 +39,16 @@ class DelAccount extends Path {
         }
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: any, res: any): Promise<Response | void> {
         // Check headers, and check auth
-        const auth = !req.cookies && !req.cookies.token && !req.cookies.sid ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
+        console.log(req.cookies);
+        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
 
+        let images,
+            out;
         // If you are an admin you can delete someones account by ID
         if (req.query && req.query.uid) {
             // If they are not an admin, they arent authorized
@@ -61,19 +67,28 @@ class DelAccount extends Path {
             } if (mem.admin && !auth.first) {
                 return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
             }
-
+            images = await this.base.schemas.Image.find( { owner: req.query.uid } );
             // Delete the account
-            const out = await this.deleteAccount(auth, req.query.uid, mem.username);
+            out = await this.deleteAccount(auth, req.query.uid, mem.username);
             return res.status(out.code).send(out.mess);
         }
         // Owner account may never be deleted
         if (auth.first) {
             return res.status(this.codes.forbidden).send('[ERROR] You can not delete your account as you are the owner!');
         }
-
+        images = await this.base.schemas.Image.find( { owner: auth.uID } );
         // Delete the users account
-        const out = await this.deleteAccount(auth, req.headers.uid, req.headers.username); // Eslint, TS, I checked this at the top of the function. Please shut up
-        return res.status(out.code).send(out.mess);
+        out = await this.deleteAccount(auth, auth.uID, auth.username); // Eslint, TS, I checked this at the top of the function. Please shut up
+
+        res.status(out.code).send(out.mess);
+        this.deleteImages(images);
+    }
+
+    deleteImages(images: ImageI[] ): void {
+        images.forEach(async image => {
+            await promises.unlink(image.path);
+            console.log(`[SYSTEM INFO - DELETE ACCOUNT] Removed image ${image.path} (${image.ID} from user ${image.owner}!`);
+        } );
     }
 }
 
