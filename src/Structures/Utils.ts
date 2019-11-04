@@ -478,6 +478,16 @@ class Utils {
         }
         return false;
     }
+
+    checkCookies(req: any) {
+        if (!req.cookies) {
+            return false;
+        }
+        if (!req.cookies.token || !req.cookies.sid) {
+            return false;
+        }
+        return true;
+    }
 }
 
 export default Utils;
