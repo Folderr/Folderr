@@ -12,7 +12,7 @@ class Users extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        const auth = !req.cookies && !req.cookies.token && !req.cookies.sid ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.first);
+        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
