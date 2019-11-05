@@ -480,14 +480,13 @@ class Utils {
     }
 
     checkCookies(req: any) {
-        console.log(req.cookies);
         if (!req.cookies) {
             return false;
         }
         if (!req.cookies.token && !req.cookies.sid) {
             return false;
         }
-        if (req.cookies.token && !req.cookies.token.startsWith('Bearer') ) {
+        if (req.cookies.token && req.cookies.token.startsWith('Bearer') ) {
             return false;
         }
         return true;
