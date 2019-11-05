@@ -15,7 +15,7 @@ class VerifyAccount extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Handle authorization
-        const auth = !req.cookies && !req.cookies.token && !req.cookies.sid ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.admin);
+        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.admin);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
