@@ -176,14 +176,16 @@ class DiscordWebhookHandler {
         const secs = 3000;
         if (this.ratelimiter.queue.length > 0) {
             this.isQueueGoing = true;
-            const { type, title, information, options } = this.ratelimiter.queue[0];
             if (!this.ready) {
                 await this.sleep(secs);
                 return this.ridQueue();
             }
+            const { type, title, information, options } = this.ratelimiter.queue.shift();
             this._execute(type, title, information, options);
             await this.sleep(secs);
-            return this.ridQueue();
+            if (this.ratelimiter.queue.length > 0) {
+                return this.ridQueue();
+            }
         }
 
         this.isQueueGoing = false;
