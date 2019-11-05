@@ -142,8 +142,10 @@ class Evolve {
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         if (!req.uauth || !req.uauth.admin || typeof req.auth === 'string') {
-            console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
-            this.base.Logger.log('SECURITY WARN', `Admin authorization request Failed. From ip ${req.ips.length !== 0 ? req.ips[0] : req.ip}`,{}, 'securityWarn', 'SECURITY - Admin authorization failed');
+            // console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            this.base.Logger.log('SECURITY WARN', `Admin authorization request Failed. From ip ${req.ips.length !== 0 ? req.ips[0] : req.ip}`, { user: req.uauth && `${req.uauth.username} (${req.uauth.uID})` }, 'securityWarn', 'SECURITY - Admin authorization failed');
             return res.redirect('/');
         }
         next();
