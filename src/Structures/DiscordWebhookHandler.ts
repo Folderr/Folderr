@@ -115,11 +115,17 @@ class DiscordWebhookHandler {
         if (options && options.user) {
             fields.push( { name: 'User', value: options.user } );
         }
-        if (fields.length > 0) {
-            data.fields = fields;
+        if (options && options.url) {
+            fields.push( { name: 'URL', value: options.url } );
         }
         if (options && options.imageURL && options.imageURL.startsWith('http') ) {
             data.image = { url: options.imageURL };
+        }
+        if (options && options.imageURL && !options.imageURL.startsWith('http') ) {
+            fields.push( { name: 'Image URL', value: options.imageURL } );
+        }
+        if (fields.length > 0) {
+            data.fields = fields;
         }
         const aData: any = { embeds: [data] };
         if (this.discordHook) {
