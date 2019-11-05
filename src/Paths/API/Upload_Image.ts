@@ -59,7 +59,8 @@ class Image extends Path {
         let ext = file.image.path.split('.');
         ext = ext[ext.length - 1];
 
-        console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
+        // console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
+        this.base.Logger.log('INFO - IMAGES', `Image uploaded by ${auth.username} (${auth.uID})!`, { imageURL: `${this.base.options.url}/images/${name}.${ext}` }, 'imageUpload', 'Image Uploaded');
 
         const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path } );
         await image.save();

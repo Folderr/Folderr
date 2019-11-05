@@ -38,7 +38,8 @@ class DenyAccount extends Path {
         const notify = notifs.find(notif => notif.notify.includes(user.uID) );
         await this.base.schemas.AdminNotifs.deleteOne(notify);
         // Log that the account was denied by admin x, and tell the admin the account wa denied
-        console.log(`[INFO] - User ${user.uID}'s account was denied by admin ${auth.username} (${auth.uID})`);
+        // console.log(`[INFO] - User ${user.uID}'s account was denied by admin ${auth.username} (${auth.uID})`);
+        this.base.Logger.log('SYSTEM INFO', 'User account denied by administrator', { user: `${user.username} (${user.uID})`, responsible: `${auth.username} (${auth.uID})` }, 'accountDeny', 'Account denied by Admin');
         return res.status(this.codes.ok).send('[SUCCESS] Denied user!');
     }
 }

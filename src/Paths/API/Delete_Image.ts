@@ -33,6 +33,7 @@ class DeleteImage extends Path {
         }
         await this.base.schemas.Image.deleteOne(Image);
         console.log(`[INFO - IMAGES] - Image ${Image.ID} removed!`);
+        this.base.Logger.log('INFO - IMAGES', `Image ${Image.ID} deleted!`, { user: `${auth.username} (${auth.uID}` }, 'imageDelete', 'Image deleted');
         return res.status(this.codes.ok).send('[SUCCESS] Image removed!');
     }
 }

@@ -486,7 +486,7 @@ class Utils {
         if (!req.cookies.token && !req.cookies.sid) {
             return false;
         }
-        if (req.cookies.token && req.cookies.token.startsWith('Bearer') ) {
+        if (req.cookies.token && !req.cookies.token.startsWith('Bearer') ) {
             return false;
         }
         return true;
