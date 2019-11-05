@@ -37,6 +37,7 @@ class AddAdmin extends Path {
         user.admin = true;
         await user.save();
         console.log(`[SYSTEM INFO - ADMIN] - Admin added for user ${user.username}`);
+        this.base.Logger.log('SYSTEM NOTICE - ADMIN', 'Administrator privileges granted to user.', { user: `${user.username} (${user.uID})`, responsible: `${auth.username} (${auth.uID})` }, 'adminGive', 'Account given Admin');
         return res.status(this.codes.ok).send(`[SUCCESS] Updated users admin status!`);
     }
 }

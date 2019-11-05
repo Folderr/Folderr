@@ -13,6 +13,7 @@ import Shorten, { Short } from '../Schemas/Short';
 import BearerTokens, { BearerTokenSchema } from '../Schemas/BearerTokens';
 import Utils from './Utils';
 import Evolve from './Evolve';
+import Logger from './Logger';
 import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
@@ -72,6 +73,8 @@ class Base {
 
     public options: ActualOptions;
 
+    public Logger: Logger;
+
     constructor(evolve: Evolve | null, options: Options, flags?: string) {
         this.evolve = evolve;
         this.superagent = superagent;
@@ -88,6 +91,7 @@ class Base {
         this.Utils = new Utils(evolve);
         this.flags = flags;
         this.options = new EvolveConfig(options);
+        this.Logger = new Logger(this.options);
     }
 
     /**

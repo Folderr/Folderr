@@ -37,7 +37,8 @@ class DeleteAdmin extends Path {
         }
         user.admin = false;
         await user.save();
-        console.log(`[SYSTEM INFO - ADMIN] - Admin removed for user ${user.username}`);
+        // console.log(`[SYSTEM INFO - ADMIN] - Admin removed for user ${user.username}`);
+        this.base.Logger.log(`SYSTEM NOTICE - ADMIN`, 'Administration privileges removed for user.', { user: `${user.username} (${user.uID})`, responsible: `${auth.username} (${auth.uID})` }, 'adminRemove', 'Administrator demoted.');
         return res.status(this.codes.ok).send(`[SUCCESS] Updated users admin status!`);
     }
 }

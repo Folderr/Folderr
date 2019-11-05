@@ -45,7 +45,8 @@ class VerifyAccount extends Path {
         await this.base.schemas.AdminNotifs.deleteOne(notify);
 
         // Alert the console and the admin that the user was verified
-        console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${auth.username} (${auth.uID})`);
+        // console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${auth.username} (${auth.uID})`);
+        this.base.Logger.log('SYSTEM INFO', 'User account granted by administrator', { user: `${username} (${uID}`, responsible: `${auth.username} (${auth.uID})` }, 'accountAccept', 'Account Verified');
         return res.status(this.codes.created).send('[SUCCESS] Verified user!');
     }
 }

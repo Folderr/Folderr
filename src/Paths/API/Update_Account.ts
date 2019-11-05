@@ -41,6 +41,7 @@ class UpdateAcc extends Path {
         // See if the user exists within the database, if so, error
         const users = await this.base.schemas.User.find();
         const usr = users.find(u => u.username === name);
+        const oldname = user.username;
         if (usr) {
             return { code: this.codes.used, mess: '[ERROR] Username taken!' };
         }
@@ -50,9 +51,11 @@ class UpdateAcc extends Path {
             user.username = name;
             await user.save();
         } catch (err) { // Lightly handle errors
+            this.base.Logger.log('DATABASE ERROR', `Database failed to save password when user tried updating username - ${err}`, {}, 'error', 'Database  Error');
             return { code: this.codes.internalErr, mess: `[ERROR] ${err.message || err}` };
         }
 
+        this.base.Logger.log('ACCOUNT UPDATE', `User ${user.uID} changed their name to ${name} from ${oldname}`, {}, 'accUpdate', 'Account name change');
         return { code: this.codes.ok, mess: '[SUCCESS] Account Updated!' };
     }
 
@@ -73,7 +76,7 @@ class UpdateAcc extends Path {
             await user.save();
         } catch (err) {
             // If there was an error alert the server and the user
-            console.log(`[ERROR] [Update Account - Update password] - ${err}`);
+            this.base.Logger.log('DATABASE ERROR', `Database failed to save password when user tried updating password - ${err}`, {}, 'error', 'Database  Error');
             return { code: this.codes.internalErr, mess: `[ERROR] ${err.message}` };
         }
 

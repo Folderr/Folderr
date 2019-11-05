@@ -29,19 +29,19 @@ class DelAccount extends Path {
             await this.base.schemas.Shorten.deleteMany( { owner: id } );
             await this.base.schemas.BearerTokens.deleteMany( { uID: id } );
             // Notify all that an account has been deleted, and tell the user as well
-            const end = auth.uID !== id ? ` by admin ${auth.uID}!` : '!';
-            console.log(`[SYSTEM INFO] - Account ${username} (${id}) deleted${end}`);
+            // const end = auth.uID !== id ? ` by admin ${auth.uID}!` : '!';
+            // console.log(`[SYSTEM INFO] - Account ${username} (${id}) deleted${end}`);
             return { code: this.codes.ok, mess: '[SUCCESS] Account deleted!' };
         } catch (err) {
             // If an error occurs, log this (as there should not be an error), and tell the user that an error occured
-            console.log(`[SYSTEM ERROR] - Account deletion error - ${err.message || err}`);
+            // console.log(`[SYSTEM ERROR] - Account deletion error - ${err.message || err}`);
+            this.base.Logger.log('SYSTEM ERROR', `Account deletion failure - ${err.message || err}`, {}, 'error', 'Account deletion error.')
             return { code: this.codes.internalErr, mess: `[ERROR] Account deletion error - ${err.message || err}` };
         }
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
         // Check headers, and check auth
-        console.log(req.cookies);
         const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
@@ -70,7 +70,9 @@ class DelAccount extends Path {
             images = await this.base.schemas.Image.find( { owner: req.query.uid } );
             // Delete the account
             out = await this.deleteAccount(auth, req.query.uid, mem.username);
-            return res.status(out.code).send(out.mess);
+            this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted by administrator', { user: `${mem.username} (${mem.uID}`, responsible: `${auth.username} (${auth.uID})` }, 'accountDelete', 'Account deleted by Admin');
+            res.status(out.code).send(out.mess);
+            return this.deleteImages(images);
         }
         // Owner account may never be deleted
         if (auth.first) {
@@ -79,6 +81,7 @@ class DelAccount extends Path {
         images = await this.base.schemas.Image.find( { owner: auth.uID } );
         // Delete the users account
         out = await this.deleteAccount(auth, auth.uID, auth.username); // Eslint, TS, I checked this at the top of the function. Please shut up
+        this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted', { user: `${auth.username} (${auth.uID}` }, 'accountDelete', 'Account deleted from Evolve-X');
 
         res.status(out.code).send(out.mess);
         this.deleteImages(images);

@@ -5,7 +5,7 @@ import Path from './Path';
 import { join } from 'path';
 import { Request, Response } from 'express';
 import EvolveSession from './EvolveSession';
-import {UserI} from "../Schemas/User";
+import { UserI } from '../Schemas/User';
 
 /**
  * @class Evolve
@@ -143,6 +143,7 @@ class Evolve {
         // @ts-ignore
         if (!req.uauth || !req.uauth.admin || typeof req.auth === 'string') {
             console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
+            this.base.Logger.log('SECURITY WARN', `Admin authorization request Failed. From ip ${req.ips.length !== 0 ? req.ips[0] : req.ip}`,{}, 'securityWarn', 'SECURITY - Admin authorization failed');
             return res.redirect('/');
         }
         next();
@@ -214,7 +215,7 @@ class Evolve {
             await this.removeTokens(base);
         }, mins);
 
-        console.log('[SYSTEM INFO] Initialized!');
+        this.base.Logger.log('SYSTEM INFO', 'Evolve-X has been initialized!', {}, 'online', 'Evolve-X is online');
         if (process.env.NODE_ENV === 'test') {
             process.exit();
         }

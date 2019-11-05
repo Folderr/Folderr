@@ -98,6 +98,7 @@ class Signup extends Path {
         await notify.save();
         // Notify the console, and the user that the admins have been notified.
         console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${uID}`);
+        this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Evolve-X`, { user: `${username} (${uID})` }, 'signup', 'New user signup');
         return res.status(this.codes.created).send('[SUCCESS] The admins have been notified of your account request!');
     }
 }
