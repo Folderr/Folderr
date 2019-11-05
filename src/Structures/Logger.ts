@@ -41,7 +41,7 @@ class Logger implements LoggerOptions {
         return true;
     }
 
-    log(type: string, information: string, options?: WebhookExecOptions, wType?: WebhookTypes, wTitle?: string) {
+    log(type: string, information: string, options?: WebhookExecOptions, wType?: WebhookTypes, wTitle?: string): Promise<any> {
         let base = `[${type}] - ${information}`;
         if (this.checkURLOptions(options) ) {
             // @ts-ignore
@@ -55,15 +55,15 @@ class Logger implements LoggerOptions {
         }
         console.log(base);
         if (!wType || !wTitle || !this.enableDiscordLogging || !this.webhookHandler) {
-            return;
+            return Promise.resolve(false);
         }
         if (!this.webhookHandler.valid && wType !== 'online') {
-            return;
+            return Promise.resolve(false);
         }
         if (information.match(/from ip/i) ) {
             information = information.split(/from ip/i)[0];
         }
-        this.webhookHandler.execute(wType, wTitle, information, options);
+        return this.webhookHandler.execute(wType, wTitle, information, options);
     }
 }
 

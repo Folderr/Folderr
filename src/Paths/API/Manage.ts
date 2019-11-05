@@ -33,7 +33,7 @@ class Manage extends Path {
         }
         if (req.query.type === 's') {
             res.status(this.codes.ok).send('Shutting down in 1 minute');
-            this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown by owner', { responsible: `${auth.username} (${auth.uID}` }, 'shutdown', 'System shutdown by system owner');
+            await this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown remotely by owner', { responsible: `${auth.username} (${auth.uID}` }, 'shutdown', 'System shutdown by system owner');
             const min = 60000;
             await sleep(min);
             process.exit();
