@@ -96,7 +96,30 @@ class DiscordWebhookHandler {
         this.ready = true;
     }
 
+    isQueue() {
+        if (this.ratelimiter.queue.length > 0) {
+            return true;
+        }
+        return this.ratelimiter.limits > 2;
+    }
+
     async execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions): Promise<any> {
+        const secs = 3000;
+        if (!this.isQueue() && this.ready) {
+            this.ratelimiter.limits++;
+            setTimeout( () => {
+                this.ratelimiter.limits -= 1;
+            }, secs);
+            return this._execute(type, title, information, options);
+        } else {
+            this.ratelimiter.queue.push( { type, title, information, options } );
+            if (this.ratelimiter.queue.length > 0 && !this.isQueueGoing) {
+                this.ee.emit('beginQueue');
+            }
+        }
+    }
+
+    async _execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions) {
         if (!this.valid) {
             return false;
         }
@@ -141,29 +164,7 @@ class DiscordWebhookHandler {
         if (!out || out.status !== noContent) {
             throw Error('[Webhook Handler] - Webhook failed to send');
         }
-    }
-
-    isQueue() {
-        if (this.ratelimiter.queue.length > 0) {
-            return true;
-        }
-        return this.ratelimiter.limits > 2;
-    }
-
-    _execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions) {
-        const secs = 3000;
-        if (!this.isQueue() && this.ready) {
-            this.execute(type, title, information, options);
-            this.ratelimiter.limits++;
-            setTimeout( () => {
-                this.ratelimiter.limits -= 1;
-            }, secs);
-        } else {
-            this.ratelimiter.queue.push( { type, title, information, options } );
-            if (this.ratelimiter.queue.length > 0 && !this.isQueueGoing) {
-                this.ee.emit('beginQueue');
-            }
-        }
+        return true;
     }
 
     async sleep(ms: number): Promise<void> {
@@ -180,7 +181,7 @@ class DiscordWebhookHandler {
                 await this.sleep(secs);
                 return this.ridQueue();
             }
-            this.execute(type, title, information, options);
+            this._execute(type, title, information, options);
             await this.sleep(secs);
             return this.ridQueue();
         }
