@@ -54,7 +54,10 @@ class Logger implements LoggerOptions {
             base += `\n    --- User Responsible: ${options.responsible}`;
         }
         console.log(base);
-        if (!wType || !wTitle || !this.enableDiscordLogging || !this.webhookHandler || !this.webhookHandler.valid) {
+        if (!wType || !wTitle || !this.enableDiscordLogging || !this.webhookHandler) {
+            return;
+        }
+        if (!this.webhookHandler.valid && wType !== 'online') {
             return;
         }
         if (information.match(/from ip/i) ) {
