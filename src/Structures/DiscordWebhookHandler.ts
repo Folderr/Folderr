@@ -46,6 +46,8 @@ class DiscordWebhookHandler {
 
     private ee: EventEmitter;
 
+    private ready: boolean;
+
     constructor(webhookURL: string, discordHook?: DiscordHook) {
         this.webhookURL = webhookURL;
         this.colors = {
@@ -78,6 +80,7 @@ class DiscordWebhookHandler {
         this.ee.on('beginQueue', async() => {
             await this.ridQueue();
         } );
+        this.ready = false;
     }
 
     async _validateConfig(webhook: string) {
@@ -90,6 +93,7 @@ class DiscordWebhookHandler {
             throw Error('[WebhookHandler - FATAL] - Invalid Webhook URL.');
         }
         this.valid = true;
+        this.ready = true;
     }
 
     async execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions): Promise<any> {
@@ -148,7 +152,7 @@ class DiscordWebhookHandler {
 
     _execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions) {
         const secs = 3000;
-        if (!this.isQueue() ) {
+        if (!this.isQueue() && this.ready) {
             this.execute(type, title, information, options);
             this.ratelimiter.limits++;
             setTimeout( () => {
@@ -172,6 +176,10 @@ class DiscordWebhookHandler {
         if (this.ratelimiter.queue.length > 0) {
             this.isQueueGoing = true;
             const { type, title, information, options } = this.ratelimiter.queue[0];
+            if (!this.ready) {
+                await this.sleep(secs);
+                return this.ridQueue();
+            }
             this.execute(type, title, information, options);
             await this.sleep(secs);
             return this.ridQueue();
