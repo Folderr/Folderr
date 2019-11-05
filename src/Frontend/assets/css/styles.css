@@ -397,3 +397,7 @@ input.smallInput {
 .acc-notice{margin-bottom:50px;}
 
 input.checkbox{border:0;border-radius:0;width:auto;height:auto;}
+
+dd {
+  padding-left: 20px;
+}
