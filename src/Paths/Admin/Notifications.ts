@@ -13,7 +13,7 @@ class AdminNotifications extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        return res.sendFile(join(__dirname, '../../Frontend/HTML/Admin_Notifications.html') );
+        return res.sendFile(join(__dirname, '../../Frontend/obsolete.html') );
     }
 }
 
