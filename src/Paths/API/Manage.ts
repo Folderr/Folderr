@@ -52,7 +52,15 @@ class Manage extends Path {
             }
             const f = await promises.readFile('./package.json');
             const af = JSON.parse(f.toString() );
-            await this.base.Logger.log('SYSTEM - UPDATE', `System updated to version ${JSON.parse(f.toString() ).version} from ${oPackage.version}`, { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System update');
+            let v;
+            if (af.version > oPackage.version) {
+                v = `Version upgraded from ${oPackage.version} to ${af.version}`;
+            } else if (af.version === oPackage) {
+                v = 'Version not changed';
+            } else {
+                v = `Version downgraded from ${oPackage.version} to ${af.version}`;
+            }
+            await this.base.Logger.log('SYSTEM - UPDATE', `System updated. ${v}`, { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System update');
             // eslint-disable-next-line require-atomic-updates
             oPackage = af;
             return res.status(this.codes.ok).send('[SUCCESS] Updated!');
