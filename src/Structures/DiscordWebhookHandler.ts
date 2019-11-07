@@ -172,8 +172,10 @@ class DiscordWebhookHandler {
             this.ratelimiter.queue.push( { type, title, information, options } );
             if (this.ratelimiter.queue.length > 0 && !this.isQueueGoing) {
                 this.ee.emit('beginQueue');
+                return;
             }
         }
+        return false;
     }
 
     /**
@@ -236,11 +238,21 @@ class DiscordWebhookHandler {
         return true;
     }
 
+    /**
+     * @desc Make the thread pause.
+     * @param ms {number} The milliseconds to pause for
+     */
+    // Taken from https://github.com/Khaazz/AxonCore/blob/d597089b80615fdd5ceab8f0a1b1d83f70fc5187/src/Utility/Utils.js#L355
     async sleep(ms: number): Promise<void> {
         await sleep(ms);
         return Promise.resolve();
     }
 
+    /**
+     * @desc Remove an item from the queue and then if there are still items recall this method
+     * @async
+     * @returns {Promise<*>}
+     */
     async ridQueue(): Promise<any> {
         const secs = 3000;
         if (this.ratelimiter.queue.length > 0) {

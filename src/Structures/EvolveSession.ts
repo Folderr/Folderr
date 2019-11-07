@@ -84,6 +84,8 @@ class EvolveSession implements Options {
      * @returns {string}
      */
     generateID(): string {
+        // Taken from https://stackoverflow.com/a/18079904
+        // Closest thing I can find to the source
         return crypto.randomBytes(32).toString('hex');
     }
 

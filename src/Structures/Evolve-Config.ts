@@ -24,6 +24,9 @@
  * @version 0.8.0
  */
 
+// I took inspiration from https://github.com/Khaazz/AxonCore/blob/dev-2.0/src/AxonOptions.js for this
+// Hope you do not mind, KhaaZ.
+
 interface CertOptions {
     key?: string | any;
     cert?: string | any;
