@@ -8,7 +8,11 @@ $(document).ready(function () {
                 // $(location).attr('href', '/');
                 // return;
             }
-            const eh = $('#gitinfo').text(`Git Commit: ${result.commit.replace(' ', ',\n')}\nEvolve-X branch: ${result.branch}`);
+            let str = `Git Commit: ${result.commit.replace(' ', ',\n')}\nEvolve-X branch: ${result.branch}`;
+            if (result.version) {
+                str += `\n\nInstance Version: ${result.version}`;
+            }
+            const eh = $('#gitinfo').text(str);
             eh.html(eh.html().replace(/\n/g, '<br/>') );
         } );
     } )();
@@ -28,7 +32,11 @@ $(document).ready(function () {
         $.post('/api/manage?type=u', () => {
             $('#noticetxt').text('Updated!');
             $.get('/api/info', (result) => {
-                const eh = $('#gitinfo').text(`Git Commit: ${result.commit.replace(' ', ',\n')}\nEvolve-X branch: ${result.branch}`);
+                let str = `Git Commit: ${result.commit.replace(' ', ',\n')}\nEvolve-X branch: ${result.branch}`;
+                if (result.version) {
+                    str += `\n\nInstance Version: ${result.version}`;
+                }
+                const eh = $('#gitinfo').text(str);
                 eh.html(eh.html().replace(/\n/g, '<br/>') );
             } );
         } );

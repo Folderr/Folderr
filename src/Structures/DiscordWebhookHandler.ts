@@ -26,7 +26,7 @@ export interface EmbedData {
     image?: { url: string };
 }
 
-export type WebhookTypes = 'error' | 'deleteAccount' | 'online' | 'accountDeny' | 'accountAccept' | 'imageUpload' | 'imageDelete' | 'signup' | 'securityWarn' | 'adminGive' | 'adminRemove' | 'shutdown' | 'shorten' | 'shortRemove' | 'accUpdate' | 'accountDelete';
+export type WebhookTypes = 'error' | 'deleteAccount' | 'online' | 'accountDeny' | 'accountAccept' | 'imageUpload' | 'imageDelete' | 'signup' | 'securityWarn' | 'adminGive' | 'adminRemove' | 'manage' | 'shorten' | 'shortRemove' | 'accUpdate' | 'accountDelete';
 
 class DiscordWebhookHandler {
     public webhookURL: string;
@@ -62,7 +62,7 @@ class DiscordWebhookHandler {
             securityWarn: Number('0x7f0002'),
             adminGive: Number('0x5d8dfc'),
             adminRemove: Number('0x7d5dfc'),
-            shutdown: Number('0xfcaa5d'),
+            manage: Number('0xfcaa5d'),
             shorten: Number('0xabfca4'),
             shortRemove: Number('0xfca9a4'),
             accUpdate: Number('0x1e9e95'),

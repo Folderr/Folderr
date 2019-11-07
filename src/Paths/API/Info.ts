@@ -1,6 +1,7 @@
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
+import Package from '../../../package.json';
 import childProcess from 'child_process';
 import util from 'util';
 import { Response } from 'express';
@@ -35,6 +36,7 @@ class Info extends Path {
         const obj = {
             commit: vers,
             branch,
+            version: Package.version,
         };
         return res.status(this.codes.ok).send(obj);
     }

@@ -5,12 +5,19 @@ import { Response } from 'express';
 import childProcess from 'child_process';
 import util from 'util';
 const exec = util.promisify(childProcess.exec);
+import { promises } from 'fs';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 const sleep = (ms: number): Promise<void> => {
     setTimeout( () => Promise.resolve(), ms);
 };
+
+let oPackage: any;
+
+import('../../../package.json').then(f => {
+    oPackage = f;
+} );
 
 class Manage extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -33,7 +40,7 @@ class Manage extends Path {
         }
         if (req.query.type === 's') {
             res.status(this.codes.ok).send('Shutting down in 1 minute');
-            await this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown remotely by owner', { responsible: `${auth.username} (${auth.uID}` }, 'shutdown', 'System shutdown by system owner');
+            await this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown remotely by owner', { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System shutdown by system owner');
             const min = 60000;
             await sleep(min);
             process.exit();
@@ -43,10 +50,16 @@ class Manage extends Path {
             } catch (err) {
                 return res.status(this.codes.internalErr).send(`[ERROR] ${err}`);
             }
+            const f = await promises.readFile('./package.json');
+            const af = JSON.parse(f.toString() );
+            await this.base.Logger.log('SYSTEM - UPDATE', `System updated to version ${JSON.parse(f.toString() ).version} from ${oPackage.version}`, { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System update');
+            // eslint-disable-next-line require-atomic-updates
+            oPackage = af;
             return res.status(this.codes.ok).send('[SUCCESS] Updated!');
         } else if (req.query.type === 't') {
             try {
                 await exec('tsc');
+                await this.base.Logger.log('SYSTEM - TRANSPILE', 'System remotely transpiled', { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System Transpile');
             } catch (e) {
                 console.log(e);
                 return res.status(this.codes.internalErr).send('[ERROR] TSC error. See console!');

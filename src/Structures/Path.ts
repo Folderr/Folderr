@@ -176,6 +176,9 @@ class Path {
         }
 
         // Execute the endpoint and catch errors
+        const out = await this.execute(req, res);
+        return out;
+
         try {
             const out = await this.execute(req, res);
             return out;
