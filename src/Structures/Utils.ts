@@ -99,6 +99,7 @@ class Utils {
      * @returns {Promise<void>}
      * @author KhaaZ
      */
+    // Taken from https://github.com/Khaazz/AxonCore/blob/d597089b80615fdd5ceab8f0a1b1d83f70fc5187/src/Utility/Utils.js#L355
     async sleep(ms: number): Promise<void> {
         await sleep(ms);
         return Promise.resolve();
@@ -138,6 +139,7 @@ class Utils {
      * @returns {string}
      */
     genID(things: ImageI[] | Short[] ): string {
+        // Took this function from stack overflow and modified it to fit its purpose.
         // Generate a random ID
         const radix = 36;
         const min = 0;
@@ -165,6 +167,9 @@ class Utils {
      * @returns {string}
      */
     hashPass(password: string): Promise<string> {
+        // Matthew helped me find bcrypt and use it originally. https://gitlab.libraryofcode.org/matthew
+        // Original hasher for things: https://github.com/AxonTeam/cdnAPI/blob/unstable/token/hash.js
+
         // Minimum and max password lengths
         const minPass = 8;
         const maxPass = 32;
@@ -211,6 +216,8 @@ class Utils {
      * @returns {Promise<{hash: string, token: string}>}
      */
     async genToken(userID: string): Promise<TokenReturn> {
+        // Source: https://gitlab.libraryofcode.org/matthew
+
         // Generate random bytes, create buffer from user id
         // Oh and get a base64 date in milliseconds
         const random: string = crypto.randomBytes(this.byteSize).toString('base64')
@@ -235,6 +242,8 @@ class Utils {
      * @returns {Promise<{hash: string, token: string}>}
      */
     async genBearerToken(userID: string): Promise<TokenReturn> {
+        // Original Source: https://gitlab.libraryofcode.org/matthew
+
         // Generate random bytes, create buffer from user id
         // Oh and get a base64 date in milliseconds
         const random: string = crypto.randomBytes(this.byteSize).toString('base64')
@@ -283,6 +292,9 @@ class Utils {
             return '[ERROR] ARRAY AUTHENTICATION HEADERS NOT ALLOWED!';
         }
         // Find the user via ID, if no user the auth failed
+
+        // Matthew helped with bcrypt & the database part, so he helped with auth.
+        // https://gitlab.libraryofcode.org/matthew
         const user = await User.findOne( { uID: req.headers.uid } );
         if (!user) {
             return false;
@@ -323,6 +335,9 @@ class Utils {
             return '[ERROR] ARRAY AUTHENTICATION HEADERS NOT ALLOWED!';
         }
         // Find user on username, and if no user auth failed
+
+        // Matthew helped with bcrypt & the database part, so he helped with auth.
+        // https://gitlab.libraryofcode.org/matthew
         const user = await User.findOne( { username: req.headers.username } );
         if (!user) {
             return false;
@@ -366,6 +381,7 @@ class Utils {
             return '[ERROR] INVALID TOKEN!';
         }
         const id = Buffer.from(tkn[1], 'base64').toString('utf8');
+        // Modified version of https://gitlab.com/evolve-x/evolve-x/blob/master/src/Structures/Utils.ts#L220
         const user = await User.findOne( { uID: id } );
         // If the user has no tokens, or if the user cannot be found
         if (!user) {
@@ -408,6 +424,8 @@ class Utils {
      * @returns {Promise<void|UserI>}
      */
     async authTokenBody(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Modified version of https://gitlab.com/evolve-x/evolve-x/blob/master/src/Structures/Utils.ts#L220
+
         // Make sure all of the auth stuff is there
         if (!req.body.uid && !req.body.token) {
             return '[ERROR] REQUEST TOKEN AUTHORIZATION MISSING!';
@@ -448,6 +466,8 @@ class Utils {
      * @returns {Promise<boolean>}
      */
     async authPasswordBody(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Modified version of https://gitlab.com/evolve-x/evolve-x/blob/master/src/Structures/Utils.ts#L259
+
         // Make sure all of the auth stuff is there
         if (!req.body.password && !req.body.username) {
             return '[ERROR] REQUEST PASSWORD AUTHORIZATION HEADERS MISSING!';
@@ -507,6 +527,8 @@ class Utils {
      */
     async findVerifying(validationToken: string, userID: string): Promise<VUser|false> {
         const user: VUser | null = await VerifyingUser.findOne( { uID: userID } );
+        // original bcrypt validation code i used: https://github.com/AxonTeam/cdnAPI/blob/unstable/token/checkHash.js
+        // Originally made by matthew: https://gitlab.libraryofcode.org/matthew
         if (!user) {
             return false;
         }
