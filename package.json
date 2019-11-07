@@ -1,7 +1,7 @@
 {
   "name": "evolve-x",
-  "version": "0.4.0",
-  "description": "A host for images, videos, shortened urls, ect..",
+  "version": "0.8.0",
+  "description": "A secure open source host for images, and shortened urls..",
   "main": "src/index.js",
   "scripts": {
     "start": "node -r esm src/index.js",
@@ -16,8 +16,8 @@
     "type": "git",
     "url": "git+https://gitlab.com/evolve-x/evolve-x.git"
   },
-  "author": "evolve-x",
-  "license": "MIT",
+  "author": "VoidNulll",
+  "license": "AGPLv3",
   "bugs": {
     "url": "https://gitlab.com/evolve-x/evolve-x/issues"
   },

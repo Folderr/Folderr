@@ -1,3 +1,24 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
@@ -29,30 +50,36 @@ class Manage extends Path {
         this.reqAuth = true;
     }
 
-    versionChecker(vObj: { af: string[], old: string[] }): 'u' | 'd' | false {
-        let ar = [];
-        if (Number(vObj.af[0]) >  Number(vObj.old[0]) ) {
+    /**
+     * Checks the versioning to see if the app has been updated, downgraded, or stayed the same
+     * @param vObj
+     *
+     * @returns {string|boolean}
+     */
+    versionChecker(vObj: { af: string[]; old: string[] } ): 'u' | 'd' | false {
+        const ar = [];
+        if (Number(vObj.af[0] ) > Number(vObj.old[0] ) ) {
             return 'u';
-        } else if (Number(vObj.af[0]) === Number(vObj.old[0]) ) {
+        } if (Number(vObj.af[0] ) === Number(vObj.old[0] ) ) {
             ar.push(null);
         } else {
             ar.push(false);
         }
-        if (Number(vObj.af[1]) > Number(vObj.old[1]) ) {
+        if (Number(vObj.af[1] ) > Number(vObj.old[1] ) ) {
             ar.push(true);
-        } else if (Number(vObj.af[1]) === Number(vObj.old[1]) ) {
+        } else if (Number(vObj.af[1] ) === Number(vObj.old[1] ) ) {
             ar.push(null);
         } else {
             ar.push(false);
         }
-        if (Number(vObj.af[2]) > Number(vObj.old[2]) ) {
+        if (Number(vObj.af[2] ) > Number(vObj.old[2] ) ) {
             ar.push(true);
-        } else if (Number(vObj.af[2]) === Number(vObj.old[2]) ) {
+        } else if (Number(vObj.af[2] ) === Number(vObj.old[2] ) ) {
             ar.push(null);
         } else {
             ar.push(false);
         }
-        if (!ar[0]) {
+        if (!ar[0] ) {
             if (ar[1] === true) {
                 return 'u';
             }

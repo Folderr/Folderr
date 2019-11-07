@@ -1,3 +1,29 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNull
+ * @version 0.8.0
+ */
+
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import User, { Notification, UserI } from '../Schemas/User';
@@ -7,7 +33,7 @@ import { Short } from '../Schemas/Short';
 import { isBoolean, promisify } from 'util';
 import { Request } from 'express';
 import BearerTokens from '../Schemas/BearerTokens';
-import Evolve from "./Evolve";
+import Evolve from './Evolve';
 
 const sleep = promisify(setTimeout);
 
@@ -18,18 +44,25 @@ interface TokenReturn {
 
 /**
  * @class Utils
+ * @param {Evolve} evolve The Evolve-X client
  *
- * @author Null#0515
+ * @classdesc Utility functions used for authorization or user generation
+ *
+ * @author VoidNulll
  */
 class Utils {
     public saltRounds: number;
 
     public byteSize: number;
+
     private evolve: Evolve | null;
 
     /**
-     * @prop {Number} saltRounds The rounds to salt with
-     * @prop {Number} byteSize The amount of random bytes to generate
+     * @constructor
+     *
+     * @prop {number} saltRounds The rounds to salt with
+     * @prop {number} byteSize The amount of random bytes to generate
+     * @prop {Evolve} evolve The Evolve client
      */
     constructor(evolve: Evolve | null) {
         this.saltRounds = 10;
@@ -38,6 +71,8 @@ class Utils {
     }
 
     /**
+     * @desc Make Utils look pretty when inspected
+     *
      * @returns {string}
      */
     toString(): string {
@@ -45,20 +80,24 @@ class Utils {
     }
 
     /**
-     * Returns a random number between min (inclusive) and max (exclusive)
+     * @desc Returns a random number between min (inclusive) and max (exclusive)
      *
-     * @returns {Number}
+     * @generator
+     *
+     * @returns {number}
      */
     genRandomNum(): number {
         return Math.random() * (9);
     }
 
     /**
-     * Wait for a certain time
+     * @desc Wait for a certain time
      * - Async/wait only
+     * @async
      *
      * @param {Number} ms The milliseconds to sleep for
      * @returns {Promise<void>}
+     * @author KhaaZ
      */
     async sleep(ms: number): Promise<void> {
         await sleep(ms);
@@ -66,7 +105,8 @@ class Utils {
     }
 
     /**
-     * Generate a user ID
+     * @desc Generate a user ID
+     * @generator
      *
      * @returns {Promise<string>}
      */
@@ -90,11 +130,12 @@ class Utils {
     }
 
     /**
-     * Generate a ID
+     * @desc Generate a ID
+     * @generator
      *
-     * @param {Object[]} things The things to avoid generating a duplicate ID for
+     * @param {object[]} things The things to avoid generating a duplicate ID for
      *
-     * @returns {String}
+     * @returns {string}
      */
     genID(things: ImageI[] | Short[] ): string {
         // Generate a random ID
@@ -117,10 +158,11 @@ class Utils {
     }
 
     /**
-     * Hash a password
+     * @desc Hash a password
+     * @async
      *
-     * @param {String} password The password to hash
-     * @returns {String}
+     * @param {string} password The password to hash
+     * @returns {string}
      */
     hashPass(password: string): Promise<string> {
         // Minimum and max password lengths
@@ -141,7 +183,9 @@ class Utils {
     }
 
     /**
-     * Generate a notification ID
+     * @desc Generate a notification ID
+     * @generator
+     * @async
      *
      * @param {Object[]} notifs The notifications IDs to ignore
      * @returns {Promise<string|Promise<*>>}
@@ -159,10 +203,12 @@ class Utils {
     }
 
     /**
-     * Generate a users token
+     * @desc Generate a users token
+     * @async
+     * @generator
      *
      * @param userID
-     * @returns {Promise<{hash: *, token: *}>}
+     * @returns {Promise<{hash: string, token: string}>}
      */
     async genToken(userID: string): Promise<TokenReturn> {
         // Generate random bytes, create buffer from user id
@@ -181,10 +227,12 @@ class Utils {
     }
 
     /**
-     * Generate a users token
+     * @desc Generate a users token
+     * @async
+     * @generator
      *
      * @param userID
-     * @returns {Promise<{hash: *, token: *}>}
+     * @returns {Promise<{hash: string, token: string}>}
      */
     async genBearerToken(userID: string): Promise<TokenReturn> {
         // Generate random bytes, create buffer from user id
@@ -202,9 +250,11 @@ class Utils {
     }
 
     /**
-     * Generate a validation token
+     * @desc Generate a validation token
+     * @generator
+     * @async
      *
-     * @returns {Promise<{hash: String, token: String}>}
+     * @returns {Promise<{hash: string, token: string}>}
      */
     async genValidationToken(): Promise<TokenReturn> {
         // Generate random bytes, gen more random bytes
@@ -214,11 +264,12 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using token and user ID
+     * @desc Authenticate a user using token and user ID
+     * @async
      *
      * @param {Object<Request>} req The request
      * @param {function} [fn] Optional function for auth
-     * @returns {Promise<void|Object>}
+     * @returns {Promise<void|UserI>}
      */
     async authToken(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
         // Make sure all of the auth stuff is there
@@ -252,7 +303,8 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using password and username
+     * @desc Authenticate a user using password and username
+     * @async
      *
      * @param {Request} req The express request.
      * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
@@ -291,12 +343,13 @@ class Utils {
     }
 
     /**
-     * Authorize for the bearer token
+     * @desc Authorize for the bearer token
+     * @async
      *
      * @param {Object} obj Object containing the token & uid
      * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
      *
-     * @returns {Promise<Boolean|UserI|String>}
+     * @returns {Promise<boolean|UserI|string>}
      */
     async authBearerToken(obj: any, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
         if (!obj.token) {
@@ -346,11 +399,13 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using token and user ID via Body
+     * @desc Authenticate a user using token and user ID via Body
+     * @async
      *
      * @param {Object<Request>} req The request
      * @param {function} [fn] Optional function for auth
-     * @returns {Promise<void|Object>}
+     *
+     * @returns {Promise<void|UserI>}
      */
     async authTokenBody(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
         // Make sure all of the auth stuff is there
@@ -384,7 +439,8 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using password and username
+     * @desc Authenticate a user using password and username
+     * @async
      *
      * @param {Request} req The express request.
      * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
@@ -422,6 +478,12 @@ class Utils {
         return user;
     }
 
+    /**
+     * @desc Determines if the user allows insecuce requests
+     * @param req ExpressJS request
+     *
+     * @returns {boolean}
+     */
     verifyInsecureCookies(req: any): boolean {
         if (!req.cookies) {
             return false;
@@ -436,7 +498,8 @@ class Utils {
     }
 
     /**
-     * Find and return a verifying user from the schema if any
+     * @desc Find and return a verifying user from the schema if any
+     * @async
      *
      * @param {String} validationToken The validation token to search for
      * @param {String} userID The user IDs to look for
@@ -453,6 +516,17 @@ class Utils {
         return user;
     }
 
+    /**
+     * @desc Handles cookie authentication to smooth the process
+     * @borrows {Utils.authBearerToken}
+     * @async
+     *
+     * @param req ExpresssJS request object
+     * @param res ExpressJS response object (to set/clear cookies)
+     * @param [cb] {function} hi
+     *
+     * @returns {Promise<UserI | *>}
+     */
     async authCookies(req: any, res: any, cb?: (arg0: UserI) => boolean): Promise<UserI | void | any> {
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
@@ -479,7 +553,14 @@ class Utils {
         return false;
     }
 
-    checkCookies(req: any) {
+    /**
+     * @desc Handle checking if cookies for authentication exist or not.
+     *
+     * @param req The expressjs request
+     *
+     * @returns {boolean}
+     */
+    checkCookies(req: any): boolean {
         if (!req.cookies) {
             return false;
         }

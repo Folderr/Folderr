@@ -1,3 +1,29 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNulll
+ * @version 0.8.0
+ */
+
 interface CertOptions {
     key?: string | any;
     cert?: string | any;
@@ -48,13 +74,14 @@ const optionsBase: ActualOptions = {
 /**
  * @class EvolveConfig
  *
- * Class for generating the Evolve-x config
+ * @classdesc Class for generating & validating the Evolve-x config
  *
  * @author Null
  */
 class EvolveConfig implements ActualOptions {
     /**
      * @param {Object<Options>} config=optionsBase The configuration for the app from the user.
+     * @implements ActualOptions
      *
      * @property {Number} port  The port the application will use
      * @property {String} url The URL the application will use
@@ -104,7 +131,7 @@ class EvolveConfig implements ActualOptions {
     /**
      * @private
      *
-     * Verifies the majority of the Evolve configuration.
+     * @desc Verifies the majority of the Evolve configuration.
      *
      * @returns {Object<ActualOptions>} The finale options.
      */
