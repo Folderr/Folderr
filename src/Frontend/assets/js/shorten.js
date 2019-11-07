@@ -80,10 +80,6 @@ $(document).ready( () => {
         } );
     } );
 
-    $('#resetBtn').click( () => {
-        $('#shortenForm')[0].reset();
-    } );
-
     $('#copy').click( () => {
         const link = $('#linkOut');
         link.removeClass('hidden');
