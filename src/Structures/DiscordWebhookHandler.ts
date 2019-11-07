@@ -1,3 +1,29 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNulll
+ * @version 0.8.0
+ */
+
 import superagent from 'superagent';
 import { DiscordHook } from './Evolve-Config';
 import { promisify } from 'util';
@@ -28,6 +54,13 @@ export interface EmbedData {
 
 export type WebhookTypes = 'error' | 'deleteAccount' | 'online' | 'accountDeny' | 'accountAccept' | 'imageUpload' | 'imageDelete' | 'signup' | 'securityWarn' | 'adminGive' | 'adminRemove' | 'manage' | 'shorten' | 'shortRemove' | 'accUpdate' | 'accountDelete';
 
+/**
+ * @class DiscordHook
+ *
+ * @classdesc handles sending webhooks that log important information about Evolve-X or its status.
+ *
+ * @author VoidNulll
+ */
 class DiscordWebhookHandler {
     public webhookURL: string;
 
@@ -83,7 +116,14 @@ class DiscordWebhookHandler {
         this.ready = false;
     }
 
-    async _validateConfig(webhook: string) {
+    /**
+     * @desc Validate that the url given to us is a valid Discord URL
+     * @async
+     *
+     * @param webhook {string} Discord webhook URL to validate
+     * @private
+     */
+    async _validateConfig(webhook: string): Promise<void> {
         let output: any = await superagent.get(webhook);
         if (!output.text) {
             throw Error('[WebhookHandler - FATAL] - Invalid Webhook URL.');
@@ -96,13 +136,30 @@ class DiscordWebhookHandler {
         this.ready = true;
     }
 
-    isQueue() {
+    /**
+     * @desc Helper function to determine if the ratelimit queue is active or not.
+     *
+     * @returns {boolean}
+     */
+    isQueue(): boolean {
         if (this.ratelimiter.queue.length > 0) {
             return true;
         }
         return this.ratelimiter.limits > 2;
     }
 
+    /**
+     * @desc Actually execute the webhook
+     * @async
+     *
+     * @param type {WebhookTypes} The type of webhook to send
+     * @param title {string} The title of the webhook
+     * @param information {string} The body of the webhook (The info of the log)
+     * @param options {WebhookExecOptions} The execute options for the webhook, also borrowed by logger.
+     *
+     * @returns {Promise<boolean | void>}
+     * @private
+     */
     async execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions): Promise<any> {
         const secs = 3000;
         if (!this.isQueue() && this.ready) {
@@ -119,7 +176,19 @@ class DiscordWebhookHandler {
         }
     }
 
-    async _execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions) {
+    /**
+     * @desc Actually execute the webhook
+     * @async
+     *
+     * @param type {WebhookTypes} The type of webhook to send
+     * @param title {string} The title of the webhook
+     * @param information {string} The body of the webhook (The info of the log)
+     * @param options {WebhookExecOptions} The execute options for the webhook, also borrowed by logger.
+     *
+     * @returns {Promise<boolean | void>}
+     * @private
+     */
+    async _execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions): Promise<boolean | void> {
         if (!this.valid) {
             return false;
         }

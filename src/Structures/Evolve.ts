@@ -1,3 +1,32 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNulll
+ * Contact me at https://gitlab.com/VoidNulll
+ * @version 0.8.0
+ */
+
+/* eslint require-atomic-updates: "off" */
+
 import Base from './Base';
 import { Options } from './Evolve-Config';
 import * as paths from '../Paths';
@@ -9,6 +38,8 @@ import { UserI } from '../Schemas/User';
 
 /**
  * @class Evolve
+ *
+ * @classdesc Base client for Evolve-X, handles banning IPs in memory and security for the frontend
  *
  * @author Null#0515
  */
@@ -49,7 +80,7 @@ class Evolve {
     }
 
     /**
-     * Initialize a path
+     * @desc Initialize a path
      *
      * @param {Object<Path>} path The path to initialize
      * @param {Object} base The base of evolve-x
@@ -78,11 +109,27 @@ class Evolve {
         }
     }
 
+    /**
+     * @desc Check the auth for the frontend if there is a active user session (cookies).
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     *
+     * @return {*}
+     */
     checkFrontendSessionAuth(req: any, res: any): any {
         this.Session.removeIfNeeded(req, res);
         return this.Session.fetchSession(req);
     }
 
+    /**
+     * @desc Check if there is a user session under a week lasting bearer token
+     * @async
+     *
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     *
+     * @returns {Promise<UserI|boolean|undefined>}
+     */
     async checkFrontendAuth(req: any, res: any): Promise<UserI | false | undefined> {
         if (req.cookies && req.cookies.token) {
             const auth = this.base && await this.base.Utils.authBearerToken(req.cookies);
@@ -94,9 +141,21 @@ class Evolve {
             }
             return auth;
         }
+        return false;
     }
 
-    async checkFAuth(req: any, res: any, next: any) {
+    /**
+     * @desc Actual frontend authorization handler
+     *
+     * @async
+     *
+     * @param req ExpressJS request
+     * @param res ExpressJS response
+     * @param next {function} ExpressJS middleware next function
+     *
+     * @returns {Promise<*>}
+     */
+    async checkFAuth(req: any, res: any, next: any): Promise<any> {
         const fa1 = await this.checkFrontendAuth(req, res);
         if (fa1) {
             req.uauth = fa1;
@@ -110,7 +169,14 @@ class Evolve {
         return next();
     }
 
-    handleHeaders(req: Request, res: Response, next: any): any {
+    /**
+     * @desc Handles setting security headers for the request for the app to respond with
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     * @param next {function} ExpressJS middleware next function
+     * @returns {void}
+     */
+    handleHeaders(req: Request, res: Response, next: any): void {
         if (!this.base || !this.base.options.certOptions || !this.base.options.certOptions.cert || !this.base.options.certOptions.key) {
             res.set( {
                 'Content-Security-Policy': 'frame-ancestors \'none\'',
@@ -134,6 +200,14 @@ class Evolve {
         next();
     }
 
+    /**
+     * @desc Handles setting security headers for the request for the app to respond with
+     * @async
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     * @param next {function} ExpressJS middleware next function
+     * @returns {Promise<*>}
+     */
     // eslint-disable-next-line consistent-return
     async handleAdminAuth(req: Request, res: Response, next: any): Promise<any> {
         if (!this.base) {
@@ -142,7 +216,6 @@ class Evolve {
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         if (!req.uauth || !req.uauth.admin || typeof req.auth === 'string') {
-            // console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
             // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
             this.base.Logger.log('SECURITY WARN', `Admin authorization request Failed. From ip ${req.ips.length !== 0 ? req.ips[0] : req.ip}`, { user: req.uauth && `${req.uauth.username} (${req.uauth.uID})` }, 'securityWarn', 'SECURITY - Admin authorization failed');
@@ -152,7 +225,7 @@ class Evolve {
     }
 
     /**
-     * Initialize the base and evolve-x
+     * @desc Initialize the base and evolve-x
      *
      * @returns {Promise<void>}
      */
@@ -223,6 +296,13 @@ class Evolve {
         }
     }
 
+    /**
+     * @desc Function made to automatically remove expired tokens from the database
+     *
+     * @async
+     *
+     * @param base {Base}
+     */
     async removeTokens(base: Base): Promise<void> {
         this.clearingTokens = true;
         const tokens = await base.schemas.BearerTokens.find();
