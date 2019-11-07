@@ -29,6 +29,46 @@ class Manage extends Path {
         this.reqAuth = true;
     }
 
+    versionChecker(vObj: { af: string[], old: string[] }): 'u' | 'd' | false {
+        let ar = [];
+        if (Number(vObj.af[0]) >  Number(vObj.old[0]) ) {
+            return 'u';
+        } else if (Number(vObj.af[0]) === Number(vObj.old[0]) ) {
+            ar.push(null);
+        } else {
+            ar.push(false);
+        }
+        if (Number(vObj.af[1]) > Number(vObj.old[1]) ) {
+            ar.push(true);
+        } else if (Number(vObj.af[1]) === Number(vObj.old[1]) ) {
+            ar.push(null);
+        } else {
+            ar.push(false);
+        }
+        if (Number(vObj.af[2]) > Number(vObj.old[2]) ) {
+            ar.push(true);
+        } else if (Number(vObj.af[2]) === Number(vObj.old[2]) ) {
+            ar.push(null);
+        } else {
+            ar.push(false);
+        }
+        if (!ar[0]) {
+            if (ar[1] === true) {
+                return 'u';
+            }
+            if (ar[1] === null && ar[2] === true) {
+                return 'u';
+            }
+            if (ar[1] === false) {
+                return 'd';
+            }
+            if (ar[2] === false) {
+                return 'd';
+            }
+        }
+        return false;
+    }
+
     async execute(req: any, res: any): Promise<Response | void> {
         const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req, (user) => !!user.first) : await this.Utils.authCookies(req, res, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
@@ -53,9 +93,14 @@ class Manage extends Path {
             const f = await promises.readFile('./package.json');
             const af = JSON.parse(f.toString() );
             let v;
-            if (af.version > oPackage.version) {
+            const vers = {
+                af: af.version.split('.'),
+                old: oPackage.version.split('.'),
+            };
+            const ver = this.versionChecker(vers);
+            if (ver === 'u') {
                 v = `Version upgraded from ${oPackage.version} to ${af.version}`;
-            } else if (af.version === oPackage) {
+            } else if (ver === false) {
                 v = 'Version not changed';
             } else {
                 v = `Version downgraded from ${oPackage.version} to ${af.version}`;
