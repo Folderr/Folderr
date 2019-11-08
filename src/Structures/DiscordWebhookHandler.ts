@@ -168,13 +168,13 @@ class DiscordWebhookHandler {
                 this.ratelimiter.limits -= 1;
             }, secs);
             return this._execute(type, title, information, options);
-        } else {
-            this.ratelimiter.queue.push( { type, title, information, options } );
-            if (this.ratelimiter.queue.length > 0 && !this.isQueueGoing) {
-                this.ee.emit('beginQueue');
-                return;
-            }
         }
+        this.ratelimiter.queue.push( { type, title, information, options } );
+        if (this.ratelimiter.queue.length > 0 && !this.isQueueGoing) {
+            this.ee.emit('beginQueue');
+            return false;
+        }
+
         return false;
     }
 
@@ -227,6 +227,7 @@ class DiscordWebhookHandler {
         }
         const aData: any = { embeds: [data] };
         if (this.discordHook) {
+            // eslint-disable-next-line @typescript-eslint/camelcase
             aData.avatar_url = this.discordHook.avatar_url;
             aData.username = this.discordHook.name;
         }
