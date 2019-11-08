@@ -58,6 +58,8 @@ class Evolve {
 
     private base: Base;
 
+    public antiTokens: Map<string, any>;
+
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -77,6 +79,7 @@ class Evolve {
         this.Session = new EvolveSession();
         this.base = new Base(this, this._options);
         this.checkFAuth = this.checkFAuth.bind(this);
+        this.antiTokens = new Map();
     }
 
     /**
@@ -179,7 +182,7 @@ class Evolve {
     handleHeaders(req: Request, res: Response, next: any): void {
         if (!this.base || !this.base.options.certOptions || !this.base.options.certOptions.cert || !this.base.options.certOptions.key) {
             res.set( {
-                'Content-Security-Policy': 'frame-ancestors \'none\'',
+                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com polyfill.io unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' https://*; frame-src \'none\'; font-src \'self\' fonts.gstatic.com cdnjs.cloudflare.com',
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',
@@ -188,7 +191,7 @@ class Evolve {
             } );
         } else {
             res.set( {
-                'Content-Security-Policy': 'frame-ancestors \'none\'',
+                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com polyfill.io unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' https://*; frame-src \'none\'; font-src \'self\' fonts.gstatic.com cdnjs.cloudflare.com',
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',

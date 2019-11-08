@@ -59,7 +59,7 @@ class Login extends Path {
 
         // Set cookies
         await auth.save();
-        res.cookie('token', token.token, { expires: endTime, secure: false, sameSite: 'Strict' } );
+        res.cookie('token', token.token, { expires: endTime, secure: false, sameSite: 'Strict', httpOnly: true } );
         return res.status(this.codes.ok).send('OK');
     }
 }

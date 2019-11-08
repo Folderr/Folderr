@@ -132,6 +132,12 @@ class UpdateAcc extends Path {
                 }
                 // Update the username
                 out = await this.updateUsername(auth as UserI, req.body.new_key);
+                if (out.code === this.codes.ok) {
+                    const ses = this.evolve.Session.fetchSession(req);
+                    if (ses) {
+                        this.evolve.Session.updateSessionWKey(req, 'username', req.body.new_key);
+                    }
+                }
             } else if (key === 'password') {
                 if (req.body.new_key === req.headers.password) {
                     // If the new key matches the old, error

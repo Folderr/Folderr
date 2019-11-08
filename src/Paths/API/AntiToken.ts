@@ -19,35 +19,35 @@
  *
  */
 
-import Path from '../../src/Structures/Path';
-import Evolve from '../Structures/Evolve';
+import Path from '../../Structures/Path';
+import Evolve from '../../Structures/Evolve';
+import Base from '../../Structures/Base';
+import crypto from 'crypto';
 import { Response } from 'express';
-import Base from '../Structures/Base';
-import { join } from 'path';
 
-class Proceed extends Path {
+class AntiCSRF extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
-        this.label = 'Proceed Security Check';
-
-        this.path = '/proceed';
-        this.type = 'get';
-        this.enabled = !this.base.options.apiOnly;
+        this.label = '[API] Info';
+        this.path = '/api/anti';
+        this.reqAuth = true;
     }
 
     /**
-     * @desc Allows the user to make insecure requests, for 30 minutes ... if they came from an evolve-x page.
+     * @desc Generate a secure csrf token pair to secure form requests with.
+     * @param req
+     * @param res
      */
-    async execute(req: any, res: any): Promise<Response | void> {
-        const r =  req.header('Referer');
-        if (!r) {
-            return res.redirect('/');
-        }
-        const mins = 1800000;
-        const endTime = new Date(Date.now() + mins);
-        res.cookie('i', 't', { expires: endTime, secure: false, sameSite: 'Strict', httpOnly: true } );
-        return res.redirect(`${r}`);
+    async execute(req: any, res: any): Promise<Response> {
+        const antisize = 64;
+        const localsize = 16;
+        const tkn = crypto.randomBytes(antisize).toString('hex');
+        const utkn = crypto.randomBytes(localsize).toString('base64');
+        const mins = 1200000;
+        const nDate = new Date(Date.now() + mins);
+        this.evolve.antiTokens.set(utkn, { token: tkn, expire: nDate } );
+        return res.status(this.codes.ok).send( { _csrf: tkn } );
     }
 }
 
-export default Proceed;
+export default AntiCSRF;
