@@ -23,7 +23,6 @@ import Path from '../../src/Structures/Path';
 import Evolve from '../Structures/Evolve';
 import { Response } from 'express';
 import Base from '../Structures/Base';
-import { join } from 'path';
 
 class Proceed extends Path {
     constructor(evolve: Evolve, base: Base) {
