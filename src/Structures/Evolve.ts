@@ -58,8 +58,6 @@ class Evolve {
 
     private base: Base;
 
-    public antiTokens: Map<string, any>;
-
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -79,8 +77,9 @@ class Evolve {
         this.Session = new EvolveSession();
         this.base = new Base(this, this._options);
         this.checkFAuth = this.checkFAuth.bind(this);
-        this.antiTokens = new Map();
     }
+
+
 
     /**
      * @desc Initialize a path
