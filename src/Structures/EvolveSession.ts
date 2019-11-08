@@ -172,6 +172,29 @@ class EvolveSession implements Options {
         }
         return data;
     }
+
+    /**
+     * @desc Update a sessions data with a key and the new item
+     *
+     * @param req ExpressJS request
+     * @param key {string} The key of the object to update
+     * @param newItem {*} The new data to put in the session
+     */
+    updateSessionWKey(req: any, key: string, newItem: any): boolean {
+        if (!req.cookies || !req.cookies.sid) {
+            return false;
+        }
+        const data: any = this.sessions.get(req.cookies.sid);
+        if (!data) {
+            return false;
+        }
+        if (!data[key] ) {
+            return false;
+        }
+        data[key] = newItem;
+        this.sessions.set(req.cookies.sid, data);
+        return true;
+    }
 }
 
 export default EvolveSession;
