@@ -28,7 +28,7 @@ class DeleteShort extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Delete Short';
-        this.path = 'api/short';
+        this.path = '/api/short';
 
         this.type = 'delete';
         this.reqAuth = true;

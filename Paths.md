@@ -1,330 +1,347 @@
-## Lets talk about Evolve-X's paths..
+# API Documentation
 
-In the demos below we will be using superagent
+<hr>
 
-# Notes on the API
+Hi lets talk about authentication for the API
 
-If there was an error while processing your request the response text should start with `[ERROR]`.
+### Authentication way number 1:
 
-If the API was successful it should return `[SUCCESS]`
+- The most common one
 
-# API Authentication
-Currently Evolve-X has special authentication, this being token (`*`) and password (`**`) authentication types.
+Header token: Your API token
 
-Token auth (`*`)
-- Your headers will need to include `uid`, and `token`
+Header uid: Your unique user ID
 
-Example:
-```js
-const superagent = require('superagent');
-/* Superagent request */.set({ uid: 'Your user ID', token: 'Your special token' });
-```
+### Authentication way number 2:
 
-Password auth (`**`)
-- Your headers will need to include `username`, and `password`
+- This involves data that can be used to login directly to your account
 
-Example:
-```js
-const superagent = require('superagent');
-/* Superagent request */.set({ username: 'Your useranme', password: 'Your password' });
-```
+Header username: This is your evolve-x username in a header.
 
-Also, paths marked with an `$` will require you to be an admin.
-Paths marked with `su` require you to be an owner.
+Header password: This is your evolve-x account password
 
-# Actual paths, API
+# Paths
 
-`POST /api/signup`
+### GET /api
 
-Signup for evolve-x
+No authorization required
 
-- * Requires a body with your desired username and password
+Returns "Pong!"
 
+## Links and images
 
-* Username cannot be taken, and can be no more than 12 characters and no less than 3
-- * Username may only contain lowercase letters, numbers, and an underscore.
-* Passwords cannot be more than 32 characters, less than 8.
-- * Passwords may only contain letters, numbers, the underscore, the `&` symbol, and a period.
+### POST /api/image
 
-### Notice
+Upload a image to Evolve-X
 
-If the user has chosen to disable signups, your will get a status code 423 (locked) and the message `[WARN] Signups are closed.`
+Image limit: 50mb
 
-Example:
-```js
-const superagent = require('superagent');
-superagent.post('your_url_here/api/signup').send({ username: 'hell_raiser420', password: 'omgItsNull9000' });
-// Expected: "[SUCCESS] The admins have been notified of your account request!"
-```
+Image MIME type: `<any>/image`
 
-`GET /api/notifs`
+Returns success unless over size limit, no image, or mime type is incorrect
 
-flags: `*`
+Authentication: 1.
 
-Returns your notifications.
 
-### Notes
+| Input | Type                | Required |  Description |   |
+|-------|---------------------|----------|---|---|
+| files | multipart/form-data | true     |  The file to upload, the API can only do 1 at a time. |   |
+|       |                     |          |   |   |
 
-- If you append `?admin=true` to the end of the url, you will get admin notifications if you are an admin. If you are not an admin and try that, you will get an unauthorized status code.
+### POST /api/short
 
-Example:
-```js
-const superagent = require('superagent');
-superagent.get('your_url_here/api/notifications');
-```
+Shorten a link with Evolve-X
 
-*`DELETE /api/notifs`
+Returns success unless data is missing or invalid link is sent.
 
-Clear your notifications
+Authentication: 1
 
-Example:
-```js
-const superagent = require('superagent');
-superagent.delete('your_url_here/api/notifications');
-```
+| Input | Type                | Required | Description  |   |
+|-------|---------------------|----------|---|---|
+| link | string | true     |The link to shorten. Sent in body.   |   |
+|       |                     |          |   |   |
 
-`POST /api/verify`
+### GET /api/images
 
-flags: `*`, `$`
+Fetch all images shown in Evolve-X as an array.
 
-Verify a user.
+Authentication: 1
 
-- Body needs the validation token and user ID
+### GET /api/shorts
 
-### Notice
+Fetch all shortened links you have uploaded
 
-- This will return a 404 (not found) if it cannot find the user to verify!
+Returns array of strings
 
-- Deletes admin notification automatically
+Authentication: 1
 
-Example:
-```js
-const superagent = require('superagent');
-superagent.post('your_url_here/api/verify').send({ uid: '545996854785731475959', token: 'bmpp2e2550-zFyBNHlL0LqSJRHAJw8v4dVk358wHgVAjI+FarmSR_Ga9pxioYl7l.VWV5bE5oR2ttajYzcExWUTFBTnc4UUZiOXlwQVk1R01EZHQ5bUpXWDU0aFUySlhzRmJodDY3UkplMlV3UUpuLQ==.NDQ2' });
-// Expected: "[SUCCESS] Verified user!"
-```
 
-`DELETE /api/verify`
+### DELETE /api/short?id=${short.id}
 
-flags: `*`, `$`
+Delete a shortened link.
 
-Deny a user.
+Authentication: 1
 
-- Body needs the validation token and user ID
+Returns success or errors if no query or no short could be found.
 
-### Notice
+### DELETE /api/image?id=${image.id}
 
-- This will return a 404 (not found) if it cannot find the user to verify!
+Delete a image.
 
-- Deletes admin notification automatically
+Authentication: 1
 
-Example:
-```js
-const superagent = require('superagent');
-superagent.delete('your_url_here/api/verify').send({ uid: '545996854785731475959', token: 'bmpp2e2550-zFyBNHlL0LqSJRHAJw8v4dVk358wHgVAjI+FarmSR_Ga9pxioYl7l.VWV5bE5oR2ttajYzcExWUTFBTnc4UUZiOXlwQVk1R01EZHQ5bUpXWDU0aFUySlhzRmJodDY3UkplMlV3UUpuLQ==.NDQ2' });
-// Expected: "[SUCCESS] Denied user!"
-```
+Returns success or errors if no query or no image could be found with that ID.
 
-`DELETE /api/account`
+## Account
 
-flags: `**`
+### POST /api/signup
 
-Delete your account.
-This is irreversible.
+Signup to Evolve-X
 
-### Notice
+Body:
 
-This will not work if you are the owner.
+| Input    | Type   | Required | Description                    |   |
+|----------|--------|----------|--------------------------------|---|
+| username | string | true     | Your username on Evolve-X      |   |
+| password | string | true     | Your password for you account. |   |
 
-- Admins can delete other accounts, just not other admin accounts or the owners account.
-- Owners can delete admin accounts
+### GET /api/account
 
-Example:
-```js
-const superagent = require('superagent');
-superagent.delete('your_url_here/api/account');
-// Expected: "[SUCCESS] Account deleted!"
-```
+Get your evolve-x account and some statistics related to it
 
-`GET api/account`
+Authentication: 2
 
-flags: `**`
+Returns (JSON):
 
-Get some account details
+| Value          | Type    | Description                            |   |
+|-----------------|---------|----------------------------------------|---|
+| username        | string  | Your accounts username                 |   |
+| token_generated | boolean | Whether or not your token is generated |   |
+| uID             | string  | Your User ID                           |   |
+| admin           | boolean | Whether or not you are a admin.        |   |
+| owner           | boolean | If you are the instance owner or not.  |   |
+| images          | number  | How many images you have uploaded      |   |
+| shorts          | number  | How many links you have shortened      |   |
 
-`GET api/admin_notification`
+### DELETE /api/account
 
-flags: `*`, `$`
+Delete your Evolve-X account and any data related to it.
 
-Get some admin notification by ID
+Authentication: 2
 
-```js
-const superagent = require('superagent');
-superagent.get('your_url_here/api/admin_notification?id=[ID here]');
-```
+Returns success if account has been deleted.
 
-`DELETE api/admin_notification`
+###### Admins specifically can delete your account
 
-flags: `*`, `$`
+Query: `?uid=${user.id}`
 
-Delete some admin notification by ID
+### PATCH /api/account
 
-### Notice
+Update your Evolve-X account name or password
 
-- Signup notifications are protected from manual deletion.
+Authentication: 2
 
-```js
-const superagent = require('superagent');
-superagent.delete('your_url_here/api/admin_notification?id=[ID here]');
-// Expected: "[SUCCESS] Notification deleted!"
-```
+URL Query:
 
-`GET api/notification`
+| Input | Parameter | Required | Description                                       |   |
+|-------|------|----------|---------------------------------------------------|---|
+| key   | 0 or 1  | true     | <br>What to update.<br>0 => Username1 => Password |   |
+|       |      |          |                                                   |   |
 
-flags: `*`
+Body: 
 
-Get some notification by ID
+| Input   | Type   | Required | Description                 |   |
+|---------|--------|----------|-----------------------------|---|
+| new_key | string | true     | Data to update the key with |   |
+|         |        |          |                             |   |
 
-```js
-const superagent = require('superagent');
-superagent.get('your_url_here/api/notification?id=[ID here]');
-```
+Returns success, or error if you entered in an invalid/used new_key or an invalid key in the query.
+Also errors if it fails to said new key.
 
-`DELETE api/notification`
+### POST /api/token
 
-flags: `*`
+Generate a token.
 
-Delete some notification by ID
+If you already have a token you will need to tell it to force regenerate your token.
 
-```js
-const superagent = require('superagent');
-superagent.delete('your_url_here/api/notification?id=[ID here]');
-// Expected: "[SUCCESS] Notification deleted!"
-```
+Regen query: `?flags=force`
 
-`PATCH api/account`
+Authentication 2
 
-flags: `**`
+Returns a string (your token) or throws an error if you have a token and didn't force it to regenerate the token.
 
-Update your account.
+## Notifications
 
-Keys: 
-- `0` - `username`
-- `1` - `password` 
+### GET /api/notifications
 
-It will not let you update your new key to your old one
+Optional admin query: `?admin=true`
 
-### Notice
-The new key is in the body as `new_key`
+- => Fetches administrator notifications.
 
-Example url: `localhost:7200/api/account?key=0`
+Authentication: 1
 
-```js
-const superagent = require('superagent');
-superagent.patch('your_url_here/api/account?key=[key]').send({ new_key: 'Your new key' });
-```
+Returns: Error, not found, or (array):
 
-`POST /api/token`
+| Value | Type   | Description                  |   |
+|--------|--------|------------------------------|---|
+| title  | string | Notification title          |   |
+| notify | string | The notification information |   |
+| ID     | string | Notification ID              |   |
 
-flags: `**`
+### GET /api/notification?id=${notification.id}
 
-Generate your api token.
+Fetches the notification
 
-### Notice
+Authentication: 1
 
-If you already have a token, you will need to add a force flags query to the end of the url, otherwise you may not regen a new token.
+Returns: Error, not found or:
 
-Example: `localhost:7200/api/token?flags=force`
+| Value | Type   | Description                  |   |
+|--------|--------|------------------------------|---|
+| title  | string | Notification title          |   |
+| notify | string | The notification information |   |
+| ID     | string | Notification ID              |   |
 
-```js
-const superagent = require('superagent');
-superagent.post('your_url_here/api/token');
-```
+### GET /api/admin_notification?id=${notification.id}
 
-`POST api/admin`
+Fetch an admin notification.
 
-flags: `su`
+- Used mainly for verifying users.
 
-Make an account into admin
+Authentication: 1
 
-### Notice
+- Admin status required or it will return unauthorized
 
-This can only be done on existing accounts
+Returns: Error, not found, or: 
 
-You have to use a query with id to make the account admin (ID must be an evolve-x ID)
+| Value | Type   | Description                  |   |
+|--------|--------|------------------------------|---|
+| title  | string | Notification title          |   |
+| notify | string | The notification information |   |
+| ID     | string | Notification ID              |   |
 
-Example: `?id=1337694201337694201337`
+### GET /api/notification?id=${notification.id}
 
-```js
-const superagent = require('superagent');
-superagent.post('your_url_here/api/admin?id=[new admin id here]');
-```
+Delete a notification
 
-`DELETE api/admin`
+Authentication: 1
 
-flags: `su`
+Returns: Error, not found or success.
 
-Remove an account from admin powers
+### DELETE /api/admin_notification?id=${notification.id}
 
-### Notice
+Delete an admin notification.
 
-This can only be done on existing accounts
+Authentication: 1
 
-You have to use a query with id to make the account admin (ID must be an evolve-x ID)
+- Admin status required or it will return unauthorized
 
-Example: `?id=1337694201337694201337`
+Returns: Error, not found, or success.
 
-```js
-const superagent = require('superagent');
-superagent.delete('your_url_here/api/admin?id=[new admin id here]');
-```
+### DELETE /api/notifications?id=${notification.id}
 
-`POST api/short`
+Delete all notifications
 
-flags: `*`
+Authentication: 1
 
-Shorten a link!
+Returns: Error, or success.
 
-Link will be in body under field `url`
+## Admin
 
-```js
-const superagent = require('superagent');
-superagent.post('your_url_here/api/short').send({ url: 'http://expressjs.com/en/4x/api.html#req' });
-```
+### POST /api/verify
 
-`DELETE api/short`
+Verify a users account
 
-flags: `*`
+Authentication: 1
 
-Remove a short!
+- Requires admin or greater
 
-Use ID with query under field `id`
+Body:
 
-```js
-const superagent = require('superagent');
-superagent.delete('your_url_here/api/short?id=gqgj96m4zb');
-```
+| input | Type   | Required | Description            |
+|-------|--------|----------|------------------------|
+| uid   | string | true     | Users user ID          |
+| token | string | true     | Users validation token |
+|       |        |          |                        |
 
-`GET api/shorts`
+Returns: Success.
 
-flags: `*`
+Errors if you screwed up, user doesn't exist, or if you are missing something.
 
-Get all shorts associated with your account!
+- Removes associated admin notification on success
 
-```js
-const superagent = require('superagent');
-superagent.get('your_url_here/api/shorts');
-```
+### DELETE /api/verify
 
-# Actual paths, frontend
-(we will not be using superagent)
+Deny a users account
 
-`/`
+Authentication: 1
 
-The home page.
+- Requires admin or greater
 
+Body:
 
-`/short/:id`
+| input | Type   | Required | Description            |
+|-------|--------|----------|------------------------|
+| uid   | string | true     | Users user ID          |
+| token | string | true     | Users validation token |
+|       |        |          |                        |
 
-Access a shortened link.
-The ID will tell the app what link you get redirected to.
+Returns: Success.
+
+Errors if you screwed up, user doesn't exist, or if you are missing something.
+
+- Removes associated admin notification on success
+
+### GET /api/info
+
+Shows Evolve-Xs version, git commit, and branch
+
+Authentication: 1
+
+Returns (success, json):
+
+| Value   | Type   | Description               |
+|---------|--------|---------------------------|
+| commit  | string | Git commit Evolve-X is on |
+| branch  | string | Evolve-X current branch   |
+| version | string | The version running.      |
+
+## Owner specific
+
+- These require you to be the instance owner
+
+### POST /api/admin?id=${user.id}
+
+Promote a user to Admin status
+
+Authentication: 2
+
+Returns: Error (already admin, missing id...), success, or not found (user does not exist).
+
+### DELETE /api/admin?id=${user.id}
+
+Demote a admin to user status
+
+Authentication: 2
+
+Returns: Error (already admin, missing id...), success, or not found (user does not exist).
+
+### POST /api/manage
+
+Queries (`?t=${manageQuery}`):
+
+| Query | Description                  |
+|-------|------------------------------|
+| s     | Shutdown Evolve-X            |
+| u     | Update Evolve-X              |
+| t     | Run the TypeScript compiler. |
+
+Runs a command on Evolve-X
+
+Authentication: 2
+
+Returns Error, Success string.
+
+###### Note
+
+If shutting down Evolve-X and it runs on a process manager, it should usually restart the process.
