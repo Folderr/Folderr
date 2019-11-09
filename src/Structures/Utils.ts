@@ -1,3 +1,29 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNull
+ * @version 0.8.0
+ */
+
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import User, { Notification, UserI } from '../Schemas/User';
@@ -7,6 +33,7 @@ import { Short } from '../Schemas/Short';
 import { isBoolean, promisify } from 'util';
 import { Request } from 'express';
 import BearerTokens from '../Schemas/BearerTokens';
+import Evolve from './Evolve';
 
 const sleep = promisify(setTimeout);
 
@@ -17,24 +44,35 @@ interface TokenReturn {
 
 /**
  * @class Utils
+ * @param {Evolve} evolve The Evolve-X client
  *
- * @author Null#0515
+ * @classdesc Utility functions used for authorization or user generation
+ *
+ * @author VoidNulll
  */
 class Utils {
     public saltRounds: number;
 
     public byteSize: number;
 
+    private evolve: Evolve | null;
+
     /**
-     * @prop {Number} saltRounds The rounds to salt with
-     * @prop {Number} byteSize The amount of random bytes to generate
+     * @constructor
+     *
+     * @prop {number} saltRounds The rounds to salt with
+     * @prop {number} byteSize The amount of random bytes to generate
+     * @prop {Evolve} evolve The Evolve client
      */
-    constructor() {
+    constructor(evolve: Evolve | null) {
         this.saltRounds = 10;
         this.byteSize = 48;
+        this.evolve = evolve;
     }
 
     /**
+     * @desc Make Utils look pretty when inspected
+     *
      * @returns {string}
      */
     toString(): string {
@@ -42,28 +80,34 @@ class Utils {
     }
 
     /**
-     * Returns a random number between min (inclusive) and max (exclusive)
+     * @desc Returns a random number between min (inclusive) and max (exclusive)
      *
-     * @returns {Number}
+     * @generator
+     *
+     * @returns {number}
      */
     genRandomNum(): number {
         return Math.random() * (9);
     }
 
     /**
-     * Wait for a certain time
+     * @desc Wait for a certain time
      * - Async/wait only
+     * @async
      *
      * @param {Number} ms The milliseconds to sleep for
      * @returns {Promise<void>}
+     * @author KhaaZ
      */
+    // Taken from https://github.com/Khaazz/AxonCore/blob/d597089b80615fdd5ceab8f0a1b1d83f70fc5187/src/Utility/Utils.js#L355
     async sleep(ms: number): Promise<void> {
         await sleep(ms);
         return Promise.resolve();
     }
 
     /**
-     * Generate a user ID
+     * @desc Generate a user ID
+     * @generator
      *
      * @returns {Promise<string>}
      */
@@ -87,13 +131,15 @@ class Utils {
     }
 
     /**
-     * Generate a ID
+     * @desc Generate a ID
+     * @generator
      *
-     * @param {Object[]} things The things to avoid generating a duplicate ID for
+     * @param {object[]} things The things to avoid generating a duplicate ID for
      *
-     * @returns {String}
+     * @returns {string}
      */
     genID(things: ImageI[] | Short[] ): string {
+        // Took this function from stack overflow and modified it to fit its purpose.
         // Generate a random ID
         const radix = 36;
         const min = 0;
@@ -114,12 +160,16 @@ class Utils {
     }
 
     /**
-     * Hash a password
+     * @desc Hash a password
+     * @async
      *
-     * @param {String} password The password to hash
-     * @returns {String}
+     * @param {string} password The password to hash
+     * @returns {string}
      */
     hashPass(password: string): Promise<string> {
+        // Matthew helped me find bcrypt and use it originally. https://gitlab.libraryofcode.org/matthew
+        // Original hasher for things: https://github.com/AxonTeam/cdnAPI/blob/unstable/token/hash.js
+
         // Minimum and max password lengths
         const minPass = 8;
         const maxPass = 32;
@@ -138,7 +188,9 @@ class Utils {
     }
 
     /**
-     * Generate a notification ID
+     * @desc Generate a notification ID
+     * @generator
+     * @async
      *
      * @param {Object[]} notifs The notifications IDs to ignore
      * @returns {Promise<string|Promise<*>>}
@@ -156,12 +208,16 @@ class Utils {
     }
 
     /**
-     * Generate a users token
+     * @desc Generate a users token
+     * @async
+     * @generator
      *
      * @param userID
-     * @returns {Promise<{hash: *, token: *}>}
+     * @returns {Promise<{hash: string, token: string}>}
      */
     async genToken(userID: string): Promise<TokenReturn> {
+        // Source: https://gitlab.libraryofcode.org/matthew
+
         // Generate random bytes, create buffer from user id
         // Oh and get a base64 date in milliseconds
         const random: string = crypto.randomBytes(this.byteSize).toString('base64')
@@ -178,12 +234,16 @@ class Utils {
     }
 
     /**
-     * Generate a users token
+     * @desc Generate a users token
+     * @async
+     * @generator
      *
      * @param userID
-     * @returns {Promise<{hash: *, token: *}>}
+     * @returns {Promise<{hash: string, token: string}>}
      */
     async genBearerToken(userID: string): Promise<TokenReturn> {
+        // Original Source: https://gitlab.libraryofcode.org/matthew
+
         // Generate random bytes, create buffer from user id
         // Oh and get a base64 date in milliseconds
         const random: string = crypto.randomBytes(this.byteSize).toString('base64')
@@ -199,9 +259,11 @@ class Utils {
     }
 
     /**
-     * Generate a validation token
+     * @desc Generate a validation token
+     * @generator
+     * @async
      *
-     * @returns {Promise<{hash: String, token: String}>}
+     * @returns {Promise<{hash: string, token: string}>}
      */
     async genValidationToken(): Promise<TokenReturn> {
         // Generate random bytes, gen more random bytes
@@ -211,11 +273,12 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using token and user ID
+     * @desc Authenticate a user using token and user ID
+     * @async
      *
      * @param {Object<Request>} req The request
      * @param {function} [fn] Optional function for auth
-     * @returns {Promise<void|Object>}
+     * @returns {Promise<void|UserI>}
      */
     async authToken(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
         // Make sure all of the auth stuff is there
@@ -229,6 +292,9 @@ class Utils {
             return '[ERROR] ARRAY AUTHENTICATION HEADERS NOT ALLOWED!';
         }
         // Find the user via ID, if no user the auth failed
+
+        // Matthew helped with bcrypt & the database part, so he helped with auth.
+        // https://gitlab.libraryofcode.org/matthew
         const user = await User.findOne( { uID: req.headers.uid } );
         if (!user) {
             return false;
@@ -249,7 +315,8 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using password and username
+     * @desc Authenticate a user using password and username
+     * @async
      *
      * @param {Request} req The express request.
      * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
@@ -268,6 +335,9 @@ class Utils {
             return '[ERROR] ARRAY AUTHENTICATION HEADERS NOT ALLOWED!';
         }
         // Find user on username, and if no user auth failed
+
+        // Matthew helped with bcrypt & the database part, so he helped with auth.
+        // https://gitlab.libraryofcode.org/matthew
         const user = await User.findOne( { username: req.headers.username } );
         if (!user) {
             return false;
@@ -288,12 +358,13 @@ class Utils {
     }
 
     /**
-     * Authorize for the bearer token
+     * @desc Authorize for the bearer token
+     * @async
      *
      * @param {Object} obj Object containing the token & uid
      * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
      *
-     * @returns {Promise<Boolean|UserI|String>}
+     * @returns {Promise<boolean|UserI|string>}
      */
     async authBearerToken(obj: any, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
         if (!obj.token) {
@@ -310,6 +381,7 @@ class Utils {
             return '[ERROR] INVALID TOKEN!';
         }
         const id = Buffer.from(tkn[1], 'base64').toString('utf8');
+        // Modified version of https://gitlab.com/evolve-x/evolve-x/blob/master/src/Structures/Utils.ts#L220
         const user = await User.findOne( { uID: id } );
         // If the user has no tokens, or if the user cannot be found
         if (!user) {
@@ -343,13 +415,17 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using token and user ID via Body
+     * @desc Authenticate a user using token and user ID via Body
+     * @async
      *
      * @param {Object<Request>} req The request
      * @param {function} [fn] Optional function for auth
-     * @returns {Promise<void|Object>}
+     *
+     * @returns {Promise<void|UserI>}
      */
     async authTokenBody(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Modified version of https://gitlab.com/evolve-x/evolve-x/blob/master/src/Structures/Utils.ts#L220
+
         // Make sure all of the auth stuff is there
         if (!req.body.uid && !req.body.token) {
             return '[ERROR] REQUEST TOKEN AUTHORIZATION MISSING!';
@@ -381,7 +457,8 @@ class Utils {
     }
 
     /**
-     * Authenticate a user using password and username
+     * @desc Authenticate a user using password and username
+     * @async
      *
      * @param {Request} req The express request.
      * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
@@ -389,6 +466,8 @@ class Utils {
      * @returns {Promise<boolean>}
      */
     async authPasswordBody(req: Request, fn?: (arg0: UserI) => boolean): Promise<UserI|false|string> {
+        // Modified version of https://gitlab.com/evolve-x/evolve-x/blob/master/src/Structures/Utils.ts#L259
+
         // Make sure all of the auth stuff is there
         if (!req.body.password && !req.body.username) {
             return '[ERROR] REQUEST PASSWORD AUTHORIZATION HEADERS MISSING!';
@@ -420,7 +499,27 @@ class Utils {
     }
 
     /**
-     * Find and return a verifying user from the schema if any
+     * @desc Determines if the user allows insecuce requests
+     * @param req ExpressJS request
+     *
+     * @returns {boolean}
+     */
+    verifyInsecureCookies(req: any): boolean {
+        if (!req.cookies) {
+            return false;
+        }
+        if (!req.cookies.i) {
+            return false;
+        }
+        if (req.cookies.i !== 't') {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @desc Find and return a verifying user from the schema if any
+     * @async
      *
      * @param {String} validationToken The validation token to search for
      * @param {String} userID The user IDs to look for
@@ -428,6 +527,8 @@ class Utils {
      */
     async findVerifying(validationToken: string, userID: string): Promise<VUser|false> {
         const user: VUser | null = await VerifyingUser.findOne( { uID: userID } );
+        // original bcrypt validation code i used: https://github.com/AxonTeam/cdnAPI/blob/unstable/token/checkHash.js
+        // Originally made by matthew: https://gitlab.libraryofcode.org/matthew
         if (!user) {
             return false;
         }
@@ -435,6 +536,63 @@ class Utils {
             return false;
         }
         return user;
+    }
+
+    /**
+     * @desc Handles cookie authentication to smooth the process
+     * @borrows {Utils.authBearerToken}
+     * @async
+     *
+     * @param req ExpresssJS request object
+     * @param res ExpressJS response object (to set/clear cookies)
+     * @param [cb] {function} hi
+     *
+     * @returns {Promise<UserI | *>}
+     */
+    async authCookies(req: any, res: any, cb?: (arg0: UserI) => boolean): Promise<UserI | void | any> {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        this.evolve.Session.removeIfNeeded(req, res);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        const fa1 = this.evolve.Session.fetchSession(req);
+        if (fa1) {
+            if (cb) {
+                // eslint-disable-next-line callback-return
+                const funcOut = cb(fa1);
+                if (!funcOut || !isBoolean(funcOut) ) {
+                    return false;
+                }
+            }
+            return fa1;
+        }
+        if (req.cookies && req.cookies.token && req.cookies.token.startsWith('Bearer:') ) {
+            const fa2 = this.authBearerToken(req.cookies, cb);
+            if (fa2) {
+                return fa2;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @desc Handle checking if cookies for authentication exist or not.
+     *
+     * @param req The expressjs request
+     *
+     * @returns {boolean}
+     */
+    checkCookies(req: any): boolean {
+        if (!req.cookies) {
+            return false;
+        }
+        if (!req.cookies.token && !req.cookies.sid) {
+            return false;
+        }
+        if (req.cookies.token && !req.cookies.token.startsWith('Bearer') ) {
+            return false;
+        }
+        return true;
     }
 }
 

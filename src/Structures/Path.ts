@@ -1,3 +1,29 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNulll
+ * @version 0.8.0
+ */
+
 import codes, { Codes } from './Status_Codes';
 import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
@@ -8,8 +34,10 @@ import express from 'express';
  * Path structure
  *
  * @class Path
+ *\
+ * @classdesc Base class for handling endpoints (security, execution, and state)
  *
- * @author Null#0515
+ * @author VoidNulll
  */
 class Path {
     public label: string;
@@ -23,6 +51,8 @@ class Path {
     public secureOnly?: boolean;
 
     public lean?: boolean;
+
+    public reqAuth?: boolean;
 
     public codes: Codes;
 
@@ -82,7 +112,9 @@ class Path {
 
     /* eslint-disable */
     /**
-     * Actual endpoint execution
+     * @desc Actual endpoint execution
+     * @async
+     * @abstract
      *
      * @param {Object} req The request object
      * @param {Object} res Some object used for sending data back
@@ -93,7 +125,7 @@ class Path {
     /* eslint-enable */
 
     /**
-     * Handle uncaught errors.
+     * @desc Handle uncaught errors.
      *
      * @param {Object<Error>} err The error that occurred
      * @param {Object<express.Response>} res Express response that is with the error
@@ -123,9 +155,9 @@ class Path {
     /**
      * Handle rate limits, unhandled errors, execute actual endpoint
      *
-     * @param {Object} req The request object
-     * @param {Object} res Some object used for sending data back
-     * @returns {*}
+     * @param {object} req The request object
+     * @param {object} res Some object used for sending data back
+     * @returns {express.Response|void}
      * @private
      */
     async _execute(req: any, res: any): Promise<express.Response | void> {
@@ -137,6 +169,9 @@ class Path {
         if (this.secureOnly && !req.secure) {
             return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
         }
+        /* if (this.reqAuth && (!req.cookies || !req.cookies.token) ) {
+            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+        } */
         // Define number variables
         const twoSec = 2000;
         const maxTrys = 3;
@@ -171,6 +206,7 @@ class Path {
         }
 
         // Execute the endpoint and catch errors
+
         try {
             const out = await this.execute(req, res);
             return out;

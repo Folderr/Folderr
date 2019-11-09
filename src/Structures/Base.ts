@@ -1,3 +1,29 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNulll
+ * @version 0.8.0
+ */
+
 import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -13,6 +39,7 @@ import Shorten, { Short } from '../Schemas/Short';
 import BearerTokens, { BearerTokenSchema } from '../Schemas/BearerTokens';
 import Utils from './Utils';
 import Evolve from './Evolve';
+import Logger from './Logger';
 import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
@@ -39,6 +66,8 @@ interface Schemas {
 
 /**
  * @class Base
+ *
+ * @classdesc Handles initialization and provides was to access most important things and holds config.
  *
  * @author Null#0515
  */
@@ -72,6 +101,8 @@ class Base {
 
     public options: ActualOptions;
 
+    public Logger: Logger;
+
     constructor(evolve: Evolve | null, options: Options, flags?: string) {
         this.evolve = evolve;
         this.superagent = superagent;
@@ -85,13 +116,14 @@ class Base {
         this.schemas = {
             User, Image, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
         };
-        this.Utils = new Utils();
+        this.Utils = new Utils(evolve);
         this.flags = flags;
         this.options = new EvolveConfig(options);
+        this.Logger = new Logger(this.options);
     }
 
     /**
-     * Initialize the mongoose connection, and the express app
+     * @desc Initialize the mongoose connection, and the express app
      *
      * @returns {Promise<void>}
      */

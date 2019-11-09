@@ -1,8 +1,42 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNulll
+ * @version 0.8.0
+ */
+
+// I took inspiration from https://github.com/Khaazz/AxonCore/blob/dev-2.0/src/AxonOptions.js for this
+// Hope you do not mind, KhaaZ.
+
 interface CertOptions {
     key?: string | any;
     cert?: string | any;
     requestCert?: boolean;
     ca?: string[] | any[];
+}
+
+export interface DiscordHook {
+    name?: string;
+    avatar_url?: string;
 }
 
 export interface Options {
@@ -13,6 +47,9 @@ export interface Options {
     apiOnly?: boolean;
     trustProxies?: boolean;
     certOptions?: CertOptions;
+    discordURL?: string;
+    enableDiscordLogging?: boolean;
+    discordHook?: DiscordHook;
 }
 
 export interface ActualOptions {
@@ -23,6 +60,9 @@ export interface ActualOptions {
     apiOnly: boolean;
     trustProxies: boolean;
     certOptions?: CertOptions;
+    discordURL?: string;
+    enableDiscordLogging?: boolean;
+    discordHook?: DiscordHook;
 }
 
 const optionsBase: ActualOptions = {
@@ -37,13 +77,14 @@ const optionsBase: ActualOptions = {
 /**
  * @class EvolveConfig
  *
- * Class for generating the Evolve-x config
+ * @classdesc Class for generating & validating the Evolve-x config
  *
  * @author Null
  */
 class EvolveConfig implements ActualOptions {
     /**
      * @param {Object<Options>} config=optionsBase The configuration for the app from the user.
+     * @implements ActualOptions
      *
      * @property {Number} port  The port the application will use
      * @property {String} url The URL the application will use
@@ -65,6 +106,12 @@ class EvolveConfig implements ActualOptions {
 
     public certOptions?: CertOptions;
 
+    public enableDiscordLogging?: boolean;
+
+    public discordURL?: string;
+
+    public discordHook?: DiscordHook;
+
     constructor(config: Options = optionsBase) {
         this.port = config.port || optionsBase.port;
         this.url = config.url || optionsBase.url;
@@ -72,19 +119,22 @@ class EvolveConfig implements ActualOptions {
         this.signups = config.signups === undefined ? true : config.signups;
         this.apiOnly = config.apiOnly || optionsBase.apiOnly;
         this.trustProxies = config.trustProxies || optionsBase.trustProxies;
+        this.discordURL = config.discordURL;
+        this.enableDiscordLogging = config.enableDiscordLogging || false;
         this.certOptions = {
             key: (config && config.certOptions && config.certOptions.key),
             cert: (config && config.certOptions && config.certOptions.cert),
             ca: (config && config.certOptions && config.certOptions.ca),
             requestCert: (config && config.certOptions && Boolean(config.certOptions.requestCert) ),
         };
+        this.discordHook = config.discordHook;
         this.verify();
     }
 
     /**
      * @private
      *
-     * Verifies the majority of the Evolve configuration.
+     * @desc Verifies the majority of the Evolve configuration.
      *
      * @returns {Object<ActualOptions>} The finale options.
      */

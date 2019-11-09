@@ -1,15 +1,45 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * @author VoidNulll
+ * Contact me at https://gitlab.com/VoidNulll
+ * @version 0.8.0
+ */
+
+/* eslint require-atomic-updates: "off" */
+
 import Base from './Base';
 import { Options } from './Evolve-Config';
 import * as paths from '../Paths';
 import Path from './Path';
 import { join } from 'path';
 import { Request, Response } from 'express';
-
-const notFound = 404;
-
+import EvolveSession from './EvolveSession';
+import { UserI } from '../Schemas/User';
 
 /**
  * @class Evolve
+ *
+ * @classdesc Base client for Evolve-X, handles banning IPs in memory and security for the frontend
  *
  * @author Null#0515
  */
@@ -22,9 +52,11 @@ class Evolve {
 
     public ipBans: string[];
 
+    public Session: EvolveSession;
+
     private clearingTokens: boolean;
 
-    private base?: Base;
+    private base: Base;
 
     /**
      * @param {Object} options The options to pass to the base of the client
@@ -42,10 +74,15 @@ class Evolve {
         this.clearingTokens = false;
         this.handleAdminAuth = this.handleAdminAuth.bind(this);
         this.handleHeaders = this.handleHeaders.bind(this);
+        this.Session = new EvolveSession();
+        this.base = new Base(this, this._options);
+        this.checkFAuth = this.checkFAuth.bind(this);
     }
 
+
+
     /**
-     * Initialize a path
+     * @desc Initialize a path
      *
      * @param {Object<Path>} path The path to initialize
      * @param {Object} base The base of evolve-x
@@ -74,63 +111,144 @@ class Evolve {
         }
     }
 
-    handleHeaders(req: Request, res: Response, next: any): any {
+    /**
+     * @desc Check the auth for the frontend if there is a active user session (cookies).
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     *
+     * @return {*}
+     */
+    checkFrontendSessionAuth(req: any, res: any): any {
+        this.Session.removeIfNeeded(req, res);
+        return this.Session.fetchSession(req);
+    }
+
+    /**
+     * @desc Check if there is a user session under a week lasting bearer token
+     * @async
+     *
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     *
+     * @returns {Promise<UserI|boolean|undefined>}
+     */
+    async checkFrontendAuth(req: any, res: any): Promise<UserI | false | undefined> {
+        if (req.cookies && req.cookies.token) {
+            const auth = this.base && await this.base.Utils.authBearerToken(req.cookies);
+            if (typeof auth === 'string' || !auth) {
+                if (req.cookies.token && !auth) {
+                    res.clearCookie('token', { secure: false, sameSite: 'Strict', path: '/' } );
+                }
+                return false;
+            }
+            return auth;
+        }
+        return false;
+    }
+
+    /**
+     * @desc Actual frontend authorization handler
+     *
+     * @async
+     *
+     * @param req ExpressJS request
+     * @param res ExpressJS response
+     * @param next {function} ExpressJS middleware next function
+     *
+     * @returns {Promise<*>}
+     */
+    async checkFAuth(req: any, res: any, next: any): Promise<any> {
+        const fa1 = await this.checkFrontendAuth(req, res);
+        if (fa1) {
+            req.uauth = fa1;
+            return next();
+        }
+        const fa2 = this.checkFrontendSessionAuth(req, res);
+        if (fa2) {
+            req.uauth = fa2;
+            return next();
+        }
+        return next();
+    }
+
+    /**
+     * @desc Handles setting security headers for the request for the app to respond with
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     * @param next {function} ExpressJS middleware next function
+     * @returns {void}
+     */
+    handleHeaders(req: Request, res: Response, next: any): void {
         if (!this.base || !this.base.options.certOptions || !this.base.options.certOptions.cert || !this.base.options.certOptions.key) {
             res.set( {
-                'Content-Security-Policy': 'frame-ancestors \'none\'',
+                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com polyfill.io unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' https://*; frame-src \'none\'; font-src \'self\' fonts.gstatic.com cdnjs.cloudflare.com',
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',
                 'X-Content-Type-Options': 'nosniff',
+                'Access-Control-Allow-Origin': '*',
             } );
         } else {
             res.set( {
-                'Content-Security-Policy': 'frame-ancestors \'none\'',
+                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com polyfill.io unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' https://*; frame-src \'none\'; font-src \'self\' fonts.gstatic.com cdnjs.cloudflare.com',
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',
                 'X-Content-Type-Options': 'nosniff',
                 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+                'Access-Control-Allow-Origin': '*',
             } );
         }
         next();
     }
 
+    /**
+     * @desc Handles setting security headers for the request for the app to respond with
+     * @async
+     * @param req ExpressJS Request
+     * @param res ExpressJS Response
+     * @param next {function} ExpressJS middleware next function
+     * @returns {Promise<*>}
+     */
     // eslint-disable-next-line consistent-return
     async handleAdminAuth(req: Request, res: Response, next: any): Promise<any> {
         if (!this.base) {
             return res.redirect('/');
         }
-        if (!req.cookies || !req.cookies.token) {
-            console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        if (!req.uauth || !req.uauth.admin || typeof req.auth === 'string') {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            this.base.Logger.log('SECURITY WARN', `Admin authorization request Failed. From ip ${req.ips.length !== 0 ? req.ips[0] : req.ip}`, { user: req.uauth && `${req.uauth.username} (${req.uauth.uID})` }, 'securityWarn', 'SECURITY - Admin authorization failed');
             return res.redirect('/');
-        }
-        if (req.cookies && req.cookies.token) {
-            const auth = await this.base.Utils.authBearerToken(req.cookies);
-            if (!auth || typeof auth === 'string') {
-                console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
-                return res.redirect('/');
-            }
-            if (auth && !auth.admin) {
-                console.log(`[SECURITY WARN] Admin request failed. Request originated from ${req.ips.length !== 0 ? req.ips[0] : req.ip}!`);
-                return res.redirect('/');
-            }
         }
         next();
     }
 
     /**
-     * Initialize the base and evolve-x
+     * @desc Initialize the base and evolve-x
      *
      * @returns {Promise<void>}
      */
     async init(): Promise<void> {
         // Init the base, remove options
-        const base = new Base(this, this._options);
-        this.base = base;
+        const { base } = this;
         delete this._options;
         base.web.use('*', this.handleHeaders);
         // eslint-disable-next-line no-return-await
+        const authablePages = [
+            '/',
+            '/upload',
+            '/account',
+            '/privacy',
+            '/manage',
+            '/admin',
+            '/admin/notifications',
+            '/admin/users',
+            '/admin/verify',
+        ];
+        base.web.use(authablePages, this.checkFAuth);
         base.web.use( ['/admin', '/admin/*'], this.handleAdminAuth);
         // Initiate paths
         let pathNums = 0;
@@ -152,9 +270,18 @@ class Evolve {
         console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         // Initiate the base of the project
         await base.init();
-        base.web.all('/*', (req: Request, res) => {
+        base.web.all('/*', async(req: Request, res) => {
             console.log(`[INFO] ${req.path} not found with method: ${req.method}. Originated from ${req.ips ? req.ips[0] : req.ip}!`);
-            res.status(notFound).sendFile(join(__dirname, '../Frontend/HTML/Not_Found.html') );
+            const dir = join(__dirname, '../Frontend/notfound.html');
+            if (req.cookies && req.cookies.token) {
+                const auth = await base.Utils.authBearerToken(req.cookies);
+                if (!auth || typeof auth === 'string') {
+                    res.clearCookie('token');
+                    return res.sendFile(dir);
+                }
+                return res.sendFile(join(__dirname, '../Frontend/notfound_loggedIn.html') );
+            }
+            return res.sendFile(dir);
         } );
 
         const mins = 120000;
@@ -165,12 +292,19 @@ class Evolve {
             await this.removeTokens(base);
         }, mins);
 
-        console.log('[SYSTEM INFO] Initialized!');
+        this.base.Logger.log('SYSTEM INFO', 'Evolve-X has been initialized!', {}, 'online', 'Evolve-X is online');
         if (process.env.NODE_ENV === 'test') {
             process.exit();
         }
     }
 
+    /**
+     * @desc Function made to automatically remove expired tokens from the database
+     *
+     * @async
+     *
+     * @param base {Base}
+     */
     async removeTokens(base: Base): Promise<void> {
         this.clearingTokens = true;
         const tokens = await base.schemas.BearerTokens.find();
