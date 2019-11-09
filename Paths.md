@@ -147,8 +147,9 @@ URL Query:
 
 Body: 
 
-| Input   | Type   | Required | Description                 |   |
-|---------|--------|----------|-----------------------------|---|
+| Input   | Type   | Required | Description                 |
+|---------|--------|----------|-----------------------------|
+| new_key | string | true     | The new data you are going to give this key (username or password) |
 
 Returns success, or error if you entered in an invalid/used new_key or an invalid key in the query.
 Also errors if it fails to said new key.
@@ -177,11 +178,11 @@ Authentication: 1
 
 Returns: Error, not found, or (array):
 
-| Value | Type   | Description                  |   |
-|--------|--------|------------------------------|---|
-| title  | string | Notification title          |   |
-| notify | string | The notification information |   |
-| ID     | string | Notification ID              |   |
+| Value | Type   | Description                  |
+|--------|--------|------------------------------|
+| title  | string | Notification title          |
+| notify | string | The notification information |
+| ID     | string | Notification ID              |
 
 ### GET /api/notification?id=${notification.id}
 
@@ -191,11 +192,11 @@ Authentication: 1
 
 Returns: Error, not found or:
 
-| Value | Type   | Description                  |   |
-|--------|--------|------------------------------|---|
-| title  | string | Notification title          |   |
-| notify | string | The notification information |   |
-| ID     | string | Notification ID              |   |
+| Value | Type   | Description                  |
+|--------|--------|------------------------------|
+| title  | string | Notification title          |
+| notify | string | The notification information |
+| ID     | string | Notification ID              |
 
 ### GET /api/admin_notification?id=${notification.id}
 
@@ -209,11 +210,11 @@ Authentication: 1
 
 Returns: Error, not found, or: 
 
-| Value | Type   | Description                  |   |
-|--------|--------|------------------------------|---|
-| title  | string | Notification title          |   |
-| notify | string | The notification information |   |
-| ID     | string | Notification ID              |   |
+| Value | Type   | Description                  |
+|--------|--------|------------------------------|
+| title  | string | Notification title          |
+| notify | string | The notification information |
+| ID     | string | Notification ID              |
 
 ### GET /api/notification?id=${notification.id}
 
