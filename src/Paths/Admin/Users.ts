@@ -34,7 +34,7 @@ class Users extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        return res.sendFile(join(__dirname, '../../Frontend/HTML/Users.html') );
+        return res.sendFile(join(__dirname, '../../Frontend/users.html') );
     }
 }
 
