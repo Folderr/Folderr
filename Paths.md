@@ -43,10 +43,9 @@ Returns success unless over size limit, no image, or mime type is incorrect
 Authentication: 1.
 
 
-| Input | Type                | Required |  Description |   |
-|-------|---------------------|----------|---|---|
-| files | multipart/form-data | true     |  The file to upload, the API can only do 1 at a time. |   |
-|       |                     |          |   |   |
+| Input | Type                | Required |  Description |
+|-------|---------------------|----------|---|
+| files | multipart/form-data | true     |  The file to upload, the API can only do 1 at a time. |
 
 ### POST /api/short
 
@@ -56,10 +55,9 @@ Returns success unless data is missing or invalid link is sent.
 
 Authentication: 1
 
-| Input | Type                | Required | Description  |   |
-|-------|---------------------|----------|---|---|
-| link | string | true     |The link to shorten. Sent in body.   |   |
-|       |                     |          |   |   |
+| Input | Type                | Required | Description  |
+|-------|---------------------|----------|---|
+| link | string | true     |The link to shorten. Sent in body.   |
 
 ### GET /api/images
 
@@ -100,10 +98,10 @@ Signup to Evolve-X
 
 Body:
 
-| Input    | Type   | Required | Description                    |   |
-|----------|--------|----------|--------------------------------|---|
-| username | string | true     | Your username on Evolve-X      |   |
-| password | string | true     | Your password for you account. |   |
+| Input    | Type   | Required | Description                    |
+|----------|--------|----------|--------------------------------|
+| username | string | true     | Your username on Evolve-X      |
+| password | string | true     | Your password for you account. |
 
 ### GET /api/account
 
@@ -113,15 +111,15 @@ Authentication: 2
 
 Returns (JSON):
 
-| Value          | Type    | Description                            |   |
-|-----------------|---------|----------------------------------------|---|
-| username        | string  | Your accounts username                 |   |
-| token_generated | boolean | Whether or not your token is generated |   |
-| uID             | string  | Your User ID                           |   |
-| admin           | boolean | Whether or not you are a admin.        |   |
-| owner           | boolean | If you are the instance owner or not.  |   |
-| images          | number  | How many images you have uploaded      |   |
-| shorts          | number  | How many links you have shortened      |   |
+| Value          | Type    | Description                            |
+|-----------------|---------|----------------------------------------|
+| username        | string  | Your accounts username                 |
+| token_generated | boolean | Whether or not your token is generated |
+| uID             | string  | Your User ID                           |
+| admin           | boolean | Whether or not you are a admin.        |
+| owner           | boolean | If you are the instance owner or not.  |
+| images          | number  | How many images you have uploaded      |
+| shorts          | number  | How many links you have shortened      |
 
 ### DELETE /api/account
 
@@ -143,17 +141,14 @@ Authentication: 2
 
 URL Query:
 
-| Input | Parameter | Required | Description                                       |   |
-|-------|------|----------|---------------------------------------------------|---|
-| key   | 0 or 1  | true     | <br>What to update.<br>0 => Username1 => Password |   |
-|       |      |          |                                                   |   |
+| Input | Parameter | Required | Description                                       |
+|-------|------|----------|---------------------------------------------------|
+| key   | 0 or 1  | true     | <br>What to update.<br>0 => Username1 => Password 
 
 Body: 
 
 | Input   | Type   | Required | Description                 |   |
 |---------|--------|----------|-----------------------------|---|
-| new_key | string | true     | Data to update the key with |   |
-|         |        |          |                             |   |
 
 Returns success, or error if you entered in an invalid/used new_key or an invalid key in the query.
 Also errors if it fails to said new key.
@@ -262,7 +257,6 @@ Body:
 |-------|--------|----------|------------------------|
 | uid   | string | true     | Users user ID          |
 | token | string | true     | Users validation token |
-|       |        |          |                        |
 
 Returns: Success.
 
@@ -284,7 +278,6 @@ Body:
 |-------|--------|----------|------------------------|
 | uid   | string | true     | Users user ID          |
 | token | string | true     | Users validation token |
-|       |        |          |                        |
 
 Returns: Success.
 
