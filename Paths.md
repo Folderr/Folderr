@@ -143,7 +143,7 @@ URL Query:
 
 | Input | Parameter | Required | Description                                       |
 |-------|------|----------|---------------------------------------------------|
-| key   | 0 or 1  | true     | <br>What to update.<br>0 => Username1 => Password 
+| key   | 0 or 1  | true     |What to update.<br>0 => Username1 => Password 
 
 Body: 
 
