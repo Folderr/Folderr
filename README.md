@@ -3,6 +3,8 @@ An app meant to host images, videos, and possibly shorten links.
 
 Looking for path documentation? Head to [the paths documentation here](./Paths.md)
 
+or look through the html version [here](https://evolvex.docs.apiary.io/#)
+
 Looking for the config perhaps? Check out [The config documentation](./Config.md)
 
 # Requirements
