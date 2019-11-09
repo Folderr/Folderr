@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Link Shortener - Evolve-X</title>
+    <meta property="og:image" content="/assets/img/Icon.png">
+    <meta name="description" content="Shorten links with Evolve X, a open source, efficient, and effective url and image host.">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="assets/bootstrap/css/custombootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic,900,900italic">
+    <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.1.1/aos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css">
+</head>
+
+<body id="page-top" style="max-height: 1000px; height: auto" onload="loadnavbar()">
+<nav class="navbar navbar-light navbar-expand-lg fixed-top" id="mainNav">
+        <div class="container"><a class="navbar-brand js-scroll-trigger" href="/">EVOLVE-X</a><button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right" type="button" aria-controls="navbarResponsive" aria-expanded="false"
+                                                                                                          aria-label="Toggle navigation" style="border-color: #fff;"><i class="fa fa-align-justify toggle-thing" style="color: #fff;"></i></button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="nav navbar-nav ml-auto">
+                    <li class="nav-item" role="presentation"><a class="nav-link js-scroll-trigger" href="/upload">UPLOAD</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link js-scroll-trigger active" href="/shorten">SHORTEN</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link js-scroll-trigger" href="/account">ACCOUNT</a></li>
+                    <li class="nav-item" role="presentation"></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link js-scroll-trigger" href="/logout">LOGOUT</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link js-scroll-trigger" id="manage" href="/owner/manage">MANAGE</a></li>
+                    <li class="nav-item dropdown" id="admin"><a class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="false" href="/admin">ADMIN</a>
+                        <div class="dropdown-menu" role="menu"><a class="dropdown-item" role="presentation" href="/admin/verify">Verification</a><a class="dropdown-item" role="presentation" href="/admin/users">Users</a></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="notice">
+            <h2 id="noticetxt">Only active links work</h2>
+    </div>
+    <header class="vContainer">
+        <div class="container my-auto mysm-auto">
+            <h1>Shorten a link</h1>
+                <form onsubmit="return false;" id="shortenForm" action="#">
+                    <br>
+                    <input placeholder="Link (ex: https://duckduckgo.com)" id="link" size="32" style="width: 350px">
+                    <br><br>
+                    <button id="shorten">Shorten!</button>
+                </form>
+            <br>
+            <div class="centered hidden" id="linkHolder">
+                <br>
+                <button class="larger smallBtn" id="copy">Copy link!</button>
+                <input id="linkOut" class="hidden" type="text" readonly size="30">
+            </div>
+            <footer class="text-center text-faded">
+                <p>Copyright&nbsp;© 2019 Evolve-X<br><a href="/privacy">Privacy Policy</a></p>
+            </footer>
+        </div>
+    </header>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.1.1/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
+    <script src="assets/js/shorten.js"></script>
+</body>
+
+</html>

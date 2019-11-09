@@ -1,3 +1,24 @@
+/**
+ * @license
+ *
+ * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Copyright (C) 2019 VoidNulll
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
@@ -55,6 +76,20 @@ class Signup extends Path {
             return res.status(this.codes.used).send('[ERROR] Username taken!');
         }
 
+        // Minimum and max password lengths
+        const minPass = 8;
+        const maxPass = 32;
+        // If the password is not over min length
+        // If password does not match the regex completely
+        const match: RegExpMatchArray | null = password.match(/[A-Za-z0-9_.&]/g);
+        if (password.length < minPass || (match && match.length !== password.length) ) {
+            return res.status(this.codes.badReq).send('Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`');
+        }
+        // If the password is too long
+        if (password.length > maxPass) {
+            return res.status(this.codes.badReq).send('Password is too long, password must be under 32 characters long');
+        }
+
         // Hash the password and catch errors
         let pswd;
         try {
@@ -84,6 +119,7 @@ class Signup extends Path {
         await notify.save();
         // Notify the console, and the user that the admins have been notified.
         console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${uID}`);
+        this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Evolve-X`, { user: `${username} (${uID})` }, 'signup', 'New user signup');
         return res.status(this.codes.created).send('[SUCCESS] The admins have been notified of your account request!');
     }
 }
