@@ -4,7 +4,8 @@
 
 Port - The port to listen to on your machine
 
-- If you are on linux, I recommend do not go below port 1024 or run this as root
+- If you are on linux, I recommend to not go below port 1024 and not to run this as root
+- Bad things could happen but shouldn't, but its safe to go with recommended practices.
 
 mongoUrl - The url you are going to connect to mongodb with.
 
