@@ -1,6 +1,6 @@
 {
   "name": "evolve-x",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A secure open source host for images, and shortened urls..",
   "main": "src/index.js",
   "scripts": {
