@@ -31,7 +31,7 @@ class Image extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Upload Image';
-        this.path = '/api/image';
+        this.path = ['/api/upload', '/api/image'];
         this.type = 'post';
         this.reqAuth = true;
     }
@@ -59,7 +59,7 @@ class Image extends Path {
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
-        const images = await this.base.schemas.Image.find();
+        const images = await this.base.schemas.Upload.find();
         const name = this.Utils.genID(images);
         let file;
         try {
@@ -72,20 +72,30 @@ class Image extends Path {
         if (!file) {
             return res.status(this.codes.badReq).send('[ERROR] Files not parsed/found!');
         }
-        if (!file.image.type || !file.image.type.startsWith('image') ) {
+        if (!file.image.type) {
             unlinkSync(file.image.path);
-            return res.status(this.codes.badReq).send('[ERROR] Not an image!');
+            return res.status(this.codes.badReq).send('[ERROR] Invalid file/image/video!');
+        }
+        let type = 'image';
+        if (file.image.type.startsWith('video') ) {
+            type = 'video';
+        } else if (!file.image.type.startsWith('image') ) {
+            type = 'file';
+        }
+        if (file.image.type.includes('html') || file.image.type.includes('ecmascript' || 'javascript') ) {
+            unlinkSync(file.image.path);
+            return res.status(this.codes.badReq).send('[ERROR] Forbidden MIME type.');
         }
 
         let ext = file.image.path.split('.');
         ext = ext[ext.length - 1];
 
         // console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
-        this.base.Logger.log('INFO - IMAGES', `Image uploaded by ${auth.username} (${auth.uID})!`, { imageURL: `${this.base.options.url}/images/${name}.${ext}` }, 'imageUpload', 'Image Uploaded');
+        this.base.Logger.log('INFO - IMAGES', `Upload uploaded by ${auth.username} (${auth.uID})!`, { imageURL: `${this.base.options.url}/${type}s/${name}.${ext}` }, 'imageUpload', 'Upload Uploaded');
 
-        const image = new this.base.schemas.Image( { ID: name, owner: auth.uID, path: file.image.path } );
+        const image = new this.base.schemas.Upload( { ID: name, owner: auth.uID, path: file.image.path, type } );
         await image.save();
-        return res.status(this.codes.ok).send(`${this.base.options.url}/images/${name}.${ext}`);
+        return res.status(this.codes.ok).send(`${this.base.options.url}/${type}s/${name}.${ext}`);
     }
 }
 

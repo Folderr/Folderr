@@ -29,7 +29,7 @@ class DeleteImage extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
         this.label = '[API] Delete Image';
-        this.path = '/api/image';
+        this.path = ['/api/image', '/api/upload'];
         this.type = 'delete';
         this.reqAuth = true;
     }
@@ -44,18 +44,18 @@ class DeleteImage extends Path {
             return res.status(this.codes.badReq).send('[ERROR] Missing Image ID!');
         }
 
-        const Image = await this.base.schemas.Image.findOne( { owner: auth.uID, ID: req.query.id } );
+        const Image = await this.base.schemas.Upload.findOne( { owner: auth.uID, ID: req.query.id } );
         if (!Image) {
-            return res.status(this.codes.notFound).send('[ERROR] Image not found!');
+            return res.status(this.codes.notFound).send('[ERROR] Upload not found!');
         }
 
         if (fs.existsSync(Image.path) ) {
             fs.unlinkSync(Image.path);
         }
-        await this.base.schemas.Image.deleteOne(Image);
-        console.log(`[INFO - IMAGES] - Image ${Image.ID} removed!`);
-        this.base.Logger.log('INFO - IMAGES', `Image ${Image.ID} deleted!`, { user: `${auth.username} (${auth.uID}` }, 'imageDelete', 'Image deleted');
-        return res.status(this.codes.ok).send('[SUCCESS] Image removed!');
+        await this.base.schemas.Upload.deleteOne(Image);
+        // console.log(`[INFO - IMAGES] - Image ${Image.ID} removed!`);
+        this.base.Logger.log('INFO - UPLOADS', `Upload ${Image.ID} deleted!`, { user: `${auth.username} (${auth.uID}` }, 'imageDelete', 'Upload deleted');
+        return res.status(this.codes.ok).send('[SUCCESS] Upload removed!');
     }
 }
 
