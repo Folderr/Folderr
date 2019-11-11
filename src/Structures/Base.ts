@@ -32,7 +32,7 @@ import { platform } from 'os';
 import bodyParser from 'body-parser';
 import Events from 'events';
 import User, { UserI } from '../Schemas/User';
-import Image, { ImageI } from '../Schemas/Image';
+import Upload, { UploadI } from '../Schemas/Image';
 import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
 import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
 import Shorten, { Short } from '../Schemas/Short';
@@ -57,7 +57,7 @@ const web = express();
 
 interface Schemas {
     User: mongoose.Model<UserI>;
-    Image: mongoose.Model<ImageI>;
+    Upload: mongoose.Model<UploadI>;
     VerifyingUser: mongoose.Model<VUser>;
     AdminNotifs: mongoose.Model<Notification>;
     Shorten: mongoose.Model<Short>;
@@ -114,7 +114,7 @@ class Base {
         this.web.use('/', express.static(join(__dirname, '../otherFiles') ) );
         this.web.use(cookieParser() );
         this.schemas = {
-            User, Image, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
+            User, Upload, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
         };
         this.Utils = new Utils(evolve);
         this.flags = flags;

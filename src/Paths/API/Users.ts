@@ -37,7 +37,7 @@ class Users extends Path {
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
-        const images = await this.base.schemas.Image.find( {} );
+        const images = await this.base.schemas.Upload.find( {} );
         const shorts = await this.base.schemas.Shorten.find( {} );
 
         const users = await this.base.schemas.User.find( {} );
