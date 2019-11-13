@@ -24,7 +24,7 @@ import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { UserI } from '../../Schemas/User';
-import { ImageI } from '../../Schemas/Image';
+import { UploadI } from '../../Schemas/Image';
 import { promises } from 'fs';
 
 interface DelReturns {
@@ -53,7 +53,7 @@ class DelAccount extends Path {
         try {
             // Delete account by uID, and delete their pictures
             await this.base.schemas.User.findOneAndDelete( { uID: id } );
-            await this.base.schemas.Image.deleteMany( { owner: id } );
+            await this.base.schemas.Upload.deleteMany( { owner: id } );
             await this.base.schemas.Shorten.deleteMany( { owner: id } );
             await this.base.schemas.BearerTokens.deleteMany( { uID: id } );
             return { code: this.codes.ok, mess: '[SUCCESS] Account deleted!' };
@@ -91,7 +91,7 @@ class DelAccount extends Path {
             } if (mem.admin && !auth.first) {
                 return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
             }
-            images = await this.base.schemas.Image.find( { owner: req.query.uid } );
+            images = await this.base.schemas.Upload.find( { owner: req.query.uid } );
             // Delete the account
             out = await this.deleteAccount(auth, req.query.uid);
             this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted by administrator', { user: `${mem.username} (${mem.uID}`, responsible: `${auth.username} (${auth.uID})` }, 'accountDelete', 'Account deleted by Admin');
@@ -102,7 +102,7 @@ class DelAccount extends Path {
         if (auth.first) {
             return res.status(this.codes.forbidden).send('[ERROR] You can not delete your account as you are the owner!');
         }
-        images = await this.base.schemas.Image.find( { owner: auth.uID } );
+        images = await this.base.schemas.Upload.find( { owner: auth.uID } );
         // Delete the users account
         out = await this.deleteAccount(auth, auth.uID); // Eslint, TS, I checked this at the top of the function. Please shut up
         this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted', { user: `${auth.username} (${auth.uID}` }, 'accountDelete', 'Account deleted from Evolve-X');
@@ -111,7 +111,7 @@ class DelAccount extends Path {
         return this.deleteImages(images);
     }
 
-    deleteImages(images: ImageI[] ): void {
+    deleteImages(images: UploadI[] ): void {
         images.forEach(async image => {
             await promises.unlink(image.path);
             console.log(`[SYSTEM INFO - DELETE ACCOUNT] Removed image ${image.path} (${image.ID} from user ${image.owner}!`);

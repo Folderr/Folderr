@@ -30,13 +30,11 @@ Returns "Pong!"
 
 ## Links and images
 
-### POST /api/image
+### POST /api/upload
 
 Upload a image to Evolve-X
 
-Image limit: 50mb
-
-Image MIME type: `<any>/image`
+Upload limit: 50mb
 
 Returns success unless over size limit, no image, or mime type is incorrect
 
@@ -59,7 +57,7 @@ Authentication: 1
 |-------|---------------------|----------|---|
 | link | string | true     |The link to shorten. Sent in body.   |
 
-### GET /api/images
+### GET /api/uploads
 
 Fetch all images shown in Evolve-X as an array.
 
@@ -82,7 +80,7 @@ Authentication: 1
 
 Returns success or errors if no query or no short could be found.
 
-### DELETE /api/image?id=${image.id}
+### DELETE /api/upload?id=${image.id}
 
 Delete a image.
 

@@ -23,45 +23,43 @@ import Path from '../../Structures/Path';
 import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
+import Configurator from '../../Structures/ShareXConfigurator';
+import { compareSync } from 'bcrypt';
 
-class Users extends Path {
+class Configr extends Path {
+    private configurator: Configurator;
+
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
-        this.label = '[API] Users';
-        this.path = '/api/users';
-        this.reqAuth = true;
+        this.label = '[API] Configurator';
+        this.path = '/api/config';
+        this.type = 'post';
+        this.configurator = new Configurator();
     }
 
+    /**
+     * @desc Generate a ShareX configuration
+     */
     async execute(req: any, res: any): Promise<Response | void> {
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.first);
+        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
-        const images = await this.base.schemas.Upload.find( {} );
-        const shorts = await this.base.schemas.Shorten.find( {} );
-
-        const users = await this.base.schemas.User.find( {} );
-        const arr = [];
-        for (const user of users) {
-            const obj = {
-                username: user.username,
-                uID: user.uID,
-                title: '',
-                images: images.filter(image => image.owner === user.uID).length,
-                shorts: shorts.filter(short => short.owner === user.uID).length,
-            };
-            if (user.first) {
-                obj.title = 'Owner';
-            } else if (user.admin) {
-                obj.title = 'Admin';
-            }
-            if (user.uID === auth.uID) {
-                obj.username += ' (You)';
-            }
-            arr.push(obj);
+        if (!req.body || !req.body.token) {
+            return res.status(this.codes.unauth).send('[ERROR] Missing token in body!');
         }
-        return res.status(this.codes.ok).send(arr);
+        const compare = compareSync(req.body.token, auth.token);
+        if (!compare) {
+            return res.status(this.codes.unauth).send('[ERROR] Invalid Token!');
+        }
+
+        const config = this.configurator.generateFiles(auth.uID, this.base.options.url, req.body.token);
+        if (req.query && req.query.d === 'true') {
+            res.type('text/plain; charset=binary');
+            res.set('Content-Disposition', 'attachment; filename=EX-Config.sxcu');
+        }
+        return res.status(this.codes.ok).send(config);
     }
 }
 
-export default Users;
+export default Configr;
