@@ -16,9 +16,9 @@ Next, install dependencies in the folder you cloned Evolve-X in.
 
 `npm i` or `yarn install`
 
-Finally, run the initfirst command
+Finally, run the first command
 
-`<npm|yarn> run initfirst`
+`<npm|yarn> run first`
 
 After completing the first user creation, you will need to configure Evolve-X, head to https://gitlab.com/evolve-x/evolve-x/blob/master/Config.md (If you want to, you can ue the defaults).
 
