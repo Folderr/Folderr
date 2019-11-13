@@ -28,7 +28,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import User, { Notification, UserI } from '../Schemas/User';
 import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
-import { ImageI } from '../Schemas/Image';
+import { UploadI } from '../Schemas/Image';
 import { Short } from '../Schemas/Short';
 import { isBoolean, promisify } from 'util';
 import { Request } from 'express';
@@ -138,7 +138,7 @@ class Utils {
      *
      * @returns {string}
      */
-    genID(things: ImageI[] | Short[] ): string {
+    genID(things: UploadI[] | Short[] ): string {
         // Took this function from stack overflow and modified it to fit its purpose.
         // Generate a random ID
         const radix = 36;

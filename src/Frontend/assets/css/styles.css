@@ -397,6 +397,7 @@ input.smallInput {
 
 @media screen and (device-width: 992px) {
   .flex { flex-direction: column }
+  .flex-item { margin: 0 }
   .flex-item.stats { margin-top: 30px }
   .acc-footer {
     padding-top: 0;
@@ -427,4 +428,18 @@ input.checkbox{border:0;border-radius:0;width:auto;height:auto;}
 
 dd {
   padding-left: 20px;
+}
+
+code {
+  background-color: #2d2b2e;
+  border: 30px solid grey;
+  width: 50%;
+  border-radius: 8px;
+  display: inline-block;
+  min-height: 300px;
+  font-size: 20px;
+}
+
+#download{
+  margin-bottom:15px
 }

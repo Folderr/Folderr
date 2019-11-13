@@ -26,11 +26,11 @@ import { Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
 
-class Images extends Path {
+class Videos extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
-        this.label = 'Images ID';
-        this.path = ['/images/:id', '/i/:id'];
+        this.label = 'Videos ID';
+        this.path = ['/videos/:id', '/v/:id'];
     }
 
     /**
@@ -38,7 +38,7 @@ class Images extends Path {
      */
     async execute(req: any, res: any): Promise<Response | void> {
         if (!req.params || !req.params.id) {
-            return res.status(this.codes.badReq).send('[ERROR] Missing image ID.');
+            return res.status(this.codes.badReq).send('[ERROR] Missing video ID.');
         }
         if (!req.params.id.match('.') ) {
             return res.status(this.codes.badReq).send('Missing file extension!');
@@ -48,7 +48,7 @@ class Images extends Path {
             return res.status(this.codes.internalErr).send('500 Internal Error');
         }
         const image = await this.base.schemas.Upload.findOne( { ID: parts[0] } );
-        if (!image || (image && image.type && image.type !== 'image') ) {
+        if (!image || (image && image.type && image.type !== 'video') ) {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
         }
         let content = mime.contentType(image.path);
@@ -57,12 +57,12 @@ class Images extends Path {
             return res.status(this.codes.internalErr);
         }
         if (!content) {
-            return res.status(this.codes.notFound).send('Image type not found!');
+            return res.status(this.codes.notFound).send('Video type not found!');
         }
         if (content !== image.path) {
             res.setHeader('Content-Type', content);
         } else {
-            content = `image/${arr[arr.length - 1].toLowerCase()}`;
+            content = `video/${arr[arr.length - 1].toLowerCase()}`;
             res.setHeader('Content-Type', content);
         }
 
@@ -71,4 +71,4 @@ class Images extends Path {
     }
 }
 
-export default Images;
+export default Videos;

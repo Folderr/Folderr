@@ -42,7 +42,7 @@ import express from 'express';
 class Path {
     public label: string;
 
-    public path: string;
+    public path: string[] | string;
 
     public type?: string;
 

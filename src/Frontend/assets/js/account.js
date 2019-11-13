@@ -420,5 +420,13 @@ $(document).ready(() => {
             return false;
         } );
     } );
+    $('#configGen').click( () => {
+        const tkn = $('#tkn').val();
+        if (!tkn) {
+            location.href = '/config';
+            return;
+        }
+        location.href = `/config?t=${tkn}`;
+    } );
     $('form').submit((ev) => ev.preventDefault());
 })
