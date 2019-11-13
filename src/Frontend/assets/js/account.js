@@ -15,7 +15,7 @@ function load() {
             $('#welcome').text(`Welcome, ${data.username}`);
             name = data.username;
             $('#shorts').text(`${data.shorts && data.shorts > 0 ? data.shorts : 'No'} Shortened links`);
-            $('#images').text(`${data.images && data.images > 0 ? data.images : 'No'} Images`);
+            $('#images').text(`${data.images && data.images > 0 ? data.images : 'No'} Files`);
             if (data.token_generated) {
                 tokenGenerated = true;
             }
