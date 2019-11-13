@@ -28,7 +28,7 @@ After configuring Evolve-X (or not, whatever tips your boat) you can finally run
 
 *or*
 
-`<npm|yarn> run pm2start` if you have pm2, and that is what you want to do.
+`<npm|yarn> run startpm2` if you have pm2, and that is what you want to do.
 
 Updating is rather simple.
 
