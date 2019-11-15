@@ -9,6 +9,7 @@ const User: Schema = new Schema( {
     admin: { type: Boolean, default: false },
     notifs: { type: [{ ID: { type: String }, title: { type: String }, notify: { type: String } }], required: false, default: [] },
     bearerTokens: { type: [{ expires: { type: Date, required: true }, token: { type: String, required: true } }], default: [], required: false },
+    cUrl: { type: String, default: '', required: false },
 } );
 
 export interface Notification {
@@ -31,6 +32,7 @@ export interface UserI extends Document {
     admin?: boolean;
     notifs?: Notification[];
     bearerTokens: BearerTokenObj[];
+    cUrl?: string;
 }
 
 const mod: Model<UserI> = model<UserI>('user', User);
