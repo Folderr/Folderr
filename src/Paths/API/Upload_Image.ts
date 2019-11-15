@@ -95,7 +95,7 @@ class Image extends Path {
 
         const image = new this.base.schemas.Upload( { ID: name, owner: auth.uID, path: file.image.path, type } );
         await image.save();
-        return res.status(this.codes.ok).send(`${this.base.options.url}/${type}s/${name}.${ext}`);
+        return res.status(this.codes.ok).send(`${auth.cUrl || this.base.options.url}/${type}s/${name}.${ext}`);
     }
 }
 

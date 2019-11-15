@@ -27,7 +27,7 @@ function loadnavbar() {
                 Name: 'Image.Evolve-X',
                 DestinationType: 'ImageUploader',
                 RequestMethod: 'POST',
-                RequestURL: `${window.location.hostname}/api/image`,
+                RequestURL: `${data.cUrl || window.location.hostname}/api/image`,
                 Headers: {
                     token: '',
                     uid: data.uID,

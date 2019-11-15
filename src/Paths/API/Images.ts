@@ -46,7 +46,7 @@ class Images extends Path {
         images = images.map(image => {
             const split = image.path.split('.');
             const type = split[split.length - 1];
-            return `${this.base.options.url}/${image.type ? image.type[0] : 'images'}/${image.ID}.${type}`;
+            return `${auth.cUrl || this.base.options.url}/${image.type ? image.type[0] : 'images'}/${image.ID}.${type}`;
         } );
         return res.status(this.codes.ok).send(images);
     }
