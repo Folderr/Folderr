@@ -49,12 +49,11 @@ class VEXRAdd extends Path {
             if (u === 'localhost') {
                 u += `:${this.base.options.port}`;
             }
-            r = await this.base.superagent.get(`${req.body.url}/api/verify`).send( { url: this.base.options.url } );
+            r = await this.base.superagent.get(`${req.body.url}/api/verify`).send( { url: this.base.options.url, owner: auth.uID } );
         } catch (e) {
             if (e.message && (e.message.match('Not Found') || e.message.match('[FAIL]') ) ) {
                 return res.status(this.codes.badReq).send('[ERROR] VEXR failed Validation');
             }
-            console.log(e);
             return res.status(this.codes.internalErr).send('[ERROR] Something unknown happened.');
         }
         const out = r.text;
