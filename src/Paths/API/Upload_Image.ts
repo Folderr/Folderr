@@ -26,6 +26,7 @@ import { Response } from 'express';
 import formidable from 'formidable';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
+import {WebhookExecOptions} from "../../Structures/DiscordWebhookHandler";
 
 class Image extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -82,6 +83,7 @@ class Image extends Path {
         } else if (!file.image.type.startsWith('image') ) {
             type = 'file';
         }
+        const isIoV = (type !== 'file');
         if (file.image.type.includes('html') || file.image.type.includes('ecmascript' || 'javascript') ) {
             unlinkSync(file.image.path);
             return res.status(this.codes.badReq).send('[ERROR] Forbidden MIME type.');
@@ -91,7 +93,12 @@ class Image extends Path {
         ext = ext[ext.length - 1];
 
         // console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
-        this.base.Logger.log('INFO - IMAGES', `Upload uploaded by ${auth.username} (${auth.uID})!`, { imageURL: `${this.base.options.url}/${type}s/${name}.${ext}` }, 'imageUpload', 'Upload Uploaded');
+        const opts: WebhookExecOptions = { imageURL: `${this.base.options.url}/${type}s/${name}.${ext}` };
+        if (!isIoV) {
+            opts.url = opts.imageURL;
+            opts.imageURL = undefined;
+        }
+        this.base.Logger.log('INFO - IMAGES', `Upload uploaded by ${auth.username} (${auth.uID})!`, opts, 'imageUpload', 'Upload Uploaded');
 
         const image = new this.base.schemas.Upload( { ID: name, owner: auth.uID, path: file.image.path, type } );
         await image.save();
