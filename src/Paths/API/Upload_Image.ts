@@ -83,7 +83,6 @@ class Image extends Path {
         } else if (!file.image.type.startsWith('image') ) {
             type = 'file';
         }
-        const isIoV = (type !== 'file');
         if (file.image.type.includes('html') || file.image.type.includes('ecmascript' || 'javascript') ) {
             unlinkSync(file.image.path);
             return res.status(this.codes.badReq).send('[ERROR] Forbidden MIME type.');
@@ -94,7 +93,7 @@ class Image extends Path {
 
         // console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
         const opts: WebhookExecOptions = { imageURL: `${this.base.options.url}/${type}s/${name}.${ext}` };
-        if (!isIoV) {
+        if (type !== 'image') {
             opts.url = opts.imageURL;
             opts.imageURL = undefined;
         }
