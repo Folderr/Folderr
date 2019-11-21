@@ -28,6 +28,7 @@ import superagent from 'superagent';
 import { DiscordHook } from './Evolve-Config';
 import { promisify } from 'util';
 import { EventEmitter } from 'events';
+import { isMaster } from 'cluster';
 
 const sleep = promisify(setTimeout);
 
@@ -81,7 +82,9 @@ class DiscordWebhookHandler {
 
     private ready: boolean;
 
-    constructor(webhookURL: string, discordHook?: DiscordHook) {
+    private isMaxCores?: boolean;
+
+    constructor(webhookURL: string, discordHook?: DiscordHook, isMaxCores?: boolean) {
         this.webhookURL = webhookURL;
         this.colors = {
             error: Number('0xFF0000'),
@@ -113,6 +116,7 @@ class DiscordWebhookHandler {
         this.ee.on('beginQueue', async() => {
             await this.ridQueue();
         } );
+        this.isMaxCores = isMaxCores;
         this.ready = false;
     }
 
@@ -124,6 +128,9 @@ class DiscordWebhookHandler {
      * @private
      */
     async _validateConfig(webhook: string): Promise<void> {
+        if (this.isMaxCores && !isMaster) {
+            return;
+        }
         let output: any = await superagent.get(webhook);
         if (!output.text) {
             throw Error('[WebhookHandler - FATAL] - Invalid Webhook URL.');
@@ -196,6 +203,9 @@ class DiscordWebhookHandler {
         }
         if (!type || !title || !information) {
             throw new Error('[WebhookHandler] - Missing arguments');
+        }
+        if (this.isMaxCores && !isMaster && type === 'online') {
+            return false;
         }
         const color = this.colors[type];
         if (!color) {

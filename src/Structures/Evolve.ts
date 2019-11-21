@@ -35,6 +35,7 @@ import { join } from 'path';
 import { Request, Response } from 'express';
 import EvolveSession from './EvolveSession';
 import { UserI } from '../Schemas/User';
+import { isMaster } from 'cluster';
 
 /**
  * @class Evolve
@@ -259,15 +260,23 @@ class Evolve {
             const Ok = paths[path];
             const apath: Path = new Ok(this, base);
             if (apath.enabled) { // If the path should be loaded
-                console.log(`[SYSTEM INIT PATH] - Initializing Path ${apath.label}`);
-                // Init the path
-                this._initPath(apath, base);
-                // Tell the user the path was initialized and add the number of paths loaded by 1
-                console.log(`[SYSTEM INIT PATH] - Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
-                pathNums++;
+                if (this.base.options.maxCores) {
+                    // Init the path
+                    this._initPath(apath, base);
+                    pathNums++;
+                } else {
+                    console.log(`[SYSTEM INIT PATH] - Initializing Path ${apath.label}`);
+                    // Init the path
+                    this._initPath(apath, base);
+                    // Tell the user the path was initialized and add the number of paths loaded by 1
+                    console.log(`[SYSTEM INIT PATH] - Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
+                    pathNums++;
+                }
             }
         }
-        console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
+        if (!this.base.options.maxCores) {
+            console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
+        }
         // Initiate the base of the project
         await base.init();
         base.web.all('/*', async(req: Request, res) => {
@@ -292,7 +301,9 @@ class Evolve {
             await this.removeTokens(base);
         }, mins);
 
-        this.base.Logger.log('SYSTEM INFO', 'Evolve-X has been initialized!', {}, 'online', 'Evolve-X is online');
+        if ( (this.base.options.maxCores && isMaster) || !this.base.options.maxCores) {
+            this.base.Logger.log('SYSTEM INFO', 'Evolve-X has been initialized!', {}, 'online', 'Evolve-X is online');
+        }
         if (process.env.NODE_ENV === 'test') {
             process.exit();
         }
