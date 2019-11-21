@@ -28,7 +28,7 @@ import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
-import { platform } from 'os';
+import { platform, cpus } from 'os';
 import bodyParser from 'body-parser';
 import Events from 'events';
 import User, { UserI } from '../Schemas/User';
@@ -44,6 +44,8 @@ import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
+import cluster from 'cluster';
+const numCPUs = cpus().length;
 
 const ee = new Events();
 
@@ -108,7 +110,7 @@ class Base {
         this.superagent = superagent;
         this.web = web;
         this.web.use(bodyParser.json() );
-        this.web.use(express.urlencoded() );
+        this.web.use(express.urlencoded( { extended: false } ) );
         this.web.use(express.static(join(__dirname, '../Frontend') ) );
         this.web.use('/assets', express.static(join(__dirname, '../assets') ) );
         this.web.use('/', express.static(join(__dirname, '../otherFiles') ) );
@@ -120,6 +122,24 @@ class Base {
         this.flags = flags;
         this.options = new EvolveConfig(options);
         this.Logger = new Logger(this.options);
+    }
+
+    listen() {
+        if (this.options.certOptions && this.options.certOptions.key && this.options.certOptions.cert) {
+            this.options.certOptions.key = readFileSync(this.options.certOptions.key);
+            this.options.certOptions.cert = readFileSync(this.options.certOptions.cert);
+            if (this.options.certOptions.ca && Array.isArray(this.options.certOptions.ca) ) {
+                const cas = [];
+                for (const ca of this.options.certOptions.ca) {
+                    cas.push(readFileSync(ca) );
+                }
+                this.options.certOptions.ca = cas;
+            }
+            const httpOptions = this.options.certOptions;
+            const server = https.createServer(httpOptions, this.web);
+            server.listen(this.options.port);
+        }
+        this.web.listen(this.options.port);
     }
 
     /**
@@ -160,13 +180,15 @@ class Base {
 
             let uhm;
 
-            try {
-                uhm = await this.superagent.get(`localhost:${this.options.port}`);
-            } catch (err) {
-                if (err.message.startsWith('connect ECONNREFUSED') ) {
-                    // I dont care about this error
-                } else {
-                    throw Error(err);
+            if (!this.options.maxCores) {
+                try {
+                    uhm = await this.superagent.get(`localhost:${this.options.port}`);
+                } catch (err) {
+                    if (err.message.startsWith('connect ECONNREFUSED') ) {
+                        // I dont care about this error
+                    } else {
+                        throw Error(err);
+                    }
                 }
             }
             // If a user is trying to listen to a port already used
@@ -174,23 +196,27 @@ class Base {
                 ee.emit('fail');
                 throw Error('[FATAL] You are trying to listen on a port in use!');
             }
+            if (this.options.maxCores) {
+                if (cluster.isMaster) {
+                    for (let i = 0; i < numCPUs; i++) {
+                        cluster.fork();
+                    }
+
+                    cluster.on('exit', (worker) => {
+                        console.log(`[WORKER] worker ${worker.process.pid} died`);
+                    } );
+                    cluster.on('online', worker => {
+                        console.log(`[WORKER] worker ${worker.process.pid} started`);
+                    } );
+                    console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
+                } else {
+                    this.listen();
+                }
+                return;
+            }
 
             // Init the server
-            if (this.options.certOptions && this.options.certOptions.key && this.options.certOptions.cert) {
-                this.options.certOptions.key = readFileSync(this.options.certOptions.key);
-                this.options.certOptions.cert = readFileSync(this.options.certOptions.cert);
-                if (this.options.certOptions.ca && Array.isArray(this.options.certOptions.ca) ) {
-                    const cas = [];
-                    for (const ca of this.options.certOptions.ca) {
-                        cas.push(readFileSync(ca) );
-                    }
-                    this.options.certOptions.ca = cas;
-                }
-                const httpOptions = this.options.certOptions;
-                const server = https.createServer(httpOptions, this.web);
-                server.listen(this.options.port);
-            }
-            this.web.listen(this.options.port);
+            this.listen();
             console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }

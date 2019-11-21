@@ -24,7 +24,7 @@
  * @version 0.8.0
  */
 
-import codes, { Codes } from './Status_Codes';
+import codes, {Codes} from './Status_Codes';
 import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
 import Base from './Base';
@@ -208,8 +208,7 @@ class Path {
         // Execute the endpoint and catch errors
 
         try {
-            const out = await this.execute(req, res);
-            return out;
+            return await this.execute(req, res);
         } catch (err) {
             return this._handleError(err, res);
         }

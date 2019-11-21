@@ -50,6 +50,7 @@ export interface Options {
     discordURL?: string;
     enableDiscordLogging?: boolean;
     discordHook?: DiscordHook;
+    maxCores?: boolean;
 }
 
 export interface ActualOptions {
@@ -63,6 +64,7 @@ export interface ActualOptions {
     discordURL?: string;
     enableDiscordLogging?: boolean;
     discordHook?: DiscordHook;
+    maxCores?: boolean;
 }
 
 const optionsBase: ActualOptions = {
@@ -72,6 +74,7 @@ const optionsBase: ActualOptions = {
     signups: true,
     apiOnly: false,
     trustProxies: false,
+    maxCores: false,
 };
 
 /**
@@ -112,6 +115,8 @@ class EvolveConfig implements ActualOptions {
 
     public discordHook?: DiscordHook;
 
+    public maxCores?: boolean;
+
     constructor(config: Options = optionsBase) {
         this.port = config.port || optionsBase.port;
         this.url = config.url || optionsBase.url;
@@ -129,6 +134,7 @@ class EvolveConfig implements ActualOptions {
         };
         this.discordHook = config.discordHook;
         this.verify();
+        this.maxCores = config.maxCores;
     }
 
     /**

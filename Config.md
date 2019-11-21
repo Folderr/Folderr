@@ -37,6 +37,8 @@ discordHook.avatar_url - Image URL to overwrite the webhooks avatar
 
 discordHook.name - New name to overwrite when sending the webhook
 
+maxCores - Whether or not to use all cores (well, threads) available to it.
+
 ### Discord webhooks
 
 Learn about webhooks at https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks
