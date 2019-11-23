@@ -23,7 +23,7 @@ class ShareXConfigurator {
             throw Error('[Configurator] - Missing parameters');
         }
         const imgConfig = this.image;
-        imgConfig.RequestURL.replace('*{URL}', url);
+        imgConfig.RequestURL = `${url}/api/image`;
         imgConfig.Headers.token = token;
         imgConfig.Headers.uid = uid;
         return JSON.stringify(imgConfig);
