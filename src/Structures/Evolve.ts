@@ -260,7 +260,7 @@ class Evolve {
             const Ok = paths[path];
             const apath: Path = new Ok(this, base);
             if (apath.enabled) { // If the path should be loaded
-                if (this.base.options.maxCores) {
+                if (this.base.options.sharder && this.base.options.sharder.enabled) {
                     // Init the path
                     this._initPath(apath, base);
                     pathNums++;
@@ -274,7 +274,7 @@ class Evolve {
                 }
             }
         }
-        if (!this.base.options.maxCores) {
+        if (!this.base.options.sharder || !this.base.options.sharder.enabled) {
             console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         }
         // Initiate the base of the project
@@ -301,7 +301,7 @@ class Evolve {
             await this.removeTokens(base);
         }, mins);
 
-        if ( (this.base.options.maxCores && isMaster) || !this.base.options.maxCores) {
+        if ( (this.base.options.sharder && this.base.options.sharder.enabled && isMaster) || !this.base.options.sharder || !this.base.options.sharder.enabled) {
             this.base.Logger.log('SYSTEM INFO', 'Evolve-X has been initialized!', {}, 'online', 'Evolve-X is online');
         }
         if (process.env.NODE_ENV === 'test') {

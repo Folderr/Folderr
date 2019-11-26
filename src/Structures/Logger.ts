@@ -61,7 +61,7 @@ class Logger implements LoggerOptions {
         this.discordURL = options && options.discordURL;
         this.enableDiscordLogging = options && options.enableDiscordLogging;
         this.discordHook = options && options.discordHook;
-        this.isMaxCores = options && options.maxCores;
+        this.isMaxCores = options && options.sharder && options.sharder.enabled;
         this._init();
     }
 

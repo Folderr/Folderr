@@ -180,7 +180,7 @@ class Base {
 
             let uhm;
 
-            if (!this.options.maxCores) {
+            if (!this.options.sharder || !this.options.sharder.enabled) {
                 try {
                     uhm = await this.superagent.get(`localhost:${this.options.port}`);
                 } catch (err) {
@@ -196,9 +196,10 @@ class Base {
                 ee.emit('fail');
                 throw Error('[FATAL] You are trying to listen on a port in use!');
             }
-            if (this.options.maxCores) {
+            const maxCPUs = this.Utils.shardLimit(this.options.sharder);
+            if (this.options.sharder && this.options.sharder.enabled && maxCPUs) {
                 if (cluster.isMaster) {
-                    for (let i = 0; i < numCPUs; i++) {
+                    for (let i = 0; i < maxCPUs; i++) {
                         cluster.fork();
                     }
 
