@@ -39,6 +39,12 @@ export interface DiscordHook {
     avatar_url?: string;
 }
 
+export interface SharderOptions {
+    enabled: boolean;
+    maxCores: number;
+    maxMemory: string;
+}
+
 export interface Options {
     port?: number;
     url?: string;
@@ -50,7 +56,7 @@ export interface Options {
     discordURL?: string;
     enableDiscordLogging?: boolean;
     discordHook?: DiscordHook;
-    maxCores?: boolean;
+    sharder?: SharderOptions;
 }
 
 export interface ActualOptions {
@@ -64,7 +70,7 @@ export interface ActualOptions {
     discordURL?: string;
     enableDiscordLogging?: boolean;
     discordHook?: DiscordHook;
-    maxCores?: boolean;
+    sharder?: SharderOptions;
 }
 
 const optionsBase: ActualOptions = {
@@ -74,7 +80,7 @@ const optionsBase: ActualOptions = {
     signups: true,
     apiOnly: false,
     trustProxies: false,
-    maxCores: false,
+    sharder: { enabled: false, maxCores: 48, maxMemory: '4G' },
 };
 
 /**
@@ -115,7 +121,7 @@ class EvolveConfig implements ActualOptions {
 
     public discordHook?: DiscordHook;
 
-    public maxCores?: boolean;
+    public sharder: SharderOptions;
 
     constructor(config: Options = optionsBase) {
         this.port = config.port || optionsBase.port;
@@ -134,7 +140,11 @@ class EvolveConfig implements ActualOptions {
         };
         this.discordHook = config.discordHook;
         this.verify();
-        this.maxCores = config.maxCores;
+        const baseSharder = { enabled: false, maxCores: 48, maxMemory: '4G' };
+        this.sharder = baseSharder;
+        if (config.sharder) {
+            this.sharder = { enabled: config.sharder.enabled, maxMemory: config.sharder.maxMemory || baseSharder.maxMemory, maxCores: config.sharder.maxCores || baseSharder.maxCores };
+        }
     }
 
     /**

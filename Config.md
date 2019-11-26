@@ -37,10 +37,18 @@ discordHook.avatar_url - Image URL to overwrite the webhooks avatar
 
 discordHook.name - New name to overwrite when sending the webhook
 
-maxCores - Whether or not to use all cores (well, threads) available to it.
+sharder - Sharder restrictions & settings.
+
+- Evolve-X process sharder may be experimental
+
+sharder.enabled - Whether or not to enable sharding (boolean)
+
+sharder.maxCores - The maximum amount of cores available to use when sharding (number).
+
+sharder.maxMemory - The maximum amount of memory to allow total process usage. Format: `value<format>`. Default: `4G` (G standing for gigabyte).
+- Memory formats: mb/m (megabytes) or gb/g (gigabytes)
 
 ### Discord webhooks
-
 Learn about webhooks at https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks
 
 ### Example config
