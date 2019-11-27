@@ -604,10 +604,10 @@ class Utils {
     }
 
     ramConverter(amount: string) {
-        if (amount.toLowerCase().match(/g|gb/) ) { // If the RAM amount is in GB
-            return Math.round(Number(amount.replace(/g|gb/gi, '') ) * 1000);
-        } if (amount.toLowerCase().match(/m|mb/) ) { // If the amount is in MB, convert with MB
-            return Math.round(Number(amount.replace(/m|mb/gi, '') ) );
+        if (amount.toLowerCase().match(/gg|g/) ) { // If the RAM amount is in GB
+            return Math.round(Number(amount.replace(/gb|g/gi, '') ) * 1000);
+        } if (amount.toLowerCase().match(/mb|m/) ) { // If the amount is in MB, convert with MB
+            return Math.round(Number(amount.replace(/mb|m/gi, '') ) );
         }
         throw Error('[SHARDER] - Invalid memory amount');
     }
@@ -616,8 +616,14 @@ class Utils {
         if (!sharderOptions.enabled) {
             return false;
         }
+
+        const toBytes = 1048576;
+
         const max = (sharderOptions.maxCores > this.defaultShardOptions.maxCores) ? this.defaultShardOptions.maxCores : sharderOptions.maxCores;
-        const ram = this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory);
+
+        const maxRAM = Number( (os.totalmem() / toBytes).toFixed(0) );
+
+        const ram = this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory) > maxRAM ? maxRAM : this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory);
 
         const leftForOS = 2; // CPU cores left for the operating system.
 
