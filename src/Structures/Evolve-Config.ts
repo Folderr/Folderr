@@ -145,6 +145,7 @@ class EvolveConfig implements ActualOptions {
         if (config.sharder) {
             this.sharder = { enabled: config.sharder.enabled, maxMemory: config.sharder.maxMemory || baseSharder.maxMemory, maxCores: config.sharder.maxCores || baseSharder.maxCores };
         }
+        console.log(this.sharder);
     }
 
     /**
