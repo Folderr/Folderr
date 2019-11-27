@@ -634,6 +634,7 @@ class Utils {
         const processRamMB = 180; // The amount of RAM I estimate the process to use.
         const ramLimit = Math.floor(ram / processRamMB); // Total RAM divided by ESTIMATED RAM usage per 6 user process.
         if (max > maxCPUs || ramLimit > maxCPUs) {
+            console.log(max > maxCPUs ? 'WHY' : 'ok');
             return maxCPUs;
         }
         if (ramLimit > max) {
