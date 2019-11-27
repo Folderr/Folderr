@@ -218,8 +218,7 @@ class Base {
 
             // Init the server
             this.listen();
-            console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
-            console.log(maxCPUs);
+            console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}\n${maxCPUs}`);
         }
     }
 }
