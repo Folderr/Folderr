@@ -197,6 +197,7 @@ class Base {
                 throw Error('[FATAL] You are trying to listen on a port in use!');
             }
             const maxCPUs = this.Utils.shardLimit(this.options.sharder);
+            console.log(maxCPUs);
             if (this.options.sharder && this.options.sharder.enabled && maxCPUs) {
                 if (cluster.isMaster) {
                     for (let i = 0; i < maxCPUs; i++) {
