@@ -26,7 +26,7 @@ import { Response } from 'express';
 import formidable from 'formidable';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
-import {WebhookExecOptions} from "../../Structures/DiscordWebhookHandler";
+import { WebhookExecOptions } from '../../Structures/DiscordWebhookHandler';
 
 class Image extends Path {
     constructor(evolve: Evolve, base: Base) {
