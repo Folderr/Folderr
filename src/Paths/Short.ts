@@ -43,6 +43,9 @@ class Short extends Path {
         if (!short) {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
         }
+        if (req.query && req.query.u && req.query.u === 't') {
+            return res.status(this.codes.ok).send(short.link.trim() );
+        }
         return res.redirect(short.link.trim() );
     }
 }

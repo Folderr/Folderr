@@ -44,7 +44,7 @@ class Account extends Path {
         const shorts = await this.base.schemas.Shorten.find( { owner: auth.uID } );
 
         // Return a nice version of this users account.
-        const acc = {
+        const acc: any = {
             username: auth.username, // eslint-disable-next-line @typescript-eslint/camelcase
             token_generated: !!auth.token,
             uID: auth.uID,
@@ -53,6 +53,9 @@ class Account extends Path {
             images: images.length,
             shorts: shorts.length,
         };
+        if (auth.cUrl) {
+            acc.cUrl = auth.cUrl;
+        }
         return res.status(this.codes.ok).send(acc);
     }
 }

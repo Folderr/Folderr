@@ -52,8 +52,9 @@ class Configr extends Path {
         if (!compare) {
             return res.status(this.codes.unauth).send('[ERROR] Invalid Token!');
         }
+        const url = auth.cUrl || this.base.options.url;
 
-        const config = this.configurator.generateFiles(auth.uID, this.base.options.url, req.body.token);
+        const config = this.configurator.generateFiles(auth.uID, url, req.body.token);
         if (req.query && req.query.d === 'true') {
             res.type('text/plain; charset=binary');
             res.set('Content-Disposition', 'attachment; filename=EX-Config.sxcu');

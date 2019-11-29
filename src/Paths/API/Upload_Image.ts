@@ -26,6 +26,7 @@ import { Response } from 'express';
 import formidable from 'formidable';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
+import { WebhookExecOptions } from '../../Structures/DiscordWebhookHandler';
 
 class Image extends Path {
     constructor(evolve: Evolve, base: Base) {
@@ -91,11 +92,16 @@ class Image extends Path {
         ext = ext[ext.length - 1];
 
         // console.log(`[INFO - IMAGES] Image ${this.base.options.url}/images/${name}.${ext} added!`);
-        this.base.Logger.log('INFO - IMAGES', `Upload uploaded by ${auth.username} (${auth.uID})!`, { imageURL: `${this.base.options.url}/${type}s/${name}.${ext}` }, 'imageUpload', 'Upload Uploaded');
+        const opts: WebhookExecOptions = { imageURL: `${this.base.options.url}/${type}s/${name}.${ext}` };
+        if (type !== 'image') {
+            opts.url = opts.imageURL;
+            opts.imageURL = undefined;
+        }
+        this.base.Logger.log('INFO - IMAGES', `Upload uploaded by ${auth.username} (${auth.uID})!`, opts, 'imageUpload', 'Upload Uploaded');
 
         const image = new this.base.schemas.Upload( { ID: name, owner: auth.uID, path: file.image.path, type } );
         await image.save();
-        return res.status(this.codes.ok).send(`${this.base.options.url}/${type}s/${name}.${ext}`);
+        return res.status(this.codes.ok).send(`${auth.cUrl || this.base.options.url}/${type}s/${name}.${ext}`);
     }
 }
 
