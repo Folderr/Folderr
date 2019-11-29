@@ -20,47 +20,32 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
 import Base from '../../Structures/Base';
+import Evolve from '../../Structures/Evolve';
 import { Response } from 'express';
 
-class Shorten extends Path {
+class VEXRAdd extends Path {
     constructor(evolve: Evolve, base: Base) {
         super(evolve, base);
-        this.label = '[API] Shorten';
-        this.path = '/api/short';
-        this.type = 'post';
-        this.reqAuth = true;
+        this.label = '[API] Notification';
+        this.path = '/api/vexr';
+
+        this.type = 'delete';
     }
 
     async execute(req: any, res: any): Promise<Response> {
+        // Check auth
         const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req) : await this.Utils.authCookies(req, res);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
         }
-
-        if (!req.body || !req.body.url) {
-            return res.status(this.codes.badReq).send('[ERROR] BODY URL MISSING!');
+        if (!auth.cUrl) {
+            return res.status(this.codes.badReq).send('[ERROR] VEXR not linked!');
         }
-        if (typeof req.body.url !== 'string') {
-            return res.status(this.codes.badReq).send('[ERROR] URL MUST BE STRING');
-        }
-        try {
-            await this.base.superagent.get(req.body.url);
-        } catch (err) {
-            if (err.code === 'ENOTFOUND') {
-                return res.status(this.codes.notFound).send('[ERROR] URL not found!');
-            }
-        }
-
-        const links = await this.base.schemas.Shorten.find( { owner: auth.uID } );
-        const ID = this.Utils.genID(links);
-        const short = new this.base.schemas.Shorten( { ID, owner: auth.uID, link: req.body.url } );
-
-        await short.save();
-        this.base.Logger.log('INFO - SHORTS', `User shortened link`, { user: `${auth.username} (${auth.uID})`, url: `${this.base.options.url}/short/${ID}` }, 'shorten', 'Link Shortened');
-        return res.status(this.codes.created).send(`${auth.cUrl || this.base.options.url}/short/${ID}`);
+        auth.cUrl = '';
+        await auth.save();
+        return res.status(this.codes.ok).send('[SUCCESS] VEXR Unlinked');
     }
 }
 
-export default Shorten;
+export default VEXRAdd;

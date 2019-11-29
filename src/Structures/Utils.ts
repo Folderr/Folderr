@@ -34,6 +34,7 @@ import { isBoolean, promisify } from 'util';
 import { Request } from 'express';
 import BearerTokens from '../Schemas/BearerTokens';
 import Evolve from './Evolve';
+import os from 'os';
 
 const sleep = promisify(setTimeout);
 
@@ -57,6 +58,8 @@ class Utils {
 
     private evolve: Evolve | null;
 
+    private defaultShardOptions: { maxCores: number; maxMemory: string; enabled: boolean };
+
     /**
      * @constructor
      *
@@ -68,6 +71,11 @@ class Utils {
         this.saltRounds = 10;
         this.byteSize = 48;
         this.evolve = evolve;
+        this.defaultShardOptions = {
+            maxCores: 48,
+            enabled: false,
+            maxMemory: '4G',
+        };
     }
 
     /**
@@ -593,6 +601,46 @@ class Utils {
             return false;
         }
         return true;
+    }
+
+    ramConverter(amount: string): number {
+        if (amount.toLowerCase().match(/gg|g/) ) { // If the RAM amount is in GB
+            return Math.round(Number(amount.replace(/gb|g/gi, '') ) * 1000);
+        } if (amount.toLowerCase().match(/mb|m/) ) { // If the amount is in MB, convert with MB
+            return Math.round(Number(amount.replace(/mb|m/gi, '') ) );
+        }
+        throw Error('[SHARDER] - Invalid memory amount');
+    }
+
+    shardLimit(sharderOptions = this.defaultShardOptions): number | boolean {
+        if (!sharderOptions.enabled) {
+            return false;
+        }
+
+        const toBytes = 1048576;
+
+        const max = (sharderOptions.maxCores > this.defaultShardOptions.maxCores) ? this.defaultShardOptions.maxCores : sharderOptions.maxCores;
+
+        const maxRAM = Number( (os.totalmem() / toBytes).toFixed(0) );
+
+        const ram = this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory) > maxRAM ? maxRAM : this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory);
+
+        const leftForOS = 2; // CPU cores left for the operating system.
+
+        const maxCPUs = os.cpus().length > 3 ? os.cpus().length - leftForOS : os.cpus().length; // Leave some cores for the OS if there is at least 4 CPU cores on the OS
+
+        console.log(maxCPUs);
+        console.log(max);
+        const processRamMB = 180; // The amount of RAM I estimate the process to use.
+        const ramLimit = Math.floor(ram / processRamMB); // Total RAM divided by ESTIMATED RAM usage per 6 user process.
+        if (max > maxCPUs || ramLimit > maxCPUs) {
+            console.log(max > maxCPUs ? 'WHY' : 'ok');
+            return maxCPUs;
+        }
+        if (ramLimit > max) {
+            return max;
+        }
+        return ramLimit;
     }
 }
 

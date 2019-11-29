@@ -1,13 +1,6 @@
 $(document).ready(function () {
     (function () {
-        if (!document.cookie) {
-            $(location).attr('href', '/');
-        }
         $.get('/api/info', (result) => {
-            if (typeof result === 'string' && result.startsWith('[ERROR] Authorization failed') ) {
-                // $(location).attr('href', '/');
-                // return;
-            }
             let str = `Git Commit: ${result.commit.replace(' ', ',\n')}\nEvolve-X branch: ${result.branch}`;
             if (result.version) {
                 str += `\n\nInstance Version: ${result.version}`;

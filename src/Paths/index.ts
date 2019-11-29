@@ -43,4 +43,6 @@ export { default as APIUsers } from './API/Users';
 export { default as APIInfo } from './API/Info';
 export { default as APIOwnerManage } from './API/Manage';
 export { default as APIPong } from './API/Pong';
-export { default as Configr } from './API/Configurator';
+export { default as APIConfigr } from './API/Configurator';
+export { default as APIAVEXR } from './API/Add_Vexr';
+export { default as APIDVEXR } from './API/Rm_Vexr';

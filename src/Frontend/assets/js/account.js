@@ -15,7 +15,7 @@ function load() {
             $('#welcome').text(`Welcome, ${data.username}`);
             name = data.username;
             $('#shorts').text(`${data.shorts && data.shorts > 0 ? data.shorts : 'No'} Shortened links`);
-            $('#images').text(`${data.images && data.images > 0 ? data.images : 'No'} Images`);
+            $('#images').text(`${data.images && data.images > 0 ? data.images : 'No'} Files`);
             if (data.token_generated) {
                 tokenGenerated = true;
             }
@@ -428,5 +428,143 @@ $(document).ready(() => {
         }
         location.href = `/config?t=${tkn}`;
     } );
+    $('#vexr').click( () => {
+        $('.notice').addClass('hidden');
+        $('.notice').addClass('error');
+        const url = $('#vexr_link').val();
+        if (!url) {
+            $('#noticetxt').text('No VEXR url given.');
+            $('.notice').removeClass('hidden');
+            return false;
+        }
+        const req = $.ajax({
+            url: '/api/vexr',
+            method: 'POST',
+            data: { url },
+        } );
+        req.done( (result) => {
+            if (result.startsWith('[ERROR]') ) {
+                $('#noticetxt').text(`Error: ${result.slice(8)}`);
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.status === 401) {
+                $('#noticetxt').text('Authorization failed');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.status === 200 || (typeof result === 'string' && result.startsWith('[SUCCESS]') ) ) {
+                $('#noticetxt').text('Linked VEXR');
+                $('.notice').removeClass('error');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            return false;
+        } );
+        req.fail( (result) => {
+            if (result.statusText === 'timeout') {
+                $('#noticetxt').text('Request timed out.');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.status === 401) {
+                $('#noticetxt').text('Authorization failed.');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.status === 200) {
+                $('#noticetxt').text('Linked VEXR');
+                $('.notice').removeClass('error');
+                $('.notice').removeClass('hidden');
+                return false;
+            }
+            if (result.responseText.match('VEXR failed') ) {
+                $('#noticetxt')
+                    .text(`Error: ${result.responseText.slice(8)}`);
+                $('.notice')
+                    .removeClass('hidden');
+                return false;
+            }
+            console.log(result);
+            $('#noticetxt').text('An error occurred.');
+            $('.notice').removeClass('hidden');
+            return false;
+        } );
+        $('#uvexr').click( () => {
+            $('.notice')
+                .addClass('hidden');
+            $('.notice')
+                .addClass('error');
+            const url = $('#vexr_link')
+                .val();
+            if (!url) {
+                $('#noticetxt')
+                    .text('No VEXR url given.');
+                $('.notice')
+                    .removeClass('hidden');
+                return false;
+            }
+            const req = $.ajax({
+                url: '/api/vexr',
+                method: 'DELETE',
+            });
+            req.done( (result) => {
+                if (result.startsWith('[ERROR]')) {
+                    $('#noticetxt')
+                        .text(`Error: ${result.slice(8)}`);
+                    $('.notice')
+                        .removeClass('hidden');
+                    return false;
+                }
+                if (result.status === 401) {
+                    $('#noticetxt')
+                        .text('Authorization failed');
+                    $('.notice')
+                        .removeClass('hidden');
+                    return false;
+                }
+                if (result.status === 200 || (typeof result === 'string' && result.startsWith('[SUCCESS]'))) {
+                    $('#noticetxt')
+                        .text('Unlinked VEXR');
+                    $('.notice')
+                        .removeClass('error');
+                    $('.notice')
+                        .removeClass('hidden');
+                    return false;
+                }
+                return false;
+            });
+            req.fail((result) => {
+                if (result.statusText === 'timeout') {
+                    $('#noticetxt')
+                        .text('Request timed out.');
+                    $('.notice')
+                        .removeClass('hidden');
+                    return false;
+                }
+                if (result.status === 401) {
+                    $('#noticetxt')
+                        .text('Authorization failed.');
+                    $('.notice')
+                        .removeClass('hidden');
+                    return false;
+                }
+                if (result.status === 200) {
+                    $('#noticetxt')
+                        .text('Unlinked VEXR');
+                    $('.notice')
+                        .removeClass('error');
+                    $('.notice')
+                        .removeClass('hidden');
+                    return false;
+                }
+                $('#noticetxt')
+                    .text('An error occurred.');
+                $('.notice')
+                    .removeClass('hidden');
+                return false;
+            });
+        } );
+    } );
     $('form').submit((ev) => ev.preventDefault());
-})
+} )

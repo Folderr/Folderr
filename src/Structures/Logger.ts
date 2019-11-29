@@ -49,6 +49,8 @@ class Logger implements LoggerOptions {
 
     private discordHook?: DiscordHook;
 
+    private isMaxCores?: boolean;
+
     /**
      * @param [options] {ActualOptions} The options the Evolve-X client uses, contains needed options.
      * @prop [discordURL] {string} Discord webhook URL
@@ -59,6 +61,7 @@ class Logger implements LoggerOptions {
         this.discordURL = options && options.discordURL;
         this.enableDiscordLogging = options && options.enableDiscordLogging;
         this.discordHook = options && options.discordHook;
+        this.isMaxCores = options && options.sharder && options.sharder.enabled;
         this._init();
     }
 
@@ -68,7 +71,7 @@ class Logger implements LoggerOptions {
      */
     _init(): void {
         if (this.discordURL && this.enableDiscordLogging) {
-            this.webhookHandler = new WebhookHandler(this.discordURL, this.discordHook);
+            this.webhookHandler = new WebhookHandler(this.discordURL, this.discordHook, this.isMaxCores);
         } else {
             this.enableDiscordLogging = false;
         }
