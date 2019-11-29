@@ -23,7 +23,6 @@ import Path from '../../Structures/Path';
 import Base from '../../Structures/Base';
 import Evolve from '../../Structures/Evolve';
 import { Response } from 'express';
-import { UserI } from '../../Schemas/User';
 
 class VEXRAdd extends Path {
     constructor(evolve: Evolve, base: Base) {

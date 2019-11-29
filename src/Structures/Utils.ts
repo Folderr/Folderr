@@ -603,7 +603,7 @@ class Utils {
         return true;
     }
 
-    ramConverter(amount: string) {
+    ramConverter(amount: string): number {
         if (amount.toLowerCase().match(/gg|g/) ) { // If the RAM amount is in GB
             return Math.round(Number(amount.replace(/gb|g/gi, '') ) * 1000);
         } if (amount.toLowerCase().match(/mb|m/) ) { // If the amount is in MB, convert with MB
@@ -612,7 +612,7 @@ class Utils {
         throw Error('[SHARDER] - Invalid memory amount');
     }
 
-    shardLimit(sharderOptions = this.defaultShardOptions) {
+    shardLimit(sharderOptions = this.defaultShardOptions): number | boolean {
         if (!sharderOptions.enabled) {
             return false;
         }

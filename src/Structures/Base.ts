@@ -28,7 +28,7 @@ import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
-import { platform, cpus } from 'os';
+import { platform } from 'os';
 import bodyParser from 'body-parser';
 import Events from 'events';
 import User, { UserI } from '../Schemas/User';
@@ -45,7 +45,6 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
 import cluster from 'cluster';
-const numCPUs = cpus().length;
 
 const ee = new Events();
 
@@ -124,7 +123,7 @@ class Base {
         this.Logger = new Logger(this.options);
     }
 
-    listen() {
+    listen(): void {
         if (this.options.certOptions && this.options.certOptions.key && this.options.certOptions.cert) {
             this.options.certOptions.key = readFileSync(this.options.certOptions.key);
             this.options.certOptions.cert = readFileSync(this.options.certOptions.cert);
