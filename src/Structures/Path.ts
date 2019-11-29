@@ -24,7 +24,7 @@
  * @version 0.8.0
  */
 
-import codes, {Codes} from './Status_Codes';
+import codes, { Codes } from './Status_Codes';
 import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
 import Base from './Base';
