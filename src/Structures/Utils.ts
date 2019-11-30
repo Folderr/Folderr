@@ -628,13 +628,9 @@ class Utils {
         const leftForOS = 2; // CPU cores left for the operating system.
 
         const maxCPUs = os.cpus().length > 3 ? os.cpus().length - leftForOS : os.cpus().length; // Leave some cores for the OS if there is at least 4 CPU cores on the OS
-
-        console.log(maxCPUs);
-        console.log(max);
         const processRamMB = 180; // The amount of RAM I estimate the process to use.
         const ramLimit = Math.floor(ram / processRamMB); // Total RAM divided by ESTIMATED RAM usage per 6 user process.
         if (max > maxCPUs || ramLimit > maxCPUs) {
-            console.log(max > maxCPUs ? 'WHY' : 'ok');
             return maxCPUs;
         }
         if (ramLimit > max) {
