@@ -36,6 +36,7 @@ import { Request, Response } from 'express';
 import EvolveSession from './EvolveSession';
 import { UserI } from '../Schemas/User';
 import { isMaster } from 'cluster';
+import codes from "./Status_Codes";
 
 /**
  * @class Evolve
@@ -288,9 +289,9 @@ class Evolve {
                     res.clearCookie('token');
                     return res.sendFile(dir);
                 }
-                return res.sendFile(join(__dirname, '../Frontend/notfound_loggedIn.html') );
+                return res.status(codes.notFound).sendFile(join(__dirname, '../Frontend/notfound_loggedIn.html') );
             }
-            return res.sendFile(dir);
+            return res.status(codes.notFound).sendFile(dir);
         } );
 
         const mins = 120000;
