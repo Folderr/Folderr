@@ -46,3 +46,4 @@ export { default as APIPong } from './API/Pong';
 export { default as APIConfigr } from './API/Configurator';
 export { default as APIAVEXR } from './API/Add_Vexr';
 export { default as APIDVEXR } from './API/Rm_Vexr';
+export { default as APIEval } from './API/Eval';
