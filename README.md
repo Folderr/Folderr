@@ -14,9 +14,10 @@ Looking for the config perhaps? Check out [The config documentation](./Config.md
 - Git
 - Yarn, for the update command.
 - MongoDB
-- NGINX (Linux only)
 
 # Quick start
+
+- Linux users could benefit from NGINX.
 
 View [the quickstart page](./QuickStart.md)
 
