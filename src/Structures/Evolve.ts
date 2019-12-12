@@ -233,9 +233,11 @@ class Evolve {
      *
      * @returns {Promise<void>}
      */
+    // eslint-disable-next-line consistent-return
     async init(): Promise<void> {
         if (!this.base.sharderReady) {
-            await this.base.Utils.sleep(2000);
+            const sec = 2000;
+            await this.base.Utils.sleep(sec);
             return this.init();
         }
         // Init the base, remove options

@@ -45,7 +45,6 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
 import cluster, { isMaster } from 'cluster';
-import { MessageChannel } from 'worker_threads';
 
 const ee = new Events();
 
@@ -154,7 +153,7 @@ class Base {
         this.web.listen(this.options.port);
     }
 
-    initBasics() {
+    initBasics(): void {
         if (this.options.sharder && this.options.sharder.enabled) {
             const asharder = this.Utils.shardLimit(this.options.sharder);
             if (asharder && typeof asharder === 'number') {
@@ -202,14 +201,6 @@ class Base {
             }
 
             let uhm;
-            let sharder = 0;
-            if (this.options.sharder && this.options.sharder.enabled) {
-                const asharder = this.Utils.shardLimit(this.options.sharder);
-                if (asharder && typeof asharder === 'number') {
-                    sharder = asharder;
-                    this.useSharder = true;
-                }
-            }
 
             if (!this.useSharder) {
                 try {
@@ -239,13 +230,13 @@ class Base {
                         this.shardNum--;
                         console.log(`[WORKER] worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})`);
 
-                        this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum });
+                        this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
                     } );
                     cluster.on('online', worker => {
                         this.shardNum++;
                         console.log(`[WORKER] worker ${worker.process.pid} started (${this.shardNum}/${this.maxShardNum})`);
 
-                        this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum });
+                        this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
                     } );
                     console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
                 } else {
@@ -262,7 +253,7 @@ class Base {
         }
     }
     
-    onMasterMessage(worker: cluster.Worker, msg: { messageType: string; value: any; sendToAll?: boolean } ) {
+    onMasterMessage(worker: cluster.Worker, msg: { messageType: string; value: any; sendToAll?: boolean } ): void {
         if (!cluster.isMaster) {
             return;
         }
@@ -289,7 +280,7 @@ class Base {
         }
     }
 
-    sendToMaster(data: { messageType: string; value: any; sendToAll?: boolean } ) {
+    sendToMaster(data: { messageType: string; value: any; sendToAll?: boolean } ): void {
         if (!cluster.isWorker) {
             return;
         }
