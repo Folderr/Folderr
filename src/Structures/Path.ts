@@ -29,6 +29,7 @@ import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
 import Base from './Base';
 import express from 'express';
+import * as cluster from 'cluster';
 
 /**
  * Path structure
@@ -173,7 +174,7 @@ class Path {
             return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
         } */
         // Define number variables
-        const twoSec = 2000;
+        const sec = 4000;
         const maxTrys = 3;
         const hour = 3600000;
         // If ratelimited, tell the user
@@ -183,24 +184,23 @@ class Path {
 
         let check: number | undefined = this.evolve.ips.get(req.ip); // Requests in 2 seconds
         // You get three requesters in two seconds and you get banned on the fourth.
-        this.evolve.ips.set(req.ip, (check && !isNaN(check) ) ? check + 1 : 0);
+        this.addIP(req.ip, check);
         if (!check && this.evolve.ips.get(req.ip) ) {
             setTimeout( () => {
-                this.evolve.ips.delete(req.ip);
-            }, twoSec);
+                this.removeIP(req.ip);
+            }, sec);
         }
 
         // Check the requests and see if the user is banned
         check = this.evolve.ips.get(req.ip) || 0;
         if (check > maxTrys) {
             // Ban the IP if check is greater than or equal to three
-            this.evolve.ipBans.push(req.ip);
+            this.addIPBan(req.ip);
             console.log(`[SYSTEM INFO] IP ${req.ip} banned!`);
 
             // Remove the ip ban after an hour
             setTimeout( () => {
-                this.evolve.ipBans = this.evolve.ipBans.filter(ip => ip !== req.ip);
-                console.log(this.evolve.ipBans);
+                this.removeIPBan(req.ip);
             }, hour);
             return res.status(this.codes.forbidden).send('Rate limited (Banned)'); // Tell the user they are rate limited
         }
@@ -211,6 +211,38 @@ class Path {
             return await this.execute(req, res);
         } catch (err) {
             return this._handleError(err, res);
+        }
+    }
+
+    addIPBan(ip: string): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'banAdd', value: ip, sendToAll: true } );
+        } else {
+            this.evolve.addIPBan(ip);
+        }
+    }
+
+    addIP(ip: string, num?: number): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'ipAdd', value: { ip, reqs: num }, sendToAll: true } );
+        } else {
+            this.evolve.addIP(ip, num);
+        }
+    }
+
+    removeIP(ip: string): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'ipRemove', value: ip, sendToAll: true } );
+        } else {
+            this.evolve.removeIP(ip);
+        }
+    }
+
+    removeIPBan(ip: string): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'banRemove', value: ip, sendToAll: true } );
+        } else {
+            this.evolve.removeIPBan(ip);
         }
     }
 }

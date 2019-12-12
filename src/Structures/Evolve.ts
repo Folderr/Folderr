@@ -36,7 +36,7 @@ import { Request, Response } from 'express';
 import EvolveSession from './EvolveSession';
 import { UserI } from '../Schemas/User';
 import { isMaster } from 'cluster';
-import codes from "./Status_Codes";
+import codes from './Status_Codes';
 
 /**
  * @class Evolve
@@ -234,6 +234,10 @@ class Evolve {
      * @returns {Promise<void>}
      */
     async init(): Promise<void> {
+        if (!this.base.sharderReady) {
+            await this.base.Utils.sleep(2000);
+            return this.init();
+        }
         // Init the base, remove options
         const { base } = this;
         delete this._options;
@@ -261,21 +265,21 @@ class Evolve {
             const Ok = paths[path];
             const apath: Path = new Ok(this, base);
             if (apath.enabled) { // If the path should be loaded
-                if (this.base.options.sharder && this.base.options.sharder.enabled) {
+                if (this.base.useSharder) {
                     // Init the path
                     this._initPath(apath, base);
                     pathNums++;
                 } else {
                     console.log(`[SYSTEM INIT PATH] - Initializing Path ${apath.label}`);
-                    // Init the path
                     this._initPath(apath, base);
+                    // Init the path
                     // Tell the user the path was initialized and add the number of paths loaded by 1
                     console.log(`[SYSTEM INIT PATH] - Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
                     pathNums++;
                 }
             }
         }
-        if (!this.base.options.sharder || !this.base.options.sharder.enabled) {
+        if (!this.base.useSharder) {
             console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         }
         // Initiate the base of the project
@@ -302,8 +306,8 @@ class Evolve {
             await this.removeTokens(base);
         }, mins);
 
-        if ( (this.base.options.sharder && this.base.options.sharder.enabled && isMaster) || !this.base.options.sharder || !this.base.options.sharder.enabled) {
-            this.base.Logger.log('SYSTEM INFO', 'Evolve-X has been initialized!', {}, 'online', 'Evolve-X is online');
+        if ( (this.base.useSharder && isMaster) || !this.base.useSharder) {
+            this.base.Logger.log('SYSTEM INFO', `Evolve-X has been initialized!`, {}, 'online', 'Evolve-X is online');
         }
         if (process.env.NODE_ENV === 'test') {
             process.exit();
@@ -330,6 +334,22 @@ class Evolve {
         for (const token of atokens) {
             await base.schemas.BearerTokens.findOneAndRemove( { _id: token._id } );
         }
+    }
+
+    addIPBan(ip: string): void {
+        this.ipBans.push(ip);
+    }
+
+    removeIPBan(ip: string): void {
+        this.ipBans = this.ipBans.filter(ban => ban !== ip);
+    }
+
+    addIP(ip: string, num?: number): void {
+        this.ips.set(ip, ( (num || num === 0) && !isNaN(num) ) ? num + 1 : 0);
+    }
+
+    removeIP(ip: string): void {
+        this.ips.delete(ip);
     }
 }
 
