@@ -47,11 +47,12 @@ class Pong extends Path {
         const nodeVersion = process.version;
         const uptime = process.uptime();
         const aUptime = moment.duration(uptime, 'seconds').format('MMMM [Months,] WW [Weeks,] DD [Days,] h [Hours,] m [Minutes,] s [Seconds]');
+        const shards = this.base.useSharder && `${this.base.shardNum}/${this.base.maxShardNum}`;
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         const onlineSince = new Date(new Date() - Math.round(uptime * 1000) );
         return res.status(this.codes.ok).send( {
-            version, nodeVersion, onlineSince, uptime: aUptime, message: 'Pong!',
+            version, nodeVersion, onlineSince, uptime: aUptime, message: 'Pong!', shards,
         } );
     }
 }
