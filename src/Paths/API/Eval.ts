@@ -48,7 +48,7 @@ class Eval extends Path {
             let evaled = await eval(req.body.eval);
             switch (typeof evaled) {
                 case 'object': {
-                    evaled = inspect(evaled, { depth: 0, showHidden: true });
+                    evaled = inspect(evaled, { depth: 0, showHidden: true } );
                     break;
                 }
                 default: {
@@ -58,7 +58,8 @@ class Eval extends Path {
             if (!evaled || evaled.length === 0) {
                 return res.status(this.codes.noContent).send();
             }
-            if (evaled.length > 2000) {
+            const maxLength = 2000;
+            if (evaled.length > maxLength) {
                 return res.status(this.codes.ok).send('[ERROR] Eval too big');
             }
             return res.status(this.codes.ok).send(evaled);
