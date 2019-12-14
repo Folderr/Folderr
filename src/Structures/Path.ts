@@ -30,6 +30,7 @@ import Evolve from './Evolve';
 import Base from './Base';
 import express from 'express';
 import * as cluster from 'cluster';
+import { join } from 'path';
 
 /**
  * Path structure
@@ -67,6 +68,8 @@ class Path {
 
     private _fatalErrors: number;
 
+    public locked: boolean;
+
     /**
      *
      * @param {Object<Evolve>} evolve The Evolve-X client
@@ -101,6 +104,7 @@ class Path {
 
         this.eHandler = new ErrorHandler(this);
         this._fatalErrors = 0;
+        this.locked = false;
     }
 
     /**
@@ -163,22 +167,25 @@ class Path {
      */
     async _execute(req: any, res: any): Promise<express.Response | void> {
         // If path is not enabled, and it is not lean... end the endpoint here
-        if (!this.enabled && !this.lean) {
+        if (this.locked && !this.lean) {
+            if (!req.path.match('/api') ) {
+                return res.status(this.codes.locked).sendFile(join(__dirname, '../Frontend/locked.html') );
+            }
             return res.status(this.codes.locked).send('[FATAL] Endpoint locked!');
         }
 
         if (this.secureOnly && !req.secure) {
             return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
         }
-        /* if (this.reqAuth && (!req.cookies || !req.cookies.token) ) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
-        } */
-        // Define number variables
-        const sec = 4000;
-        const maxTrys = 5;
+        // Define number variables for ratelimiting
+        const sec = 2000;
+        const maxTrys = this.base.useSharder ? 7 : 5;
         const hour = 3600000;
         // If ratelimited, tell the user
         if (this.evolve.ipBans.includes(req.ip) ) {
+            if (!req.path.match('/api') ) {
+                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, '../Frontend/banned.html') );
+            }
             return res.status(this.codes.forbidden).send('Rate limited (Banned)');
         }
 
@@ -188,6 +195,7 @@ class Path {
         if (!check && this.evolve.ips.get(req.ip) ) {
             setTimeout( () => {
                 this.removeIP(req.ip);
+                console.log(this.evolve.ips);
             }, sec);
         }
 
@@ -202,7 +210,10 @@ class Path {
             setTimeout( () => {
                 this.removeIPBan(req.ip);
             }, hour);
-            return res.status(this.codes.forbidden).send('Rate limited (Banned)'); // Tell the user they are rate limited
+            if (!req.path.match('/api') ) {
+                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, '../Frontend/banned.html') );
+            }
+            return res.status(this.codes.tooManyReq).send('Rate limited (Banned)'); // Tell the user they are rate limited
         }
 
         // Execute the endpoint and catch errors
