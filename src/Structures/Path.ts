@@ -175,7 +175,7 @@ class Path {
         } */
         // Define number variables
         const sec = 4000;
-        const maxTrys = 3;
+        const maxTrys = 5;
         const hour = 3600000;
         // If ratelimited, tell the user
         if (this.evolve.ipBans.includes(req.ip) ) {
