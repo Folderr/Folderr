@@ -126,7 +126,7 @@ export default class Ratelimiter extends EventEmitter {
     addReq(ip: string): number {
         const req = this.reqs.get(ip);
         let num;
-        const sec = 45000;
+        const sec = 2500;
         if (!req) {
             this.reqs.set(ip, { ip, date: new Date(Date.now() + sec), num: 1 } );
             num = 1;
