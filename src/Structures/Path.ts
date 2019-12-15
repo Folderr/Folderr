@@ -195,7 +195,6 @@ class Path {
         if (!check && this.evolve.ips.get(req.ip) ) {
             setTimeout( () => {
                 this.removeIP(req.ip);
-                console.log(this.evolve.ips);
             }, sec);
         }
 
