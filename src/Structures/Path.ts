@@ -186,7 +186,7 @@ class Path {
             if (!req.path.match('/api') ) {
                 return res.status(this.codes.tooManyReq).sendFile(join(__dirname, '../Frontend/banned.html') );
             }
-            return res.status(this.codes.forbidden).send('Rate limited (Banned)');
+            return res.status(this.codes.tooManyReq).send('Rate limited (Banned)');
         }
 
         let check: number | undefined = this.evolve.ips.get(req.ip); // Requests in 2 seconds
