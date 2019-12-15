@@ -178,41 +178,54 @@ class Path {
             return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
         }
         // Define number variables for ratelimiting
-        const sec = 2000;
-        const maxTrys = this.base.useSharder ? 7 : 5;
-        const hour = 3600000;
+        const banned = this.evolve.ratelimiter.isBanned(req.ip);
+        if (banned) {
+            const banType = this.evolve.ratelimiter.getBanCount(req.ip);
+            if (!req.path.match('/api') ) {
+                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, `../Frontend/banned_${typeof banType !== 'boolean' && banType - 1 > 0 ? String(banType) : '1'}.html`) );
+            }
+            const types = {
+                1: '5 minutes',
+                2: '30 minutes',
+                3: '1 hour',
+            };
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            return res.status(this.codes.tooManyReq).send(`Rate limited (Banned) for ${typeof banType !== 'boolean' ? types[banType] : types['1']}`);
+        }
         // If ratelimited, tell the user
-        if (this.evolve.ipBans.includes(req.ip) ) {
-            if (!req.path.match('/api') ) {
-                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, '../Frontend/banned.html') );
-            }
-            return res.status(this.codes.tooManyReq).send('Rate limited (Banned)');
-        }
 
-        let check: number | undefined = this.evolve.ips.get(req.ip); // Requests in 2 seconds
-        // You get three requesters in two seconds and you get banned on the fourth.
-        this.addIP(req.ip, check);
-        if (!check && this.evolve.ips.get(req.ip) ) {
-            setTimeout( () => {
-                this.removeIP(req.ip);
-            }, sec);
-        }
-
-        // Check the requests and see if the user is banned
-        check = this.evolve.ips.get(req.ip) || 0;
-        if (check > maxTrys) {
-            // Ban the IP if check is greater than or equal to three
+        this.addIP(req.ip);
+        const reqs = this.evolve.ratelimiter.getReq(req.ip);
+        if (reqs && typeof reqs !== 'boolean' && reqs >= this.evolve.ratelimiter.rules.max) {
             this.addIPBan(req.ip);
-            console.log(`[SYSTEM INFO] IP ${req.ip} banned!`);
-
-            // Remove the ip ban after an hour
-            setTimeout( () => {
-                this.removeIPBan(req.ip);
-            }, hour);
+            await this.Utils.sleep(1000);
+        }
+        const nbanned = this.evolve.ratelimiter.isBanned(req.ip);
+        if (nbanned) {
+            const banType = this.evolve.ratelimiter.getBanCount(req.ip);
+            const times = {
+                1: 'firstTime',
+                2: 'secondTime',
+                3: 'maxTime',
+            };
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            const time = this.evolve.ratelimiter.rules[times[banType]];
+            const types = {
+                1: '5 minutes',
+                2: '30 minutes',
+                3: '1 hour',
+            };
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            console.log(`[RATELIMITER] Banned ${req.ip} until ${new Date(Date.now() + time).toTimeString()} (${typeof banType !== 'boolean' ? types[banType] : types['1']})\n[SYSTEM TIME] It is ${new Date().toTimeString()}`);
             if (!req.path.match('/api') ) {
-                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, '../Frontend/banned.html') );
+                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, `../Frontend/banned_${typeof banType !== 'boolean' ? String(banType) : '1'}.html`) );
             }
-            return res.status(this.codes.tooManyReq).send('Rate limited (Banned)'); // Tell the user they are rate limited
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            return res.status(this.codes.tooManyReq).send(`Rate limited (Banned) for ${typeof banType !== 'boolean' ? types[banType] : types['1']}`);
         }
 
         // Execute the endpoint and catch errors
@@ -232,11 +245,11 @@ class Path {
         }
     }
 
-    addIP(ip: string, num?: number): void {
+    addIP(ip: string): void {
         if (cluster.isWorker) {
-            this.base.sendToMaster( { messageType: 'ipAdd', value: { ip, reqs: num }, sendToAll: true } );
+            this.base.sendToMaster( { messageType: 'ipAdd', value: ip, sendToAll: true } );
         } else {
-            this.evolve.addIP(ip, num);
+            this.evolve.addIP(ip);
         }
     }
 

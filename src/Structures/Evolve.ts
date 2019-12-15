@@ -37,6 +37,7 @@ import EvolveSession from './EvolveSession';
 import { UserI } from '../Schemas/User';
 import { isMaster } from 'cluster';
 import codes from './Status_Codes';
+import Ratelimiter from './Ratelimiter';
 
 /**
  * @class Evolve
@@ -60,6 +61,8 @@ class Evolve {
 
     private base: Base;
 
+    public ratelimiter: Ratelimiter;
+
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -79,6 +82,7 @@ class Evolve {
         this.Session = new EvolveSession();
         this.base = new Base(this, this._options);
         this.checkFAuth = this.checkFAuth.bind(this);
+        this.ratelimiter = new Ratelimiter(this.base);
     }
 
 
@@ -339,19 +343,19 @@ class Evolve {
     }
 
     addIPBan(ip: string): void {
-        this.ipBans.push(ip);
+        this.ratelimiter.addBan(ip);
     }
 
     removeIPBan(ip: string): void {
-        this.ipBans = this.ipBans.filter(ban => ban !== ip);
+        this.ratelimiter.removeBan(ip);
     }
 
-    addIP(ip: string, num?: number): void {
-        this.ips.set(ip, ( (num || num === 0) && !isNaN(num) ) ? num + 1 : 0);
+    addIP(ip: string): number {
+        return this.ratelimiter.addReq(ip);
     }
 
     removeIP(ip: string): void {
-        this.ips.delete(ip);
+        this.ratelimiter.removeReq(ip);
     }
 }
 
