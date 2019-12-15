@@ -270,7 +270,7 @@ class Base {
         if (msg.messageType === 'shardNum' && typeof msg.value === 'number') {
             this.shardNum = msg.value;
         } else if (msg.messageType === 'ipAdd' && this.evolve) {
-            this.evolve.addIP(msg.value.ip, msg.value.reqs);
+            this.evolve.addIP(msg.value);
         } else if (msg.messageType === 'banAdd' && this.evolve) {
             this.evolve.addIPBan(msg.value);
         } else if (msg.messageType === 'ipRemove' && this.evolve) {
