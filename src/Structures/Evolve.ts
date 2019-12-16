@@ -36,6 +36,8 @@ import { Request, Response } from 'express';
 import EvolveSession from './EvolveSession';
 import { UserI } from '../Schemas/User';
 import { isMaster } from 'cluster';
+import codes from './Status_Codes';
+import Ratelimiter from './Ratelimiter';
 
 /**
  * @class Evolve
@@ -59,6 +61,8 @@ class Evolve {
 
     private base: Base;
 
+    public ratelimiter: Ratelimiter;
+
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -78,6 +82,7 @@ class Evolve {
         this.Session = new EvolveSession();
         this.base = new Base(this, this._options);
         this.checkFAuth = this.checkFAuth.bind(this);
+        this.ratelimiter = new Ratelimiter(this.base);
     }
 
 
@@ -232,7 +237,13 @@ class Evolve {
      *
      * @returns {Promise<void>}
      */
+    // eslint-disable-next-line consistent-return
     async init(): Promise<void> {
+        if (!this.base.sharderReady) {
+            const sec = 2000;
+            await this.base.Utils.sleep(sec);
+            return this.init();
+        }
         // Init the base, remove options
         const { base } = this;
         delete this._options;
@@ -260,21 +271,21 @@ class Evolve {
             const Ok = paths[path];
             const apath: Path = new Ok(this, base);
             if (apath.enabled) { // If the path should be loaded
-                if (this.base.options.sharder && this.base.options.sharder.enabled) {
+                if (this.base.useSharder) {
                     // Init the path
                     this._initPath(apath, base);
                     pathNums++;
                 } else {
                     console.log(`[SYSTEM INIT PATH] - Initializing Path ${apath.label}`);
-                    // Init the path
                     this._initPath(apath, base);
+                    // Init the path
                     // Tell the user the path was initialized and add the number of paths loaded by 1
                     console.log(`[SYSTEM INIT PATH] - Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
                     pathNums++;
                 }
             }
         }
-        if (!this.base.options.sharder || !this.base.options.sharder.enabled) {
+        if (!this.base.useSharder) {
             console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
         }
         // Initiate the base of the project
@@ -288,9 +299,9 @@ class Evolve {
                     res.clearCookie('token');
                     return res.sendFile(dir);
                 }
-                return res.sendFile(join(__dirname, '../Frontend/notfound_loggedIn.html') );
+                return res.status(codes.notFound).sendFile(join(__dirname, '../Frontend/notfound_loggedIn.html') );
             }
-            return res.sendFile(dir);
+            return res.status(codes.notFound).sendFile(dir);
         } );
 
         const mins = 120000;
@@ -301,8 +312,8 @@ class Evolve {
             await this.removeTokens(base);
         }, mins);
 
-        if ( (this.base.options.sharder && this.base.options.sharder.enabled && isMaster) || !this.base.options.sharder || !this.base.options.sharder.enabled) {
-            this.base.Logger.log('SYSTEM INFO', 'Evolve-X has been initialized!', {}, 'online', 'Evolve-X is online');
+        if ( (this.base.useSharder && isMaster) || !this.base.useSharder) {
+            this.base.Logger.log('SYSTEM INFO', `Evolve-X has been initialized!`, {}, 'online', 'Evolve-X is online');
         }
         if (process.env.NODE_ENV === 'test') {
             process.exit();
@@ -329,6 +340,22 @@ class Evolve {
         for (const token of atokens) {
             await base.schemas.BearerTokens.findOneAndRemove( { _id: token._id } );
         }
+    }
+
+    addIPBan(ip: string): void {
+        this.ratelimiter.addBan(ip);
+    }
+
+    removeIPBan(ip: string): void {
+        this.ratelimiter.removeBan(ip);
+    }
+
+    addIP(ip: string): number {
+        return this.ratelimiter.addReq(ip);
+    }
+
+    removeIP(ip: string): void {
+        this.ratelimiter.removeReq(ip);
     }
 }
 

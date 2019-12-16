@@ -44,7 +44,7 @@ import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
-import cluster from 'cluster';
+import cluster, { isMaster } from 'cluster';
 
 const ee = new Events();
 
@@ -103,6 +103,14 @@ class Base {
     public options: ActualOptions;
 
     public Logger: Logger;
+    
+    public useSharder: boolean;
+
+    public shardNum: number;
+
+    public sharderReady?: boolean;
+
+    public maxShardNum: number;
 
     constructor(evolve: Evolve | null, options: Options, flags?: string) {
         this.evolve = evolve;
@@ -121,6 +129,10 @@ class Base {
         this.flags = flags;
         this.options = new EvolveConfig(options);
         this.Logger = new Logger(this.options);
+        this.useSharder = false;
+        this.shardNum = 0;
+        this.maxShardNum = 0;
+        this.initBasics();
     }
 
     listen(): void {
@@ -139,6 +151,17 @@ class Base {
             server.listen(this.options.port);
         }
         this.web.listen(this.options.port);
+    }
+
+    initBasics(): void {
+        if (this.options.sharder && this.options.sharder.enabled) {
+            const asharder = this.Utils.shardLimit(this.options.sharder);
+            if (asharder && typeof asharder === 'number') {
+                this.maxShardNum = asharder;
+                this.useSharder = true;
+            }
+        }
+        this.sharderReady = true;
     }
 
     /**
@@ -179,7 +202,7 @@ class Base {
 
             let uhm;
 
-            if (!this.options.sharder || !this.options.sharder.enabled) {
+            if (!this.useSharder) {
                 try {
                     uhm = await this.superagent.get(`localhost:${this.options.port}`);
                 } catch (err) {
@@ -195,21 +218,30 @@ class Base {
                 ee.emit('fail');
                 throw Error('[FATAL] You are trying to listen on a port in use!');
             }
-            const maxCPUs = this.Utils.shardLimit(this.options.sharder);
-            if (this.options.sharder && this.options.sharder.enabled && maxCPUs) {
+            if (this.useSharder && this.maxShardNum) {
                 if (cluster.isMaster) {
-                    for (let i = 0; i < maxCPUs; i++) {
+                    const onMM = this.onMasterMessage.bind(this);
+                    cluster.on('message', onMM);
+                    for (let i = 0; i < this.maxShardNum; i++) {
                         cluster.fork();
                     }
 
                     cluster.on('exit', (worker) => {
-                        console.log(`[WORKER] worker ${worker.process.pid} died`);
+                        this.shardNum--;
+                        console.log(`[WORKER] worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})`);
+
+                        this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
                     } );
                     cluster.on('online', worker => {
-                        console.log(`[WORKER] worker ${worker.process.pid} started`);
+                        this.shardNum++;
+                        console.log(`[WORKER] worker ${worker.process.pid} started (${this.shardNum}/${this.maxShardNum})`);
+
+                        this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
                     } );
                     console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
                 } else {
+                    const messg = this.onWorkerMessage.bind(this);
+                    cluster.worker.on('message', messg);
                     this.listen();
                 }
                 return;
@@ -219,6 +251,59 @@ class Base {
             this.listen();
             console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
+    }
+    
+    onMasterMessage(worker: cluster.Worker, msg: { messageType: string; value: any; sendToAll?: boolean } ): void {
+        if (!cluster.isMaster) {
+            return;
+        }
+        if (msg.sendToAll) {
+            delete msg.sendToAll;
+            this.sendToWorkers(msg, String(worker.id) );
+        }
+    }
+    
+    onWorkerMessage(msg: { messageType: string; value: any } ): void {
+        if (!cluster.isWorker) {
+            return;
+        }
+        if (msg.messageType === 'shardNum' && typeof msg.value === 'number') {
+            this.shardNum = msg.value;
+        } else if (msg.messageType === 'ipAdd' && this.evolve) {
+            this.evolve.addIP(msg.value);
+        } else if (msg.messageType === 'banAdd' && this.evolve) {
+            this.evolve.addIPBan(msg.value);
+        } else if (msg.messageType === 'ipRemove' && this.evolve) {
+            this.evolve.removeIP(msg.value);
+        } else if (msg.messageType === 'banRemove' && this.evolve) {
+            this.evolve.removeIPBan(msg.value);
+        }
+    }
+
+    sendToMaster(data: { messageType: string; value: any; sendToAll?: boolean } ): void {
+        if (!cluster.isWorker) {
+            return;
+        }
+        
+        cluster.worker.send(data);
+    }
+
+    sendToWorkers(data: { messageType: string; value: any }, fromWorker?: string): boolean {
+        if (!isMaster) {
+            return false;
+        }
+        for (const id in cluster.workers) {
+            if (fromWorker && id !== fromWorker) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                cluster.workers[id].send(data);
+            } else {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                cluster.workers[id].send(data);
+            }
+        }
+        return true;
     }
 }
 

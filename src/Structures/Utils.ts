@@ -619,8 +619,6 @@ class Utils {
 
         const toBytes = 1048576;
 
-        const max = (sharderOptions.maxCores > this.defaultShardOptions.maxCores) ? this.defaultShardOptions.maxCores : sharderOptions.maxCores;
-
         const maxRAM = Number( (os.totalmem() / toBytes).toFixed(0) );
 
         const ram = this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory) > maxRAM ? maxRAM : this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory);
@@ -628,19 +626,15 @@ class Utils {
         const leftForOS = 2; // CPU cores left for the operating system.
 
         const maxCPUs = os.cpus().length > 3 ? os.cpus().length - leftForOS : os.cpus().length; // Leave some cores for the OS if there is at least 4 CPU cores on the OS
-
-        console.log(maxCPUs);
-        console.log(max);
-        const processRamMB = 180; // The amount of RAM I estimate the process to use.
+        const processRamMB = 280; // The amount of RAM I estimate the process to use under load of 1k requests every other second.
         const ramLimit = Math.floor(ram / processRamMB); // Total RAM divided by ESTIMATED RAM usage per 6 user process.
-        if (max > maxCPUs || ramLimit > maxCPUs) {
-            console.log(max > maxCPUs ? 'WHY' : 'ok');
-            return maxCPUs;
+        if (ramLimit < 2 || maxCPUs < 2 || sharderOptions.maxCores < 2) {
+            return false;
         }
-        if (ramLimit > max) {
-            return max;
+        if (ramLimit > maxCPUs || ramLimit > sharderOptions.maxCores) { // If RAM is greater than total cores Evolve-X will use or max cores the config specifies
+            return sharderOptions.maxCores > maxCPUs ? maxCPUs : sharderOptions.maxCores; // Use the least cores.
         }
-        return ramLimit;
+        return ramLimit; // use ramLimit last
     }
 }
 

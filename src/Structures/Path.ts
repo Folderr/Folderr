@@ -29,6 +29,8 @@ import ErrorHandler from './ErrorHandler';
 import Evolve from './Evolve';
 import Base from './Base';
 import express from 'express';
+import * as cluster from 'cluster';
+import { join } from 'path';
 
 /**
  * Path structure
@@ -66,6 +68,8 @@ class Path {
 
     private _fatalErrors: number;
 
+    public locked: boolean;
+
     /**
      *
      * @param {Object<Evolve>} evolve The Evolve-X client
@@ -100,6 +104,7 @@ class Path {
 
         this.eHandler = new ErrorHandler(this);
         this._fatalErrors = 0;
+        this.locked = false;
     }
 
     /**
@@ -162,47 +167,65 @@ class Path {
      */
     async _execute(req: any, res: any): Promise<express.Response | void> {
         // If path is not enabled, and it is not lean... end the endpoint here
-        if (!this.enabled && !this.lean) {
+        if (this.locked && !this.lean) {
+            if (!req.path.match('/api') ) {
+                return res.status(this.codes.locked).sendFile(join(__dirname, '../Frontend/locked.html') );
+            }
             return res.status(this.codes.locked).send('[FATAL] Endpoint locked!');
         }
 
         if (this.secureOnly && !req.secure) {
             return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
         }
-        /* if (this.reqAuth && (!req.cookies || !req.cookies.token) ) {
-            return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
-        } */
-        // Define number variables
-        const twoSec = 2000;
-        const maxTrys = 3;
-        const hour = 3600000;
+        // Define number variables for ratelimiting
+        const banned = this.evolve.ratelimiter.isBanned(req.ip);
+        if (banned) {
+            const banType = this.evolve.ratelimiter.getBanCount(req.ip);
+            if (!req.path.match('/api') ) {
+                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, `../Frontend/banned_${typeof banType !== 'boolean' && banType - 1 > 0 ? String(banType) : '1'}.html`) );
+            }
+            const types = {
+                1: '5 minutes',
+                2: '30 minutes',
+                3: '1 hour',
+            };
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            return res.status(this.codes.tooManyReq).send(`Rate limited (Banned) for ${typeof banType !== 'boolean' ? types[banType] : types['1']}`);
+        }
         // If ratelimited, tell the user
-        if (this.evolve.ipBans.includes(req.ip) ) {
-            return res.status(this.codes.forbidden).send('Rate limited (Banned)');
+
+        this.addIP(req.ip);
+        const reqs = this.evolve.ratelimiter.getReq(req.ip);
+        if (reqs && typeof reqs !== 'boolean' && reqs >= this.evolve.ratelimiter.rules.max) {
+            this.addIPBan(req.ip);
+            await this.Utils.sleep(1000);
         }
-
-        let check: number | undefined = this.evolve.ips.get(req.ip); // Requests in 2 seconds
-        // You get three requesters in two seconds and you get banned on the fourth.
-        this.evolve.ips.set(req.ip, (check && !isNaN(check) ) ? check + 1 : 0);
-        if (!check && this.evolve.ips.get(req.ip) ) {
-            setTimeout( () => {
-                this.evolve.ips.delete(req.ip);
-            }, twoSec);
-        }
-
-        // Check the requests and see if the user is banned
-        check = this.evolve.ips.get(req.ip) || 0;
-        if (check > maxTrys) {
-            // Ban the IP if check is greater than or equal to three
-            this.evolve.ipBans.push(req.ip);
-            console.log(`[SYSTEM INFO] IP ${req.ip} banned!`);
-
-            // Remove the ip ban after an hour
-            setTimeout( () => {
-                this.evolve.ipBans = this.evolve.ipBans.filter(ip => ip !== req.ip);
-                console.log(this.evolve.ipBans);
-            }, hour);
-            return res.status(this.codes.forbidden).send('Rate limited (Banned)'); // Tell the user they are rate limited
+        const nbanned = this.evolve.ratelimiter.isBanned(req.ip);
+        if (nbanned) {
+            const banType = this.evolve.ratelimiter.getBanCount(req.ip);
+            const times = {
+                1: 'firstTime',
+                2: 'secondTime',
+                3: 'maxTime',
+            };
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            const time = this.evolve.ratelimiter.rules[times[banType]];
+            const types = {
+                1: '5 minutes',
+                2: '30 minutes',
+                3: '1 hour',
+            };
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            console.log(`[RATELIMITER] Banned ${req.ip} until ${new Date(Date.now() + time).toTimeString()} (${typeof banType !== 'boolean' ? types[banType] : types['1']})\n[SYSTEM TIME] It is ${new Date().toTimeString()}`);
+            if (!req.path.match('/api') ) {
+                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, `../Frontend/banned_${typeof banType !== 'boolean' ? String(banType) : '1'}.html`) );
+            }
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            return res.status(this.codes.tooManyReq).send(`Rate limited (Banned) for ${typeof banType !== 'boolean' ? types[banType] : types['1']}`);
         }
 
         // Execute the endpoint and catch errors
@@ -211,6 +234,38 @@ class Path {
             return await this.execute(req, res);
         } catch (err) {
             return this._handleError(err, res);
+        }
+    }
+
+    addIPBan(ip: string): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'banAdd', value: ip, sendToAll: true } );
+        } else {
+            this.evolve.addIPBan(ip);
+        }
+    }
+
+    addIP(ip: string): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'ipAdd', value: ip, sendToAll: true } );
+        } else {
+            this.evolve.addIP(ip);
+        }
+    }
+
+    removeIP(ip: string): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'ipRemove', value: ip, sendToAll: true } );
+        } else {
+            this.evolve.removeIP(ip);
+        }
+    }
+
+    removeIPBan(ip: string): void {
+        if (cluster.isWorker) {
+            this.base.sendToMaster( { messageType: 'banRemove', value: ip, sendToAll: true } );
+        } else {
+            this.evolve.removeIPBan(ip);
         }
     }
 }

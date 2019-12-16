@@ -71,7 +71,7 @@ class ErrorHandler {
 
         // Disable path if the error was fatal
         if (severity && severity === 'fatal') {
-            this.Path.enabled = false;
+            this.Path.locked = true;
         }
         return message;
     }
