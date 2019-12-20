@@ -27,6 +27,7 @@ import childProcess from 'child_process';
 import util from 'util';
 const exec = util.promisify(childProcess.exec);
 import { promises } from 'fs';
+import {isMaster} from "cluster";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
@@ -110,12 +111,24 @@ class Manage extends Path {
             await this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown remotely by owner', { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System shutdown by system owner');
             const min = 60000;
             await sleep(min);
+            if (this.base.useSharder) {
+                if (isMaster) {
+                    await this.base.killAll();
+                    process.exit();
+                } else {
+                    this.base.sendToMaster( { messageType: 'kill', value: 0 } );
+                    // eslint-disable-next-line consistent-return
+                    return;
+                }
+            }
             process.exit();
         } else if (req.query.type === 'u') {
+            res.status(this.codes.accepted).send('Updating.');
             try {
                 await exec('yarn update');
             } catch (err) {
-                return res.status(this.codes.internalErr).send(`[ERROR] ${err}`);
+                await this._handleError(err, res, { noIncrease: true, noResponse: true } );
+                return Promise.resolve();
             }
             const f = await promises.readFile('./package.json');
             const af = JSON.parse(f.toString() );
@@ -135,16 +148,16 @@ class Manage extends Path {
             await this.base.Logger.log('SYSTEM - UPDATE', `System updated. ${v}`, { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System update');
             // eslint-disable-next-line require-atomic-updates
             oPackage = af;
-            return res.status(this.codes.ok).send('[SUCCESS] Updated!');
+            return Promise.resolve();
         } else if (req.query.type === 't') {
+            res.status(this.codes.accepted).send('Transpiling.');
             try {
                 await exec('tsc');
                 await this.base.Logger.log('SYSTEM - TRANSPILE', 'System remotely transpiled', { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System Transpile');
             } catch (e) {
-                console.log(e);
-                return res.status(this.codes.internalErr).send('[ERROR] TSC error. See console!');
+                await this._handleError(e, res, { noIncrease: true, noResponse: true } );
             }
-            return res.status(this.codes.ok).send('[SUCCESS] Compiled!');
+            return Promise.resolve();
         }
         return res.status(this.codes.badReq).send('[ERROR] Not an option!');
     }

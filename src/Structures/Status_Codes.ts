@@ -38,6 +38,7 @@ const codes = {
     tooManyReq: 429,
     internalErr: 500,
     notAccepted: 406,
+    accepted: 202,
 };
 
 export interface Codes {
@@ -54,6 +55,7 @@ export interface Codes {
     tooManyReq: number;
     internalErr: number;
     notAccepted: number;
+    accepted: number;
 }
 
 export default codes;
