@@ -24,27 +24,27 @@
  * @version 0.8.0
  */
 
-import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
+import superagent, {SuperAgent, SuperAgentRequest} from 'superagent';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
-import { platform } from 'os';
+import {platform} from 'os';
 import bodyParser from 'body-parser';
 import Events from 'events';
-import User, { UserI } from '../Schemas/User';
-import Upload, { UploadI } from '../Schemas/Image';
-import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
-import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
-import Shorten, { Short } from '../Schemas/Short';
-import BearerTokens, { BearerTokenSchema } from '../Schemas/BearerTokens';
+import User, {UserI} from '../Schemas/User';
+import Upload, {UploadI} from '../Schemas/Image';
+import VerifyingUser, {VUser} from '../Schemas/VerifyingUser';
+import AdminNotifs, {Notification} from '../Schemas/Admin_Notifs';
+import Shorten, {Short} from '../Schemas/Short';
+import BearerTokens, {BearerTokenSchema} from '../Schemas/BearerTokens';
 import Utils from './Utils';
 import Evolve from './Evolve';
 import Logger from './Logger';
-import EvolveConfig, { Options, ActualOptions } from './Evolve-Config';
-import { join } from 'path';
-import { readFileSync } from 'fs';
+import EvolveConfig, {ActualOptions, Options} from './Evolve-Config';
+import {join} from 'path';
+import {readFileSync} from 'fs';
 import https from 'https';
-import cluster, { isMaster } from 'cluster';
+import cluster, {isMaster} from 'cluster';
 
 const ee = new Events();
 
@@ -103,7 +103,7 @@ class Base {
     public options: ActualOptions;
 
     public Logger: Logger;
-    
+
     public useSharder: boolean;
 
     public shardNum: number;
@@ -228,9 +228,10 @@ class Base {
 
                     cluster.on('exit', (worker) => {
                         this.shardNum--;
-                        console.log(`[WORKER] worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})`);
+                        console.log(`[WORKER] worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})\n[WORKER - RESTART] Attempting to bring shard back online`);
 
                         this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
+                        cluster.fork();
                     } );
                     cluster.on('online', worker => {
                         this.shardNum++;
@@ -252,17 +253,42 @@ class Base {
             console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
-    
-    onMasterMessage(worker: cluster.Worker, msg: { messageType: string; value: any; sendToAll?: boolean } ): void {
+
+    killClusters(): Promise<true> {
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        return new Promise(resolve => {
+            for (const id in cluster.workers) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                cluster.workers[id].disconnect();
+            }
+            resolve(true);
+        } );
+    }
+
+    async killAll(): Promise<boolean> {
+        if (!cluster.isMaster) {
+            return false;
+        }
+        await this.killClusters();
+        console.log('[SHUTDOWN] Killed all worker processes/shards.\n[SYSTEM] I will die in peace now');
+        return true;
+    }
+
+    async onMasterMessage(worker: cluster.Worker, msg: { messageType: string; value: any; sendToAll?: boolean } ): Promise<void> {
         if (!cluster.isMaster) {
             return;
+        }
+        if (msg.messageType === 'kill') {
+            await this.killAll();
+            process.exit();
         }
         if (msg.sendToAll) {
             delete msg.sendToAll;
             this.sendToWorkers(msg, String(worker.id) );
         }
     }
-    
+
     onWorkerMessage(msg: { messageType: string; value: any } ): void {
         if (!cluster.isWorker) {
             return;
@@ -284,7 +310,7 @@ class Base {
         if (!cluster.isWorker) {
             return;
         }
-        
+
         cluster.worker.send(data);
     }
 

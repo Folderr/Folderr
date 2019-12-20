@@ -134,14 +134,18 @@ class Path {
      *
      * @param {Object<Error>} err The error that occurred
      * @param {Object<express.Response>} res Express response that is with the error
+     * @param {Object} [options]
+     * @param {Boolean} [options.noIncrease] Whether or not to increase the fatal errors
+     * @param {Boolean} [options.noResponse] Whether or not to send a response to the res.
      *
-     * @returns {Object<express.Response>}
+     * @returns {Object<express.Response>|Boolean}
      * @private
      */
-    _handleError(err: Error, res: any): express.Response {
+    protected _handleError(err: Error, res: any, options?: { noIncrease: boolean; noResponse: boolean } ): express.Response|void {
+        const ops = options || { noIncrease: false, noResponse: false };
         let severity;
         const e = err.message;
-        if (!e.startsWith('[ERROR]') ) {
+        if (!e.startsWith('[ERROR]') && !ops.noIncrease) {
             if (this._fatalErrors > 2) {
                 severity = 'fatal';
             } else {
@@ -154,6 +158,10 @@ class Path {
         const formattedMessage = `[INTERNAL ERROR] [PATH ${this.label}] ${handled.message}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file.slice(1).replace(/\)$/, '')}\n  Severity: ${handled.severity}`;
         console.log(formattedMessage);
         const out = err.stack ? err.stack.replace(/\n/g, '<br>') : formattedMessage.replace(/\n/g, '<br>');
+        if (ops.noResponse) {
+            return;
+        }
+        // eslint-disable-next-line consistent-return
         return res.status(this.codes.internalErr).send(out);
     }
 

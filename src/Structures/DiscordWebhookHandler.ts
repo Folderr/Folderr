@@ -87,22 +87,22 @@ class DiscordWebhookHandler {
     constructor(webhookURL: string, discordHook?: DiscordHook, isMaxCores?: boolean) {
         this.webhookURL = webhookURL;
         this.colors = {
-            error: Number('0xFF0000'),
-            deleteAccount: Number('0xfc0075'),
-            online: Number('0x00fc82'),
-            accountDeny: Number('0xbc004b'),
-            accountAccept: Number('0x19fc05'),
-            imageUpload: Number('0xabfca4'),
-            imageDelete: Number('0xfca9a4'),
-            signup: Number('0xcaf700'),
-            securityWarn: Number('0x7f0002'),
-            adminGive: Number('0x5d8dfc'),
-            adminRemove: Number('0x7d5dfc'),
-            manage: Number('0xfcaa5d'),
-            shorten: Number('0xabfca4'),
-            shortRemove: Number('0xfca9a4'),
-            accUpdate: Number('0x1e9e95'),
-            accountDelete: Number('0x53f1fc'),
+            error: 0xFF0000,
+            deleteAccount: 0xfc0075,
+            online: 0x00fc82,
+            accountDeny: 0xbc004b,
+            accountAccept: 0x19fc05,
+            imageUpload: 0xabfca4,
+            imageDelete: 0xfca9a4,
+            signup: 0xcaf700,
+            securityWarn: 0x7f0002,
+            adminGive: 0x5d8dfc,
+            adminRemove: 0x7d5dfc,
+            manage: 0xfcaa5d,
+            shorten: 0xabfca4,
+            shortRemove: 0xfca9a4,
+            accUpdate: 0x1e9e95,
+            accountDelete: 0x53f1fc,
         };
         this.discordHook = discordHook;
         this.valid = false;
@@ -237,11 +237,15 @@ class DiscordWebhookHandler {
         }
         const aData: any = { embeds: [data] };
         if (this.discordHook) {
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            aData.avatar_url = this.discordHook.avatar_url;
-            aData.username = this.discordHook.name;
+            if (this.discordHook.avatar_url) {
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                aData.avatar_url = this.discordHook.avatar_url;
+            }
+            if (this.discordHook.name) {
+                aData.username = this.discordHook.name;
+            }
         }
-        const out = await superagent.post(this.webhookURL).send(JSON.stringify(aData) );
+        const out = await superagent.post(this.webhookURL).send(aData);
         const noContent = 204;
         if (!out || out.status !== noContent) {
             throw Error('[Webhook Handler] - Webhook failed to send');
