@@ -27,7 +27,7 @@ import childProcess from 'child_process';
 import util from 'util';
 const exec = util.promisify(childProcess.exec);
 import { promises } from 'fs';
-import {isMaster} from "cluster";
+import { isMaster } from 'cluster';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
