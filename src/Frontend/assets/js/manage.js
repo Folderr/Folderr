@@ -16,14 +16,14 @@ $(document).ready(function () {
             if (typeof result === 'string' && result.startsWith('[ERROR] Authorization failed') ) {
                 return $(location).attr('href', '/');
             }
-            $('#noticetxt').text('Typescript Transpiler ran!');
+            $('#noticetxt').text('Typescript Transpiler running!');
         } );
     } );
 
     $('#update').click( () => {
         $('#noticetxt').text('Updating source code... This may take a few minutes, give or take.');
         $.post('/api/manage?type=u', () => {
-            $('#noticetxt').text('Updated!');
+            $('#noticetxt').text('Updating, this will happen in the background');
             $.get('/api/info', (result) => {
                 let str = `Git Commit: ${result.commit.replace(' ', ',\n')}\nEvolve-X branch: ${result.branch}`;
                 if (result.version) {

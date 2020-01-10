@@ -19,7 +19,7 @@ Looking for the config perhaps? Check out [The config documentation](./Config.md
 
 - Linux users could benefit from NGINX.
 
-View [the quickstart page](./QuickStart.md)
+View [The install wiki](https://gitlab.com/evolve-x/evolve-x/-/wikis/install)
 
 # Made & Maintained by
 

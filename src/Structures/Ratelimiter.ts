@@ -51,11 +51,11 @@ interface PrevBans {
  */
 export default class Ratelimiter extends EventEmitter {
     public base: Base;
-    
+
     public reqs: Map<string, Req>;
-    
+
     public bans: Map<string, RBase>;
-    
+
     public prevBans: Map<string, PrevBans>;
 
     public readonly rules: { firstTime: number; maxTime: number; secondTime: number; max: number };
@@ -71,13 +71,13 @@ export default class Ratelimiter extends EventEmitter {
     constructor(base: Base) {
         super();
         this.base = base;
-        
+
         this.reqs = new Map();
         this.bans = new Map();
         this.prevBans = new Map();
 
         this.rules = {
-            max: 3,
+            max: 6,
             maxTime: 3600000,
             firstTime: 300000,
             secondTime: 1800000,

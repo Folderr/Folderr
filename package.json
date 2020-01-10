@@ -1,6 +1,6 @@
 {
   "name": "evolve-x",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "description": "A secure open source host for images, and shortened urls..",
   "main": "src/index.js",
   "scripts": {
@@ -26,7 +26,6 @@
     "@axonteam/eslint-config": "^2.1.1",
     "@types/bcrypt": "^3.0.0",
     "@types/cookie-parser": "^1.4.2",
-    "@types/express": "^4.17.0",
     "@types/formidable": "^1.0.31",
     "@types/mime-types": "^2.1.0",
     "@types/moment": "^2.13.0",
