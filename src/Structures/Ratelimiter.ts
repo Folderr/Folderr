@@ -77,7 +77,7 @@ export default class Ratelimiter extends EventEmitter {
         this.prevBans = new Map();
 
         this.rules = {
-            max: 4,
+            max: 6,
             maxTime: 3600000,
             firstTime: 300000,
             secondTime: 1800000,
