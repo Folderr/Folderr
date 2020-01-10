@@ -24,27 +24,27 @@
  * @version 0.8.0
  */
 
-import superagent, {SuperAgent, SuperAgentRequest} from 'superagent';
+import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
-import {platform} from 'os';
+import { platform } from 'os';
 import bodyParser from 'body-parser';
 import Events from 'events';
-import User, {UserI} from '../Schemas/User';
-import Upload, {UploadI} from '../Schemas/Image';
-import VerifyingUser, {VUser} from '../Schemas/VerifyingUser';
-import AdminNotifs, {Notification} from '../Schemas/Admin_Notifs';
-import Shorten, {Short} from '../Schemas/Short';
-import BearerTokens, {BearerTokenSchema} from '../Schemas/BearerTokens';
+import User, { UserI } from '../Schemas/User';
+import Upload, { UploadI } from '../Schemas/Image';
+import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
+import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
+import Shorten, { Short } from '../Schemas/Short';
+import BearerTokens, { BearerTokenSchema } from '../Schemas/BearerTokens';
 import Utils from './Utils';
 import Evolve from './Evolve';
 import Logger from './Logger';
-import EvolveConfig, {ActualOptions, Options} from './Evolve-Config';
-import {join} from 'path';
-import {readFileSync} from 'fs';
+import EvolveConfig, { ActualOptions, Options } from './Evolve-Config';
+import { join } from 'path';
+import { readFileSync } from 'fs';
 import https from 'https';
-import cluster, {isMaster} from 'cluster';
+import cluster, { isMaster } from 'cluster';
 
 const ee = new Events();
 
