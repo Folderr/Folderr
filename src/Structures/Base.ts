@@ -184,6 +184,16 @@ class Base {
 
         // Initiate the database
         mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true, useFindAndModify: false } );
+        const db = mongoose.connection;
+        db.on('error', (err) => {
+            if (process.env.NODE_ENV !== 'test') {
+                console.log(`[FATAL - DB] MongoDB connection fail!\n${err}\n[FATAL] Evolve-X is unable to work without a database! Evolve-X process terminated.`);
+                process.exit(1);
+            }
+        } );
+        db.once('open', () => {
+            console.log('[SYSTEM - DB] Connected to MongoDB!');
+        } );
 
         // Make sure you do not try to listen on a port in use (also its a more helpful error message)
         if (this.flags !== '--init-first') {
@@ -196,7 +206,8 @@ class Base {
                 throw Error(`[FAIL] Cannot listen to port ${this.options.port} as you are not root!`);
             }
             // Please dont run apps as root on linux..
-            if (process.getuid && process.getuid() === linuxRootUid) {
+            const rootPort = 1024;
+            if (process.getuid && process.getuid() === linuxRootUid && Number(this.options.port) < rootPort) {
                 console.log('[SYSTEM WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
             }
 
