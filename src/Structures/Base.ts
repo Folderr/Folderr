@@ -184,6 +184,14 @@ class Base {
 
         // Initiate the database
         mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true, useFindAndModify: false } );
+        const db = mongoose.connection;
+        db.on('error', (err) => {
+            console.log(`[FATAL - DB] MongoDB connection fail!\n${err}\n[FATAL] Evolve-X is unable to work without a database! Evolve-X process terminated.`);
+            process.exit(1);
+        } );
+        db.once('open', () => {
+            console.log('[SYSTEM - DB] Connected to MongoDB!');
+        } );
 
         // Make sure you do not try to listen on a port in use (also its a more helpful error message)
         if (this.flags !== '--init-first') {
