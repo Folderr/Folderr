@@ -45,6 +45,10 @@ export interface SharderOptions {
     maxMemory: string;
 }
 
+export interface SecurityOptions {
+    disableInsecure?: boolean;
+}
+
 export interface Options {
     port?: number;
     url?: string;
@@ -57,6 +61,7 @@ export interface Options {
     enableDiscordLogging?: boolean;
     discordHook?: DiscordHook;
     sharder?: SharderOptions;
+    security?: SecurityOptions;
 }
 
 export interface ActualOptions {
@@ -71,6 +76,7 @@ export interface ActualOptions {
     enableDiscordLogging?: boolean;
     discordHook?: DiscordHook;
     sharder?: SharderOptions;
+    security: SecurityOptions;
 }
 
 const optionsBase: ActualOptions = {
@@ -81,6 +87,7 @@ const optionsBase: ActualOptions = {
     apiOnly: false,
     trustProxies: false,
     sharder: { enabled: false, maxCores: 48, maxMemory: '4G' },
+    security: { disableInsecure: false }
 };
 
 /**
@@ -123,6 +130,8 @@ class EvolveConfig implements ActualOptions {
 
     public sharder: SharderOptions;
 
+    public security: SecurityOptions;
+
     constructor(config: Options = optionsBase) {
         this.port = config.port || optionsBase.port;
         this.url = config.url || optionsBase.url;
@@ -145,6 +154,10 @@ class EvolveConfig implements ActualOptions {
         if (config.sharder) {
             this.sharder = { enabled: config.sharder.enabled, maxMemory: config.sharder.maxMemory || baseSharder.maxMemory, maxCores: config.sharder.maxCores || baseSharder.maxCores };
         }
+
+        this.security = (config.security && {
+            disableInsecure: config.security.disableInsecure || false,
+        } ) || { disableInsecure: false };
     }
 
     /**
