@@ -35,6 +35,7 @@ import { Request } from 'express';
 import BearerTokens from '../Schemas/BearerTokens';
 import Evolve from './Evolve';
 import os from 'os';
+import Base from "./Base";
 
 const sleep = promisify(setTimeout);
 
@@ -60,6 +61,8 @@ class Utils {
 
     private defaultShardOptions: { maxCores: number; maxMemory: string; enabled: boolean };
 
+    private base?: Base;
+
     /**
      * @constructor
      *
@@ -67,10 +70,11 @@ class Utils {
      * @prop {number} byteSize The amount of random bytes to generate
      * @prop {Evolve} evolve The Evolve client
      */
-    constructor(evolve: Evolve | null) {
+    constructor(evolve: Evolve | null, base?: Base) {
         this.saltRounds = 10;
         this.byteSize = 48;
         this.evolve = evolve;
+        this.base = base;
         this.defaultShardOptions = {
             maxCores: 48,
             enabled: false,
@@ -513,6 +517,9 @@ class Utils {
      * @returns {boolean}
      */
     verifyInsecureCookies(req: any): boolean {
+        if (this.base && this.base.options && this.base.options.security.disableInsecure) {
+            return true;
+        }
         if (!req.cookies) {
             return false;
         }
