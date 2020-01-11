@@ -35,7 +35,7 @@ import { Request } from 'express';
 import BearerTokens from '../Schemas/BearerTokens';
 import Evolve from './Evolve';
 import os from 'os';
-import Base from "./Base";
+import Base from './Base';
 
 const sleep = promisify(setTimeout);
 
