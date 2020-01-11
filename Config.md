@@ -37,6 +37,8 @@ discordHook.avatar_url - Image URL to overwrite the webhooks avatar
 
 discordHook.name - New name to overwrite when sending the webhook
 
+- Discord related logging is not recommended, and may be deprecated in the future.
+
 sharder - Sharder restrictions & settings.
 
 - Evolve-X process sharder may be experimental
@@ -47,6 +49,10 @@ sharder.maxCores - The maximum amount of cores available to use when sharding (n
 
 sharder.maxMemory - The maximum amount of memory to allow total process usage. Format: `value<format>`. Default: `4G` (G standing for gigabyte).
 - Memory formats: mb/m (megabytes) or gb/g (gigabytes)
+
+security - Options for security
+
+security.disableInsecure - Disable the "I know my data is at risk" warning on certain endpoints (boolean)
 
 ### Discord webhooks
 Learn about webhooks at https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks
@@ -60,9 +66,7 @@ Learn about webhooks at https://support.discordapp.com/hc/en-us/articles/2283836
     "mongoUrl": "mongodb://localhost/e-x",
     "apiOnly": true,
     "signups": false,
-    "enableDiscordLogging": true,
-    "discordURL": "/webhook/url",
-    "DiscordHook": { "name": "Evolve-X" }
+    "security": { "disableInsecure": true }
 }
 ```
 
@@ -74,7 +78,6 @@ Learn about webhooks at https://support.discordapp.com/hc/en-us/articles/2283836
     "port": 8888,
     "mongoUrl": "mongodb://localhost/evolve-x",
     "apiOnly": false,
-    "signups": true,
-    "enableDiscorddLogging": false
+    "signups": true
 }
 ```
