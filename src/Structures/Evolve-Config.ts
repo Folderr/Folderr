@@ -87,7 +87,7 @@ const optionsBase: ActualOptions = {
     apiOnly: false,
     trustProxies: false,
     sharder: { enabled: false, maxCores: 48, maxMemory: '4G' },
-    security: { disableInsecure: false }
+    security: { disableInsecure: false },
 };
 
 /**
