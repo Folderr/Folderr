@@ -186,12 +186,18 @@ class Base {
         mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true, useFindAndModify: false } );
         const db = mongoose.connection;
         db.on('error', (err) => {
+            if (this.useSharder && !isMaster) {
+                return;
+            }
             if (process.env.NODE_ENV !== 'test') {
                 console.log(`[FATAL - DB] MongoDB connection fail!\n${err}\n[FATAL] Evolve-X is unable to work without a database! Evolve-X process terminated.`);
                 process.exit(1);
             }
         } );
         db.once('open', () => {
+            if (this.useSharder && !isMaster) {
+                return;
+            }
             console.log('[SYSTEM - DB] Connected to MongoDB!');
         } );
 
