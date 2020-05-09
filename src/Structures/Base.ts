@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -27,26 +27,23 @@
 import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import mongoose from 'mongoose';
 import { platform } from 'os';
 import bodyParser from 'body-parser';
 import Events from 'events';
-import User, { UserI } from '../Schemas/User';
-import Upload, { UploadI } from '../Schemas/Image';
-import VerifyingUser, { VUser } from '../Schemas/VerifyingUser';
-import AdminNotifs, { Notification } from '../Schemas/Admin_Notifs';
-import Shorten, { Short } from '../Schemas/Short';
-import BearerTokens, { BearerTokenSchema } from '../Schemas/BearerTokens';
-import Utils from './Utils';
-import Evolve from './Evolve';
+import Utils from './Utilities/Utils';
+import Folderr from './Folderr';
 import Logger from './Logger';
-import EvolveConfig, { ActualOptions, Options } from './Evolve-Config';
+import FolderrConfig, { ActualOptions, Options } from './Folderr-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
 import cluster, { isMaster } from 'cluster';
+import DB from './Database/DBClass';
+import { pickDB } from './Database/Pick';
+import { ChildProcess, fork } from 'child_process';
+import Emailer from './Emailer';
 
-const ee = new Events();
+const ee = new Events.EventEmitter();
 
 ee.on('fail', () => {
     setTimeout( () => {
@@ -55,15 +52,6 @@ ee.on('fail', () => {
 } );
 
 const web = express();
-
-interface Schemas {
-    User: mongoose.Model<UserI>;
-    Upload: mongoose.Model<UploadI>;
-    VerifyingUser: mongoose.Model<VUser>;
-    AdminNotifs: mongoose.Model<Notification>;
-    Shorten: mongoose.Model<Short>;
-    BearerTokens: mongoose.Model<BearerTokenSchema>;
-}
 
 /**
  * @class Base
@@ -74,7 +62,7 @@ interface Schemas {
  */
 class Base {
     /**
-     * @param {Object} evolve The Evolve client
+     * @param {Object} evolve The Folderr client
      * @param {Object} [options={}] The options for the image host
      * @param {String} [flags=''] The flags, used for the first initiation
      *
@@ -82,19 +70,19 @@ class Base {
      * @prop {Object} superagent The superagent dependency
      * @prop {Object} _options The constructor options, deleted later
      * @prop {Object} web The express server
-     * @prop {Object} schemas The schemas used by Evolve-X
-     * @prop {Object} Utils the utilities for Evolve-X
+     * @prop {Object} schemas The schemas used by Folderr-X
+     * @prop {Object} Utils the utilities for Folderr-X
      * @prop {String} flags The runtime flags for the base
      *
-     * @prop {Object} options The Evolve-X options, initiated later
+     * @prop {Object} options The Folderr-X options, initiated later
      * */
-    public evolve: Evolve | null;
+    public folderr: Folderr | null;
 
     public superagent: SuperAgent<SuperAgentRequest>;
 
     public web: express.Application;
 
-    public schemas: Schemas;
+    public db: DB;
 
     public Utils: Utils;
 
@@ -112,8 +100,12 @@ class Base {
 
     public maxShardNum: number;
 
-    constructor(evolve: Evolve | null, options: Options, flags?: string) {
-        this.evolve = evolve;
+    private deleter: ChildProcess;
+
+    public emailer: Emailer;
+
+    constructor(evolve: Folderr, options: Options, flags?: string) {
+        this.folderr = evolve;
         this.superagent = superagent;
         this.web = web;
         this.web.use(bodyParser.json() );
@@ -122,17 +114,22 @@ class Base {
         this.web.use('/assets', express.static(join(__dirname, '../assets') ) );
         this.web.use('/', express.static(join(__dirname, '../otherFiles') ) );
         this.web.use(cookieParser() );
-        this.schemas = {
-            User, Upload, VerifyingUser, AdminNotifs, Shorten, BearerTokens,
-        };
         this.Utils = new Utils(evolve, this);
         this.flags = flags;
-        this.options = new EvolveConfig(options);
+        this.options = new FolderrConfig(options);
+        this.db = pickDB();
         this.Logger = new Logger(this.options);
         this.useSharder = false;
         this.shardNum = 0;
         this.maxShardNum = 0;
         this.initBasics();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        this.deleter = fork(join(__dirname, '../FileDelQueue'), undefined, { silent: true, windowsHide: true } );
+        // I would like to point out that windowsHide is an actual option here.
+        // The typings and documentation are incorrect.
+        // This takes the same arguments as child_process.spawn afaict.
+        this.emailer = new Emailer();
     }
 
     listen(): void {
@@ -164,6 +161,10 @@ class Base {
         this.sharderReady = true;
     }
 
+    async initDB(): Promise<void> {
+        await this.db.init(this.options.mongoUrl, this.useSharder);
+    }
+
     /**
      * @desc Initialize the mongoose connection, and the express app
      *
@@ -172,7 +173,7 @@ class Base {
     async init(): Promise<void> {
         if (this.flags !== '--init-first') {
             // If there are no paths, exit
-            if (!this.evolve || !this.evolve.paths || this.evolve.paths.size < 1) {
+            if (!this.folderr || !this.folderr.paths || this.folderr.paths.size < 1) {
                 console.log('No paths. Exiting...');
                 process.exit();
             }
@@ -183,23 +184,7 @@ class Base {
         }
 
         // Initiate the database
-        mongoose.connect(this.options.mongoUrl, { useNewUrlParser: true, useFindAndModify: false } );
-        const db = mongoose.connection;
-        db.on('error', (err) => {
-            if (this.useSharder && !isMaster) {
-                return;
-            }
-            if (process.env.NODE_ENV !== 'test') {
-                console.log(`[FATAL - DB] MongoDB connection fail!\n${err}\n[FATAL] Evolve-X is unable to work without a database! Evolve-X process terminated.`);
-                process.exit(1);
-            }
-        } );
-        db.once('open', () => {
-            if (this.useSharder && !isMaster) {
-                return;
-            }
-            console.log('[SYSTEM - DB] Connected to MongoDB!');
-        } );
+        await this.db.init(this.options.mongoUrl, this.useSharder);
 
         // Make sure you do not try to listen on a port in use (also its a more helpful error message)
         if (this.flags !== '--init-first') {
@@ -211,7 +196,7 @@ class Base {
                 ee.emit('fail');
                 throw Error(`[FAIL] Cannot listen to port ${this.options.port} as you are not root!`);
             }
-            // Please dont run apps as root on linux..
+            // Please dont run servers as root on linux..
             const rootPort = 1024;
             if (process.getuid && process.getuid() === linuxRootUid && Number(this.options.port) < rootPort) {
                 console.log('[SYSTEM WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
@@ -223,7 +208,7 @@ class Base {
                 try {
                     uhm = await this.superagent.get(`localhost:${this.options.port}`);
                 } catch (err) {
-                    if (err.message.startsWith('connect ECONNREFUSED') ) {
+                    if (err.message.startsWith('connect ECONNREFUSED') || (err.response && err.response.notFound) ) {
                         // I dont care about this error
                     } else {
                         throw Error(err);
@@ -231,7 +216,7 @@ class Base {
                 }
             }
             // If a user is trying to listen to a port already used
-            if (uhm && this.flags !== '--init-first') {
+            if (uhm) {
                 ee.emit('fail');
                 throw Error('[FATAL] You are trying to listen on a port in use!');
             }
@@ -258,8 +243,6 @@ class Base {
                     } );
                     console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
                 } else {
-                    const messg = this.onWorkerMessage.bind(this);
-                    cluster.worker.on('message', messg);
                     this.listen();
                 }
                 return;
@@ -268,6 +251,14 @@ class Base {
             // Init the server
             this.listen();
             console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
+        }
+    }
+
+    addDeleter(userID: string): void {
+        if (isMaster) {
+            this.deleter.send( { message: 'add', data: userID } );
+        } else {
+            this.sendToMaster( { messageType: 'add', value: userID } );
         }
     }
 
@@ -296,6 +287,9 @@ class Base {
         if (!cluster.isMaster) {
             return;
         }
+        if (msg.messageType === 'add') {
+            this.addDeleter(msg.value);
+        }
         if (msg.messageType === 'kill') {
             await this.killAll();
             process.exit();
@@ -303,23 +297,6 @@ class Base {
         if (msg.sendToAll) {
             delete msg.sendToAll;
             this.sendToWorkers(msg, String(worker.id) );
-        }
-    }
-
-    onWorkerMessage(msg: { messageType: string; value: any } ): void {
-        if (!cluster.isWorker) {
-            return;
-        }
-        if (msg.messageType === 'shardNum' && typeof msg.value === 'number') {
-            this.shardNum = msg.value;
-        } else if (msg.messageType === 'ipAdd' && this.evolve) {
-            this.evolve.addIP(msg.value);
-        } else if (msg.messageType === 'banAdd' && this.evolve) {
-            this.evolve.addIPBan(msg.value);
-        } else if (msg.messageType === 'ipRemove' && this.evolve) {
-            this.evolve.removeIP(msg.value);
-        } else if (msg.messageType === 'banRemove' && this.evolve) {
-            this.evolve.removeIPBan(msg.value);
         }
     }
 

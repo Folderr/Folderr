@@ -32,7 +32,7 @@ Returns "Pong!"
 
 ### POST /api/upload
 
-Upload a image to Evolve-X
+Upload a image to Folderr-X
 
 Upload limit: 50mb
 
@@ -47,7 +47,7 @@ Authentication: 1.
 
 ### POST /api/short
 
-Shorten a link with Evolve-X
+Shorten a link with Folderr-X
 
 Returns success unless data is missing or invalid link is sent.
 
@@ -59,7 +59,7 @@ Authentication: 1
 
 ### GET /api/uploads
 
-Fetch all images shown in Evolve-X as an array.
+Fetch all images shown in Folderr-X as an array.
 
 Authentication: 1
 
@@ -92,13 +92,13 @@ Returns success or errors if no query or no image could be found with that ID.
 
 ### POST /api/signup
 
-Signup to Evolve-X
+Signup to Folderr-X
 
 Body:
 
 | Input    | Type   | Required | Description                    |
 |----------|--------|----------|--------------------------------|
-| username | string | true     | Your username on Evolve-X      |
+| username | string | true     | Your username on Folderr-X      |
 | password | string | true     | Your password for you account. |
 
 ### GET /api/account
@@ -121,7 +121,7 @@ Returns (JSON):
 
 ### DELETE /api/account
 
-Delete your Evolve-X account and any data related to it.
+Delete your Folderr-X account and any data related to it.
 
 Authentication: 2
 
@@ -133,7 +133,7 @@ Query: `?uid=${user.id}`
 
 ### PATCH /api/account
 
-Update your Evolve-X account name or password
+Update your Folderr-X account name or password
 
 Authentication: 2
 
@@ -286,7 +286,7 @@ Errors if you screwed up, user doesn't exist, or if you are missing something.
 
 ### GET /api/info
 
-Shows Evolve-Xs version, git commit, and branch
+Shows Folderr-Xs version, git commit, and branch
 
 Authentication: 1
 
@@ -294,8 +294,8 @@ Returns (success, json):
 
 | Value   | Type   | Description               |
 |---------|--------|---------------------------|
-| commit  | string | Git commit Evolve-X is on |
-| branch  | string | Evolve-X current branch   |
+| commit  | string | Git commit Folderr-X is on |
+| branch  | string | Folderr-X current branch   |
 | version | string | The version running.      |
 
 ## Owner specific
@@ -324,11 +324,11 @@ Queries (`?t=${manageQuery}`):
 
 | Query | Description                  |
 |-------|------------------------------|
-| s     | Shutdown Evolve-X            |
-| u     | Update Evolve-X              |
+| s     | Shutdown Folderr-X            |
+| u     | Update Folderr-X              |
 | t     | Run the TypeScript compiler. |
 
-Runs a command on Evolve-X
+Runs a command on Folderr-X
 
 Authentication: 2
 
@@ -336,4 +336,4 @@ Returns Error, Success string.
 
 ###### Note
 
-If shutting down Evolve-X and it runs on a process manager, it should usually restart the process.
+If shutting down Folderr-X and it runs on a process manager, it should usually restart the process.

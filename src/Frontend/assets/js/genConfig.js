@@ -24,7 +24,7 @@ function loadnavbar() {
                 $('#admin').removeAttr('id');
             }
             const SConfig = {
-                Name: 'Image.Evolve-X',
+                Name: 'Image.Folderr-X',
                 DestinationType: 'ImageUploader',
                 RequestMethod: 'POST',
                 RequestURL: `${data.cUrl || window.location.hostname}/api/image`,
@@ -78,7 +78,7 @@ function loadnavbar() {
             const blob = new Blob( [result] );
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            link.download = 'Evolve-X.Config.sxcu';
+            link.download = 'Folderr-X.Config.sxcu';
             link.click();
         } );
         req.fail( (result) => {
@@ -98,7 +98,7 @@ function loadnavbar() {
                 const blob = new Blob( [result] );
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
-                link.download = 'Evolve-X.Config.sxcu';
+                link.download = 'Folderr-X.Config.sxcu';
                 link.click();
             }
         } );

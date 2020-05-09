@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,12 +20,12 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 class Signup extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Signup';
 
@@ -36,7 +36,7 @@ class Signup extends Path {
     async genUID(): Promise<string> {
         // Generate an ID, and do not allow a users id to be reused
         const uID = await this.Utils.genUID();
-        const user = await this.base.schemas.User.findOne( { uID } );
+        const user = await this.base.db.findUser( { uID } );
         if (user) { // If the user was found, retry
             return this.genUID();
         }
@@ -44,18 +44,45 @@ class Signup extends Path {
         return uID;
     }
 
+    // noEmail means there is no email server set up
+    async noEmail(username: string, userID: string, password: string, validationToken: { hash: string; token: string }, email: string, res: Response): Promise<{ httpCode: number; msg: { code: number; message: string } }> {
+        // Find admin notifications, and generate an ID
+        const notifyID = await this.Utils.genNotifyID();
+        // Make a new notification and save to database
+        try {
+            await Promise.all( [this.base.db.makeVerify(userID, username, password, validationToken.hash, email), this.base.db.makeAdminNotify(notifyID, `Username: ${username}\nUser ID: ${userID}\nValidation Token: ${validationToken.token}`, 'New user signup!')] );
+        } catch (e) {
+            this._handleError(e, res, { noResponse: true, noIncrease: false } );
+            return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
+        }
+        // Notify the console, and the user that the admins have been notified.
+        console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${userID}`);
+        this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Folderr`, { user: `${username} (${userID})` }, 'signup', 'New user signup');
+        return { httpCode: this.codes.created, msg: { code: this.codes.created, message: 'OK' } };
+    }
+
+    async email(username: string, userID: string, password: string, validationToken: { hash: string; token: string }, email: string, req: Request, res: Response): Promise<{ httpCode: number; msg: { message: string; code: number } }> {
+        const url = await this.Utils.determineHomeURL(req);
+        try {
+            await Promise.all( [this.base.emailer.verifyEmail(email, `${url}/verify/${userID}/${validationToken.token}`, username), this.base.db.makeVerify(userID, username, password, validationToken.hash, email)] );
+        } catch (e) {
+            this._handleError(e, res, { noResponse: true, noIncrease: false } );
+            return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
+        }
+        console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${userID}`);
+        this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Folderr`, { user: `${username} (${userID})` }, 'signup', 'New user signup');
+        return { httpCode: this.codes.created, msg: { code: this.Utils.FoldCodes.email_sent, message: 'OK' } };
+    }
+
     async execute(req: any, res: any): Promise<Response> {
         // If signups are closed, state that and do not allow them through
         if (!this.base.options.signups) {
-            return res.status(this.codes.locked).send('[ERROR] Signup\'s are closed.');
+            return res.status(this.codes.locked).json( { code: this.codes.locked, message: 'Signup\'s are closed.' } );
         }
 
         // Check all required body is there
-        if (!req.body || (req.body && (!req.body.username || !req.body.password) ) ) {
-            if (req.body && (req.body.username || req.body.password) ) {
-                return res.status(this.codes.badReq).send('[ERROR] MISSING DETAIL');
-            }
-            return res.status(this.codes.badReq).send('[ERROR] MISSING ALL DETAILS');
+        if (!req.body || (req.body && (!req.body.username || !req.body.password || !req.body.email) ) ) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'MISSING DETAIL(S)' } );
         }
 
         // Fetch the username and password from the body
@@ -65,15 +92,22 @@ class Signup extends Path {
         const minUsername = 3;
         // If the username length does not match criteria
         if (username.length > maxUsername || username.length < minUsername) {
-            return res.status(this.codes.badReq).send('[ERROR] Username must be between 3 and 12 characters!');
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
         } if (username.length !== username.match(/[a-z0-9_]/g).length) { // If the username doess not match our username pattern
-            return res.status(this.codes.badReq).send('[ERROR] Username may only contain lowercase letters, numbers, and an underscore.');
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_username, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
+        }
+        if (!this.base.emailer.validateEmail(req.body.email) ) {
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.bad_email, message: 'Invalid email!' } );
+        }
+        const bans = await this.base.db.fetchFolderr( {} );
+        if (bans.bans.includes(req.query.email) ) {
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.banned_email, message: 'Email banned' } );
         }
 
         // See if the username is already taken. If its taken error the request with a code of "IM USED"
-        const user = await this.base.schemas.User.findOne( { username } ) || await this.base.schemas.VerifyingUser.findOne( { username } );
+        const user = await this.base.db.findUser( { $or: [{ username }, { email: req.body.email }] } ) || await this.base.db.findVerify( { $or: [{ username }, { email: req.body.email }] } );
         if (user) {
-            return res.status(this.codes.used).send('[ERROR] Username taken!');
+            return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.username_or_email_taken, message: 'Username or email taken!' } );
         }
 
         // Minimum and max password lengths
@@ -81,13 +115,9 @@ class Signup extends Path {
         const maxPass = 32;
         // If the password is not over min length
         // If password does not match the regex completely
-        const match: RegExpMatchArray | null = password.match(/[A-Za-z0-9_.&]/g);
-        if (password.length < minPass || (match && match.length !== password.length) ) {
-            return res.status(this.codes.badReq).send('Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`');
-        }
-        // If the password is too long
-        if (password.length > maxPass) {
-            return res.status(this.codes.badReq).send('Password is too long, password must be under 32 characters long');
+        const match: RegExpMatchArray | null = password.match(this.Utils.regexs.password);
+        if (match && match.length !== password.length) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.' } );
         }
 
         // Hash the password and catch errors
@@ -97,30 +127,18 @@ class Signup extends Path {
         } catch (err) {
             // Errors shouldnt happen here, so notify the console.. Also notify the user
             console.log(`[ERROR] [SIGNUP -  Create password] - ${err}`);
-            return res.status(this.codes.internalErr).send(`[ERROR] ${err.message}`);
+            return res.status(this.codes.internalErr).json( { code: this.codes.internalErr, message: `${err.message}` } );
         }
 
         // Generate the user ID and validation token.
         const uID = await this.genUID();
         const validationToken = await this.Utils.genValidationToken();
+        const email = this.Utils.encrypt(req.body.email);
         // Add the user to the VerifyingUser database and save
-        const nUser = new this.base.schemas.VerifyingUser( { uID, password: pswd, username, validationToken: validationToken.hash } );
-        await nUser.save();
 
         // Find admin notifications, and generate an ID
-        const notifs = await this.base.schemas.AdminNotifs.find();
-        const notifyID = await this.Utils.genNotifyID(notifs);
-        // Make a new notification and save to database
-        const notify = new this.base.schemas.AdminNotifs( {
-            ID: notifyID,
-            title: 'New user signup!',
-            notify: `Username: ${username}\nUser ID: ${uID}\nValidation Token: ${validationToken.token}`,
-        } );
-        await notify.save();
-        // Notify the console, and the user that the admins have been notified.
-        console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${uID}`);
-        this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Evolve-X`, { user: `${username} (${uID})` }, 'signup', 'New user signup');
-        return res.status(this.codes.created).send('[SUCCESS] The admins have been notified of your account request!');
+        const r = this.base.emailer.active ? await this.email(username, uID, pswd, validationToken, email, req, res) : await this.noEmail(username, uID, pswd, validationToken, email, res);
+        return res.status(r.httpCode).json(r.msg);
     }
 }
 

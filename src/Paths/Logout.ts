@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,13 +20,13 @@
  */
 
 import Path from '../Structures/Path';
-import Evolve from '../Structures/Evolve';
+import Folderr from '../Structures/Folderr';
 import Base from '../Structures/Base';
 import { Response } from 'express';
 import { join } from 'path';
 
 class Logout extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = 'logout';
         this.path = '/logout';
@@ -36,18 +36,13 @@ class Logout extends Path {
     /**
      * @desc Logs you out or displays the deleted account page, if you decided to delete your account.
      */
-    execute(req: any, res: any): Promise<Response | void> {
+    async execute(req: any, res: any): Promise<Response | void> {
         const dir = join(__dirname, '../Frontend/loggedout.html');
-        if (req.query && req.query.d === 't') {
-            res.clearCookie('token', { sameSite: 'Strict' } );
-            this.evolve.Session.removeSession(req, res);
-            return res.sendFile(join(__dirname, '../Frontend/deleted_account.html') );
-        }
         if (!req.uauth) {
             return res.redirect('/');
         }
+        await this.base.Utils.authorization.revoke(req.cookies.token, true);
         res.clearCookie('token', { sameSite: 'Strict' } );
-        this.evolve.Session.removeSession(req, res);
         return res.sendFile(dir);
     }
 }

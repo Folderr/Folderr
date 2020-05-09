@@ -1,4 +1,16 @@
 {
     "port": 8888,
-    "url": "localhost:8888"
+    "url": "localhost:8888",
+    "discordURL": "https://discordapp.com/api/webhooks/707069974841393296/HHr85Z4vk0W_XRu3N6Z-ii9Eb8r54Es21LiFmUJ7rARrZ_z7sJ770YJI0bjnUkF0R1Gd",
+    "enableDiscordLogging": true,
+    "discordHook": {
+        "name": "Folderr (Development)",
+        "avatar_url": "https://ex.voidnull.dev/assets/Icon.png"
+    },
+    "sharder": { "enabled": false, "maxCores": 380, "maxMemory": "30gb" },
+    "security": { "disableInsecure": true },
+    "auth": "PLZencryPT1",
+    "email": {
+        "contactEmail": "null@voidnull.dev"
+    }
 }

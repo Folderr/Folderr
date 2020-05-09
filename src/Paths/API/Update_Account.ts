@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,9 +20,9 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
-import { UserI } from '../../Schemas/User';
+import { compareSync } from 'bcrypt';
 import { Response } from 'express';
 
 interface UpdReturns {
@@ -31,128 +31,100 @@ interface UpdReturns {
 }
 
 class UpdateAcc extends Path {
-    private keys: { '0': string; '1': string };
-
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Update Account';
         this.path = '/api/account';
 
         this.type = 'patch';
         this.reqAuth = true;
-
-        this.keys = {
-            0: 'username',
-            1: 'password',
-        };
-    }
-
-    async updateUsername(user: UserI, name: string): Promise<UpdReturns> {
-        // Max and min username lengths
-        const maxUsername = 12;
-        const minUsername = 3;
-        // If username does not match length criteria error
-        const match = name.match(/[a-z0-9_]/g);
-        if (name.length > maxUsername || name.length < minUsername) {
-            return { code: this.codes.badReq, mess: '[ERROR] Password must be between 3 and 12 characters!' };
-        } if (match && name.length !== match.length) { // If username does not matdch regex pattern error
-            return { code: this.codes.badReq, mess: '[ERROR] Password may only contain lowercase letters, numbers, and an underscore.' };
-        }
-
-        // See if the user exists within the database, if so, error
-        const users = await this.base.schemas.User.find();
-        const usr = users.find(u => u.username === name);
-        const oldname = user.username;
-        if (usr) {
-            return { code: this.codes.used, mess: '[ERROR] Username taken!' };
-        }
-
-        try {
-            // Update the name and save the user
-            user.username = name;
-            await user.save();
-        } catch (err) { // Lightly handle errors
-            this.base.Logger.log('DATABASE ERROR', `Database failed to save password when user tried updating username - ${err}`, {}, 'error', 'Database  Error');
-            return { code: this.codes.internalErr, mess: `[ERROR] ${err.message || err}` };
-        }
-
-        this.base.Logger.log('ACCOUNT UPDATE', `User ${user.uID} changed their name to ${name} from ${oldname}`, {}, 'accUpdate', 'Account name change');
-        return { code: this.codes.ok, mess: '[SUCCESS] Account Updated!' };
-    }
-
-    async updatePassword(user: UserI, pass: string): Promise<UpdReturns> {
-        let pswd;
-        try {
-            // Hash password
-            pswd = await this.Utils.hashPass(pass);
-        } catch (err) {
-            // If there was an error, tell the user and the server
-            console.log(`[ERROR] [Update Account - Update password] - ${err}`);
-            return { code: this.codes.internalErr, mess: `[ERROR] ${err.message}` };
-        }
-
-        try {
-            // Try to update the users password and save the account
-            user.password = pswd;
-            await user.save();
-        } catch (err) {
-            // If there was an error alert the server and the user
-            this.base.Logger.log('DATABASE ERROR', `Database failed to save password when user tried updating password - ${err}`, {}, 'error', 'Database  Error');
-            return { code: this.codes.internalErr, mess: `[ERROR] ${err.message}` };
-        }
-
-        return { code: this.codes.ok, mess: '[SUCCESS] Account Updated!' };
     }
 
     async execute(req: any, res: any): Promise<Response> {
         // Check pass/username auth
         const auth = await this.Utils.authPassword(req);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
         // Check the query and new_key are correct
-        if (!req.query || !req.query.key || !req.body || !req.body.new_key) {
-            return res.status(this.codes.badReq).send('[ERROR] Key you are updating is needed!');
+        if (!req.body || !req.body.username || !req.body.password || !req.body.email) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'BODY REQUIRES ONE OF PASSWORD, USERNAME, OR EMAIL!' } );
         }
-        // Verify the key
-        const ke = Number(req.query.key) as 0|1;
-        const key = this.keys[ke];
-        if (!key) {
-            return res.status(this.codes.badReq).send('[ERROR] That key does not exist!');
+        if (req.query?.cancelEmail) {
+            await this.base.db.updateUser( { userID: auth.userID }, { pendingEmail: '', pendingEmailToken: '' } );
+        }
+        if (req.body.email && auth.pendingEmail && auth.pendingEmail.length > 0) {
+            return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: 'EMAIL UPDATE IN PROGRESS' } );
         }
 
-        // Basic output  incase no output happens for some weird reason
-        let out = { code: this.codes.internalErr, mess: 'Something unknown happened' };
-        try {
-            // Pick a key to update, and make sure it does not match the old key
-            if (key === 'username') {
-                if (req.body.new_key === req.headers.username) {
-                    // If the new key matches the old, error
-                    return res.status(this.codes.badReq).send('[ERROR] Your new username cannot be your old username!');
+        const update: { password?: string; username?: string; pendingEmail?: string; pendingEmailToken?: string; } = {};
+        if (req.body.password && !compareSync(req.body.password, auth.password) ) {
+            try {
+                const psw = await this.Utils.hashPass(req.body.password);
+                update.password = psw;
+            } catch (err) {
+                if (err.message.startsWith('[PSW1]') ) {
+                    return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.password_size, message: 'Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`' } );
                 }
-                // Update the username
-                out = await this.updateUsername(auth as UserI, req.body.new_key);
-                if (out.code === this.codes.ok) {
-                    const ses = this.evolve.Session.fetchSession(req);
-                    if (ses) {
-                        this.evolve.Session.updateSessionWKey(req, 'username', req.body.new_key);
-                    }
+                if (err.message.startsWith('[PSW2]') ) {
+                    return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_password, message: 'Password is too long, password must be under 32 characters of length' } );
                 }
-            } else if (key === 'password') {
-                if (req.body.new_key === req.headers.password) {
-                    // If the new key matches the old, error
-                    return res.status(this.codes.badReq).send('[ERROR] Your new password cannot be your old password!');
-                }
-                // Update the password
-                out = await this.updatePassword(auth as UserI, req.body.new_key);
+
+                console.log(`[ERROR] [Update Account - Password] - ${err}`);
+                return res.status(this.codes.badReq).json( { code: this.codes.internalErr, message: `${err}` } );
             }
+        }
+
+        if (req.body.username && req.body.username !== auth.username) {
+            const maxUsername = 12;
+            const minUsername = 3;
+            // If username does not match length criteria error
+            const match = req.body.username.match(/[a-z0-9_]/g);
+            if (req.body.username.length > maxUsername || req.body.username.length < minUsername) {
+                return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
+            } if (match && req.body.username.length !== match.length) { // If username does not matdch regex pattern error
+                res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_username, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
+            }
+            const user = await this.base.db.findUser( { username: req.body.username } ) || await this.base.db.findVerify( { username: req.body.username } );
+            if (user) {
+                return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.username_or_email_taken, message: 'Username taken!' } );
+            }
+
+            update.username = req.body.username;
+        }
+
+        if (req.body.email && this.base.emailer.validateEmail(req.body.email) && req.body.email !== auth.email) {
+            if (!this.base.emailer.active) {
+                return res.status(this.codes.notImplemented).json( { code: this.Utils.FoldCodes.emailer_not_configured, message: 'Emailer not configured. Email is unable to be updated.' } );
+            }
+            const bans = await this.base.db.fetchFolderr( {} );
+            if (bans.bans.includes(req.query.email) ) {
+                return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.banned_email, message: 'Email banned' } );
+            }
+            const encrypted = this.Utils.encrypt(req.body.email);
+            const user = await this.base.db.findUsers({$or: [{email: encrypted}, {pendingEmail: encrypted}]}) || await this.base.db.findVerifies( { email: encrypted } );
+            if (user) {
+                return res.status(this.codes.used).json( { code: this.codes.used, message: 'Email used!' } );
+            }
+            const url = await this.Utils.determineHomeURL(req);
+            const token = await this.Utils.genValidationToken();
+            await this.base.emailer.changeEmail(req.body.email, `${url}/account/confirm/${token.token}`, auth.username);
+            // Update
+            update.pendingEmail = encrypted;
+            update.pendingEmailToken = token.hash;
+        } else if (req.body.email && !this.base.emailer.validateEmail(req.body.email) ) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Invalid email' } );
+        }
+
+        try {
+            await this.base.db.updateUser( { uID: auth.userID }, update);
         } catch (err) {
-            // If there was some obscure error, handle it
-            return res.status(this.codes.internalErr).send(`[ERROR] ${err.message || err}`);
+            this.base.Logger.log('DATABASE ERROR', `Database failed to update user - ${err}`, {}, 'error', 'Database  Error');
+            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.db_unknown_error, message: 'Unknown Error encountered while updating your account' } );
         }
 
         // Return the output
-        return res.status(out.code).send(out.mess);
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }
 

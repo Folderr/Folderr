@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,17 +20,17 @@
  */
 
 import Path from '../Structures/Path';
-import Evolve from '../Structures/Evolve';
+import Folderr from '../Structures/Folderr';
 import Base from '../Structures/Base';
 import { Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
 
 class Images extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = 'Images ID';
-        this.path = ['/images/:id', '/i/:id'];
+        this.path = ['/image/:id', '/i/:id'];
     }
 
     /**
@@ -45,9 +45,16 @@ class Images extends Path {
         }
         const parts = req.params.id.split('.');
         if (!parts[1] ) {
-            return res.status(this.codes.internalErr).send('500 Internal Error');
+            return res.status(this.codes.badReq).send('Missing file extension!');
         }
-        const image = await this.base.schemas.Upload.findOne( { ID: parts[0] } );
+        const image = await this.base.db.findFile( { ID: parts[0], type: 'image' }, 'type path owner');
+        if (image) {
+            const owner = await this.base.db.findUser( { userID: image.owner } );
+            if (!owner) {
+                this.base.addDeleter(image.owner);
+                return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
+            }
+        }
         if (!image || (image && image.type && image.type !== 'image') ) {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
         }

@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -21,15 +21,15 @@
 
 import Path from '../../Structures/Path';
 import Base from '../../Structures/Base';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import { Response } from 'express';
-import { UserI } from '../../Schemas/User';
+import { User } from '../../Structures/Database/DBClass';
 
 class AdminNotification extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Notification';
-        this.path = '/api/admin_notification';
+        this.path = '/api/admin/notification/:id';
         this.reqAuth = true;
 
         this.type = 'get';
@@ -37,24 +37,24 @@ class AdminNotification extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user: UserI) => !!user.admin) : await this.Utils.authCookies(req, res, (user: UserI) => !!user.admin);
-        if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user: User) => !!user.admin } ) : await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user: User) => !!user.admin, web: true } );
+        if (!auth) {
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         // Verify query
-        if (!req.query || !req.query.id) {
-            return res.status(this.codes.badReq).send('[ERROR] Notification ID required!');
+        if (!req.params?.id) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Notification ID required!' } );
         }
 
         // Find notification. If not found, return a not found status code
-        const notify = await this.base.schemas.AdminNotifs.findOne( { ID: req.query.id } );
+        const notify = await this.base.db.findAdminNotify( { ID: req.params.id } );
         if (!notify) {
-            return res.status(this.codes.noContent).send();
+            return res.status(this.codes.noContent).json( { code: this.Utils.FoldCodes.db_not_found, message: [] } );
         }
 
         // Oh look a notification!
-        return res.status(this.codes.ok).send(notify);
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: notify } );
     }
 }
 

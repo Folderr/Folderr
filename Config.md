@@ -1,4 +1,4 @@
-# Evolve-X config
+# Folderr-X config
 
 ### Keys
 
@@ -9,7 +9,7 @@ Port - The port to listen to on your machine
 
 mongoUrl - The url you are going to connect to mongodb with.
 
-url - The url this app is going to have. This is only so Evolve-X can reference its own url, for like uploading images.
+url - The url this app is going to have. This is only so Folderr-X can reference its own url, for like uploading images.
 
 apiOnly - If you only want the api and no frontend, set this to true
 
@@ -41,7 +41,7 @@ discordHook.name - New name to overwrite when sending the webhook
 
 sharder - Sharder restrictions & settings.
 
-- Evolve-X process sharder may be experimental
+- Folderr-X process sharder may be experimental
 
 sharder.enabled - Whether or not to enable sharding (boolean)
 

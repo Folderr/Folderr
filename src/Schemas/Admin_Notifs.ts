@@ -3,7 +3,7 @@ import { Schema, model, Model, Document } from 'mongoose';
 const AdminNotifs: Schema = new Schema( {
     title: { type: String, required: true },
     notify: { type: String, required: true },
-    ID: { type: String, required: true },
+    ID: { type: String, required: true, index: true },
 } );
 
 export interface Notification extends Document {

@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -26,7 +26,7 @@
 
 /* eslint-disable @typescript-eslint/ban-ts-ignore */
 import WebhookHandler, { WebhookExecOptions, WebhookTypes } from './DiscordWebhookHandler';
-import { ActualOptions, DiscordHook } from './Evolve-Config';
+import { ActualOptions, DiscordHook } from './Folderr-Config';
 
 interface LoggerOptions {
     discordURL?: string;
@@ -52,7 +52,7 @@ class Logger implements LoggerOptions {
     private isMaxCores?: boolean;
 
     /**
-     * @param [options] {ActualOptions} The options the Evolve-X client uses, contains needed options.
+     * @param [options] {ActualOptions} The options the Folderr-X client uses, contains needed options.
      * @prop [discordURL] {string} Discord webhook URL
      * @prop [enableDiscordLogging] {boolean} Whether or not to log items with discord
      * @prop [discordHook] {object<{ name: string, avatar_url: string }>} Options to customize your webhook

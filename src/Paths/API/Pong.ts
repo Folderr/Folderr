@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,10 +20,11 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 import pkg from '../../../package.json';
+import { platform as plat } from 'os';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
@@ -31,8 +32,19 @@ import momentDurationFormatSetup from 'moment-duration-format';
 // @ts-ignore
 momentDurationFormatSetup(moment);
 
+let platform: string = plat();
+if (platform === 'win32') {
+    platform = 'Windows';
+} else if (platform === 'linux') {
+    platform = 'Linux';
+} else if (platform === 'darwim') {
+    platform = 'MacOS';
+} else {
+    platform = 'Other';
+}
+
 class Pong extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Pong';
         this.path = '/api/';
@@ -43,16 +55,14 @@ class Pong extends Path {
      * @desc PONG! Just a simple response, no auth needed
      */
     execute(req: any, res: any): Promise<Response | void> {
-        const { version } = pkg;
-        const nodeVersion = process.version;
-        const uptime = process.uptime();
-        const aUptime = moment.duration(uptime, 'seconds').format('MMMM [Months,] WW [Weeks,] DD [Days,] h [Hours,] m [Minutes,] s [Seconds]');
-        const shards = this.base.useSharder && `${this.base.shardNum}/${this.base.maxShardNum}`;
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
-        const onlineSince = new Date(new Date() - Math.round(uptime * 1000) );
-        return res.status(this.codes.ok).send( {
-            version, nodeVersion, onlineSince, uptime: aUptime, message: 'Pong!', shards,
+        return res.status(this.codes.ok).json( {
+            message: {
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                version: pkg.version, node_version: process.version, online_since: new Date(Date.now() - (process.uptime() * 1000) ), uptime: process.uptime(), message: 'Pong!', shards: (this.base.useSharder && `${this.base.shardNum}/${this.base.maxShardNum}`) || 1, platform,
+            },
+            code: this.codes.ok,
         } );
     }
 }

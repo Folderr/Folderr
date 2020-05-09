@@ -1,11 +1,11 @@
 /**
  * @author VoidNulll
- * @file Initialize Evolve-X file.
+ * @file Initialize Folderr file.
  */
 
-import Evolve from './Structures/Evolve';
+import Folderr from './Structures/Folderr';
 import config from '../config.json';
 
-const evolve = new Evolve(config);
+const folderr = new Folderr(config);
 
-evolve.init();
+folderr.init();

@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,13 +20,13 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { Notification } from '../../Schemas/User';
 
 class Notifs extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Notifications';
         this.path = '/api/notifications';
@@ -37,9 +37,9 @@ class Notifs extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth by token/id
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req) : await this.Utils.authCookies(req, res);
+        const auth = !req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
         // Grab the notifications from the user
         // eslint-disable-next-line prefer-destructuring
@@ -48,19 +48,15 @@ class Notifs extends Path {
         if (req.query && req.query.admin === 'true') {
             // If they arent a admin, they do not get to see these notifications
             if (!auth.admin) {
-                return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+                return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed. Who are you?' } );
             }
             // Get the notifications, and reset the notifications array
-            const anotifs = await this.base.schemas.AdminNotifs.find();
+            const anotifs = await this.base.db.findAdminNotifies( {} );
             notifs = anotifs.map( (notification: Notification) => `{ "ID":"${notification.ID}","title":"${notification.title}","notify":"${notification.notify.replace(/\n/g, ',')}" }`);
         }
 
-        if (!notifs || notifs.length === 0) {
-            return res.status(this.codes.ok).send( [] );
-        }
-
         // Return whatever notifications there are
-        return res.status(this.codes.ok).send(notifs);
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: notifs } );
     }
 }
 

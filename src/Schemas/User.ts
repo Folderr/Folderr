@@ -1,15 +1,19 @@
 import { Schema, model, Model, Document } from 'mongoose';
 
 const User: Schema = new Schema( {
-    uID: { type: String, required: true },
+    userID: { type: String, required: true, index: true },
     password: { type: String, required: true },
-    token: { type: String, required: false },
-    first: { type: Boolean, required: false },
+    first: { type: Boolean, default: false },
     username: { type: String, required: true },
     admin: { type: Boolean, default: false },
     notifs: { type: [{ ID: { type: String }, title: { type: String }, notify: { type: String } }], required: false, default: [] },
-    bearerTokens: { type: [{ expires: { type: Date, required: true }, token: { type: String, required: true } }], default: [], required: false },
-    cUrl: { type: String, default: '', required: false },
+    cURLs: { type: Array, default: [] },
+    files: { type: Number, default: 0 },
+    links: { type: Number, default: 0 },
+    email: { type: String, required: true, index: true },
+    pendingEmail: { type: String },
+    pendingEmailToken: { type: String },
+    created: { type: Date, default: new Date() },
 } );
 
 export interface Notification {
@@ -18,21 +22,20 @@ export interface Notification {
     notify: string;
 }
 
-export interface BearerTokenObj {
-    expires: Date;
-    token: string;
-}
-
 export interface UserI extends Document {
-    uID: string;
+    userID: string;
     password: string;
-    token: string;
     first?: boolean;
     username: string;
     admin?: boolean;
-    notifs?: Notification[];
-    bearerTokens: BearerTokenObj[];
-    cUrl?: string;
+    notifs: Notification[];
+    cURLs: string[];
+    files: number;
+    links: number;
+    created: Date;
+    email: string;
+    pendingEmail?: string;
+    pendingEmailToken?: string;
 }
 
 const mod: Model<UserI> = model<UserI>('user', User);

@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,12 +20,13 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
+import { Notification } from '../../Structures/Database/DBClass';
 
 class Account extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] View Account';
         this.path = '/api/account';
@@ -36,27 +37,38 @@ class Account extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check headers, and check auth
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
+        const auth = !req.cookies?.token ? await this.Utils.authPassword(req) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).send( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
-        const images = await this.base.schemas.Upload.find( { owner: auth.uID } );
-        const shorts = await this.base.schemas.Shorten.find( { owner: auth.uID } );
 
         // Return a nice version of this users account.
-        const acc: any = {
+        const acc: {
+            username: string;
+            userID: string;
+            admin: boolean;
+            owner: boolean;
+            files: number;
+            links: number;
+            custom_urls?: string[];
+            email: string;
+            pending_email?: string;
+            notifications: Notification[];
+            created: number;
+        } = {
             username: auth.username, // eslint-disable-next-line @typescript-eslint/camelcase
-            token_generated: !!auth.token,
-            uID: auth.uID,
+            userID: auth.userID,
             admin: !!auth.admin,
             owner: !!auth.first,
-            images: images.length,
-            shorts: shorts.length,
+            files: auth.files,
+            links: auth.links,
+            email: auth.email, // eslint-disable-next-line @typescript-eslint/camelcase
+            pending_email: auth.pendingEmail,
+            notifications: auth.notifs, // eslint-disable-next-line @typescript-eslint/camelcase
+            custom_urls: auth.cURLs,
+            created: Math.round(auth.created.getTime() / 1000),
         };
-        if (auth.cUrl) {
-            acc.cUrl = auth.cUrl;
-        }
-        return res.status(this.codes.ok).send(acc);
+        return res.status(this.codes.ok).json( { message: acc, code: this.codes.ok } );
     }
 }
 

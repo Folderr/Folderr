@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,15 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 
 class DeleteAdmin extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Delete Admin';
-        this.path = '/api/admin';
+        this.path = '/api/manage/admin/:id';
         this.reqAuth = true;
 
         this.type = 'delete';
@@ -36,31 +36,29 @@ class DeleteAdmin extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Actually check auth, and make sure they are the owner
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req, (user) => !!user.first) : await this.Utils.authCookies(req, res, (user) => !!user.first);
+        const auth = await this.Utils.authPassword(req, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: auth || 'Authorization failed.' } );
         }
 
         // You need to supply the ID for the user via query
-        if (!req.query || !req.query.id) {
-            return res.status(this.codes.badReq).send('[ERROR] Users ID is required!');
+        if (!req.params?.id) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Users ID is required!' } );
         }
-        const match = req.query.id.match(/[0-9]+/);
-        if (!match || match[0].length !== req.query.id.length) {
-            return res.status(this.codes.badReq).send('[ERROR] ID is not a valid Evolve-X ID!');
+        const match = req.params.id.match(/^[0-9]+$/);
+        if (!match || match[0].length !== req.params.id.length) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'ID is not a valid Folderr ID!' } );
         }
-        const user = await this.base.schemas.User.findOne( { uID: req.query.id } );
+        const user = await this.base.db.findAndUpdateUser( { userID: req.params.id, $nor: [{ admin: false }, { first: true }] }, { admin: false }, 'admin');
         if (!user) {
-            return res.status(this.codes.notFound).send('[ERROR] User not found!');
+            return res.status(this.codes.notFound).json( { message: 'User not found!', code: this.Utils.FoldCodes.db_not_found } );
         }
-        if (!user.admin) {
-            return res.status(this.codes.ok).send('[ERROR] User is not admin!');
+        if (user.admin) {
+            return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.db_unknown_error } );
         }
-        user.admin = false;
-        await user.save();
         // console.log(`[SYSTEM INFO - ADMIN] - Admin removed for user ${user.username}`);
-        this.base.Logger.log(`SYSTEM NOTICE - ADMIN`, 'Administration privileges removed for user.', { user: `${user.username} (${user.uID})`, responsible: `${auth.username} (${auth.uID})` }, 'adminRemove', 'Administrator demoted.');
-        return res.status(this.codes.ok).send(`[SUCCESS] Updated users admin status!`);
+        this.base.Logger.log(`SYSTEM NOTICE - ADMIN`, 'Administration privileges removed for user.', { user: `${user.username} (${user.userID})`, responsible: `${auth.username} (${auth.userID})` }, 'adminRemove', 'Administrator demoted.');
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: `OK` } );
     }
 }
 

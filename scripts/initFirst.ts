@@ -1,8 +1,10 @@
 import readline from 'readline';
 import config from '../config.json';
-import Base from '../src/Structures/Base';
+import Folderr from '../src/Structures/Folderr';
+import { default as User } from '../src/Schemas/User';
 
-const base = new Base(null, config, '--init-first');
+const evolve = new Folderr(config, '--init-first');
+const { base } = evolve;
 
 const rl = readline.createInterface( {
     input: process.stdin,
@@ -10,78 +12,92 @@ const rl = readline.createInterface( {
     terminal: true,
 } );
 
-let a: string | undefined;
-
-const second = 1000;
-
-async function verify(): Promise<string> {
-    await base.Utils.sleep(second); // Sleep for a second
-    if (!a) {
-        return verify();
-    }
-    return a as string;
+function _password(evolve: Folderr): Promise<string> {
+    const q = 'What would you like your password to be?\nYour password must be 8-32 characters long,\nInclude 1 uppercase & lowercase letter,\nInclude 1 number,\nYour password may have these special characters: #?!@$%^&*-_[]\nInput: ';
+    return new Promise<string>(resolve => {
+        rl.question(q, (answer: string) => {
+            if (!answer) {
+                rl.write('I require a password!');
+                return resolve(_password(evolve) );
+            }
+            if (answer === 'q' || answer === 'quit') {
+                rl.write('Quitting...');
+                process.exit();
+            }
+            if (!evolve.base.Utils.regexs.password.test(answer) ) {
+                rl.write('Invalid password! Try again!');
+                return resolve(_password(evolve) );
+            }
+            return resolve(answer);
+        } );
+    } );
 }
 
-function _password(): Promise<string> {
-    const q = 'What do you want your password to be? Note: Your password can only contain alphanumeric characters (A-z & 0-9) as well as the special symbols "&", "_", and "."\n';
-    rl.question(q, (answer: string) => {
-        if (!answer) {
-            rl.write('This is required!');
-            process.exit();
-        }
-        a = answer;
+function _email(evolve: Folderr): Promise<string> {
+    return new Promise<string>(resolve => {
+        rl.question('What is your email?\nInput: ', (answer: string) => {
+            if (!answer) {
+                rl.write('I need an email!');
+                return resolve(_email(evolve) );
+            }
+            if (answer === 'q' || answer === 'quit') {
+                rl.write('Quitting...');
+                process.exit();
+            }
+            if (!evolve.base.emailer.validateEmail(answer) ) {
+                rl.write('Invalid Email!');
+                return resolve(_email(evolve) );
+            }
+            return resolve(answer);
+        } );
     } );
-    return verify();
 }
 
 function _username(): Promise<string> {
-    const q = 'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\n';
-    rl.question(q, (answer: string) => {
-        if (!answer) {
-            rl.write('This is required!\n');
-            process.exit();
-        }
-        const maxName = 12;
-        const minName = 3;
-        if (answer.length > maxName || answer.length < minName) {
-            rl.write('Username length is invalid! Length must be between 3 & 12\n');
-            process.exit();
-        }
-        const match = answer.match(/[a-z0-9_]/g);
-        if (!match || answer.length !== match.length) {
-            rl.write('Username is invalid\n');
-            process.exit();
-        }
-        a = answer;
+    return new Promise<string>(resolve => {
+        const q = 'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\nInput: ';
+        rl.question(q, (answer: string) => {
+            if (!answer) {
+                rl.write('Give me a username!\n');
+                return resolve(_username() );
+            }
+            if (answer === 'q' || answer === 'quit') {
+                rl.write('Quitting...');
+                process.exit();
+            }
+            const regex = /[a-z0-9_]{3,12}/;
+            const match = answer.match(regex);
+            if (!regex.test(answer) || (match && match[0].length < answer.length) ) {
+                rl.write('Invalid username! Retry!\n');
+                return resolve(_username() );
+            }
+            return resolve(answer);
+        } );
     } );
-    return verify();
 }
 
 (async function _initFirst(): Promise<void> {
-    await base.init();
-    const { User } = base.schemas;
-    const user = await User.findOne( { first: true } ).exec();
+    await base.initDB();
+    const user = await evolve.base.db.findUser( { first: true }, 'first');
     if (user) {
         rl.write('First user already initiated!\n');
         rl.close();
         process.exit();
     }
-    rl.write('We have to initiate the first account (yours) as admin. First we will do your username\n');
+    rl.write('We have to initiate the first account (yours) as admin.\nEnter "q" or "quit" at any time to exit.\n');
 
-    await base.Utils.sleep(second); // Sleep for a second
+    await base.Utils.sleep(1000); // Sleep for a second
 
     const name: string = await _username();
-    a = undefined;
-    let password: string = await _password();
+    let password: string = await _password(evolve);
+    const email = evolve.base.Utils.encrypt(await _email(evolve) );
     const uID: string = await base.Utils.genUID();
+    rl.close();
 
     const passBase: string = password;
     password = await base.Utils.hashPass(password);
-    const token = await base.Utils.genToken(uID);
-    console.log(`Account created successfully! See your details below...\n\nAccount name: ${name}\nAccount password: ${passBase}\nAccount ID: ${uID}\nAccount API token (Keep this very safe): ${token.token}`);
-    const owner = new User( {
-        username: name, uID, first: true, admin: true, token: token.hash, password,
-    } );
-    await owner.save();
+    await base.Utils.sleep(1000);
+    await evolve.base.db.makeOwner(name, password, uID, email);
+    console.log(`Account created successfully! See your details below...\n\nAccount name: ${name}\nAccount password: ${passBase}\nAccount ID: ${uID}`);
     process.exit();
 }() );

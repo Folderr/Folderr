@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,13 +20,13 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { inspect } from 'util';
 
 class Eval extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Eval';
         this.path = '/api/eval';
@@ -35,13 +35,12 @@ class Eval extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        const auth = await this.Utils.authToken(req, (user) => !!user.first);
-        if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+        const auth = await this.Utils.authPassword(req, (user) => !!user.first);
+        if (!auth) {
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
         if (!req.body || !req.body.eval) {
-            console.log(req.body);
-            return res.status(this.codes.badReq).send('[ERROR] Eval code not provided.');
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Eval code not provided.' } );
         }
         try {
             // eslint-disable-next-line no-eval
@@ -56,15 +55,15 @@ class Eval extends Path {
                 }
             }
             if (!evaled || evaled.length === 0) {
-                return res.status(this.codes.noContent).send();
+                return res.status(this.codes.noContent).json( { code: this.codes.ok, message: '' } );
             }
             const maxLength = 2000;
             if (evaled.length > maxLength) {
-                return res.status(this.codes.ok).send('[ERROR] Eval too big');
+                return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.eval_size_limit, message: 'Eval too big' } );
             }
-            return res.status(this.codes.ok).send(evaled);
+            return res.status(this.codes.ok).json( { code: this.codes.ok, message: evaled } );
         } catch (err) {
-            return res.status(this.codes.ok).send(`[ERROR] ${err}`);
+            return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.eval_error, message: `${err}` } );
         }
     }
 }

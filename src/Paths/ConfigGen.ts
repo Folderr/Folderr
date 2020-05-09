@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,13 +20,13 @@
  */
 
 import Path from '../../src/Structures/Path';
-import Evolve from '../Structures/Evolve';
+import Folderr from '../Structures/Folderr';
 import { Response } from 'express';
 import Base from '../Structures/Base';
 import { join } from 'path';
 
 class ConfigGen extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = 'Configuration Generator';
 

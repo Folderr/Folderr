@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,20 +20,19 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
-import { UserI } from '../../Schemas/User';
-import { UploadI } from '../../Schemas/Image';
+import { Upload, User } from '../../Structures/Database/DBClass';
 import { promises } from 'fs';
 
 interface DelReturns {
     code: number;
-    mess: string;
+    mess: { code: number; message: string };
 }
 
 class DelAccount extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Delete account';
         this.path = '/api/account';
@@ -49,73 +48,61 @@ class DelAccount extends Path {
      * @async
      * @returns {DelReturns}
      */
-    async deleteAccount(auth: UserI, id: string): Promise<DelReturns> {
+    async deleteAccount(auth: User, id: string): Promise<DelReturns> {
         try {
             // Delete account by uID, and delete their pictures
-            await this.base.schemas.User.findOneAndDelete( { uID: id } );
-            await this.base.schemas.Upload.deleteMany( { owner: id } );
-            await this.base.schemas.Shorten.deleteMany( { owner: id } );
-            await this.base.schemas.BearerTokens.deleteMany( { uID: id } );
-            return { code: this.codes.ok, mess: '[SUCCESS] Account deleted!' };
+            await this.base.db.purgeUser(id);
+            return { code: this.codes.ok, mess: { code: this.codes.ok, message: 'Account deleted!' } };
         } catch (err) {
             // If an error occurs, log this (as there should not be an error), and tell the user that an error occured
             this.base.Logger.log('SYSTEM ERROR', `Account deletion failure - ${err.message || err}`, {}, 'error', 'Account deletion error.');
-            return { code: this.codes.internalErr, mess: `[ERROR] Account deletion error - ${err.message || err}` };
+            return { code: this.codes.internalErr, mess: { code: this.codes.internalErr, message: `Account deletion error - ${err.message || err}` } };
         }
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
         // Check headers, and check auth
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
+        const auth = !req.cookies && !req.cookies.token && await this.Utils.authPassword(req);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
-        let images,
-            out;
+        let out;
         // If you are an admin you can delete someones account by ID
         if (req.query && req.query.uid) {
             // If they are not an admin, they arent authorized
             if (!auth.admin) {
-                return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+                return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
             }
             // Find the user, and if not return a not found
-            const mem = await this.base.schemas.User.findOne( { uID: req.query.uid } );
+            const mem = await this.base.db.findUser( { uID: req.query.uid } );
             if (!mem) {
-                return res.status(this.codes.notFound).send('[ERROR] User not found!');
+                return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
             }
 
             // Protect the owner and admins from unauthorized account deletions
             if (mem.first) {
-                return res.status(this.codes.forbidden).send('[ERROR] You can not delete that account as they are the owner!');
-            } if (mem.admin && !auth.first) {
-                return res.status(this.codes.unauth).send('[ERROR] Authorization failed. Who are you?');
+                return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: 'You can not delete that account as they are the owner!' } );
             }
-            images = await this.base.schemas.Upload.find( { owner: req.query.uid } );
+            if (mem.admin && !auth.first) {
+                return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: 'You cannot delete another admins account!' } );
+            }
             // Delete the account
             out = await this.deleteAccount(auth, req.query.uid);
-            this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted by administrator', { user: `${mem.username} (${mem.uID}`, responsible: `${auth.username} (${auth.uID})` }, 'accountDelete', 'Account deleted by Admin');
-            res.status(out.code).send(out.mess);
-            return this.deleteImages(images);
+            this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted by administrator', { user: `${mem.username} (${mem.userID}`, responsible: `${auth.username} (${auth.userID})` }, 'accountDelete', 'Account deleted by Admin');
+            res.status(out.code).json(out.mess).end();
+            return this.base.addDeleter(req.query.uid);
         }
         // Owner account may never be deleted
         if (auth.first) {
-            return res.status(this.codes.forbidden).send('[ERROR] You can not delete your account as you are the owner!');
+            return res.status(this.codes.forbidden).json( { message: 'You can not delete your account as you are the owner!' } );
         }
-        images = await this.base.schemas.Upload.find( { owner: auth.uID } );
         // Delete the users account
-        out = await this.deleteAccount(auth, auth.uID); // Eslint, TS, I checked this at the top of the function. Please shut up
-        this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted', { user: `${auth.username} (${auth.uID}` }, 'accountDelete', 'Account deleted from Evolve-X');
+        out = await this.deleteAccount(auth, auth.userID); // Eslint, TS, I checked this at the top of the function. Please shut up
+        this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted', { user: `${auth.username} (${auth.userID}` }, 'accountDelete', 'Account deleted from Folderr-X');
 
-        res.status(out.code).send(out.mess);
-        return this.deleteImages(images);
-    }
-
-    deleteImages(images: UploadI[] ): void {
-        images.forEach(async image => {
-            await promises.unlink(image.path);
-            console.log(`[SYSTEM INFO - DELETE ACCOUNT] Removed image ${image.path} (${image.ID} from user ${image.owner}!`);
-        } );
+        res.status(out.code).json(out.mess).end();
+        return this.base.addDeleter(auth.userID);
     }
 }
 
