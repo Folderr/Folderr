@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
+import moment from "moment";
 
 class DelNotify extends Path {
     constructor(evolve: Folderr, base: Base) {
@@ -55,6 +56,12 @@ class DelNotify extends Path {
         // If no notification, tell the user that notification does not exist
         if (!notify) {
             return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'Notification not found!' } );
+        }
+        // Days * hours/day * minutes/hour * seconds/minute * milliseconds/second
+        const limit = 90 * 24 * 60 * 60 * 1000;
+        if (notify?.title === 'Warn' && (new Date().getTime() - notify?.created.getTime() ) < limit) {
+            const time = new Date(new Date().getTime() + limit).getTime() - new Date().getTime();
+            return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: `Notification cannot be deleted for ${moment.duration(time).format('M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]')}` } );
         }
         // Remove the notification, update the users account, and return success
         await this.base.db.updateUser( { uID: auth.userID }, { $pull: { notifs: { ID: req.params.id } } } );
