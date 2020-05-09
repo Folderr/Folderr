@@ -2,7 +2,7 @@
  * @license
  *
  * Folderr is an open source image host. https://github.com/Folderr
- * Copyright (C) 2020 VoidNulll
+ * Copyright (C) 2020 Folderr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -18,7 +18,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-
 import Path from '../../Structures/Path';
 import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
