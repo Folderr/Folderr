@@ -10,4 +10,4 @@ Folderr is licensed under AGPL Version 3.
 
 # Copyright
 
-Copyright (C) 2019 VoidNulll
+Copyright (C) 2020 Folderr
