@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -25,7 +25,7 @@
  */
 
 import superagent from 'superagent';
-import { DiscordHook } from './Evolve-Config';
+import { DiscordHook } from './Folderr-Config';
 import { promisify } from 'util';
 import { EventEmitter } from 'events';
 import { isMaster } from 'cluster';
@@ -53,12 +53,12 @@ export interface EmbedData {
     image?: { url: string };
 }
 
-export type WebhookTypes = 'error' | 'deleteAccount' | 'online' | 'accountDeny' | 'accountAccept' | 'imageUpload' | 'imageDelete' | 'signup' | 'securityWarn' | 'adminGive' | 'adminRemove' | 'manage' | 'shorten' | 'shortRemove' | 'accUpdate' | 'accountDelete';
+export type WebhookTypes = 'error' | 'deleteAccount' | 'online' | 'accountDeny' | 'accountAccept' | 'fileUpload' | 'fileDelete' | 'signup' | 'securityWarn' | 'adminGive' | 'adminRemove' | 'manage' | 'shorten' | 'shortRemove' | 'accUpdate' | 'accountDelete';
 
 /**
  * @class DiscordHook
  *
- * @classdesc handles sending webhooks that log important information about Evolve-X or its status.
+ * @classdesc handles sending webhooks that log important information about Folderr-X or its status.
  *
  * @author VoidNulll
  */
@@ -92,8 +92,8 @@ class DiscordWebhookHandler {
             online: 0x00fc82,
             accountDeny: 0xbc004b,
             accountAccept: 0x19fc05,
-            imageUpload: 0xabfca4,
-            imageDelete: 0xfca9a4,
+            fileUpload: 0xabfca4,
+            fileDelete: 0xfca9a4,
             signup: 0xcaf700,
             securityWarn: 0x7f0002,
             adminGive: 0x5d8dfc,
@@ -103,6 +103,8 @@ class DiscordWebhookHandler {
             shortRemove: 0xfca9a4,
             accUpdate: 0x1e9e95,
             accountDelete: 0x53f1fc,
+            banAccount: 0x53f1fc,
+            takedown: 0x53f1fc,
         };
         this.discordHook = discordHook;
         this.valid = false;
@@ -131,16 +133,20 @@ class DiscordWebhookHandler {
         if (this.isMaxCores && !isMaster) {
             return;
         }
-        let output: any = await superagent.get(webhook);
-        if (!output.text) {
+        try {
+            let output: any = await superagent.get(webhook);
+            if (!output.text) {
+                throw Error('[WebhookHandler - FATAL] - Invalid Webhook URL.');
+            }
+            output = JSON.parse(output.text);
+            if (!output.name) {
+                throw Error('[WebhookHandler - FATAL] - Invalid Webhook URL.');
+            }
+            this.valid = true;
+            this.ready = true;
+        } catch (e) {
             throw Error('[WebhookHandler - FATAL] - Invalid Webhook URL.');
         }
-        output = JSON.parse(output.text);
-        if (!output.name) {
-            throw Error('[WebhookHandler - FATAL] - Invalid Webhook URL.');
-        }
-        this.valid = true;
-        this.ready = true;
     }
 
     /**
@@ -169,6 +175,17 @@ class DiscordWebhookHandler {
      */
     async execute(type: WebhookTypes, title: string, information: string, options?: WebhookExecOptions): Promise<any> {
         const secs = 3000;
+        const noLog = [
+            'fileDelete',
+            'fileUpload',
+            'shortRemove',
+            'shorten',
+            'accountDelete',
+            'accUpdate',
+        ];
+        if (noLog.includes(type) ) {
+            return;
+        }
         if (!this.isQueue() && this.ready) {
             this.ratelimiter.limits++;
             setTimeout( () => {

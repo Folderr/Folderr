@@ -36,7 +36,7 @@ $(document).ready(function () {
     } );
 
     $('#stop').click( () => {
-        $('#noticetxt').text('Stopping Evolve-X.');
+        $('#noticetxt').text('Stopping Folderr-X.');
         $.post('/api/manage?type=s', (result) => {
             if (typeof result === 'string' && result.startsWith('[ERROR] Authorization failed') ) {
                 $(location).attr('href', '/');

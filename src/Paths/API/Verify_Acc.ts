@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,55 +20,46 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
+import { User } from '../../Structures/Database/DBClass';
 
 class VerifyAccount extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Verify Account';
 
-        this.path = '/api/verify';
+        this.path = '/api/admin/verify';
         this.type = 'post';
         this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {
+        console.log('Fuck');
         // Handle authorization
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.admin);
+        const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
-        if (!req.body.token && !req.body.uid) {
-            return res.status(this.codes.badReq).send('[ERROR] BODY MISSING!');
-        }
-        if (!req.body.token || !req.body.uid) {
-            return res.status(this.codes.badReq).send('[ERROR] BODY INCOMPLETE!');
+        if (!req.body || !req.body.token || !req.body.userid) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'BODY MISSING OR IMPARTIAL!' } );
         }
 
         // Look for the user
-        const user = await this.Utils.findVerifying(req.body.token, req.body.uid);
+        const user = await this.Utils.findVerifying(req.body.token, req.body.userid);
         if (!user) {
-            return res.status(this.codes.notFound).send('[ERROR] User not found!');
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
         }
 
         // Remove the user from verifying schema and add them to the actual user base
-        const { username, uID, password } = user;
-        const nUser = new this.base.schemas.User( { username, uID, password } );
-        await this.base.schemas.VerifyingUser.findOneAndRemove( { uID } );
-        await nUser.save();
-
-        // Remove the admin notification stating that a user needs to be verified
-        const notifs = await this.base.schemas.AdminNotifs.find();
-        const notify = notifs.find(notif => notif.notify.includes(user.uID) );
-        await this.base.schemas.AdminNotifs.deleteOne(notify);
+        const { username, userID } = user;
+        await this.base.db.verifyUser(userID);
 
         // Alert the console and the admin that the user was verified
-        // console.log(`[INFO] - User ${nUser.uID}'s account has been verified by admin ${auth.username} (${auth.uID})`);
-        this.base.Logger.log('SYSTEM INFO', 'User account granted by administrator', { user: `${username} (${uID}`, responsible: `${auth.username} (${auth.uID})` }, 'accountAccept', 'Account Verified');
-        return res.status(this.codes.created).send('[SUCCESS] Verified user!');
+        this.base.Logger.log('SYSTEM INFO', 'User account granted by administrator', { user: `${username} (${userID}`, responsible: `${auth.username} (${auth.userID})` }, 'accountAccept', 'Account Verified');
+        return res.status(this.codes.created).json( { code: this.codes.ok, message: 'OK' } );
     }
 }
 

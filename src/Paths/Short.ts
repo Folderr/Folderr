@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -21,15 +21,15 @@
 
 import { Response } from 'express';
 import Path from '../Structures/Path';
-import Evolve from '../Structures/Evolve';
+import Folderr from '../Structures/Folderr';
 import Base from '../Structures/Base';
 import { join } from 'path';
 
 class Short extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
-        this.label = 'Short';
-        this.path = '/short/:id';
+        this.label = 'Link';
+        this.path = ['/link/:id', '/l/:id'];
     }
 
     /**
@@ -39,12 +39,14 @@ class Short extends Path {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing short ID.');
         }
-        const short = await this.base.schemas.Shorten.findOne( { ID: req.params.id } );
+        const short = await this.base.db.findLink( { ID: req.params.id }, 'link owner');
         if (!short) {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
         }
-        if (req.query && req.query.u && req.query.u === 't') {
-            return res.status(this.codes.ok).send(short.link.trim() );
+        const owner = this.base.db.findUser( { userID: short.owner } );
+        if (!owner) {
+            this.base.addDeleter(short.owner);
+            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
         }
         return res.redirect(short.link.trim() );
     }

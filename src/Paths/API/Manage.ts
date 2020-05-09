@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source file host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,12 +20,13 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 import childProcess from 'child_process';
 import util from 'util';
 const exec = util.promisify(childProcess.exec);
+import { platform } from 'os';
 import { promises } from 'fs';
 import { isMaster } from 'cluster';
 
@@ -42,7 +43,7 @@ import('../../../package.json').then(f => {
 } );
 
 class Manage extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Manage';
         this.path = '/api/manage';
@@ -51,64 +52,18 @@ class Manage extends Path {
         this.reqAuth = true;
     }
 
-    /**
-     * Checks the versioning to see if the app has been updated, downgraded, or stayed the same
-     * @param vObj
-     *
-     * @returns {string|boolean}
-     */
-    versionChecker(vObj: { af: string[]; old: string[] } ): 'u' | 'd' | false {
-        const ar = [];
-        if (Number(vObj.af[0] ) > Number(vObj.old[0] ) ) {
-            return 'u';
-        } if (Number(vObj.af[0] ) === Number(vObj.old[0] ) ) {
-            ar.push(null);
-        } else {
-            ar.push(false);
-        }
-        if (Number(vObj.af[1] ) > Number(vObj.old[1] ) ) {
-            ar.push(true);
-        } else if (Number(vObj.af[1] ) === Number(vObj.old[1] ) ) {
-            ar.push(null);
-        } else {
-            ar.push(false);
-        }
-        if (Number(vObj.af[2] ) > Number(vObj.old[2] ) ) {
-            ar.push(true);
-        } else if (Number(vObj.af[2] ) === Number(vObj.old[2] ) ) {
-            ar.push(null);
-        } else {
-            ar.push(false);
-        }
-        if (!ar[0] ) {
-            if (ar[1] === true) {
-                return 'u';
-            }
-            if (ar[1] === null && ar[2] === true) {
-                return 'u';
-            }
-            if (ar[1] === false) {
-                return 'd';
-            }
-            if (ar[2] === false) {
-                return 'd';
-            }
-        }
-        return false;
-    }
-
     async execute(req: any, res: any): Promise<Response | void> {
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req, (user) => !!user.first) : await this.Utils.authCookies(req, res, (user) => !!user.first);
+        const auth = await this.Utils.authPassword(req, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         if (!req.query || !req.query.type) {
-            return res.status(this.codes.badReq).send('[ERROR] Missing manage type');
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing manage type' } );
         }
         if (req.query.type === 's') {
-            res.status(this.codes.ok).send('Shutting down in 1 minute');
-            await this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown remotely by owner', { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System shutdown by system owner');
+            res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
+            await this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown remotely by owner', { responsible: `${auth.username} (${auth.userID})` }, 'manage', 'System shutdown by system owner');
             const min = 60000;
             await sleep(min);
             if (this.base.useSharder) {
@@ -123,9 +78,22 @@ class Manage extends Path {
             }
             process.exit();
         } else if (req.query.type === 'u') {
-            res.status(this.codes.accepted).send('Updating.');
+            res.status(this.codes.accepted).json( { code: this.codes.ok, message: 'OK' } );
             try {
-                await exec('yarn update');
+                const cmd = platform() !== 'win32' ? 'which' : 'where';
+                let ecmd = 'yarn';
+                try {
+                    const hasYarn = await exec(`${cmd} yarn`);
+                    if (hasYarn.stderr) {
+                        ecmd = 'npm';
+                    } else if (hasYarn.stdout && hasYarn.stdout.match('/yarn') ) {
+                        ecmd = 'yarn';
+                    }
+                } catch (e) {
+                    ecmd = 'npm';
+                }
+
+                await exec(`${ecmd} update`);
             } catch (err) {
                 await this._handleError(err, res, { noIncrease: true, noResponse: true } );
                 return Promise.resolve();
@@ -134,32 +102,31 @@ class Manage extends Path {
             const af = JSON.parse(f.toString() );
             let v;
             const vers = {
-                af: af.version.split('.'),
-                old: oPackage.version.split('.'),
+                af: Number(af.version.split('.').join(' ') ),
+                old: Number(oPackage.version.split('.').join(' ') ),
             };
-            const ver = this.versionChecker(vers);
-            if (ver === 'u') {
+            if (vers.af > vers.old) {
                 v = `Version upgraded from ${oPackage.version} to ${af.version}`;
-            } else if (ver === false) {
+            } else if (vers.af === vers.old) {
                 v = 'Version not changed';
             } else {
                 v = `Version downgraded from ${oPackage.version} to ${af.version}`;
             }
-            await this.base.Logger.log('SYSTEM - UPDATE', `System updated. ${v}`, { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System update');
+            await this.base.Logger.log('SYSTEM - UPDATE', `System updated. ${v}`, { responsible: `${auth.username} (${auth.userID})` }, 'manage', 'System update');
             // eslint-disable-next-line require-atomic-updates
             oPackage = af;
             return Promise.resolve();
         } else if (req.query.type === 't') {
-            res.status(this.codes.accepted).send('Transpiling.');
+            res.status(this.codes.accepted).json( { code: this.codes.ok, message: 'OK' } );
             try {
                 await exec('tsc');
-                await this.base.Logger.log('SYSTEM - TRANSPILE', 'System remotely transpiled', { responsible: `${auth.username} (${auth.uID}` }, 'manage', 'System Transpile');
+                await this.base.Logger.log('SYSTEM - TRANSPILE', 'System remotely transpiled', { responsible: `${auth.username} (${auth.userID})` }, 'manage', 'System Transpile');
             } catch (e) {
                 await this._handleError(e, res, { noIncrease: true, noResponse: true } );
             }
             return Promise.resolve();
         }
-        return res.status(this.codes.badReq).send('[ERROR] Not an option!');
+        return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Not an option!' } );
     }
 }
 

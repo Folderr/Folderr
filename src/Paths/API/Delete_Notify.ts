@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,15 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 
 class DelNotify extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Delete notification';
-        this.path = '/api/notification';
+        this.path = '/api/notification/:id';
 
         this.type = 'delete';
         this.reqAuth = true;
@@ -36,30 +36,29 @@ class DelNotify extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth
-        const auth = await this.Utils.authToken(req);
+        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         // Check query
-        if (!req.query || (req.query && !req.query.id) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Missing notification ID');
+        if (!req.params?.id) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing notification ID' } );
         }
 
         // Grab the users notifications, and find the one they are looking for
         const { notifs } = auth;
         if (!notifs) {
-            return res.status(this.codes.notFound).send('[ERROR] You have no notifications!');
+            return res.status(this.codes.notFound).json( { code: this.codes.notFound, message: 'You have no notifications!' } );
         }
-        const notify = notifs.find(notification => notification.ID === req.query.id);
+        const notify = notifs.find(notification => notification.ID === req.params.id);
         // If no notification, tell the user that notification does not exist
         if (!notify) {
-            return res.status(this.codes.notFound).send('[ERROR] Notification not found!');
+            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'Notification not found!' } );
         }
         // Remove the notification, update the users account, and return success
-        auth.notifs = notifs.filter(notification => notification.ID !== req.query.id);
-        await this.base.schemas.User.findOneAndUpdate( { uID: auth.uID }, auth);
-        return res.status(this.codes.ok).send('[SUCCESS] Notification removed!');
+        await this.base.db.updateUser( { uID: auth.userID }, { $pull: { notifs: { ID: req.params.id } } } );
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }
 

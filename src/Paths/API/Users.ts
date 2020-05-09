@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,47 +20,89 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
+import { User } from '../../Structures/Database/DBClass';
 
 class Users extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Users';
-        this.path = '/api/users';
+        this.path = '/api/admin/users';
         this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response | void> {
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.first);
+        const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
-        const images = await this.base.schemas.Upload.find( {} );
-        const shorts = await this.base.schemas.Shorten.find( {} );
+        const query: { $gt?: { created: Date }; $lt?: { created: Date }; userID?: string; username?: RegExp } = {};
+        if (req.query?.type && req.query?.query) {
+            if (req.query.type === 'userID') {
+                query.userID = req.query.query;
+            } else if (req.query.type === 'username') {
+                query.username = new RegExp(`^${req.query.query}`);
+            }
+        } else if (req.query?.query && !req.query?.type) {
+            query.userID = req.query.query;
+        }
+        const opts: { sort?: object; limit?: number; selector: string } = req.query?.gallery ? { sort: { created: -1 }, selector: 'username admin first email files links userID' } : { sort: { created: -1 }, selector: 'username admin first email files links userID' };
+        if (req.query?.gallery) {
+            if (req.query?.limit >= 20) {
+                opts.limit = 20;
+            } else if (req.query?.limit >= 15) {
+                opts.limit = 20;
+            } else if (req.query?.limit >= 10 && req.query?.limit < 15) {
+                opts.limit = 10;
+            } else if (req.query?.limit <= 10) {
+                opts.limit = 10;
+            } else {
+                opts.limit = 10;
+            }
+        } else {
+            opts.limit = 20;
+        }
+        if (req.query?.before) {
+            if (req.query.before instanceof Date) {
+                query.$lt = { created: req.query.before };
+            } else if (req.query.before instanceof Number) {
+                query.$lt = { created: new Date(req.query.before) };
+            }
+        }
+        if (req.query?.after) {
+            if (req.query.before instanceof Date) {
+                query.$gt = { created: req.query.after };
+            } else if (req.query.before instanceof Number) {
+                query.$gt = { created: new Date(req.query.after) };
+            }
+        }
 
-        const users = await this.base.schemas.User.find( {} );
-        const arr = [];
-        for (const user of users) {
-            const obj = {
-                username: user.username,
-                uID: user.uID,
-                title: '',
-                images: images.filter(image => image.owner === user.uID).length,
-                shorts: shorts.filter(short => short.owner === user.uID).length,
-            };
-            if (user.first) {
-                obj.title = 'Owner';
-            } else if (user.admin) {
-                obj.title = 'Admin';
-            }
-            if (user.uID === auth.uID) {
-                obj.username += ' (You)';
-            }
-            arr.push(obj);
+        const users: User[] = await this.base.db.findUsers(query, opts);
+        if (users.length === 0) {
+            return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.db_not_found, message: [] } );
         }
-        return res.status(this.codes.ok).send(arr);
+        const arr: {
+            title?: string | boolean;
+            username: string;
+            files: number;
+            links: number;
+            email: string;
+            userID: string;
+            created: number;
+        }[] = users.map( (user: User) => {
+            return {
+                title: !user.admin && !user.first ? '' : (user.admin && 'admin') || (user.first && 'first'),
+                username: user.username,
+                files: user.files,
+                links: user.links,
+                email: user.email,
+                userID: user.userID,
+                created: Math.round(user.created.getTime() / 1000),
+            };
+        } );
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: arr } );
     }
 }
 

@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -21,14 +21,15 @@
 
 import { Response } from 'express';
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
+import { TokenDB } from '../../Structures/Database/DBClass';
 
 class GenToken extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Generate Token';
-        this.path = '/api/token';
+        this.path = '/api/account/token';
 
         this.type = 'post';
         this.reqAuth = true;
@@ -38,20 +39,21 @@ class GenToken extends Path {
         // Check auth
         const auth = await this.Utils.authPassword(req);
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
+        const tokens = await this.base.db.findTokens(auth.userID, { web: false } );
 
         // If the user has their token generated, make sure they know their current token will be gone
-        if (auth.token) {
-            if (!req.query || !req.query.flags || (req.query.flags && req.query.flags !== 'force') ) {
-                return res.status(this.codes.forbidden).send('[ERROR] You have a token, so query.flags need to exist and be set to "force".\nThis will erase your current token');
-            }
+        if (tokens.length > 10 && !(req.query || !req.query.override || (req.query.override && req.query.override !== 'true') ) ) {
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.token_size_limit, message: 'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.' } );
+        }
+        if (tokens.length >= 10 && (req.query && req.query.override && req.query.override === 'true') ) {
+            const tkns = tokens.sort( (a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created) );
+            await this.base.db.purgeToken(tkns[0].id, tkns[0].userID, { web: false } );
         }
 
-        const token = await this.Utils.genToken(auth.uID);
-        auth.token = token.hash;
-        await auth.save();
-        return res.status(this.codes.created).send(token.token);
+        const token = await this.Utils.authorization.genKey(auth.userID);
+        return res.status(this.codes.created).json( { code: this.codes.ok, message: token } );
     }
 }
 

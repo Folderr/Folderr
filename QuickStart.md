@@ -1,8 +1,8 @@
 # To begin
 
-### Lets install Evolve-X
+### Lets install Folderr-X
 
-Make sure you have access to MongoDB and NodeJS version 8 or higher before installing Evolve-X (NGINX will be useful on Linux).
+Make sure you have access to MongoDB and NodeJS version 8 or higher before installing Folderr-X (NGINX will be useful on Linux).
 
 To install: `git clone https://gitlab.com/evolve-x/evolve-x`
 
@@ -12,7 +12,7 @@ If you don't have TypeScript do
 
 `npm i -g typescript`
 
-Next, install dependencies in the folder you cloned Evolve-X in.
+Next, install dependencies in the folder you cloned Folderr-X in.
 
 `npm i` or `yarn install`
 
@@ -20,9 +20,9 @@ Finally, run the first command
 
 `<npm|yarn> run first`
 
-After completing the first user creation, you will need to configure Evolve-X, head to https://gitlab.com/evolve-x/evolve-x/blob/master/Config.md (If you want to, you can ue the defaults).
+After completing the first user creation, you will need to configure Folderr-X, head to https://gitlab.com/evolve-x/evolve-x/blob/master/Config.md (If you want to, you can ue the defaults).
 
-After configuring Evolve-X (or not, whatever tips your boat) you can finally run
+After configuring Folderr-X (or not, whatever tips your boat) you can finally run
 
 `<npm|yarn> start`
 
@@ -38,7 +38,7 @@ Updating is rather simple.
 
 Well, that is easy, ish.
 
-To start Evolve-X you want to have the CWD (Current working directory) be where you installed it.
+To start Folderr-X you want to have the CWD (Current working directory) be where you installed it.
 
 Node arguments: `- esm` This is needed otherwise it dies.
 

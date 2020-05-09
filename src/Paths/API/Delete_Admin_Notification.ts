@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,15 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 
 class DelANotify extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Delete notification';
-        this.path = '/api/admin_notification';
+        this.path = '/api/admin/notification/:id';
         this.reqAuth = true;
 
         this.type = 'delete';
@@ -36,30 +36,30 @@ class DelANotify extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Authorize the user as admin, or throw error.
-        const auth = await this.Utils.authToken(req, (user) => !!user.admin);
+        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin, web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user) => !!user.admin } );
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?'); // Fuck off
+            return res.status(this.codes.unauth).send('Authorization failed.'); // Unauthorized
         }
 
-        // In case they fforgot the ID for the notification
-        if (!req.query || (req.query && !req.query.id) ) {
-            return res.status(this.codes.badReq).send('[ERROR] Missing notification ID');
+        // In case they forgot the ID for the notification
+        if (!req.params?.id) {
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing notification ID' } );
         }
 
         // Find the notification, and if it cant tell the user it  cannot find the notification with a code 404
-        const notify = await this.base.schemas.AdminNotifs.findOne( { ID: req.query.id } );
+        const notify = await this.base.db.findAdminNotify( { ID: req.params.id } );
         if (!notify) {
-            return res.status(this.codes.notFound).send('[ERROR] Notification not found!');
+            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'Notification not found!' } );
         }
-        // Signup notifications are invincible, at least to manual remove
-        if (notify.title === 'forbidden') {
-            return res.status(this.codes.forbidden).send('[ERROR] Signup notifications cannot be removed!');
+        // Signup notifications are invincible, at least to manually remove
+        if (notify.title === 'New user signup!') {
+            return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: 'Signup notifications cannot be removed!' } );
         }
 
         // Remove the admin notification and tell the admin it was removed
-        await this.base.schemas.AdminNotifs.findOneAndRemove( { ID: req.query.id } );
+        await this.base.db.purgeAdminNotify( { ID: req.params.id } );
         console.log(`[SYSTEM INFO - NOTIFICATIONS] - Admin notification ${notify.ID} removed by ${auth.username}!`);
-        return res.status(this.codes.ok).send('[SUCCESS] Notification removed!');
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }
 

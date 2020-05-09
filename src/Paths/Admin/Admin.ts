@@ -1,7 +1,7 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
+ * Folderr-X is an open source image host. https://gitlab.com/evolve-x
  * Copyright (C) 2019 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,13 +20,13 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { join } from 'path';
 
 class Admin extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = 'Admin Hub';
         this.path = '/admin';

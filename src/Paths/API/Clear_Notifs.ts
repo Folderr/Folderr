@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -21,11 +21,11 @@
 
 import Path from '../../Structures/Path';
 import Base from '../../Structures/Base';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import { Response } from 'express';
 
 class ClearNotifs extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Clear Notifications';
         this.path = '/api/notifications';
@@ -36,15 +36,14 @@ class ClearNotifs extends Path {
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth
-        const auth = await this.Utils.authToken(req);
-        if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization);
+        if (!auth) {
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         // Clear the notifications and tell the user that happened
-        auth.notifs = [];
-        await this.base.schemas.User.findOneAndUpdate( { uID: auth.uID }, auth);
-        return res.status(this.codes.ok).send('[SUCCESS] Notifications cleared!');
+        await this.base.db.updateUser( { userID: auth.userID }, { notifs: [] } );
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }
 

@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,19 +20,18 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
-import Configurator from '../../Structures/ShareXConfigurator';
-import { compareSync } from 'bcrypt';
+import Configurator from '../../Structures/Utilities/ShareXConfigurator';
 
-class Configr extends Path {
+class ShareXConfigurator extends Path {
     private configurator: Configurator;
 
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Configurator';
-        this.path = '/api/config';
+        this.path = '/api/sharex/config';
         this.type = 'post';
         this.configurator = new Configurator();
     }
@@ -41,26 +40,32 @@ class Configr extends Path {
      * @desc Generate a ShareX configuration
      */
     async execute(req: any, res: any): Promise<Response | void> {
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authPassword(req) : await this.Utils.authCookies(req, res);
-        if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.token) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
+        if (!auth) {
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
         if (!req.body || !req.body.token) {
-            return res.status(this.codes.unauth).send('[ERROR] Missing token in body!');
+            return res.status(this.codes.unauth).json( { code: this.codes.badReq, message: 'Missing token in body!' } );
         }
-        const compare = compareSync(req.body.token, auth.token);
+        const compare = this.Utils.authorization.verifyAccount(req.body.token);
         if (!compare) {
-            return res.status(this.codes.unauth).send('[ERROR] Invalid Token!');
+            return res.status(this.codes.unauth).json( { code: this.codes.notAccepted, message: 'Invalid Token!' } );
         }
-        const url = auth.cUrl || this.base.options.url;
+        const url = await this.Utils.determineHomeURL(req);
 
-        const config = this.configurator.generateFiles(auth.uID, url, req.body.token);
-        if (req.query && req.query.d === 'true') {
+        const config = this.configurator.generateFiles(url, req.body.token);
+        if (req.query && req.query.d === 'file') {
             res.type('text/plain; charset=binary');
-            res.set('Content-Disposition', 'attachment; filename=EX-Config.sxcu');
+            res.set('Content-Disposition', 'attachment; filename=Folderr-File-Config.sxcu');
+            return res.status(this.codes.ok).send(config[0] );
         }
-        return res.status(this.codes.ok).send(config);
+        if (req.query?.d && req.query.d === 'link') {
+            res.type('text/plain; charset=binary');
+            res.set('Content-Disposition', 'attachment; filename=Folderr-Link-Config.sxcu');
+            return res.status(this.codes.ok).send(config[1] );
+        }
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: config } );
     }
 }
 
-export default Configr;
+export default ShareXConfigurator;

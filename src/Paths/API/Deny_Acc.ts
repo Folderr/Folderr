@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,48 +20,45 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
+import { User } from '../../Structures/Database/DBClass';
 
 class DenyAccount extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Deny Account';
 
-        this.path = '/api/verify';
+        this.path = '/api/admin/verify';
         this.type = 'delete';
         this.reqAuth = true;
     }
 
     async execute(req: any, res: any): Promise<Response> {
         // Check auth by id/token
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.admin);
-        if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user: User) => !!user.admin } ) : await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin, web: true } );
+        if (!auth) {
+            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         // Verify body
         if (!req.body.token && !req.body.uid) {
-            return res.status(this.codes.badReq).send('[ERROR] BODY MISSING!');
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'BODY MISSING!' } );
         } if (!req.body.token || !req.body.uid) {
-            return res.status(this.codes.badReq).send('[ERROR] BODY INCOMPLETE!');
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'BODY INCOMPLETE!' } );
         }
         // Search for the user, and if not found send in an error
         const user = await this.Utils.findVerifying(req.body.token, req.body.uid);
         if (!user) {
-            return res.status(this.codes.notFound).send('[ERROR] User not found!');
+            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
         }
-        // Deny the account via verifying
-        await this.base.schemas.VerifyingUser.findOneAndRemove( { uID: user.uID } );
-        // Find the admin notification, and remove it
-        const notifs = await this.base.schemas.AdminNotifs.find();
-        const notify = notifs.find(notif => notif.notify.includes(user.uID) );
-        await this.base.schemas.AdminNotifs.deleteOne(notify);
+        // Deny the account & delete notification
+        await this.base.db.denyUser(user.userID);
         // Log that the account was denied by admin x, and tell the admin the account wa denied
         // console.log(`[INFO] - User ${user.uID}'s account was denied by admin ${auth.username} (${auth.uID})`);
-        this.base.Logger.log('SYSTEM INFO', 'User account denied by administrator', { user: `${user.username} (${user.uID})`, responsible: `${auth.username} (${auth.uID})` }, 'accountDeny', 'Account denied by Admin');
-        return res.status(this.codes.ok).send('[SUCCESS] Denied user!');
+        this.base.Logger.log('SYSTEM INFO', 'User account denied by administrator', { user: `${user.username} (${user.userID})`, responsible: `${auth.username} (${auth.userID})` }, 'accountDeny', 'Account denied by Admin');
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }
 

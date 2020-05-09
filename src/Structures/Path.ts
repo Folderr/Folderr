@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -24,12 +24,11 @@
  * @version 0.8.0
  */
 
-import codes, { Codes } from './Status_Codes';
+import codes, { Codes } from './Utilities/Status_Codes';
 import ErrorHandler from './ErrorHandler';
-import Evolve from './Evolve';
+import Folderr from './Folderr';
 import Base from './Base';
 import express from 'express';
-import * as cluster from 'cluster';
 import { join } from 'path';
 
 /**
@@ -58,7 +57,7 @@ class Path {
 
     public codes: Codes;
 
-    public evolve: Evolve;
+    public folderr: Folderr;
 
     public base: Base;
 
@@ -72,7 +71,7 @@ class Path {
 
     /**
      *
-     * @param {Object<Evolve>} evolve The Evolve-X client
+     * @param {Object<Folderr>} folderr The Folderr client
      * @param {Object<Base>} base The base of the system
      *
      * @prop {String} label The label for this path to be called
@@ -81,15 +80,15 @@ class Path {
      * @prop {Boolean} enabled=true Whether or not to enable this endpoint.. Also helps handle errors
      * @prop {Boolean} lean=false Whether or not to ignore fatal (uncaught) errors in the long run
      *
-     * @prop {Object} codes The http status codes Evolve-X uses
-     * @prop {Object} evolve The evolve-x client, at your disposal
-     * @prop {Object} base The base of evolve-x (where useful stuff like schemas are held) at your disposal.
-     * @prop {Object} Utils The evolve-x utilities
+     * @prop {Object} codes The http status codes Folderr uses
+     * @prop {Object} Folderr The Folderr-x client, at your disposal
+     * @prop {Object} base The base of Folderr (where useful stuff like schemas are held) at your disposal.
+     * @prop {Object} Utils The Folderr utilities
      *
      * @prop {Object} eHandler The error handler for this path.
      * @prop {Number} _fatalErrors=0 Private. The amount of fatal errors this path has encountered.
      */
-    constructor(evolve: Evolve, base: Base) {
+    constructor(folderr: Folderr, base: Base) {
         this.label = 'label'; // Label for the path.
         this.path = ''; // The path to server for
         this.type = 'get'; // What type of request it needs
@@ -98,7 +97,7 @@ class Path {
         this.secureOnly = false;
 
         this.codes = codes;
-        this.evolve = evolve;
+        this.folderr = folderr;
         this.base = base;
         this.Utils = this.base.Utils;
 
@@ -162,7 +161,10 @@ class Path {
             return;
         }
         // eslint-disable-next-line consistent-return
-        return res.status(this.codes.internalErr).send(out);
+        res.status(this.codes.internalErr).send(out);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        throw new Error(err);
     }
 
     /**
@@ -179,61 +181,11 @@ class Path {
             if (!req.path.match('/api') ) {
                 return res.status(this.codes.locked).sendFile(join(__dirname, '../Frontend/locked.html') );
             }
-            return res.status(this.codes.locked).send('[FATAL] Endpoint locked!');
+            return res.status(this.codes.locked).json( { code: this.Utils.FoldCodes.locked, message: 'Endpoint locked!' } );
         }
 
         if (this.secureOnly && !req.secure) {
-            return res.status(this.codes.notAccepted).send('[FATAL] Endpoint needs to be secure!');
-        }
-        // Define number variables for ratelimiting
-        const banned = this.evolve.ratelimiter.isBanned(req.ip);
-        if (banned) {
-            const banType = this.evolve.ratelimiter.getBanCount(req.ip);
-            if (!req.path.match('/api') ) {
-                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, `../Frontend/banned_${typeof banType !== 'boolean' && banType - 1 > 0 ? String(banType) : '1'}.html`) );
-            }
-            const types = {
-                1: '5 minutes',
-                2: '30 minutes',
-                3: '1 hour',
-            };
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
-            return res.status(this.codes.tooManyReq).send(`Rate limited (Banned) for ${typeof banType !== 'boolean' ? types[banType] : types['1']}`);
-        }
-        // If ratelimited, tell the user
-
-        this.addIP(req.ip);
-        const reqs = this.evolve.ratelimiter.getReq(req.ip);
-        if (reqs && typeof reqs !== 'boolean' && reqs >= this.evolve.ratelimiter.rules.max) {
-            this.addIPBan(req.ip);
-            await this.Utils.sleep(1000);
-        }
-        const nbanned = this.evolve.ratelimiter.isBanned(req.ip);
-        if (nbanned) {
-            const banType = this.evolve.ratelimiter.getBanCount(req.ip);
-            const times = {
-                1: 'firstTime',
-                2: 'secondTime',
-                3: 'maxTime',
-            };
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
-            const time = this.evolve.ratelimiter.rules[times[banType]];
-            const types = {
-                1: '5 minutes',
-                2: '30 minutes',
-                3: '1 hour',
-            };
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
-            console.log(`[RATELIMITER] Banned ${req.ip} until ${new Date(Date.now() + time).toTimeString()} (${typeof banType !== 'boolean' ? types[banType] : types['1']})\n[SYSTEM TIME] It is ${new Date().toTimeString()}`);
-            if (!req.path.match('/api') ) {
-                return res.status(this.codes.tooManyReq).sendFile(join(__dirname, `../Frontend/banned_${typeof banType !== 'boolean' ? String(banType) : '1'}.html`) );
-            }
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
-            return res.status(this.codes.tooManyReq).send(`Rate limited (Banned) for ${typeof banType !== 'boolean' ? types[banType] : types['1']}`);
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.security_error, message: 'Endpoint needs to be secure!' } );
         }
 
         // Execute the endpoint and catch errors
@@ -242,38 +194,6 @@ class Path {
             return await this.execute(req, res);
         } catch (err) {
             return this._handleError(err, res);
-        }
-    }
-
-    addIPBan(ip: string): void {
-        if (cluster.isWorker) {
-            this.base.sendToMaster( { messageType: 'banAdd', value: ip, sendToAll: true } );
-        } else {
-            this.evolve.addIPBan(ip);
-        }
-    }
-
-    addIP(ip: string): void {
-        if (cluster.isWorker) {
-            this.base.sendToMaster( { messageType: 'ipAdd', value: ip, sendToAll: true } );
-        } else {
-            this.evolve.addIP(ip);
-        }
-    }
-
-    removeIP(ip: string): void {
-        if (cluster.isWorker) {
-            this.base.sendToMaster( { messageType: 'ipRemove', value: ip, sendToAll: true } );
-        } else {
-            this.evolve.removeIP(ip);
-        }
-    }
-
-    removeIPBan(ip: string): void {
-        if (cluster.isWorker) {
-            this.base.sendToMaster( { messageType: 'banRemove', value: ip, sendToAll: true } );
-        } else {
-            this.evolve.removeIPBan(ip);
         }
     }
 }

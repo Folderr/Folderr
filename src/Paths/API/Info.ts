@@ -1,8 +1,8 @@
 /**
  * @license
  *
- * Evolve-X is an open source image host. https://gitlab.com/evolve-x
- * Copyright (C) 2019 VoidNulll
+ * Folderr is an open source image host. https://github.com/Folderr
+ * Copyright (C) 2020 VoidNulll
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,7 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Evolve from '../../Structures/Evolve';
+import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import Package from '../../../package.json';
 import childProcess from 'child_process';
@@ -30,7 +30,7 @@ import { Response } from 'express';
 const exec = util.promisify(childProcess.exec);
 
 class Info extends Path {
-    constructor(evolve: Evolve, base: Base) {
+    constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = '[API] Info';
         this.path = '/api/info';
@@ -38,9 +38,9 @@ class Info extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        const auth = !this.Utils.checkCookies(req) ? await this.Utils.authToken(req, (user) => !!user.admin) : await this.Utils.authCookies(req, res, (user) => !!user.admin);
+        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization) : await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin } );
         if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send(auth || '[ERROR] Authorization failed. Who are you?');
+            return res.status(this.codes.unauth).send( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
         let branch: any = await exec('git branch');
         branch = branch.stdout;
@@ -59,7 +59,7 @@ class Info extends Path {
             branch,
             version: Package.version,
         };
-        return res.status(this.codes.ok).send(obj);
+        return res.status(this.codes.ok).json( { code: this.codes.ok, message: obj } );
     }
 }
 
