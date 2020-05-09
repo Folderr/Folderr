@@ -62,9 +62,13 @@ class Signup extends Path {
     }
 
     async email(username: string, userID: string, password: string, validationToken: { hash: string; token: string }, email: string, req: Request, res: Response): Promise<{ httpCode: number; msg: { message: string; code: number } }> {
-        const url = await this.Utils.determineHomeURL(req);
+        let url = await this.Utils.determineHomeURL(req);
+        if (!url.match(/http(s)?:\/\//) ) {
+            url = `http://${url}`;
+        }
         try {
-            await Promise.all( [this.base.emailer.verifyEmail(email, `${url}/verify/${userID}/${validationToken.token}`, username), this.base.db.makeVerify(userID, username, password, validationToken.hash, email)] );
+            await this.base.emailer.verifyEmail(this.Utils.decrypt(email), `${url}/verify/${userID}/${validationToken.token}`, username);
+            await this.base.db.makeVerify(userID, username, password, validationToken.hash, email);
         } catch (e) {
             this._handleError(e, res, { noResponse: true, noIncrease: false } );
             return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
@@ -90,10 +94,11 @@ class Signup extends Path {
         // Max and min username lengths
         const maxUsername = 12;
         const minUsername = 3;
+        const uMatch = username.match(/[a-z0-9_]{3,12}/g);
         // If the username length does not match criteria
         if (username.length > maxUsername || username.length < minUsername) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
-        } if (username.length !== username.match(/[a-z0-9_]/g).length) { // If the username doess not match our username pattern
+        } if (!uMatch || (uMatch && username.length !== uMatch[0].length) ) { // If the username doess not match our username pattern
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_username, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
         }
         if (!this.base.emailer.validateEmail(req.body.email) ) {
@@ -105,18 +110,15 @@ class Signup extends Path {
         }
 
         // See if the username is already taken. If its taken error the request with a code of "IM USED"
-        const user = await this.base.db.findUser( { $or: [{ username }, { email: req.body.email }] } ) || await this.base.db.findVerify( { $or: [{ username }, { email: req.body.email }] } );
+        const user = await this.base.db.findUser( { $or: [{ username: req.body.username }, { email: req.body.email }] } ) || await this.base.db.findVerify( { $or: [{ username: req.body.username }, { email: req.body.email }] } );
         if (user) {
+            console.log(user);
             return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.username_or_email_taken, message: 'Username or email taken!' } );
         }
-
-        // Minimum and max password lengths
-        const minPass = 8;
-        const maxPass = 32;
         // If the password is not over min length
         // If password does not match the regex completely
         const match: RegExpMatchArray | null = password.match(this.Utils.regexs.password);
-        if (match && match.length !== password.length) {
+        if (!match || (match && match[0].length !== password.length) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.' } );
         }
 
@@ -137,7 +139,7 @@ class Signup extends Path {
         // Add the user to the VerifyingUser database and save
 
         // Find admin notifications, and generate an ID
-        const r = this.base.emailer.active ? await this.email(username, uID, pswd, validationToken, email, req, res) : await this.noEmail(username, uID, pswd, validationToken, email, res);
+        const r = this.base.emailer.active && this.base.options.signups === 2 ? await this.email(username, uID, pswd, validationToken, email, req, res) : await this.noEmail(username, uID, pswd, validationToken, email, res);
         return res.status(r.httpCode).json(r.msg);
     }
 }

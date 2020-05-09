@@ -28,15 +28,15 @@ class Verify extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
         this.label = 'Verify Self';
-        this.path = '/verify/:userID/:token';
+        this.path = '/verify/:userid/:token';
         this.enabled = this.base.emailer.active && this.base.options.signups === 2;
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
-        if (!req.params?.userID || !req.params?.token) {
+        if (!req.params?.userid || !req.params?.token) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing requirements!' } );
         }
-        const verify = await this.Utils.findVerifying(req.params.token, req.params.userID);
+        const verify = await this.Utils.findVerifying(req.params.token, req.params.userid);
         if (!verify) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
         }

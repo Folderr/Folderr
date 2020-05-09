@@ -265,8 +265,17 @@ class Utils {
     async genValidationToken(): Promise<TokenReturn> {
         // Generate random bytes, gen more random bytes
         // Oh and get a base64 date in milliseconds
-        const random: string = crypto.randomBytes(this.byteSize).toString();
-        return this.genToken(random);
+        const r: string = crypto.randomBytes(this.byteSize).toString();
+        const random: string = crypto.randomBytes(this.byteSize).toString('base64')
+            .replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
+        const uID = Buffer.from(r).toString('base64')
+            .replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
+        const date = Buffer.from(new Date().getUTCMilliseconds().toString() ).toString('base64')
+            .replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
+        // Combine, hash, and return the hashed and unhashed token
+        const token = `${uID}.${random}.${date}`;
+        const hash = await bcrypt.hash(token, this.saltRounds);
+        return { token, hash };
     }
 
     /**
@@ -442,14 +451,15 @@ class Utils {
     }
 
     async determineHomeURL(req: Request) {
+        const protocol = `${req.protocol || 'http'}://`;
         try {
             const test = await this.evolve.base.superagent.get(`${this.evolve.base.options.url}/api`);
             if (test?.text && JSON.parse(test?.text)?.message?.message === 'Pong!') {
                 return this.evolve.base.options.url;
             }
-            return `${req.protocol}://${req.get('host')}`;
+            return `${protocol}${req.get('host')}`;
         } catch (e) {
-            return `${req.protocol}://${req.get('host')}`;
+            return `${protocol}${req.get('host')}`;
         }
     }
 
