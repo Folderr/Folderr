@@ -14,6 +14,8 @@ src/Schemas/*.js
 src/Paths/*.js
 src/Paths/**/*.js
 src/Structures/**/*.js
+src/Structures/Database/*.js
+src/Structures/Utilities/*.js
 scripts/*.js
 Files/*
 
