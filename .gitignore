@@ -13,6 +13,7 @@ src/Structures/*.js
 src/Schemas/*.js
 src/Paths/*.js
 src/Paths/**/*.js
+src/Structures/**/*.js
 scripts/*.js
 Files/*
 
