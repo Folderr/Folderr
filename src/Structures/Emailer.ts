@@ -44,6 +44,7 @@ export default class Emailer {
 
     async verifyEmail(email: string, verifyLink: string, username: string): Promise<void | SentMessageInfo> {
         if (this.email && this.mailer) {
+            console.log(email);
             return this.mailer.sendMail( {
                 from: this.email,
                 to: email,

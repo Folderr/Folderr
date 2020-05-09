@@ -77,7 +77,7 @@ export interface Options {
     port?: number;
     url?: string;
     mongoUrl?: string;
-    signups?: 0 | 1 | 2;
+    signups?: number;
     apiOnly?: boolean;
     trustProxies?: boolean;
     certOptions?: CertOptions;
@@ -94,7 +94,7 @@ export interface ActualOptions {
     port: number;
     url: string;
     mongoUrl: string;
-    signups: 0 | 1 | 2;
+    signups: number;
     apiOnly: boolean;
     trustProxies: boolean;
     certOptions?: CertOptions;
@@ -143,7 +143,7 @@ class FolderrConfig implements ActualOptions {
 
     public mongoUrl: string;
 
-    public signups: 0 | 1 | 2;
+    public signups: number;
 
     public apiOnly: boolean;
 

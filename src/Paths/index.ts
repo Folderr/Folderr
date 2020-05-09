@@ -55,3 +55,4 @@ export { default as APITokens } from './API/Tokens';
 export { default as APIDeleteToken } from './API/Delete_Token';
 export { default as APIAddAdmin } from './API/Add_Admin';
 export { default as APIDelAdmin } from './API/Del_Admin';
+export { default as DenySelf } from './Deny';

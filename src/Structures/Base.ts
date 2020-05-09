@@ -129,7 +129,7 @@ class Base {
         // I would like to point out that windowsHide is an actual option here.
         // The typings and documentation are incorrect.
         // This takes the same arguments as child_process.spawn afaict.
-        this.emailer = new Emailer();
+        this.emailer = new Emailer(this.options.email?.sendingEmail, this.options.email?.mailerOptions);
     }
 
     listen(): void {
