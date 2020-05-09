@@ -27,6 +27,7 @@ export interface Notification {
     ID: string;
     title: string;
     notify: string;
+    created: Date;
 }
 
 export interface User {

@@ -27,7 +27,7 @@ const User: Schema = new Schema( {
     first: { type: Boolean, default: false },
     username: { type: String, required: true },
     admin: { type: Boolean, default: false },
-    notifs: { type: [{ ID: { type: String }, title: { type: String }, notify: { type: String } }], required: false, default: [] },
+    notifs: { type: [{ ID: { type: String }, title: { type: String }, notify: { type: String }, created: { type: Date, default: new Date() } }], required: false, default: [] },
     cURLs: { type: Array, default: [] },
     files: { type: Number, default: 0 },
     links: { type: Number, default: 0 },
@@ -41,6 +41,7 @@ export interface Notification {
     ID: string;
     title: string;
     notify: string;
+    created: Date;
 }
 
 export interface UserI extends Document {

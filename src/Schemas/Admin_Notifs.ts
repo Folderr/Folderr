@@ -25,12 +25,14 @@ const AdminNotifs: Schema = new Schema( {
     title: { type: String, required: true },
     notify: { type: String, required: true },
     ID: { type: String, required: true, index: true },
+    created: { type: Date, default: new Date() },
 } );
 
 export interface Notification extends Document {
     title: string;
     notify: string;
     ID: string;
+    created: Date;
 }
 
 const mod: Model<Notification> = model<Notification>('admin_notifs', AdminNotifs);

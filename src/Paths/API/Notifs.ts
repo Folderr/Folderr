@@ -44,7 +44,7 @@ class Notifs extends Path {
         }
         // Grab the notifications from the user
         // eslint-disable-next-line prefer-destructuring
-        let notifs: string[] | Notification[] | undefined = auth.notifs;
+        let notifs: Notification[] | undefined = auth.notifs;
         // If the user wants to view admin notifications
         if (req.query && req.query.admin === 'true') {
             // If they arent a admin, they do not get to see these notifications
@@ -53,7 +53,9 @@ class Notifs extends Path {
             }
             // Get the notifications, and reset the notifications array
             const anotifs = await this.base.db.findAdminNotifies( {} );
-            notifs = anotifs.map( (notification: Notification) => `{ "ID":"${notification.ID}","title":"${notification.title}","notify":"${notification.notify.replace(/\n/g, ',')}" }`);
+            notifs = anotifs.map( (notification: Notification) => {
+                return { ID: notification.ID, title: notification.title, notify: notification.notify.replace(/\n/g, ','), created: notification.created };
+            } );
         }
 
         // Return whatever notifications there are
