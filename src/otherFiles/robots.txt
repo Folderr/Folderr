@@ -1,2 +1,8 @@
 User-Agent: *
 Disallow: /admin/
+Disallow: /i/
+Disallow: /image/
+Disallow: /f/
+Disallow: /file/
+Disallow: /l/
+Disallow: /link/
