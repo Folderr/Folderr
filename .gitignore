@@ -8,7 +8,7 @@ node_modules/
 
 # Ignore files from converting to ts
 
-src/index.js
+src/*.js
 src/Structures/*.js
 src/Schemas/*.js
 src/Paths/*.js
