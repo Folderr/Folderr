@@ -94,7 +94,7 @@ class Signup extends Path {
         // Max and min username lengths
         const maxUsername = 12;
         const minUsername = 3;
-        const uMatch = username.match(/[a-z0-9_]{3,12}/g);
+        const uMatch = username.match(this.folderr.regexs.username);
         // If the username length does not match criteria
         if (username.length > maxUsername || username.length < minUsername) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
@@ -116,9 +116,13 @@ class Signup extends Path {
         }
         // If the password is not over min length
         // If password does not match the regex completely
-        const match: RegExpMatchArray | null = password.match(this.Utils.regexs.password);
+        const match: RegExpMatchArray | null = password.match(this.folderr.regexs.password);
         if (!match || (match && match[0].length !== password.length) ) {
-            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.password_size, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.' } );
+        }
+        // No NUL charater
+        if (password.match('\0') ) {
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegal_password, messsage: 'NUL character forbidden in passwords!' } );
         }
 
         // Hash the password and catch errors

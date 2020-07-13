@@ -20,16 +20,20 @@
  */
 
 import nodemailer, { SentMessageInfo } from 'nodemailer';
+import Folderr from './Folderr';
 import Mail from 'nodemailer/lib/mailer';
 
 export default class Emailer {
     public active: boolean;
 
+    private folderr: Folderr;
+
     private mailer?: Mail;
 
     private email?: string;
 
-    constructor(email?: string, options?: { auth: { user: string; pass: string }; host: string; port?: number; secure?: boolean } ) {
+    constructor(folderr: Folderr, email?: string, options?: { auth: { user: string; pass: string }; host: string; port?: number; secure?: boolean } ) {
+        this.folderr = folderr;
         this.active = !!options;
         if (this.active) {
             this.mailer = nodemailer.createTransport(options);
@@ -38,8 +42,7 @@ export default class Emailer {
     }
 
     validateEmail(email: string): boolean {
-        const emailRegex =  /([A-Za-z0-9_.\-$%#!+/=^;&'*]{2,})?@([a-z0-9-]{2,})?\.([a-z]{2,})?/;
-        return emailRegex.test(email);
+        return this.folderr.regexs.email.test(email);
     }
 
     async verifyEmail(email: string, verifyLink: string, username: string): Promise<void | SentMessageInfo> {

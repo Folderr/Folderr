@@ -36,6 +36,6 @@ export interface JwtTokenI extends Document {
     created: Date;
 }
 
-const mod: Model<JwtTokenI> = model<JwtTokenI>('jwttoken', JwtToken);
+const mod = model<JwtTokenI>('jwttoken', JwtToken);
 /* eslint-enable */
 export default mod;
