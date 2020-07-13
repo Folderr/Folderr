@@ -26,6 +26,7 @@
 
 import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { platform } from 'os';
 import bodyParser from 'body-parser';
@@ -108,6 +109,7 @@ class Base {
         this.folderr = evolve;
         this.superagent = superagent;
         this.web = web;
+        this.web.use(helmet() );
         this.web.use(bodyParser.json() );
         this.web.use(express.urlencoded( { extended: false } ) );
         this.web.use(express.static(join(__dirname, '../Frontend') ) );

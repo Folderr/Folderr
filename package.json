@@ -27,6 +27,7 @@
     "@types/bcrypt": "^3.0.0",
     "@types/cookie-parser": "^1.4.2",
     "@types/formidable": "^1.0.31",
+    "@types/helmet": "^0.0.47",
     "@types/jsonwebtoken": "^8.3.8",
     "@types/mime-types": "^2.1.0",
     "@types/moment-duration-format": "^2.2.2",
@@ -48,6 +49,7 @@
     "moment-duration-format": "^2.3.2",
     "mongoose": "^5.6.5",
     "nodemailer": "^6.4.6",
+    "save": "^2.4.0",
     "superagent": "^5.1.0",
     "typescript": "^3.8.3"
   },
