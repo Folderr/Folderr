@@ -306,13 +306,11 @@ export default class MongooseDB extends DBClass {
     }
 
     async findToken(tokenID: string, userID: string, options?: { web?: boolean } ): Promise<TokenDB | null> {
-        // @ts-ignore
-        return this.Schemas.Token.findOne( { id: tokenID, userID, web: (options && options.web) || false } ).lean().exec();
+        return this.Schemas.Token.findOne( { id: tokenID, userID, web: (options && options.web) || false } ).lean<TokenDB>().exec();
     }
 
     async findTokens(userID: string, options?: { web?: boolean } ): Promise<TokenDB[]> {
-        // @ts-ignore
-        return this.Schemas.Token.find( { userID, web: (options && options.web) || false } ).lean().exec();
+        return this.Schemas.Token.find( { userID, web: (options && options.web) || false } ).lean<TokenDB>().exec();
     }
 
     async makeToken(tokenID: string, userID: string, options?: { web?: boolean } ): Promise<TokenDB | undefined> {

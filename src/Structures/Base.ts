@@ -105,8 +105,8 @@ class Base {
 
     public emailer: Emailer;
 
-    constructor(evolve: Folderr, options: Options, flags?: string) {
-        this.folderr = evolve;
+    constructor(folderr: Folderr, options: Options, flags?: string) {
+        this.folderr = folderr;
         this.superagent = superagent;
         this.web = web;
         this.web.use(helmet() );
@@ -116,7 +116,7 @@ class Base {
         this.web.use('/assets', express.static(join(__dirname, '../assets') ) );
         this.web.use('/', express.static(join(__dirname, '../otherFiles') ) );
         this.web.use(cookieParser() );
-        this.Utils = new Utils(evolve, this);
+        this.Utils = new Utils(folderr, this);
         this.flags = flags;
         this.options = new FolderrConfig(options);
         this.db = pickDB();
