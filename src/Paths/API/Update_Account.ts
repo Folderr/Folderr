@@ -101,7 +101,7 @@ class UpdateAcc extends Path {
                 return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.banned_email, message: 'Email banned' } );
             }
             const encrypted = this.Utils.encrypt(req.body.email);
-            const user = await this.base.db.findUsers({$or: [{email: encrypted}, {pendingEmail: encrypted}]}) || await this.base.db.findVerifies( { email: encrypted } );
+            const user = await this.base.db.findUsers( { $or: [{ email: encrypted }, { pendingEmail: encrypted }] } ) || await this.base.db.findVerifies( { email: encrypted } );
             if (user) {
                 return res.status(this.codes.used).json( { code: this.codes.used, message: 'Email used!' } );
             }

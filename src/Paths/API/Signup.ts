@@ -112,7 +112,6 @@ class Signup extends Path {
         // See if the username is already taken. If its taken error the request with a code of "IM USED"
         const user = await this.base.db.findUser( { $or: [{ username: req.body.username }, { email: req.body.email }] } ) || await this.base.db.findVerify( { $or: [{ username: req.body.username }, { email: req.body.email }] } );
         if (user) {
-            console.log(user);
             return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.username_or_email_taken, message: 'Username or email taken!' } );
         }
         // If the password is not over min length
