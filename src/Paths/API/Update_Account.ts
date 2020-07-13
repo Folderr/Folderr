@@ -68,7 +68,9 @@ class UpdateAcc extends Path {
                 if (err.message.startsWith('[PSW2]') ) {
                     return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_password, message: 'Password is too long, password must be under 32 characters of length' } );
                 }
-
+                if (err.message.startsWith('[PSW3]') ) {
+                    return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegal_password, message: 'NUL character not allowed in password!' } )
+                }
                 console.log(`[ERROR] [Update Account - Password] - ${err}`);
                 return res.status(this.codes.badReq).json( { code: this.codes.internalErr, message: `${err}` } );
             }
@@ -78,7 +80,7 @@ class UpdateAcc extends Path {
             const maxUsername = 12;
             const minUsername = 3;
             // If username does not match length criteria error
-            const match = req.body.username.match(/[a-z0-9_]/g);
+            const match = req.body.username.match(this.folderr.regexs.username);
             if (req.body.username.length > maxUsername || req.body.username.length < minUsername) {
                 return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
             } if (match && req.body.username.length !== match.length) { // If username does not matdch regex pattern error
@@ -107,6 +109,7 @@ class UpdateAcc extends Path {
             }
             const url = await this.Utils.determineHomeURL(req);
             const token = await this.Utils.genValidationToken();
+            // Send confirmation email
             await this.base.emailer.changeEmail(req.body.email, `${url}/account/confirm/${token.token}`, auth.username);
             // Update
             update.pendingEmail = encrypted;

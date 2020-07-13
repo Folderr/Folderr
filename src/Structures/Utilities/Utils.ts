@@ -59,17 +59,13 @@ class Utils {
 
     public byteSize: number;
 
-    private evolve: Folderr;
+    private folderr: Folderr;
 
     private defaultShardOptions: { maxCores: number; maxMemory: string; enabled: boolean };
 
     private base?: Base;
 
     public authorization: Authorization;
-
-    public regexs: {
-        password: RegExp;
-    };
 
     public FoldCodes: IFoldCodes;
 
@@ -83,7 +79,7 @@ class Utils {
     constructor(evolve: Folderr, base?: Base) {
         this.saltRounds = 10;
         this.byteSize = 48;
-        this.evolve = evolve;
+        this.folderr = evolve;
         this.base = base;
         this.defaultShardOptions = {
             maxCores: 48,
@@ -91,9 +87,6 @@ class Utils {
             maxMemory: '4G',
         };
         this.authorization = new Authorization(aConfig.auth, evolve);
-        this.regexs = {
-            password: /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])[#?!@$%^&*-_[\]].{8,32}$/,
-        };
         this.FoldCodes = FoldCodes;
     }
 
@@ -175,7 +168,7 @@ class Utils {
             .replace(/[^a-zA-Z0-9]+/g, '')
             .substr(min, total);
         let toReturn = true;
-        Promise.all( [this.evolve.base.db.findFile( { ID: str }, 'ID'), this.evolve.base.db.findLink( { ID: str }, 'ID')] ).then( ( [Uploaded, Lin] ) => {
+        Promise.all( [this.folderr.base.db.findFile( { ID: str }, 'ID'), this.folderr.base.db.findLink( { ID: str }, 'ID')] ).then( ( [Uploaded, Lin] ) => {
             if (Uploaded || Lin) {
                 toReturn = false;
             }
@@ -199,13 +192,16 @@ class Utils {
         const maxPass = 32;
         // If the password is not over min length
         // If password does not match the regex completely
-        const match: RegExpMatchArray | null = password.match(/[A-Za-z0-9_.&]/g);
+        const match: RegExpMatchArray | null = password.match(this.folderr.regexs.password);
         if (password.length < minPass || (match && match.length !== password.length) ) {
             throw Error('[PSW1] Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`');
         }
         // If the password is too long
         if (password.length > maxPass) {
             throw Error('[PSW2] Password is too long, password must be under 32 characters long');
+        }
+        if (password.match('\0') ) {
+            throw Error('[PSW3] NUL character detected! Invalid password!');
         }
         // Hash and return
         return bcrypt.hash(password, this.saltRounds);
@@ -222,7 +218,7 @@ class Utils {
     async genNotifyID(): Promise<string> {
         // Gen the ID, and dont let the ID equal a already made notify id
         const ID: string = await this.genUID();
-        const notify = await this.evolve.base.db.findAdminNotify( { ID } );
+        const notify = await this.folderr.base.db.findAdminNotify( { ID } );
         if (notify) {
             // Retry if notify exists
             return this.genNotifyID();
@@ -300,7 +296,7 @@ class Utils {
         }
         // Find user on username, and if no user auth failed
 
-        const user = await this.evolve.base.db.findUser( { username: req.headers.username } );
+        const user = await this.folderr.base.db.findUser( { username: req.headers.username } );
         if (!user) {
             return false;
         }
@@ -343,7 +339,7 @@ class Utils {
             return false;
         }
         // Find user on username, and if no user auth failed
-        const user = await this.evolve.base.db.findUser( { username: req.body.username } );
+        const user = await this.folderr.base.db.findUser( { username: req.body.username } );
         if (!user) {
             return false;
         }
@@ -394,7 +390,7 @@ class Utils {
      * @returns {Promise<boolean>}
      */
     async findVerifying(validationToken: string, userID: string): Promise<PendingMember|false> {
-        const user: PendingMember | undefined = await this.evolve.base.db.findVerify( { userID } );
+        const user: PendingMember | undefined | null = await this.folderr.base.db.findVerify( { userID } );
         if (!user) {
             return false;
         }
@@ -440,7 +436,7 @@ class Utils {
 
     async testMirrorURL(url: string): Promise<boolean> {
         try {
-            const test = await this.evolve.base.superagent.get(`${url}/api`);
+            const test = await this.folderr.base.superagent.get(`${url}/api`);
             if (test?.text && JSON.parse(test?.text)?.message?.res === 'Pong! Mirror Operational!') {
                 return true;
             }
@@ -453,9 +449,9 @@ class Utils {
     async determineHomeURL(req: Request) {
         const protocol = `${req.protocol || 'http'}://`;
         try {
-            const test = await this.evolve.base.superagent.get(`${this.evolve.base.options.url}/api`);
+            const test = await this.folderr.base.superagent.get(`${this.folderr.base.options.url}/api`);
             if (test?.text && JSON.parse(test?.text)?.message?.message === 'Pong!') {
-                return this.evolve.base.options.url;
+                return this.folderr.base.options.url;
             }
             return `${protocol}${req.get('host')}`;
         } catch (e) {

@@ -114,8 +114,8 @@ export default class MongooseDB extends DBClass {
         return user;
     }
 
-    async findUser(query: object, selector?: string): Promise<User | undefined> {
-        return selector ? this.Schemas.User.findOne(query, selector).lean().exec() : this.Schemas.User.findOne(query).lean().exec();
+    async findUser(query: object, selector?: string): Promise<User | null> {
+        return selector ? await this.Schemas.User.findOne(query, selector).lean().exec() : await this.Schemas.User.findOne(query).lean().exec();
     }
 
     async findUsers(query: object, options?: { sort?: object; limit?: number; selector?: string } ): Promise<User[]> {
@@ -148,12 +148,12 @@ export default class MongooseDB extends DBClass {
         return { account, files, links };
     }
 
-    async findAndUpdateUser(query: object, update: object, selector?: string): Promise<User | undefined> {
+    async findAndUpdateUser(query: object, update: object, selector?: string): Promise<User | null> {
         return selector ? this.Schemas.User.findOneAndUpdate(query, update, { fields: selector, new: true } ).lean().exec() : this.Schemas.User.findOneAndUpdate(query, update, { new: true } ).lean().exec();
     }
 
     async updateUser(query: object, update: object): Promise<boolean> {
-        const upd = await this.Schemas.User.updateOne(query, update).lean().exec();
+        const upd = await this.Schemas.User.updateOne(query, update).exec();
         return !!(upd?.nModified && upd.nModified > 0);
     }
 
@@ -175,7 +175,7 @@ export default class MongooseDB extends DBClass {
         return { account: !!(account?.deletedCount && account?.deletedCount > 0), links: !!(links?.deletedCount && links?.deletedCount > 0) };
     }
 
-    async findVerify(query: object): Promise<PendingMember | undefined> {
+    async findVerify(query: object): Promise<PendingMember | null> {
         return this.Schemas.PendingMember.findOne(query).lean().exec();
     }
 
@@ -222,11 +222,11 @@ export default class MongooseDB extends DBClass {
         return verify;
     }
 
-    async findFile(query: object, selector?: string): Promise<Upload | undefined> {
+    async findFile(query: object, selector?: string): Promise<Upload | null> {
         return selector ? this.Schemas.Upload.findOne(query, selector).lean().exec() : this.Schemas.Upload.findOne(query).lean().exec();
     }
 
-    async findAndDeleteFile(query: object): Promise<Upload | undefined> {
+    async findAndDeleteFile(query: object): Promise<Upload | null> {
         return this.Schemas.Upload.findOneAndDelete(query).lean().exec();
     }
 
@@ -242,7 +242,7 @@ export default class MongooseDB extends DBClass {
     }
 
     async updateFile(query: object, update: object): Promise<boolean | undefined> {
-        const upd = await this.Schemas.Upload.updateOne(query, update);
+        const upd = await this.Schemas.Upload.updateOne(query, update).exec();
         if (upd?.nModified && upd.nModified > 0) {
             return true;
         }
@@ -270,11 +270,11 @@ export default class MongooseDB extends DBClass {
         return true;
     }
 
-    async findLink(query: object, selector?: string): Promise<Link | undefined> {
+    async findLink(query: object, selector?: string): Promise<Link | null> {
         return selector ? this.Schemas.Link.findOne(query, selector).lean().exec() : this.Schemas.Link.findOne(query).lean().exec();
     }
 
-    async findAndDeleteLink(query: object): Promise<Link | undefined> {
+    async findAndDeleteLink(query: object): Promise<Link | null> {
         return this.Schemas.Link.findOneAndDelete(query).lean().exec();
     }
 
@@ -289,8 +289,9 @@ export default class MongooseDB extends DBClass {
         return this.Schemas.Link.find(query, options?.selector, qoptions).lean();
     }
 
-    async updateLink(query: object, update: object): Promise<boolean | undefined> {
-        return this.Schemas.Upload.updateOne(query, update);
+    async updateLink(query: object, update: object): Promise<boolean> {
+        const out = await this.Schemas.Upload.updateOne(query, update).exec();
+        return !!(out?.nModified && out.nModified > 0)
     }
 
     async makeLink(id: string, owner: string, link: string): Promise<Link> {
@@ -304,11 +305,13 @@ export default class MongooseDB extends DBClass {
         return !!(del?.deletedCount && del.deletedCount > 0);
     }
 
-    async findToken(tokenID: string, userID: string, options?: { web?: boolean } ): Promise<TokenDB | undefined> {
+    async findToken(tokenID: string, userID: string, options?: { web?: boolean } ): Promise<TokenDB | null> {
+        // @ts-ignore
         return this.Schemas.Token.findOne( { id: tokenID, userID, web: (options && options.web) || false } ).lean().exec();
     }
 
     async findTokens(userID: string, options?: { web?: boolean } ): Promise<TokenDB[]> {
+        // @ts-ignore
         return this.Schemas.Token.find( { userID, web: (options && options.web) || false } ).lean().exec();
     }
 
@@ -334,7 +337,7 @@ export default class MongooseDB extends DBClass {
         return notif;
     }
 
-    async findAdminNotify(query: object): Promise<Notification | undefined> {
+    async findAdminNotify(query: object): Promise<Notification | null> {
         return this.Schemas.AdminNotification.findOne(query).lean().exec();
     }
 

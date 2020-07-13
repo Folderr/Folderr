@@ -36,6 +36,7 @@ import { Request, Response } from 'express';
 import { isMaster } from 'cluster';
 import codes from './Utilities/Status_Codes';
 import { User } from './Database/DBClass';
+import RegExpList, { RegExps } from './Utilities/RegExps';
 
 /**
  * @class Evolve
@@ -51,6 +52,8 @@ class Folderr {
 
     public base: Base;
 
+    public regexs: RegExps;
+
     /**
      * @param {Object} options The options to pass to the base of the client
      *
@@ -61,14 +64,13 @@ class Folderr {
      */
     constructor(options: Options, flags?: string) {
         this._options = options;
+        this.regexs = RegExpList;
         this.paths = new Map();
         this.handleAdminAuth = this.handleAdminAuth.bind(this);
         this.handleHeaders = this.handleHeaders.bind(this);
         this.base = new Base(this, this._options, flags);
         this.checkFAuth = this.checkFAuth.bind(this);
     }
-
-
 
     /**
      * @desc Initialize a path

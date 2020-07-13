@@ -40,7 +40,7 @@ class DeleteToken extends Path {
         if (!req.params?.id || /^\d+$/.test(req.params.id) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid token ID!' } );
         }
-        const del = await this.base.db.purgeToken(req.params.id, auth.userID, { web: req.query?.web || false } );
+        const del = await this.base.db.purgeToken(req.params.id, auth.userID, { web: !!req.query?.web || false } );
         if (!del) {
             return res.status(this.codes.notAccepted).json( { code: this.codes.badReq, message: 'Token not deleted/found!' } );
         }
