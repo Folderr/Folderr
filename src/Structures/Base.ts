@@ -43,6 +43,8 @@ import DB from './Database/DBClass';
 import { pickDB } from './Database/Pick';
 import { ChildProcess, fork } from 'child_process';
 import Emailer from './Emailer';
+import { RateLimiterClusterMaster } from 'rate-limiter-flexible';
+import { MemoryLimiter, ClusterLimiter, LimiterBase } from './Middleware/ratelimiter';
 
 const ee = new Events.EventEmitter();
 
@@ -105,6 +107,8 @@ class Base {
 
     public emailer: Emailer;
 
+    public limiter!: LimiterBase;
+
     constructor(folderr: Folderr, options: Options, flags?: string) {
         this.folderr = folderr;
         this.superagent = superagent;
@@ -125,6 +129,17 @@ class Base {
         this.shardNum = 0;
         this.maxShardNum = 0;
         this.initBasics();
+        if (this.useSharder) {
+            if (cluster.isMaster) {
+                new RateLimiterClusterMaster()
+                this.limiter = new ClusterLimiter();
+            } else {
+                this.limiter = new ClusterLimiter();
+            }
+        } else {
+            this.limiter = new MemoryLimiter();
+        }
+        this.web.use(this.limiter.consumer.bind(this.limiter) );
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         this.deleter = fork(join(__dirname, '../FileDelQueue'), undefined, { silent: true, windowsHide: true } );
