@@ -28,6 +28,9 @@ import { join } from 'path';
 import { unlinkSync } from 'fs';
 import { WebhookExecOptions } from '../../Structures/DiscordWebhookHandler';
 
+/**
+ * @classdesc Upload a file
+ */
 class Image extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import Folderr from '../../Structures/Folderr';
 import { User } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc Ban a user via ID
+ */
 class Ban extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

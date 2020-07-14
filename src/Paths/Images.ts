@@ -26,6 +26,9 @@ import { Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
 
+/**
+ * @classdesc Allow images to be accessed over the web
+ */
 class Images extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

@@ -26,6 +26,9 @@ import { Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
 
+/**
+ * @classdesc Allow users to access videos over the web
+ */
 class Videos extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

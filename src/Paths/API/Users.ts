@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc Shows users to admins
+ */
 class Users extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

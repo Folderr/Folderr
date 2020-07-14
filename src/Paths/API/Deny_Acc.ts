@@ -24,6 +24,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc Admin can deny a users account
+ */
 class DenyAccount extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

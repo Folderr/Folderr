@@ -1,6 +1,10 @@
 import winston from 'winston';
 import moment from 'moment';
 
+/**
+ * @fileoverview Create the winston logger and configure it.
+ */
+
 const loggingLevels = {
     levels: {
         error: 0,

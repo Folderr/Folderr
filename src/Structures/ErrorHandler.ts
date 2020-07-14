@@ -19,12 +19,6 @@
  *
  */
 
-/**
- * @author VoidNulll
- * @version 0.8.0
- * @file Error handler for express paths, as defined in Path.ts
- */
-
 import Path from './Path';
 
 export interface HandlerMessage {
@@ -35,11 +29,9 @@ export interface HandlerMessage {
 }
 
 /**
- * @class ErrorHandler
+ * @classdesc Error handler for Folderr paths, makes sure that you don't get the default response from express.
  *
- * @classdesc Error handler for express paths, as defined in Path.ts
- *
- * @author Null#0515
+ * @author VoidNulll
  */
 class ErrorHandler {
     private Path: Path;

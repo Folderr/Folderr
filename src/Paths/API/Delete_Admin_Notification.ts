@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import wlogger from '../../Structures/WinstonLogger';
 
+/**
+ * @classdesc Delete an admin notification.
+ */
 class DelANotify extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

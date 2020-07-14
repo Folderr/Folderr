@@ -23,6 +23,13 @@ import nodemailer, { SentMessageInfo } from 'nodemailer';
 import Folderr from './Folderr';
 import Mail from 'nodemailer/lib/mailer';
 
+/**
+ * 
+ * @classdesc Handles emailing users
+ * 
+ * @author VoidNulll
+ * 
+ */
 export default class Emailer {
     public active: boolean;
 

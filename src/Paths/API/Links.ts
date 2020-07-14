@@ -25,6 +25,9 @@ import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Link } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc Allow a user to access their links
+ */
 class Links extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

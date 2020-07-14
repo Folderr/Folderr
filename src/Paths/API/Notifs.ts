@@ -26,6 +26,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { Notification } from '../../Schemas/User';
 
+/**
+ * @classdesc Shows all user notifications
+ */
 class Notifs extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

@@ -24,6 +24,9 @@ import Folderr from '../Structures/Folderr';
 import Base from '../Structures/Base';
 import { join } from 'path';
 
+/**
+ * @class Allow users to access shortened links
+ */
 class Short extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

@@ -25,6 +25,9 @@ import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { TokenDB } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc Allow a user to generate a token
+ */
 class GenToken extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

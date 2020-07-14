@@ -24,6 +24,9 @@ import Base from '../../Structures/Base';
 import Folderr from '../../Structures/Folderr';
 import { Response } from 'express';
 
+/**
+ * @classsdesc Allows users to remove a mirror
+ */
 class MirrorRemove extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

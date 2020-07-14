@@ -19,11 +19,6 @@
  *
  */
 
-/**
- * @author VoidNulll
- * @version 0.8.0
- */
-
 /* eslint-disable @typescript-eslint/ban-ts-ignore */
 import WebhookHandler, { WebhookExecOptions, WebhookTypes } from './DiscordWebhookHandler';
 import { ActualOptions, DiscordHook } from './Folderr-Config';
@@ -36,11 +31,9 @@ interface LoggerOptions {
 }
 
 /**
- * @class Logger
- *
  * @author VoidNulll
  *
- * @classdesc Class to handle logging items inn a consistent way.
+ * @classdesc Class to handle logging certain elements, allows for sending info to Discord webhooks.
  */
 class Logger implements LoggerOptions {
     public enableDiscordLogging?: boolean;

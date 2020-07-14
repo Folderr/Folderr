@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { Upload } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc Send users their files
+ */
 class Files extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

@@ -24,6 +24,9 @@ import Base from '../../Structures/Base';
 import Folderr from '../../Structures/Folderr';
 import { Response } from 'express';
 
+/**
+ * @classdesc Add a mirror
+ */
 class MirrorAdd extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

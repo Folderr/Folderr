@@ -26,6 +26,10 @@ import DB, { Upload } from '../Database/DBClass';
 import { pickDB } from '../Database/Pick';
 import wlogger from '../WinstonLogger';
 
+
+/**
+ * @classdesc Handles deleting files
+ */
 export default class DBQueue extends EventEmitter {
     private onGoing: boolean
 

@@ -24,6 +24,9 @@ import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 
+/**
+ * @classdesc Allow the user to delete a shortened link
+ */
 class DeleteLink extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

@@ -19,12 +19,6 @@
  *
  */
 
-/**
- * @author VoidNulll
- * Contact me at https://gitlab.com/VoidNulll
- * @version 0.8.0
- */
-
 /* eslint require-atomic-updates: "off" */
 
 import Base from './Base';
@@ -40,11 +34,9 @@ import RegExpList from './Utilities/RegExps';
 import wlogger from './WinstonLogger';
 
 /**
- * @class Evolve
+ * @classdesc Base client for Folderr, handlles paths & some middleware.
  *
- * @classdesc Base client for Folderr-X, handles banning IPs in memory and security for the frontend
- *
- * @author Null#0515
+ * @author VoidNulll
  */
 class Folderr {
     private _options: Options;

@@ -42,6 +42,9 @@ if (platform === 'win32') {
     platform = 'Other';
 }
 
+/**
+ * @classdesc Shows overall information
+ */
 class Pong extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

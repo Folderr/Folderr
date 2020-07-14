@@ -41,6 +41,9 @@ import('../../../package.json').then(f => {
     oPackage = f;
 } );
 
+/**
+ * @classdesc Allows the owner to manage the instance
+ */
 class Manage extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

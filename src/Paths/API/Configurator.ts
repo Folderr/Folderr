@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import Configurator from '../../Structures/Utilities/ShareXConfigurator';
 
+/**
+ * @classdesc Generate a sharex configuration
+ */
 class ShareXConfigurator extends Path {
     private configurator: Configurator;
 

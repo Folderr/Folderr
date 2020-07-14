@@ -19,6 +19,10 @@
  *
  */
 
+ /**
+  * @fileoverview Handle the database file deletion queue
+  */
+
 import DBQueue from './Structures/Utilities/DBQueue';
 
 const queuer = new DBQueue();

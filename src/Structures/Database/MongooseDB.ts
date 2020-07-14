@@ -28,6 +28,9 @@ import { existsSync, promises as fs } from 'fs';
 import { isMaster } from 'cluster';
 import wlogger from '../WinstonLogger';
 
+/**
+ * @classdesc Handle all MongoDB operations.
+ */
 export default class MongooseDB extends DBClass {
     private Schemas: {
         User: mongoose.Model<Schemas.UserI>;

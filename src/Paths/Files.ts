@@ -26,6 +26,9 @@ import { Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
 
+/**
+ * @classdesc Allow files to be accessed over the web
+ */
 class Files extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

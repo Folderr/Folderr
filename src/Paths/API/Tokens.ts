@@ -24,6 +24,9 @@ import Path from '../../Structures/Path';
 import Base from '../../Structures/Base';
 import Folderr from '../../Structures/Folderr';
 
+/**
+ * @classdesc Fetchs users tokens information (actual token not stored by Folderr)
+ */
 class Tokens extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
