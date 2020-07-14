@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
+import wlogger from '../../Structures/WinstonLogger';
 
 class DelANotify extends Path {
     constructor(evolve: Folderr, base: Base) {
@@ -58,7 +59,7 @@ class DelANotify extends Path {
 
         // Remove the admin notification and tell the admin it was removed
         await this.base.db.purgeAdminNotify( { ID: req.params.id } );
-        console.log(`[SYSTEM INFO - NOTIFICATIONS] - Admin notification ${notify.ID} removed by ${auth.username}!`);
+        wlogger.info(`[SYSTEM] Admin notification ${notify.ID} removed by ${auth.username}!`);
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

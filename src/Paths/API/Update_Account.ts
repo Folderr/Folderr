@@ -23,6 +23,7 @@ import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { compareSync } from 'bcrypt';
 import { Response } from 'express';
+import wlogger from '../../Structures/WinstonLogger';
 
 interface UpdReturns {
     code: number;
@@ -71,7 +72,7 @@ class UpdateAcc extends Path {
                 if (err.message.startsWith('[PSW3]') ) {
                     return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegal_password, message: 'NUL character not allowed in password!' } )
                 }
-                console.log(`[ERROR] [Update Account - Password] - ${err}`);
+                wlogger.error(`[Update Account - Password] - ${err}`);
                 return res.status(this.codes.badReq).json( { code: this.codes.internalErr, message: `${err}` } );
             }
         }

@@ -37,6 +37,7 @@ import { isMaster } from 'cluster';
 import codes from './Utilities/Status_Codes';
 import { User } from './Database/DBClass';
 import RegExpList from './Utilities/RegExps';
+import wlogger from './WinstonLogger';
 
 /**
  * @class Evolve
@@ -152,22 +153,20 @@ class Folderr {
     handleHeaders(req: Request, res: Response, next: any): void {
         if (!this.base || !this.base.options.certOptions || !this.base.options.certOptions.cert || !this.base.options.certOptions.key) {
             res.set( {
-                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com polyfill.io unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' https://*; frame-src \'none\'; font-src \'self\' fonts.gstatic.com cdnjs.cloudflare.com',
+                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\'unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' frame-src \'none\'; font-src \'self\' fonts.gstatic.com',
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',
-                'X-Content-Type-Options': 'nosniff',
-                'Access-Control-Allow-Origin': '*',
+                'X-Content-Type-Options': 'nosniff'
             } );
         } else {
             res.set( {
-                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com polyfill.io unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' https://*; frame-src \'none\'; font-src \'self\' fonts.gstatic.com cdnjs.cloudflare.com',
+                'Content-Security-Policy': 'default-src \'self\'; script-src \'self\' \'unsafe-inline\'unpkg.com; style-src \'self\' \'unsafe-inline\' fonts.googleapis.com cdnjs.cloudflare.com; img-src \'self\' frame-src \'none\'; font-src \'self\' fonts.gstatic.com',
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',
                 'X-Content-Type-Options': 'nosniff',
                 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
-                'Access-Control-Allow-Origin': '*',
             } );
         }
         next();
@@ -227,22 +226,21 @@ class Folderr {
                     this._initPath(apath, base);
                     pathNums++;
                 } else {
-                    console.log(`[SYSTEM INIT PATH] - Initializing Path ${apath.label}`);
+                    wlogger.log('startup', `Initializing Path ${apath.label}`);
                     this._initPath(apath, base);
                     // Init the path
                     // Tell the user the path was initialized and add the number of paths loaded by 1
-                    console.log(`[SYSTEM INIT PATH] - Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
+                    wlogger.log('startup', `Initialized path ${apath.label} (${mName}) with type ${apath.type}!`);
                     pathNums++;
                 }
             }
         }
         if (!this.base.useSharder) {
-            console.log(`[SYSTEM INIT] Initialized ${pathNums} paths`);
+            wlogger.log('startup', `Initialized ${pathNums} paths`);
         }
         // Initiate the base of the project
         await base.init();
         base.web.all('/*', async(req: Request, res) => {
-            console.log(`[INFO] ${req.path} not found with method: ${req.method}. Originated from ${req.ips ? req.ips[0] : req.ip}!`);
             const dir = join(__dirname, '../Frontend/notfound.html');
             if (req.cookies && req.cookies.token) {
                 const auth = await base.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );

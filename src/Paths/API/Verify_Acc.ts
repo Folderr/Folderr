@@ -36,7 +36,6 @@ class VerifyAccount extends Path {
     }
 
     async execute(req: any, res: any): Promise<Response> {
-        console.log('Fuck');
         // Handle authorization
         const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
         if (!auth || typeof auth === 'string') {

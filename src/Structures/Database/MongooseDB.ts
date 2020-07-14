@@ -26,6 +26,7 @@ import mongoose from 'mongoose';
 import * as Schemas from '../../Schemas/index';
 import { existsSync, promises as fs } from 'fs';
 import { isMaster } from 'cluster';
+import wlogger from '../WinstonLogger';
 
 export default class MongooseDB extends DBClass {
     private Schemas: {
@@ -60,7 +61,7 @@ export default class MongooseDB extends DBClass {
                 return;
             }
             if (process.env.NODE_ENV !== 'test') {
-                console.log(`[FATAL - DB] MongoDB connection fail!\n${err}\n[FATAL] Folderr is unable to work without a database! Folderr process terminated.`);
+                wlogger.error(`[FATAL - DB] MongoDB connection fail!\n${err}\n[FATAL] Folderr is unable to work without a database! Folderr process terminated.`);
                 process.exit(1);
             }
         } );
@@ -69,7 +70,7 @@ export default class MongooseDB extends DBClass {
                 return;
             }
             this.fetchFolderr( {} ).then(r => r);
-            console.log('[SYSTEM - DB] Connected to MongoDB!');
+            wlogger.log('startup', '[SYSTEM - DB] Connected to MongoDB!');
         } );
     }
 
@@ -264,7 +265,7 @@ export default class MongooseDB extends DBClass {
             try {
                 await fs.unlink(file.path);
             } catch (e) {
-                console.log(`Database could not delete file ${file.path}. See error below.\nError: ${e.message || e}\n`);
+                wlogger.error(`Database could not delete file ${file.path}. See error below.\nError: ${e.message || e}\n`);
             }
         }
         return true;

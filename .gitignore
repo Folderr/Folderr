@@ -18,6 +18,7 @@ src/Structures/Database/*.js
 src/Structures/Utilities/*.js
 scripts/*.js
 Files/*
+logs/*.log
 
 # Ignore yarn error
 

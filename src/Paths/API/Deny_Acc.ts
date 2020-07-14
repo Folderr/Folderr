@@ -55,7 +55,6 @@ class DenyAccount extends Path {
         // Deny the account & delete notification
         await this.base.db.denyUser(user.userID);
         // Log that the account was denied by admin x, and tell the admin the account wa denied
-        // console.log(`[INFO] - User ${user.uID}'s account was denied by admin ${auth.username} (${auth.uID})`);
         this.base.Logger.log('SYSTEM INFO', 'User account denied by administrator', { user: `${user.username} (${user.userID})`, responsible: `${auth.username} (${auth.userID})` }, 'accountDeny', 'Account denied by Admin');
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
