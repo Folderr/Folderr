@@ -24,10 +24,9 @@
  * @version 0.8.0
  */
 
-// I took inspiration from https://github.com/Khaazz/AxonCore/blob/dev-2.0/src/AxonOptions.js for this
-// Hope you do not mind, KhaaZ.
-
+ import wlogger from './WinstonLogger';
 import fs from 'fs';
+import logger from './WinstonLogger';
 
 interface CertOptions {
     key?: string | any;
@@ -183,7 +182,7 @@ class FolderrConfig implements ActualOptions {
         this.discordHook = config.discordHook;
         this.auth = config.auth;
         if (this.auth === 'no') {
-            console.log('[FATAL - CONFIG] AUTH MUST BE PRESENT AND NOT BE "NO"!');
+            wlogger.error('[FATAL - CONFIG] AUTH MUST BE PRESENT AND NOT BE "NO"!');
             process.exit(1);
         }
         this.email = config.email;
@@ -225,21 +224,21 @@ class FolderrConfig implements ActualOptions {
             }
         }
         if (typeof this.auth === 'string' && this.auth === 'no') {
-            console.log('[FATAL - CONFIG] AUTHENTICATION MISSING. PROVIDE EITHER A STRING OR A PUBLIC KEY & PRIVATE KEY PATH OBJECT');
+            wlogger.error('[FATAL - CONFIG] AUTHENTICATION MISSING. PROVIDE EITHER A STRING OR A PUBLIC KEY & PRIVATE KEY PATH OBJECT');
             process.exit(1);
         }
         if (typeof this.auth === 'object') {
             if (this.auth.privKeyPath === this.auth.pubKeyPath) {
-                console.log('[FATAL - CONFIG] Private key must not be public key!');
+                wlogger.error('[FATAL - CONFIG] Private key must not be public key!');
                 process.exit(1);
             }
             if (!fs.existsSync(this.auth.privKeyPath) || !fs.existsSync(this.auth.pubKeyPath) ) {
-                console.log('[FATAL - CONFIG] Authorization key(s) are missing!');
+                wlogger.error('[FATAL - CONFIG] Authorization key(s) are missing!');
                 process.exit(1);
             }
         }
         if (!this.email || !this.email.contactEmail) {
-            console.log('[FATAL - CONFIG] CONTACT EMAIL MISSING');
+            wlogger.error('[FATAL - CONFIG] CONTACT EMAIL MISSING');
             process.exit(1);
         }
         return this;

@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response, Request } from 'express';
+import wlogger from '../../Structures/WinstonLogger';
 
 class Signup extends Path {
     constructor(evolve: Folderr, base: Base) {
@@ -56,7 +57,6 @@ class Signup extends Path {
             return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
         }
         // Notify the console, and the user that the admins have been notified.
-        console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${userID}`);
         this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Folderr`, { user: `${username} (${userID})` }, 'signup', 'New user signup');
         return { httpCode: this.codes.created, msg: { code: this.codes.created, message: 'OK' } };
     }
@@ -73,7 +73,6 @@ class Signup extends Path {
             this._handleError(e, res, { noResponse: true, noIncrease: false } );
             return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
         }
-        console.log(`[SYSTEM - SIGNUP] Notified admins about verifying user ${userID}`);
         this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Folderr`, { user: `${username} (${userID})` }, 'signup', 'New user signup');
         return { httpCode: this.codes.created, msg: { code: this.Utils.FoldCodes.email_sent, message: 'OK' } };
     }
@@ -131,7 +130,7 @@ class Signup extends Path {
             pswd = await this.Utils.hashPass(password);
         } catch (err) {
             // Errors shouldnt happen here, so notify the console.. Also notify the user
-            console.log(`[ERROR] [SIGNUP -  Create password] - ${err}`);
+            wlogger.error(`[SIGNUP -  Create password] - ${err}`);
             return res.status(this.codes.internalErr).json( { code: this.codes.internalErr, message: `${err.message}` } );
         }
 

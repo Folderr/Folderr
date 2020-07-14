@@ -37,7 +37,6 @@ class Lookup extends Path {
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed' } );
         }
-        console.log(req.params);
         if (!req.params?.type || !req.params?.id || !['file', 'link'].includes(req.params.type) || !/^[A-Za-z0-9]+$/.test(req.params.id) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid requirements' } );
         }

@@ -50,7 +50,6 @@ class DeleteFile extends Path {
         }
 
         await this.base.db.purgeFile( { ID: File.ID, owner: auth.userID } );
-        // console.log(`[INFO - IMAGES] - Image ${Image.ID} removed!`);
         this.base.Logger.log('INFO - UPLOADS', `Upload ${File.ID} deleted!`, { user: `${auth.username} (${auth.userID}` }, 'fileDelete', 'Upload deleted');
         res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } ).end();
         if (existsSync(File.path) ) {

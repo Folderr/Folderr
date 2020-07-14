@@ -27,6 +27,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-ignore */
 import WebhookHandler, { WebhookExecOptions, WebhookTypes } from './DiscordWebhookHandler';
 import { ActualOptions, DiscordHook } from './Folderr-Config';
+import wlogger from './WinstonLogger';
+import e from 'express';
 
 interface LoggerOptions {
     discordURL?: string;
@@ -118,7 +120,13 @@ class Logger implements LoggerOptions {
         if (options && options.responsible) {
             base += `\n    --- User Responsible: ${options.responsible}`;
         }
-        console.log(base);
+        if (type.startsWith('SECURITY WARN') ) {
+            wlogger.log( { level: 'warn', message: base, private: true } );
+        } else if (type.startsWith('SYSTEM INFO') || type.startsWith('SYSTEM NOTICE') || type === 'SYSTEM - SIGNUP') {
+            wlogger.log('info', base);
+        } else {
+            wlogger.log('verbose', base);
+        }
         if (!wType || !wTitle || !this.enableDiscordLogging || !this.webhookHandler) {
             return Promise.resolve(false);
         }

@@ -45,6 +45,8 @@ import { ChildProcess, fork } from 'child_process';
 import Emailer from './Emailer';
 import { RateLimiterClusterMaster } from 'rate-limiter-flexible';
 import { MemoryLimiter, ClusterLimiter, LimiterBase } from './Middleware/ratelimiter';
+import wlogger from './WinstonLogger';
+import winston from 'winston';
 
 const ee = new Events.EventEmitter();
 
@@ -109,7 +111,10 @@ class Base {
 
     public limiter!: LimiterBase;
 
+    readonly logger: winston.Logger;
+
     constructor(folderr: Folderr, options: Options, flags?: string) {
+        this.logger = wlogger;
         this.folderr = folderr;
         this.superagent = superagent;
         this.web = web;
@@ -191,7 +196,7 @@ class Base {
         if (this.flags !== '--init-first') {
             // If there are no paths, exit
             if (!this.folderr || !this.folderr.paths || this.folderr.paths.size < 1) {
-                console.log('No paths. Exiting...');
+                this.logger.error('No paths. Exiting...');
                 process.exit();
             }
         }
@@ -216,7 +221,7 @@ class Base {
             // Please dont run servers as root on linux..
             const rootPort = 1024;
             if (process.getuid && process.getuid() === linuxRootUid && Number(this.options.port) < rootPort) {
-                console.log('[SYSTEM WARN] It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
+                this.logger.log('warn', 'It is advised to not run apps as root, I would prefer if you ran me through a proxy like Nginx!');
             }
 
             let uhm;
@@ -247,18 +252,18 @@ class Base {
 
                     cluster.on('exit', (worker) => {
                         this.shardNum--;
-                        console.log(`[WORKER] worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})\n[WORKER - RESTART] Attempting to bring shard back online`);
+                        this.logger.verbose(`Worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})\nAttempting to bring worker back online`);
 
                         this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
                         cluster.fork();
                     } );
                     cluster.on('online', worker => {
                         this.shardNum++;
-                        console.log(`[WORKER] worker ${worker.process.pid} started (${this.shardNum}/${this.maxShardNum})`);
+                        this.logger.verbose(`Worker ${worker.process.pid} started (${this.shardNum}/${this.maxShardNum})`);
 
                         this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
                     } );
-                    console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
+                    this.logger.info(`Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
                 } else {
                     this.listen();
                 }
@@ -267,7 +272,7 @@ class Base {
 
             // Init the server
             this.listen();
-            console.log(`[SYSTEM INFO] Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
+            this.logger.info(`Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
 

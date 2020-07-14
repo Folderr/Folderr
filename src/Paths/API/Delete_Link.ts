@@ -50,7 +50,6 @@ class DeleteLink extends Path {
         if (!short) {
             return res.status(this.codes.notFound).send( { code: this.Utils.FoldCodes.db_not_found, message: 'Link not found!' } );
         }
-        // console.log(`[INFO - SHORTS] - Link ${short.ID} removed!`);
         this.base.Logger.log('INFO - SHORTS', `Short ${req.params.id} deleted`, { user: `${auth.username} (${auth.userID})` }, 'shortRemove', 'Link deleted by user');
 
         return res.status(this.codes.ok).send( { code: this.codes.ok, message: 'OK' } );

@@ -24,6 +24,7 @@ import FolderrConfig, { ActualOptions } from '../Folderr-Config';
 import config from '../../../config.json';
 import DB, { Upload } from '../Database/DBClass';
 import { pickDB } from '../Database/Pick';
+import wlogger from '../WinstonLogger';
 
 export default class DBQueue extends EventEmitter {
     private onGoing: boolean
@@ -42,7 +43,7 @@ export default class DBQueue extends EventEmitter {
         this.config = new FolderrConfig(config);
         this.db = pickDB();
         this.db.init(this.config.mongoUrl, false).then(r => r).catch(e => {
-            console.log(`CANNOT RUN DBQueue - Database Error ${e}`);
+            wlogger.error(`CANNOT RUN DBQueue - Database Error ${e}`);
             process.exit();
         } );
         this._loopBound = this._loop.bind(this);
@@ -80,7 +81,7 @@ export default class DBQueue extends EventEmitter {
                 await this.db.purgeFile( { ID: file.ID } );
                 files = files.filter(fil => fil.ID !== file.ID);
             } catch (e) {
-                console.log(`Database ran into an error while deleting file "${file.path}". See below\n ${e.message || e}`);
+                wlogger.error(`Database ran into an error while deleting file "${file.path}". See below\n ${e.message || e}`);
             }
         }
     }

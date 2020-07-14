@@ -68,13 +68,11 @@ class Image extends Path {
             res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.file_parse_error, message: `Parser error!\n${err}` } );
             throw Error(err);
         }
-        console.log(file.file);
 
         if (!file) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.no_file, message: 'Files not parsed/found!' } );
         }
         if (file.image) {
-            console.log(file.image);
             file = file.image;
         }
         if (file.file) {

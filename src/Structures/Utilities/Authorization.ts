@@ -44,9 +44,9 @@ export default class Authorization {
 
     private readonly _secretStr: string;
 
-    public evolve: Folderr;
+    public folderr: Folderr;
 
-    constructor(secret: string | Keys, evolve: Folderr) {
+    constructor(secret: string | Keys, folderr: Folderr) {
         this.secret = secret;
         this._secretStr = '';
         if (typeof this.secret === 'object') {
@@ -56,7 +56,7 @@ export default class Authorization {
         } else {
             this._secretStr = this.secret;
         }
-        this.evolve = evolve;
+        this.folderr = folderr;
 
 
         this._init().then(r => r);
@@ -71,7 +71,7 @@ export default class Authorization {
             if (!result) {
                 return;
             }
-            const verify = await this.evolve.base.db.findToken(result.jti, result.userID, { web } );
+            const verify = await this.folderr.base.db.findToken(result.jti, result.userID, { web } );
             if (!verify) {
                 return;
             }
@@ -93,14 +93,14 @@ export default class Authorization {
             if (!userID) {
                 return;
             }
-            const user = await this.evolve.base.db.findUser( { userID } );
+            const user = await this.folderr.base.db.findUser( { userID } );
             if (!user) {
                 return;
             }
             if (options && options.fn && !options.fn(user) ) {
                 return;
             }
-            user.email = this.evolve.base.Utils.decrypt(user.email);
+            user.email = this.folderr.base.Utils.decrypt(user.email);
             return user;
         } catch (e) {
             return;
@@ -116,7 +116,7 @@ export default class Authorization {
             if (!res) {
                 return;
             }
-            const verifyDB = await this.evolve.base.db.purgeToken(res.jti, res.userID, { web } );
+            const verifyDB = await this.folderr.base.db.purgeToken(res.jti, res.userID, { web } );
             if (!verifyDB) {
                 return;
             }
@@ -128,11 +128,11 @@ export default class Authorization {
 
     public async revokeAll(userID: string): Promise<boolean | void> {
         try {
-            const del = await this.evolve.base.db.purgeTokens(userID);
+            const del = await this.folderr.base.db.purgeTokens(userID);
             if (!del || del === 0) {
                 return;
             }
-            console.log(`[SYSTEM - DB] Deleted ${del} Authorization Tokens`);
+            this.folderr.base.logger.verbose(`[DB] Deleted ${del} Authorization Tokens`);
             return true;
         } catch (e) {
             return;
@@ -141,7 +141,7 @@ export default class Authorization {
 
     async genKeyWeb(userID: string): Promise<string> {
         const id = this._genID();
-        await this.evolve.base.db.makeToken(id, userID, { web: true } );
+        await this.folderr.base.db.makeToken(id, userID, { web: true } );
         const key = this._getKey();
         return `Bearer: ${jwt.sign( { userID }, key.private, { expiresIn: '14d', issuer: 'folderr', jwtid: id } )}`;
     }
@@ -149,7 +149,7 @@ export default class Authorization {
     async genKey(userID: string): Promise<string> {
         const key = this._getKey();
         const id = this._genID();
-        await this.evolve.base.db.makeToken(id, userID, { web: false } );
+        await this.folderr.base.db.makeToken(id, userID, { web: false } );
         return jwt.sign( { userID }, key.private, { issuer: 'folderr', jwtid: id } );
     }
 
