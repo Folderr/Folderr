@@ -44,17 +44,22 @@ class Links extends Path {
         }
         const query: { $gt?: { created: Date }; $lt?: { created: Date }; owner: string } = { owner: auth.userID };
         const opts: { sort?: object; limit?: number } = req.query?.gallery ? { sort: { created: -1 } } : {};
+        const limits = {
+            max: 20,
+            middle: 15,
+            min: 10,
+        };
         if (req.query?.gallery) {
-            if (req.query?.limit >= 20) {
-                opts.limit = 20;
-            } else if (req.query?.limit >= 15) {
-                opts.limit = 20;
-            } else if (req.query?.limit >= 10 && req.query?.limit < 15) {
-                opts.limit = 10;
-            } else if (req.query?.limit <= 10) {
-                opts.limit = 10;
+            if (req.query?.limit >= limits.max) {
+                opts.limit = limits.max;
+            } else if (req.query?.limit >= limits.middle) {
+                opts.limit = limits.middle;
+            } else if (req.query?.limit >= limits.min && req.query?.limit < limits.middle) {
+                opts.limit = limits.min;
+            } else if (req.query?.limit <= limits.min) {
+                opts.limit = limits.min;
             } else {
-                opts.limit = 10;
+                opts.limit = limits.min;
             }
         } else {
             opts.limit = 20;

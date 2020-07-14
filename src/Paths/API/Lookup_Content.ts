@@ -35,7 +35,7 @@ class Lookup extends Path {
         this.path = '/api/admin/content/:type/:id';
     }
 
-    async execute(req: Request, res: Response) {
+    async execute(req: Request, res: Response): Promise<Response> {
         const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed' } );

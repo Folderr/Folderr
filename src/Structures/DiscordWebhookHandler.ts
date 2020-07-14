@@ -177,7 +177,7 @@ class DiscordWebhookHandler {
             'accUpdate',
         ];
         if (noLog.includes(type) ) {
-            return;
+            return null;
         }
         if (!this.isQueue() && this.ready) {
             this.ratelimiter.limits++;

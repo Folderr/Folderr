@@ -37,6 +37,8 @@ class DeleteFile extends Path {
         this.reqAuth = true;
     }
 
+    
+    // eslint-disable-next-line consistent-return
     async execute(req: any, res: any): Promise<Response | void> {
         const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization);
         if (!auth) {

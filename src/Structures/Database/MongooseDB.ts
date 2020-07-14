@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /**
  * @license
  *
@@ -56,7 +57,7 @@ export default class MongooseDB extends DBClass {
         };
     }
 
-    async init(url: string, useSharder: boolean) {
+    async init(url: string, useSharder: boolean): Promise<void> {
         await mongoose.connect(url, { useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true } );
         const db = mongoose.connection;
         db.on('error', (err) => {
@@ -119,7 +120,7 @@ export default class MongooseDB extends DBClass {
     }
 
     async findUser(query: object, selector?: string): Promise<User | null> {
-        return selector ? await this.Schemas.User.findOne(query, selector).lean().exec() : await this.Schemas.User.findOne(query).lean().exec();
+        return selector ? this.Schemas.User.findOne(query, selector).lean().exec() : this.Schemas.User.findOne(query).lean().exec();
     }
 
     async findUsers(query: object, options?: { sort?: object; limit?: number; selector?: string } ): Promise<User[]> {
@@ -295,7 +296,7 @@ export default class MongooseDB extends DBClass {
 
     async updateLink(query: object, update: object): Promise<boolean> {
         const out = await this.Schemas.Upload.updateOne(query, update).exec();
-        return !!(out?.nModified && out.nModified > 0)
+        return !!(out?.nModified && out.nModified > 0);
     }
 
     async makeLink(id: string, owner: string, link: string): Promise<Link> {

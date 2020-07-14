@@ -37,7 +37,7 @@ class Ban extends Path {
         this.type = 'post';
     }
 
-    async execute(req: Request, res: Response) {
+    async execute(req: Request, res: Response): Promise<Response | void> {
         const auth = req.cookies?.token ? this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : this.Utils.authorization.verifyAccount(req.headers?.authorization, { fn: (user: User) => !!user.admin } );
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );

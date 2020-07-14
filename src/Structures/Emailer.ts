@@ -24,11 +24,11 @@ import Folderr from './Folderr';
 import Mail from 'nodemailer/lib/mailer';
 
 /**
- * 
+ *
  * @classdesc Handles emailing users
- * 
+ *
  * @author VoidNulll
- * 
+ *
  */
 export default class Emailer {
     public active: boolean;
@@ -52,9 +52,8 @@ export default class Emailer {
         return this.folderr.regexs.email.test(email);
     }
 
-    async verifyEmail(email: string, verifyLink: string, username: string): Promise<void | SentMessageInfo> {
+    async verifyEmail(email: string, verifyLink: string, username: string): Promise<null | SentMessageInfo> {
         if (this.email && this.mailer) {
-            console.log(email);
             return this.mailer.sendMail( {
                 from: this.email,
                 to: email,
@@ -63,10 +62,10 @@ export default class Emailer {
                 priority: 'low',
             } );
         }
-        return;
+        return null;
     }
 
-    async forgotPasswordEmail(email: string, forgotLink: string, username: string, instanceLink: string): Promise<void | SentMessageInfo> {
+    async forgotPasswordEmail(email: string, forgotLink: string, username: string, instanceLink: string): Promise<null | SentMessageInfo> {
         if (this.email && this.mailer) {
             return this.mailer.sendMail( {
                 from: this.email,
@@ -76,10 +75,10 @@ export default class Emailer {
                 priority: 'high',
             } );
         }
-        return;
+        return null;
     }
 
-    async warnEmail(email: string, reason: string, username: string, instanceURL: string) {
+    async warnEmail(email: string, reason: string, username: string, instanceURL: string): Promise<null | SentMessageInfo> {
         if (this.email && this.mailer) {
             return this.mailer.sendMail( {
                 from: this.email,
@@ -89,10 +88,10 @@ export default class Emailer {
                 priority: 'high',
             } );
         }
-        return;
+        return null;
     }
 
-    async banEmail(email: string, reason: string, username: string, instanceURL: string) {
+    async banEmail(email: string, reason: string, username: string, instanceURL: string): Promise<null | SentMessageInfo> {
         if (this.email && this.mailer) {
             return this.mailer.sendMail( {
                 from: this.email,
@@ -102,10 +101,10 @@ export default class Emailer {
                 priority: 'high',
             } );
         }
-        return;
+        return null;
     }
 
-    async changeEmail(email: string, confirmLink: string, username: string): Promise<void | SentMessageInfo> {
+    async changeEmail(email: string, confirmLink: string, username: string): Promise<null | SentMessageInfo> {
         if (this.email && this.mailer) {
             return this.mailer.sendMail( {
                 from: this.email,
@@ -115,10 +114,10 @@ export default class Emailer {
                 priority: 'low',
             } );
         }
-        return;
+        return null;
     }
 
-    async takedown(email: string, username: string, instanceURL: string, id: string, type: string): Promise<void | SentMessageInfo> {
+    async takedown(email: string, username: string, instanceURL: string, id: string, type: string): Promise<null | SentMessageInfo> {
         if (this.email && this.mailer) {
             return this.mailer.sendMail( {
                 from: this.email,
@@ -128,6 +127,6 @@ export default class Emailer {
                 priority: 'low',
             } );
         }
-        return;
+        return null;
     }
 }

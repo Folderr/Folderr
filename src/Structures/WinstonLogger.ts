@@ -12,13 +12,11 @@ const loggingLevels = {
         info: 2,
         verbose: 4,
         debug: 5,
-        startup: 6
+        startup: 6,
     },
-}
+};
 
-const format = winston.format.printf( ( { level, message, timestamp } ) => {
-    return `[${moment(timestamp).format('MM/DD/YY HH:MM')}] [${level.toUpperCase()}]: ${message}`;
-} )
+const format = winston.format.printf( ( { level, message, timestamp } ) => `[${moment(timestamp).format('MM/DD/YY HH:MM')}] [${level.toUpperCase()}]: ${message}`);
 const logger = winston.createLogger( {
     format: winston.format.combine(
         winston.format.timestamp(),
@@ -31,10 +29,10 @@ const logger = winston.createLogger( {
         new winston.transports.File( { filename: 'logs/debug.log', level: 'debug' } ),
         new winston.transports.File( { filename: 'logs/all.log', level: 'startup' } ),
     ],
-} )
+} );
 winston.exceptions.handle(
-    new winston.transports.File( { filename: '../logs/exception.log' } )
-)
+    new winston.transports.File( { filename: '../logs/exception.log' } ),
+);
 if (process.env.NODE_ENV !== 'production') {
     logger.add(new winston.transports.Console( {
         format: winston.format.combine(
