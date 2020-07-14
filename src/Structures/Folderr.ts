@@ -149,7 +149,7 @@ class Folderr {
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'no-referrer, origin-when-cross-origin',
                 'X-XSS-Protection': '1; mode=block',
-                'X-Content-Type-Options': 'nosniff'
+                'X-Content-Type-Options': 'nosniff',
             } );
         } else {
             res.set( {

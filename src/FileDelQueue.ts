@@ -19,7 +19,7 @@
  *
  */
 
- /**
+/**
   * @fileoverview Handle the database file deletion queue
   */
 

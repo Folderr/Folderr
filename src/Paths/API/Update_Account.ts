@@ -55,7 +55,7 @@ class UpdateAcc extends Path {
             return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: 'EMAIL UPDATE IN PROGRESS' } );
         }
 
-        const update: { password?: string; username?: string; pendingEmail?: string; pendingEmailToken?: string; } = {};
+        const update: { password?: string; username?: string; pendingEmail?: string; pendingEmailToken?: string } = {};
         if (req.body.password && !compareSync(req.body.password, auth.password) ) {
             try {
                 const psw = await this.Utils.hashPass(req.body.password);
@@ -68,7 +68,7 @@ class UpdateAcc extends Path {
                     return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_password, message: 'Password is too long, password must be under 32 characters of length' } );
                 }
                 if (err.message.startsWith('[PSW3]') ) {
-                    return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegal_password, message: 'NUL character not allowed in password!' } )
+                    return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegal_password, message: 'NUL character not allowed in password!' } );
                 }
                 wlogger.error(`[Update Account - Password] - ${err}`);
                 return res.status(this.codes.badReq).json( { code: this.codes.internalErr, message: `${err}` } );

@@ -23,8 +23,7 @@ import Path from '../../Structures/Path';
 import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
-import { Upload, User } from '../../Structures/Database/DBClass';
-import { promises } from 'fs';
+import { User } from '../../Structures/Database/DBClass';
 
 interface DelReturns {
     code: number;

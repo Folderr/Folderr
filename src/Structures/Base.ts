@@ -129,7 +129,8 @@ class Base {
         this.initBasics();
         if (this.useSharder) {
             if (cluster.isMaster) {
-                new RateLimiterClusterMaster()
+                // eslint-disable-next-line no-new
+                new RateLimiterClusterMaster();
                 this.limiter = new ClusterLimiter();
             } else {
                 this.limiter = new ClusterLimiter();

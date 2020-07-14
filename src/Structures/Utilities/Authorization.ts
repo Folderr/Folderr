@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /**
  * @license
  *
@@ -171,7 +172,7 @@ export default class Authorization {
         return false;
     }
 
-    private _genID() {
+    private _genID(): string {
         return `${crypto.randomBytes(10).toString('hex') + Buffer.from(new Date().toString() ).toString('base64').substring(0, 8)}`;
     }
 

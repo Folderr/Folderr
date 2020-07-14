@@ -79,6 +79,7 @@ class Image extends Path {
             file = file.image;
         }
         if (file.file) {
+            // eslint-disable-next-line prefer-destructuring
             file = file.file; // Cannot destructure
         }
         if (!file.type) {

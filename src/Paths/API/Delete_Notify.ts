@@ -23,7 +23,7 @@ import Path from '../../Structures/Path';
 import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
-import moment from "moment";
+import moment from 'moment';
 
 /**
  * @classdesc User can delete a single notification
@@ -61,7 +61,14 @@ class DelNotify extends Path {
             return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'Notification not found!' } );
         }
         // Days * hours/day * minutes/hour * seconds/minute * milliseconds/second
-        const limit = 90 * 24 * 60 * 60 * 1000;
+        const breakdown = {
+            days: 90,
+            hoursPerDay: 24,
+            minutesPerHour: 60,
+            secondsPerMinute: 60,
+            msPerSecond: 1000,
+        };
+        const limit = breakdown.days * breakdown.hoursPerDay * breakdown.minutesPerHour * breakdown.secondsPerMinute * breakdown.msPerSecond;
         if (notify?.title === 'Warn' && (new Date().getTime() - notify?.created.getTime() ) < limit) {
             const time = new Date(new Date().getTime() + limit).getTime() - new Date().getTime();
             return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: `Notification cannot be deleted for ${moment.duration(time).format('M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]')}` } );

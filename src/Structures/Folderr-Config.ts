@@ -19,9 +19,8 @@
  *
  */
 
- import wlogger from './WinstonLogger';
+import wlogger from './WinstonLogger';
 import fs from 'fs';
-import logger from './WinstonLogger';
 
 interface CertOptions {
     key?: string | any;

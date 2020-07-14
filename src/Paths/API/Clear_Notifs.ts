@@ -24,7 +24,7 @@ import Folderr from '../../Structures/Folderr';
 import { Response } from 'express';
 
 /**
- * @classdesc Clear the authorized users notifications 
+ * @classdesc Clear the authorized users notifications
  */
 class ClearNotifs extends Path {
     constructor(evolve: Folderr, base: Base) {

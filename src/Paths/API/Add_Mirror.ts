@@ -51,6 +51,7 @@ class MirrorAdd extends Path {
         try {
             u = await this.Utils.determineHomeURL(req);
             const out = await this.Utils.authorization.genMirrorKey(u, req.body.url);
+            // eslint-disable-next-line prefer-destructuring
             id = out.id;
             r = await this.base.superagent.get(`${req.body.url}/api/verify`).send( { url: u, owner: auth.userID, token: out.key } );
         } catch (e) {
@@ -64,7 +65,7 @@ class MirrorAdd extends Path {
             return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.mirror_reject, message: 'Mirror failed Validation' } );
         }
         const nOut = JSON.parse(out);
-        const message: { res: string; token: string } = nOut.message;
+        const { message } = nOut;
         const valid = id && u ? this.Utils.authorization.verifyMirrorKey(message, id, u, req.body.url) : false;
         if (!valid) {
             return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.mirror_reject, message: 'Mirror failed Validation' } );

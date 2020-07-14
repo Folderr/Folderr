@@ -51,18 +51,23 @@ class Users extends Path {
         } else if (req.query?.query && !req.query?.type) {
             query.userID = req.query.query;
         }
+        const limits = {
+            max: 20,
+            middle: 15,
+            min: 10,
+        };
         const opts: { sort?: object; limit?: number; selector: string } = req.query?.gallery ? { sort: { created: -1 }, selector: 'username admin first email files links userID' } : { sort: { created: -1 }, selector: 'username admin first email files links userID' };
         if (req.query?.gallery) {
-            if (req.query?.limit >= 20) {
-                opts.limit = 20;
-            } else if (req.query?.limit >= 15) {
-                opts.limit = 20;
-            } else if (req.query?.limit >= 10 && req.query?.limit < 15) {
-                opts.limit = 10;
-            } else if (req.query?.limit <= 10) {
-                opts.limit = 10;
+            if (req.query?.limit >= limits.max) {
+                opts.limit = limits.max;
+            } else if (req.query?.limit >= limits.middle) {
+                opts.limit = limits.max;
+            } else if (req.query?.limit >= limits.min && req.query?.limit < limits.middle) {
+                opts.limit = limits.min;
+            } else if (req.query?.limit <= limits.min) {
+                opts.limit = limits.min;
             } else {
-                opts.limit = 10;
+                opts.limit = limits.min;
             }
         } else {
             opts.limit = 20;

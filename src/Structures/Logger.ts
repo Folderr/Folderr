@@ -23,7 +23,6 @@
 import WebhookHandler, { WebhookExecOptions, WebhookTypes } from './DiscordWebhookHandler';
 import { ActualOptions, DiscordHook } from './Folderr-Config';
 import wlogger from './WinstonLogger';
-import e from 'express';
 
 interface LoggerOptions {
     discordURL?: string;
@@ -116,7 +115,7 @@ class Logger implements LoggerOptions {
         if (type.startsWith('SECURITY WARN') ) {
             wlogger.log( { level: 'warn', message: base.replace(/warn/i, ''), private: true } );
         } else if (type.startsWith('SYSTEM INFO') || type.startsWith('SYSTEM NOTICE') || type === 'SYSTEM - SIGNUP') {
-            wlogger.log('info', base.replace('[SYSTEM INFO] - ', ''));
+            wlogger.log('info', base.replace('[SYSTEM INFO] - ', '') );
         } else {
             wlogger.log('verbose', base);
         }

@@ -19,11 +19,6 @@
  *
  */
 
-/**
- * @author VoidNull
- * @version 0.8.0
- */
-
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { User as UI, PendingMember } from '../Database/DBClass';
@@ -443,7 +438,7 @@ class Utils {
         }
     }
 
-    async determineHomeURL(req: Request) {
+    async determineHomeURL(req: Request): Promise<string> {
         const protocol = `${req.protocol || 'http'}://`;
         try {
             const test = await this.folderr.base.superagent.get(`${this.folderr.base.options.url}/api`);

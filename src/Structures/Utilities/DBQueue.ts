@@ -55,7 +55,7 @@ export default class DBQueue extends EventEmitter {
         this.queue = new Set();
     }
 
-    add(userID: string) {
+    add(userID: string): boolean {
         this.queue.add(userID);
         if (!this.onGoing) {
             this.onGoing = true;
@@ -65,7 +65,7 @@ export default class DBQueue extends EventEmitter {
         return true;
     }
 
-    private async _loop() {
+    private async _loop(): Promise<void> {
         if (this.queue.size === 0) {
             return;
         }
@@ -76,10 +76,11 @@ export default class DBQueue extends EventEmitter {
                 this.queue.delete(val);
             }
         }
+        // eslint-disable-next-line consistent-return
         return this._loopBound();
     }
 
-    async removeFiles(files: Upload[] ) {
+    async removeFiles(files: Upload[] ): Promise<void> {
         for (const file of files) {
             try {
                 await this.db.purgeFile( { ID: file.ID } );
