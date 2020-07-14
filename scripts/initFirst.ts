@@ -23,8 +23,8 @@ import readline from 'readline';
 import config from '../config.json';
 import Folderr from '../src/Structures/Folderr';
 
-const evolve = new Folderr(config, '--init-first');
-const { base } = evolve;
+const folderr = new Folderr(config, '--init-first');
+const { base } = folderr;
 
 const rl = readline.createInterface( {
     input: process.stdin,
@@ -32,64 +32,63 @@ const rl = readline.createInterface( {
     terminal: true,
 } );
 
-function _password(evolve: Folderr): Promise<string> {
+function _password(folderr: Folderr): Promise<string> {
     const q = 'What would you like your password to be?\nYour password must be 8-32 characters long,\nInclude 1 uppercase & lowercase letter,\nInclude 1 number,\nYour password may have these special characters: #?!@$%^&*-_[]\nInput: ';
     return new Promise<string>(resolve => {
         rl.question(q, (answer: string) => {
             if (!answer) {
                 rl.write('I require a password!');
-                return resolve(_password(evolve) );
+                return resolve(_password(folderr) );
             }
             if (answer === 'q' || answer === 'quit') {
                 rl.write('Quitting...');
                 process.exit();
             }
-            if (!evolve.base.Utils.regexs.password.test(answer) ) {
+            if (!folderr.regexs.password.test(answer) ) {
                 rl.write('Invalid password! Try again!');
-                return resolve(_password(evolve) );
+                return resolve(_password(folderr) );
             }
             return resolve(answer);
         } );
     } );
 }
 
-function _email(evolve: Folderr): Promise<string> {
+function _email(folderr: Folderr): Promise<string> {
     return new Promise<string>(resolve => {
         rl.question('What is your email?\nInput: ', (answer: string) => {
             if (!answer) {
                 rl.write('I need an email!');
-                return resolve(_email(evolve) );
+                return resolve(_email(folderr) );
             }
             if (answer === 'q' || answer === 'quit') {
                 rl.write('Quitting...');
                 process.exit();
             }
-            if (!evolve.base.emailer.validateEmail(answer) ) {
+            if (!folderr.base.emailer.validateEmail(answer) ) {
                 rl.write('Invalid Email!');
-                return resolve(_email(evolve) );
+                return resolve(_email(folderr) );
             }
             return resolve(answer);
         } );
     } );
 }
 
-function _username(): Promise<string> {
+function _username(folderr: Folderr): Promise<string> {
     return new Promise<string>(resolve => {
         const q = 'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\nInput: ';
         rl.question(q, (answer: string) => {
             if (!answer) {
                 rl.write('Give me a username!\n');
-                return resolve(_username() );
+                return resolve(_username(folderr) );
             }
             if (answer === 'q' || answer === 'quit') {
                 rl.write('Quitting...');
                 process.exit();
             }
-            const regex = /[a-z0-9_]{3,12}/;
-            const match = answer.match(regex);
-            if (!regex.test(answer) || (match && match[0].length < answer.length) ) {
+            const match = answer.match(folderr.regexs.username);
+            if (!folderr.regexs.username.test(answer) || (match && match[0].length < answer.length) ) {
                 rl.write('Invalid username! Retry!\n');
-                return resolve(_username() );
+                return resolve(_username(folderr) );
             }
             return resolve(answer);
         } );
@@ -98,7 +97,7 @@ function _username(): Promise<string> {
 
 (async function _initFirst(): Promise<void> {
     await base.initDB();
-    const user = await evolve.base.db.findUser( { first: true }, 'first');
+    const user = await folderr.base.db.findUser( { first: true }, 'first');
     if (user) {
         rl.write('First user already initiated!\n');
         rl.close();
@@ -108,16 +107,16 @@ function _username(): Promise<string> {
 
     await base.Utils.sleep(1000); // Sleep for a second
 
-    const name: string = await _username();
-    let password: string = await _password(evolve);
-    const email = evolve.base.Utils.encrypt(await _email(evolve) );
+    const name: string = await _username(folderr);
+    let password: string = await _password(folderr);
+    const email = folderr.base.Utils.encrypt(await _email(folderr) );
     const uID: string = await base.Utils.genUID();
     rl.close();
 
     const passBase: string = password;
     password = await base.Utils.hashPass(password);
     await base.Utils.sleep(1000);
-    await evolve.base.db.makeOwner(name, password, uID, email);
+    await folderr.base.db.makeOwner(name, password, uID, email);
     console.log(`Account created successfully! See your details below...\n\nAccount name: ${name}\nAccount password: ${passBase}\nAccount ID: ${uID}`);
     process.exit();
 }() );
