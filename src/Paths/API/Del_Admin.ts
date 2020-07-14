@@ -56,7 +56,6 @@ class DeleteAdmin extends Path {
         if (user.admin) {
             return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.db_unknown_error } );
         }
-        // console.log(`[SYSTEM INFO - ADMIN] - Admin removed for user ${user.username}`);
         this.base.Logger.log(`SYSTEM NOTICE - ADMIN`, 'Administration privileges removed for user.', { user: `${user.username} (${user.userID})`, responsible: `${auth.username} (${auth.userID})` }, 'adminRemove', 'Administrator demoted.');
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: `OK` } );
     }

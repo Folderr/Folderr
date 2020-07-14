@@ -121,9 +121,9 @@ class Logger implements LoggerOptions {
             base += `\n    --- User Responsible: ${options.responsible}`;
         }
         if (type.startsWith('SECURITY WARN') ) {
-            wlogger.log( { level: 'warn', message: base, private: true } );
+            wlogger.log( { level: 'warn', message: base.replace(/warn/i, ''), private: true } );
         } else if (type.startsWith('SYSTEM INFO') || type.startsWith('SYSTEM NOTICE') || type === 'SYSTEM - SIGNUP') {
-            wlogger.log('info', base);
+            wlogger.log('info', base.replace('SYSTEM INFO', ''));
         } else {
             wlogger.log('verbose', base);
         }
