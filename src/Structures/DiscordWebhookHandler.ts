@@ -19,11 +19,6 @@
  *
  */
 
-/**
- * @author VoidNulll
- * @version 0.8.0
- */
-
 import superagent from 'superagent';
 import { DiscordHook } from './Folderr-Config';
 import { promisify } from 'util';
@@ -56,9 +51,7 @@ export interface EmbedData {
 export type WebhookTypes = 'error' | 'deleteAccount' | 'online' | 'accountDeny' | 'accountAccept' | 'fileUpload' | 'fileDelete' | 'signup' | 'securityWarn' | 'adminGive' | 'adminRemove' | 'manage' | 'shorten' | 'shortRemove' | 'accUpdate' | 'accountDelete';
 
 /**
- * @class DiscordHook
- *
- * @classdesc handles sending webhooks that log important information about Folderr-X or its status.
+ * @classdesc handles sending webhooks that log important information about Folderr or its status.
  *
  * @author VoidNulll
  */

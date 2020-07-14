@@ -19,6 +19,10 @@
  *
  */
 
+/**
+ * @fileoverview Handle Making ShareX configs
+ */
+
 interface ImageConfig {
     FileFormName: string;
     RequestMethod: string;

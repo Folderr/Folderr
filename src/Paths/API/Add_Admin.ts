@@ -23,6 +23,9 @@ import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 
+/**
+ * @classdesc Make a user an administrator
+ */
 class AddAdmin extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

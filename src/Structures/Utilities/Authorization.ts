@@ -35,6 +35,9 @@ interface Keys {
     pubKeyPath: string;
 }
 
+/**
+ * @classdesc Handle token authorization.
+ */
 export default class Authorization {
     public secret: string | Keys;
 

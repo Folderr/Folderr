@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { inspect } from 'util';
 
+/**
+ * @classdesc Allows owner to eval on the instance.
+ */
 class Eval extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

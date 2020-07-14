@@ -47,12 +47,9 @@ interface TokenReturn {
 }
 
 /**
- * @class Utils
- * @param {Folderr} evolve The Folderr-X client
+ * @param {Folderr} folderr The Folderr-X client
  *
- * @classdesc Utility functions used for authorization or user generation
- *
- * @author VoidNulll
+ * @classdesc A lot of utility functions
  */
 class Utils {
     public saltRounds: number;
@@ -74,19 +71,19 @@ class Utils {
      *
      * @prop {number} saltRounds The rounds to salt with
      * @prop {number} byteSize The amount of random bytes to generate
-     * @prop {Folderr} evolve The Folderr client
+     * @prop {Folderr} folderr The Folderr client
      */
-    constructor(evolve: Folderr, base?: Base) {
+    constructor(folderr: Folderr, base?: Base) {
         this.saltRounds = 10;
         this.byteSize = 48;
-        this.folderr = evolve;
+        this.folderr = folderr;
         this.base = base;
         this.defaultShardOptions = {
             maxCores: 48,
             enabled: false,
             maxMemory: '4G',
         };
-        this.authorization = new Authorization(aConfig.auth, evolve);
+        this.authorization = new Authorization(aConfig.auth, folderr);
         this.FoldCodes = FoldCodes;
     }
 

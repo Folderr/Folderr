@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import moment from "moment";
 
+/**
+ * @classdesc User can delete a single notification
+ */
 class DelNotify extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

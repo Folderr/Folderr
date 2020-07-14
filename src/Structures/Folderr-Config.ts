@@ -19,11 +19,6 @@
  *
  */
 
-/**
- * @author VoidNulll
- * @version 0.8.0
- */
-
  import wlogger from './WinstonLogger';
 import fs from 'fs';
 import logger from './WinstonLogger';
@@ -119,11 +114,9 @@ const optionsBase: ActualOptions = {
 };
 
 /**
- * @class FolderrConfig
+ * @classdesc Ensures your config is correct, otherwise kills the process.
  *
- * @classdesc Class for generating & validating the Folderr config
- *
- * @author Null
+ * @author VoidNulll
  */
 class FolderrConfig implements ActualOptions {
     /**

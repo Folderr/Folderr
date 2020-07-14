@@ -3,6 +3,10 @@ import { Request, Response } from 'express';
 
 const tooMany = 429;
 
+/**
+ * @fileoverview All of the ratelimiter middleware for express
+ */
+
 export class LimiterBase {
     readonly #ratelimiter!: RateLimiterCluster | RateLimiterMemory
 

@@ -24,6 +24,9 @@ import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
 
+/**
+ * @classdesc Remove an administrators admin status
+ */
 class DeleteAdmin extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

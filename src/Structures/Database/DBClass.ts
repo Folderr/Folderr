@@ -78,6 +78,9 @@ export interface Upload {
     created: Date;
 }
 
+/**
+ * @classdesc Base class for all Database handlers to extend, used to maintain consistency across the database(s)
+ */
 export class DBClass {
     constructor() {
         if (this.constructor.name === 'DBClass') {

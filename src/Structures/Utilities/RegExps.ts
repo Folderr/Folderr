@@ -1,3 +1,7 @@
+
+/**
+ * @classdesc General location for RegExps to be used within Folderrs API
+ */
 class RegExpList {
 
     readonly email: RegExp;

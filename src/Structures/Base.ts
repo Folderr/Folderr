@@ -19,11 +19,6 @@
  *
  */
 
-/**
- * @author VoidNulll
- * @version 0.8.0
- */
-
 import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
 import helmet from 'helmet';
@@ -59,11 +54,9 @@ ee.on('fail', () => {
 const web = express();
 
 /**
- * @class Base
+ * @classdesc Handles initialization and provides ways to access most important things and holds config.
  *
- * @classdesc Handles initialization and provides was to access most important things and holds config.
- *
- * @author Null#0515
+ * @author VoidNulll
  */
 class Base {
     /**

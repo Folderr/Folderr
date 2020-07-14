@@ -31,6 +31,9 @@ interface DelReturns {
     mess: { code: number; message: string };
 }
 
+/**
+ * @classdesc Delete account. Admins can delete others accounts
+ */
 class DelAccount extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

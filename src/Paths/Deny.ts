@@ -24,6 +24,9 @@ import Folderr from '../Structures/Folderr';
 import Base from '../Structures/Base';
 import { Response, Request } from 'express';
 
+/**
+ * @classdesc Allow a user to deny the creation of their account
+ */
 class Deny extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

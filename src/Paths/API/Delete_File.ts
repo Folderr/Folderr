@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { promises as fs, existsSync } from 'fs';
 
+/**
+ * @classdesc Have a user delete their file
+ */
 class DeleteFile extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

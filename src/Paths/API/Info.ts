@@ -28,6 +28,9 @@ import { Response } from 'express';
 
 const exec = util.promisify(childProcess.exec);
 
+/**
+ * @classdesc System information such as branch, commit its on, and version
+ */
 class Info extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

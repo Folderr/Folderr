@@ -25,11 +25,9 @@ import { compareSync } from 'bcrypt';
 import { Response } from 'express';
 import wlogger from '../../Structures/WinstonLogger';
 
-interface UpdReturns {
-    code: number;
-    mess: string;
-}
-
+/**
+ * @classdesc Updating the authorized users account
+ */
 class UpdateAcc extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

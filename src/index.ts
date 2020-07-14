@@ -1,6 +1,5 @@
 /**
- * @author VoidNulll
- * @file Initialize Folderr file.
+ * @file Initialize Folderr.
  */
 
 import Folderr from './Structures/Folderr';

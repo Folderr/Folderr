@@ -25,6 +25,9 @@ import Folderr from '../../Structures/Folderr';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc View the admin notification
+ */
 class AdminNotification extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

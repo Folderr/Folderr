@@ -19,11 +19,6 @@
  *
  */
 
-/**
- * @author VoidNulll
- * @version 0.8.0
- */
-
 import codes, { Codes } from './Utilities/Status_Codes';
 import ErrorHandler from './ErrorHandler';
 import Folderr from './Folderr';
@@ -32,11 +27,7 @@ import express from 'express';
 import { join } from 'path';
 
 /**
- * Path structure
- *
- * @class Path
- *\
- * @classdesc Base class for handling endpoints (security, execution, and state)
+ * @classdesc Base class for handling endpoints (execution, state, and other things)
  *
  * @author VoidNulll
  */

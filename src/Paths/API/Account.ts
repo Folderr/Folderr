@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response } from 'express';
 import { Notification } from '../../Structures/Database/DBClass';
 
+/**
+ * @classdesc View the authorized users account
+ */
 class Account extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

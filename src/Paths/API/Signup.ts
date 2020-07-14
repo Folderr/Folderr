@@ -25,6 +25,9 @@ import Base from '../../Structures/Base';
 import { Response, Request } from 'express';
 import wlogger from '../../Structures/WinstonLogger';
 
+/**
+ * @classdesc Allows users to signup
+ */
 class Signup extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

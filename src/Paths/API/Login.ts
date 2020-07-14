@@ -23,8 +23,10 @@ import Path from '../../Structures/Path';
 import Folderr from '../../Structures/Folderr';
 import Base from '../../Structures/Base';
 import { Response } from 'express';
-import jsonwt from 'jsonwebtoken';
 
+/**
+ * @classdesc Allow a user to login
+ */
 class Login extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

@@ -20,8 +20,7 @@
  */
 
 /**
- * @author VoidNulll
- * @file HTTP status codes Folderr-X sends.
+ * @fileoverview HTTP status codes Folderr sends.
  */
 
 const codes = {

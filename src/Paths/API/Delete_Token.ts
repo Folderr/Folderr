@@ -24,6 +24,9 @@ import Path from '../../Structures/Path';
 import Base from '../../Structures/Base';
 import Folderr from '../../Structures/Folderr';
 
+/**
+ * @classdesc Allow the user to delete a token they have created
+ */
 class DeleteToken extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);

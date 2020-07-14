@@ -1,5 +1,9 @@
 /* eslint @typescript-eslint/camelcase: "off" */
 
+/**
+ * @fileoverview Codes to send in the response
+ */
+
 export interface FoldCodes {
     file_parse_error: number;
     no_file: number;

@@ -24,6 +24,9 @@ import Folderr from '../Structures/Folderr';
 import Base from '../Structures/Base';
 import { Response, Request } from 'express';
 
+/**
+ * @classdesc Allow users to verify themselves
+ */
 class Verify extends Path {
     constructor(evolve: Folderr, base: Base) {
         super(evolve, base);
