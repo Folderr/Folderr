@@ -29,6 +29,10 @@ import { existsSync, promises as fs } from 'fs';
 import { isMaster } from 'cluster';
 import wlogger from '../WinstonLogger';
 
+interface Internals {
+    connection: mongoose.Connection;
+}
+
 /**
  * @classdesc Handle all MongoDB operations.
  */
@@ -43,6 +47,8 @@ export default class MongooseDB extends DBClass {
         Folderr: mongoose.Model<Schemas.FolderrDB>;
     };
 
+    private internals: Internals;
+
     constructor() {
         super();
 
@@ -55,12 +61,14 @@ export default class MongooseDB extends DBClass {
             AdminNotification: Schemas.AdminNotifications,
             Folderr: Schemas.Folderr,
         };
+        this.internals = {
+            connection: mongoose.connection,
+        };
     }
 
     async init(url: string, useSharder: boolean): Promise<void> {
         await mongoose.connect(url, { useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true } );
-        const db = mongoose.connection;
-        db.on('error', (err) => {
+        this.internals.connection.on('error', (err) => {
             if (useSharder && !isMaster) {
                 return;
             }
@@ -69,7 +77,7 @@ export default class MongooseDB extends DBClass {
                 process.exit(1);
             }
         } );
-        db.once('open', () => {
+        this.internals.connection.once('open', () => {
             if (useSharder && !isMaster) {
                 return;
             }
@@ -351,5 +359,9 @@ export default class MongooseDB extends DBClass {
     async purgeAdminNotify(query: object): Promise<boolean> {
         const del = await this.Schemas.AdminNotification.deleteOne(query).exec();
         return !!(del?.deletedCount && del.deletedCount > 0);
+    }
+
+    async shutdown(): Promise<void> {
+        return this.internals.connection.close();
     }
 }

@@ -31,7 +31,7 @@ import wlogger from '../WinstonLogger';
  * @classdesc Handles deleting files
  */
 export default class DBQueue extends EventEmitter {
-    private onGoing: boolean
+    public onGoing: boolean
 
     private config: ActualOptions;
 
@@ -67,6 +67,8 @@ export default class DBQueue extends EventEmitter {
 
     private async _loop(): Promise<void> {
         if (this.queue.size === 0) {
+            this.onGoing = false;
+            this.emit('shutdown', true);
             return;
         }
         for (const val in this.queue.values() ) {
