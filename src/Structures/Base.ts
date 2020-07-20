@@ -379,9 +379,9 @@ class Base {
             await this.killAll();
             return;
         }
-        await this.db.shutdown();
         const close = promisify(this.server.close);
         await close();
+        await this.db.shutdown();
         if (isMaster) {
             this.deleter.send( { msg: 'check' } );
             this.deleter.on('message', (msg: { msg: { onGoing?: boolean; shutdown?: boolean } } ) => {
