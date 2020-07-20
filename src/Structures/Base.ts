@@ -53,6 +53,7 @@ ee.on('fail', () => {
 } );
 
 const web = express();
+let shuttingDown = false;
 
 /**
  * @classdesc Handles initialization and provides ways to access most important things and holds config.
@@ -107,7 +108,7 @@ class Base {
 
     readonly logger: winston.Logger;
 
-    private server!: http.Server;
+    public server!: http.Server;
 
     constructor(folderr: Folderr, options: Options, flags?: string) {
         this.logger = wlogger;
@@ -134,14 +135,15 @@ class Base {
             if (cluster.isMaster) {
                 // eslint-disable-next-line no-new
                 new RateLimiterClusterMaster();
-                this.limiter = new ClusterLimiter();
             } else {
                 this.limiter = new ClusterLimiter();
             }
         } else {
             this.limiter = new MemoryLimiter();
         }
-        this.web.use(this.limiter.consumer.bind(this.limiter) );
+        if (this.limiter) {
+            this.web.use(this.limiter.consumer.bind(this.limiter) );
+        }
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         this.deleter = fork(join(__dirname, '../FileDelQueue'), undefined, { silent: true, windowsHide: true } );
@@ -151,7 +153,7 @@ class Base {
         this.emailer = new Emailer(this.folderr, this.options.email?.sendingEmail, this.options.email?.mailerOptions);
     }
 
-    listen(): void {
+    async listen(): Promise<void> {
         if (this.options.certOptions && this.options.certOptions.key && this.options.certOptions.cert) {
             this.options.certOptions.key = readFileSync(this.options.certOptions.key);
             this.options.certOptions.cert = readFileSync(this.options.certOptions.cert);
@@ -166,10 +168,12 @@ class Base {
             const server = https.createServer(httpOptions, this.web);
             server.listen(this.options.port);
             this.server = server;
+            return;
         }
         const server = http.createServer(this.web);
         server.listen(this.options.port);
         this.server = server;
+        return;
     }
 
     initBasics(): void {
@@ -252,10 +256,12 @@ class Base {
 
                     cluster.on('exit', (worker) => {
                         this.shardNum--;
-                        this.logger.verbose(`Worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})\nAttempting to bring worker back online`);
 
                         this.sendToWorkers( { messageType: 'shardNum', value: this.shardNum } );
-                        cluster.fork();
+                        if (!shuttingDown) {
+                            this.logger.verbose(`Worker ${worker.process.pid} died (${this.shardNum}/${this.maxShardNum})\nAttempting to bring worker back online`);
+                            cluster.fork();
+                        }
                     } );
                     cluster.on('online', worker => {
                         this.shardNum++;
@@ -265,13 +271,13 @@ class Base {
                     } );
                     this.logger.info(`Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
                 } else {
-                    this.listen();
+                    await this.listen();
                 }
                 return;
             }
 
             // Init the server
-            this.listen();
+            await this.listen();
             this.logger.info(`Signups are: ${!this.options.signups ? 'disabled' : 'enabled'}`);
         }
     }
@@ -300,8 +306,9 @@ class Base {
         if (!cluster.isMaster) {
             return false;
         }
+        shuttingDown = true;
         await this.killClusters();
-        wlogger.notice('Killed all worker processes/shards.');
+        wlogger.log('verbose', 'Killed all worker processes/shards.');
         return true;
     }
 
@@ -370,15 +377,40 @@ class Base {
     }
 
     async shutdown(): Promise<void> {
+        if (isMaster) {
+            wlogger.log('info', 'Shutdown function called');
+        }
         if (this.shardNum && this.useSharder) {
             if (!isMaster) {
                 this.sendToMaster( { messageType: 'kill', value: true } );
                 return;
             }
             await this.killAll();
-            return;
         }
-        this.server.close(async() => {
+        if (this.server) {
+            this.server.close(async() => {
+                await this.db.shutdown();
+                if (isMaster) {
+                    this.deleter.send( { msg: 'check' } );
+                    this.deleter.on('message', (msg: { msg: { onGoing?: boolean; shutdown?: boolean } } ) => {
+                        if (msg.msg.onGoing && msg.msg.onGoing === true) {
+                            this.deleter.send( { msg: 'shutdown' } );
+                        }
+                        if (msg.msg.shutdown && msg.msg.shutdown === true) {
+                            wlogger.info('System has shutdown.');
+                            wlogger.on('close', () => {
+                                process.exit(0);
+                            } );
+                        }
+                    } );
+                } else {
+                    wlogger.on('close', () => {
+                        process.exit(0);
+                    } );
+                }
+                return;
+            } );
+        } else {
             await this.db.shutdown();
             if (isMaster) {
                 this.deleter.send( { msg: 'check' } );
@@ -388,16 +420,18 @@ class Base {
                     }
                     if (msg.msg.shutdown && msg.msg.shutdown === true) {
                         wlogger.info('System has shutdown.');
-                        wlogger.end();
                         wlogger.on('close', () => {
                             process.exit(0);
                         } );
                     }
                 } );
+            } else {
+                wlogger.on('close', () => {
+                    process.exit(0);
+                } );
             }
-            wlogger.end();
             return;
-        } );
+        }
     }
 }
 
