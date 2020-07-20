@@ -23,7 +23,7 @@ import superagent, { SuperAgent, SuperAgentRequest } from 'superagent';
 import express from 'express';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { platform } from 'os';
+import { platform, cpus } from 'os';
 import bodyParser from 'body-parser';
 import Events from 'events';
 import Utils from './Utilities/Utils';
@@ -177,7 +177,7 @@ class Base {
     }
 
     initBasics(): void {
-        if (this.options.sharder && this.options.sharder.enabled) {
+        if (this.options.sharder && this.options.sharder.enabled && cpus().length > 2) {
             const asharder = this.Utils.shardLimit(this.options.sharder);
             if (asharder && typeof asharder === 'number') {
                 this.maxShardNum = asharder;
