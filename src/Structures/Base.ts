@@ -43,7 +43,6 @@ import { RateLimiterClusterMaster } from 'rate-limiter-flexible';
 import { MemoryLimiter, ClusterLimiter, LimiterBase } from './Middleware/ratelimiter';
 import wlogger from './WinstonLogger';
 import winston from 'winston';
-import { promisify } from 'util';
 
 const ee = new Events.EventEmitter();
 
@@ -379,26 +378,26 @@ class Base {
             await this.killAll();
             return;
         }
-        const close = promisify(this.server.close);
-        await close();
-        await this.db.shutdown();
-        if (isMaster) {
-            this.deleter.send( { msg: 'check' } );
-            this.deleter.on('message', (msg: { msg: { onGoing?: boolean; shutdown?: boolean } } ) => {
-                if (msg.msg.onGoing && msg.msg.onGoing === true) {
-                    this.deleter.send( { msg: 'shutdown' } );
-                }
-                if (msg.msg.shutdown && msg.msg.shutdown === true) {
-                    wlogger.info('System has shutdown.');
-                    wlogger.end();
-                    wlogger.on('close', () => {
-                        process.exit(0);
-                    } );
-                }
-            } );
-        }
-        wlogger.end();
-        return;
+        this.server.close(async() => {
+            await this.db.shutdown();
+            if (isMaster) {
+                this.deleter.send( { msg: 'check' } );
+                this.deleter.on('message', (msg: { msg: { onGoing?: boolean; shutdown?: boolean } } ) => {
+                    if (msg.msg.onGoing && msg.msg.onGoing === true) {
+                        this.deleter.send( { msg: 'shutdown' } );
+                    }
+                    if (msg.msg.shutdown && msg.msg.shutdown === true) {
+                        wlogger.info('System has shutdown.');
+                        wlogger.end();
+                        wlogger.on('close', () => {
+                            process.exit(0);
+                        } );
+                    }
+                } );
+            }
+            wlogger.end();
+            return;
+        } );
     }
 }
 
