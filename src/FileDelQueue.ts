@@ -30,5 +30,15 @@ const queuer = new DBQueue();
 process.on('message', ( { msg, data } ) => {
     if (msg === 'add') {
         queuer.add(data);
+    } else if (msg === 'check') {
+        if (process.send) {
+            process.send( { msg: { onGoing: queuer.onGoing } } );
+        }
+    } else if (msg === 'shutdown') {
+        queuer.on('shutdown', () => {
+            if (process.send) {
+                process.send( { msg: { shutdown: true } } );
+            }
+        } );
     }
 } );

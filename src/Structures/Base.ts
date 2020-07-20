@@ -33,6 +33,7 @@ import FolderrConfig, { ActualOptions, Options } from './Folderr-Config';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import https from 'https';
+import http from 'http';
 import cluster, { isMaster } from 'cluster';
 import DB from './Database/DBClass';
 import { pickDB } from './Database/Pick';
@@ -42,6 +43,7 @@ import { RateLimiterClusterMaster } from 'rate-limiter-flexible';
 import { MemoryLimiter, ClusterLimiter, LimiterBase } from './Middleware/ratelimiter';
 import wlogger from './WinstonLogger';
 import winston from 'winston';
+import { promisify } from 'util';
 
 const ee = new Events.EventEmitter();
 
@@ -106,6 +108,8 @@ class Base {
 
     readonly logger: winston.Logger;
 
+    private server!: http.Server;
+
     constructor(folderr: Folderr, options: Options, flags?: string) {
         this.logger = wlogger;
         this.folderr = folderr;
@@ -162,8 +166,11 @@ class Base {
             const httpOptions = this.options.certOptions;
             const server = https.createServer(httpOptions, this.web);
             server.listen(this.options.port);
+            this.server = server;
         }
-        this.web.listen(this.options.port);
+        const server = http.createServer(this.web);
+        server.listen(this.options.port);
+        this.server = server;
     }
 
     initBasics(): void {
@@ -284,7 +291,7 @@ class Base {
             for (const id in cluster.workers) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                 // @ts-ignore
-                cluster.workers[id].disconnect();
+                cluster.workers[id].send( { messageType: 'shutdown' } );
             }
             resolve(true);
         } );
@@ -295,7 +302,7 @@ class Base {
             return false;
         }
         await this.killClusters();
-        console.log('[SHUTDOWN] Killed all worker processes/shards.\n[SYSTEM] I will die in peace now');
+        wlogger.notice('Killed all worker processes/shards.');
         return true;
     }
 
@@ -308,7 +315,15 @@ class Base {
         }
         if (msg.messageType === 'kill') {
             await this.killAll();
-            process.exit();
+        }
+        if (msg.messageType === 'shutdown' && msg.value === true) {
+            worker.disconnect();
+            this.shardNum--;
+            if (this.shardNum === 0) {
+                const secs = 5000;
+                await this.Utils.sleep(secs);
+                this.shutdown();
+            }
         }
         if (msg.sendToAll) {
             delete msg.sendToAll;
@@ -324,10 +339,23 @@ class Base {
         cluster.worker.send(data);
     }
 
-    sendToWorkers(data: { messageType: string; value: any }, fromWorker?: string): boolean {
-        if (!isMaster) {
-            return false;
+    async onWorkerMesssage(msg: { messageType: string; value: any } ): Promise<void> {
+        if (!cluster.isWorker) {
+            return;
         }
+
+        if (msg.messageType === 'shardNum' && !Number.isNaN(msg.value) ) {
+            this.shardNum = msg.value;
+        } else if (msg.messageType === 'shutdown') {
+            await this.shutdown();
+            this.sendToMaster( { messageType: 'shutdown', value: true } );
+        }
+    }
+
+    sendToWorkers(data: { messageType: string; value: any }, fromWorker?: string): boolean {
+        /* if (!isMaster) {
+            return false;
+        } */
         for (const id in cluster.workers) {
             if (fromWorker && id !== fromWorker) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
@@ -340,6 +368,37 @@ class Base {
             }
         }
         return true;
+    }
+
+    async shutdown(): Promise<void> {
+        if (this.shardNum && this.useSharder) {
+            if (!isMaster) {
+                this.sendToMaster( { messageType: 'kill', value: true } );
+                return;
+            }
+            await this.killAll();
+            return;
+        }
+        await this.db.shutdown();
+        const close = promisify(this.server.close);
+        await close();
+        if (isMaster) {
+            this.deleter.send( { msg: 'check' } );
+            this.deleter.on('message', (msg: { msg: { onGoing?: boolean; shutdown?: boolean } } ) => {
+                if (msg.msg.onGoing && msg.msg.onGoing === true) {
+                    this.deleter.send( { msg: 'shutdown' } );
+                }
+                if (msg.msg.shutdown && msg.msg.shutdown === true) {
+                    wlogger.info('System has shutdown.');
+                    wlogger.end();
+                    wlogger.on('close', () => {
+                        process.exit(0);
+                    } );
+                }
+            } );
+        }
+        wlogger.end();
+        return;
     }
 }
 

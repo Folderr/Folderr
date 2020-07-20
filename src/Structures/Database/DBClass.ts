@@ -253,6 +253,10 @@ export class DBClass {
     async purgeAdminNotify(query: object): Promise<boolean> {
         throw new Error('DB > NOT IMPLEMENTED - Method purgeAdminNotify is not implemented!');
     }
+
+    async shutdown(): Promise<void> {
+        throw new Error('DB > NOT IMPLEMENTED - Method purgeAdminNotify is not implemented!');
+    }
 }
 
 export default DBClass;
