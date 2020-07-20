@@ -62,7 +62,7 @@ class Pong extends Path {
         return res.status(this.codes.ok).json( {
             message: {
                 // eslint-disable-next-line @typescript-eslint/camelcase
-                version: pkg.version, node_version: process.version, online_since: new Date(Date.now() - (process.uptime() * 1000) ), uptime: process.uptime(), message: 'Pong!', shards: (this.base.useSharder && `${this.base.shardNum}/${this.base.maxShardNum}`) || 1, platform,
+                version: pkg.version, node_version: process.version, online_since: new Date(Date.now() - (process.uptime() * 1000) ).getTime(), message: 'Pong!', shards: (this.base.useSharder && this.base.shardNum) || undefined,
             },
             code: this.codes.ok,
         } );
