@@ -32,11 +32,13 @@ import codes from './Utilities/Status_Codes';
 import { User } from './Database/DBClass';
 import RegExpList from './Utilities/RegExps';
 import wlogger from './WinstonLogger';
+import cp from 'child_process';
+import { promisify } from 'util';
+
+const exec = promisify(cp.exec);
 
 /**
  * @classdesc Base client for Folderr, handlles paths & some middleware.
- *
- * @author VoidNulll
  */
 class Folderr {
     private _options: Options;
@@ -46,6 +48,8 @@ class Folderr {
     public base: Base;
 
     public regexs: RegExpList;
+
+    public gitinfo?: { branch: string; commit: string; run_commit: string; state?: string };
 
     /**
      * @param {Object} options The options to pass to the base of the client
@@ -240,9 +244,9 @@ class Folderr {
                     res.clearCookie('token');
                     return res.sendFile(dir);
                 }
-                return res.status(codes.notFound).sendFile(join(__dirname, '../Frontend/notfound_loggedIn.html') );
+                return res.status(codes.notFound).json( { message: 'Not found', code: codes.notFound } ).end();
             }
-            return res.status(codes.notFound).sendFile(dir);
+            return res.status(codes.notFound).json( { message: 'Not found', code: codes.notFound } ).end();
         } );
 
         if ( (this.base.useSharder && isMaster) || !this.base.useSharder) {
@@ -250,6 +254,21 @@ class Folderr {
         }
         if (process.env.NODE_ENV === 'test') {
             process.exit();
+        }
+        try {
+            let branch: any = await exec('git status -b -s -u no --column --ahead-behind');
+            branch = branch.stdout.slice(3).replace(/\.\.\./, ' ');
+            const state = this.regexs.gitAheadBehind.test(branch) && branch.match(this.regexs.gitAheadBehind)
+                .map( (r: string) => (Number(r.split(' ')[1] ) > 1
+                        && r.split(' ').reverse().join(' commits ') )
+                        || r.split(' ').reverse().join(' commit '),
+                );
+            let vers: any = await exec('git log -1 --oneline');
+            vers = vers.stdout.replace(/ \(*\)|\n/g, '');
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            this.gitinfo = { commit: vers, run_commit: vers, branch: branch.split(' ')[0], state };
+        } catch (e) {
+            wlogger.log('error', `Error message: ${e.message || e}\nStack: ${e.stack}`);
         }
     }
 }
