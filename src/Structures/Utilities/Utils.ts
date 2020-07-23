@@ -53,7 +53,7 @@ class Utils {
 
     private folderr: Folderr;
 
-    private defaultShardOptions: { maxCores: number; maxMemory: string; enabled: boolean };
+    private defaultShardOptions: { maxCores: number; enabled: boolean };
 
     private base?: Base;
 
@@ -76,7 +76,6 @@ class Utils {
         this.defaultShardOptions = {
             maxCores: 48,
             enabled: false,
-            maxMemory: '4G',
         };
         this.authorization = new Authorization(aConfig.auth, folderr);
         this.FoldCodes = FoldCodes;
@@ -406,24 +405,10 @@ class Utils {
             return false;
         }
 
-        const toBytes = 1048576;
-
-        const maxRAM = Number( (os.totalmem() / toBytes).toFixed(0) );
-
-        const ram = this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory) > maxRAM ? maxRAM : this.ramConverter(sharderOptions.maxMemory || this.defaultShardOptions.maxMemory);
-
         const leftForOS = 2; // CPU cores left for the operating system.
 
-        const maxCPUs = os.cpus().length > 3 ? os.cpus().length - leftForOS : os.cpus().length; // Leave some cores for the OS if there is at least 4 CPU cores on the OS
-        const processRamMB = 280; // The amount of RAM I estimate the process to use under load of 1k requests every other second.
-        const ramLimit = Math.floor(ram / processRamMB); // Total RAM divided by ESTIMATED RAM usage per 6 user process.
-        if (ramLimit < 2 || maxCPUs < 2 || sharderOptions.maxCores < 2) {
-            return false;
-        }
-        if (ramLimit > maxCPUs || ramLimit > sharderOptions.maxCores) { // If RAM is greater than total cores Folderr-X will use or max cores the config specifies
-            return sharderOptions.maxCores > maxCPUs ? maxCPUs : sharderOptions.maxCores; // Use the least cores.
-        }
-        return ramLimit; // use ramLimit last
+        const cpus = os.cpus();
+        return sharderOptions.maxCores > cpus.length - leftForOS ? cpus.length - leftForOS : sharderOptions.maxCores;
     }
 
     async testMirrorURL(url: string): Promise<boolean> {

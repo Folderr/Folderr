@@ -21,6 +21,7 @@
 
 import wlogger from './WinstonLogger';
 import fs from 'fs';
+import { cpus } from 'os';
 
 interface CertOptions {
     key?: string | any;
@@ -53,7 +54,6 @@ export interface DiscordHook {
 export interface SharderOptions {
     enabled: boolean;
     maxCores: number;
-    maxMemory: string;
 }
 
 export interface SecurityOptions {
@@ -107,7 +107,7 @@ const optionsBase: ActualOptions = {
     signups: 1,
     apiOnly: false,
     trustProxies: false,
-    sharder: { enabled: false, maxCores: 48, maxMemory: '4G' },
+    sharder: { enabled: false, maxCores: 48 },
     security: { disableInsecure: false },
     auth: 'no',
 };
@@ -171,6 +171,7 @@ class FolderrConfig implements ActualOptions {
             ca: (config && config.certOptions && config.certOptions.ca),
             requestCert: (config && config.certOptions && Boolean(config.certOptions.requestCert) ),
         };
+        const cores = cpus();
         this.discordHook = config.discordHook;
         this.auth = config.auth;
         if (this.auth === 'no') {
@@ -179,10 +180,14 @@ class FolderrConfig implements ActualOptions {
         }
         this.email = config.email;
         this.verify();
-        const baseSharder = { enabled: false, maxCores: 48, maxMemory: '4G' };
+        const baseSharder = { enabled: false, maxCores: (cores.length < 48 ? cores.length - 2 : 48), maxMemory: '4G' };
         this.sharder = baseSharder;
         if (config.sharder) {
-            this.sharder = { enabled: config.sharder.enabled, maxMemory: config.sharder.maxMemory || baseSharder.maxMemory, maxCores: config.sharder.maxCores || baseSharder.maxCores };
+            this.sharder = {
+                enabled: config.sharder.enabled,
+                maxCores: (config.sharder && config.sharder.maxCores && config.sharder.maxCores < cores.length ? config.sharder.maxCores : cores.length - 2)
+                || baseSharder.maxCores,
+            };
         }
 
         this.security = (config.security && {
