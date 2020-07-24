@@ -151,13 +151,13 @@ class Utils {
      */
     genID(): string {
         // Generate a random ID
-        const radix = 36;
-        const min = 0;
-        const total = 10;
-        const str = Math.random()
-            .toString(radix)
-            .replace(/[^a-zA-Z0-9]+/g, '')
-            .substr(min, total);
+        const bytesToGen = 10;
+        const min = 10;
+        const max = 7;
+        const str = crypto.randomBytes(bytesToGen)
+            .toString('base64')
+            .replace(new RegExp('=|\\+|/', 'g'), '')
+            .slice(min, max);
         let toReturn = true;
         Promise.all( [this.folderr.base.db.findFile( { ID: str }, 'ID'), this.folderr.base.db.findLink( { ID: str }, 'ID')] ).then( ( [Uploaded, Lin] ) => {
             if (Uploaded || Lin) {
