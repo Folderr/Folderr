@@ -87,7 +87,7 @@ class Utils {
      * @returns {string}
      */
     toString(): string {
-        return '[Folderr-X Utils]';
+        return '[Folderr Utils]';
     }
 
     /**
@@ -216,30 +216,6 @@ class Utils {
         }
         // Return the ID
         return ID;
-    }
-
-    /**
-     * @desc Generate a users token
-     * @async
-     * @generator
-     *
-     * @param userID
-     * @returns {Promise<{hash: string, token: string}>}
-     */
-    async genToken(userID: string): Promise<TokenReturn> {
-        // Generate random bytes, create buffer from user id
-        // Oh and get a base64 date in milliseconds
-        const random: string = crypto.randomBytes(this.byteSize).toString('base64')
-            .replace(/[+\\]/, '-')
-            .replace(/[=/.]/, '_');
-        const uID = Buffer.from(userID).toString('base64')
-            .replace(/[+\\]/, '-')
-            .replace(/[=/.]/, '_');
-        const date = Buffer.from(new Date().getUTCMilliseconds().toString() ).toString('base64');
-        // Combine, hash, and return the hashed and unhashed token
-        const token = `${uID}.${random}.${date}`;
-        const hash = await bcrypt.hash(token, this.saltRounds);
-        return { token, hash };
     }
 
     /**
@@ -391,8 +367,11 @@ class Utils {
         return user;
     }
 
+    /*
+     * This is kept in the event we bring back a ram limit on the sharder
+     */
     ramConverter(amount: string): number {
-        if (amount.toLowerCase().match(/gg|g/) ) { // If the RAM amount is in GB
+        if (amount.toLowerCase().match(/gb|g/) ) { // If the RAM amount is in GB
             return Math.round(Number(amount.replace(/gb|g/gi, '') ) * 1000);
         } if (amount.toLowerCase().match(/mb|m/) ) { // If the amount is in MB, convert with MB
             return Math.round(Number(amount.replace(/mb|m/gi, '') ) );
@@ -436,10 +415,8 @@ class Utils {
         }
     }
 
-    hash(email: string): string {
-        return crypto.createHash('sha512').update(email).digest('hex');
-    }
-
+    // Fake encrypt & decrypt methods
+    // :)
     encrypt(data: string): string {
         return Buffer.from(data, 'utf8').toString('hex');
     }
