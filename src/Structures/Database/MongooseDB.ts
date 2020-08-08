@@ -67,7 +67,7 @@ export default class MongooseDB extends DBClass {
     }
 
     async init(url: string, useSharder: boolean): Promise<void> {
-        await mongoose.connect(url, { useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true } );
+        await mongoose.connect(url, { useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true, useUnifiedTopology: true } );
         this.internals.connection.on('error', (err) => {
             if (useSharder && !isMaster) {
                 return;
