@@ -20,16 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classdesc Allow a user to login
  */
 class Login extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Login';
         this.path = '/api/login';
         this.secureOnly = false;
@@ -52,7 +51,7 @@ class Login extends Path {
         // Set the cookie to expire in a weeks time
         const week = 604800000;
         const endTime = new Date(Date.now() + (week * 2) );
-        const jwt = await this.base.Utils.authorization.genKeyWeb(auth.userID);
+        const jwt = await this.core.Utils.authorization.genKeyWeb(auth.userID);
         res.cookie('token', jwt, { expires: endTime, secure: false, httpOnly: true, sameSite: 'Strict' } );
         // Set cookies
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );

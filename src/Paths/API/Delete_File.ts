@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { promises as fs, existsSync } from 'fs';
 
@@ -29,8 +28,8 @@ import { promises as fs, existsSync } from 'fs';
  * @classdesc Have a user delete their file
  */
 class DeleteFile extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Delete Image';
         this.path = '/api/file/:id';
         this.type = 'delete';
@@ -49,13 +48,12 @@ class DeleteFile extends Path {
             return res.status(this.codes.badReq).jsson( { code: this.codes.badReq, message: 'Missing File ID!' } );
         }
 
-        const File = await this.base.db.findFile( { owner: auth.userID, ID: req.params.id } );
+        const File = await this.core.db.findFile( { owner: auth.userID, ID: req.params.id } );
         if (!File) {
             return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'File not found!' } );
         }
 
-        await this.base.db.purgeFile( { ID: File.ID, owner: auth.userID } );
-        this.base.Logger.log('INFO - UPLOADS', `Upload ${File.ID} deleted!`, { user: `${auth.username} (${auth.userID}` }, 'fileDelete', 'Upload deleted');
+        await this.core.db.purgeFile( { ID: File.ID, owner: auth.userID } );
         res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } ).end();
         if (existsSync(File.path) ) {
             await fs.unlink(File.path);

@@ -25,14 +25,10 @@ import { User as UI, PendingMember } from '../Database/DBClass';
 import FoldCodes, { FoldCodes as IFoldCodes } from './FoldCodes';
 import { promisify } from 'util';
 import { Request } from 'express';
-import Folderr from '../Folderr';
+import Core from '../Core';
 import os from 'os';
-import Base from '../Base';
 import Authorization from './Authorization';
-import config from '../../../config.json';
-import FolderrConfig from '../Folderr-Config';
-
-const aConfig = new FolderrConfig(config);
+import { KeyConfig } from '../../Handlers/ConfigHandler';
 
 const sleep = promisify(setTimeout);
 
@@ -42,7 +38,7 @@ interface TokenReturn {
 }
 
 /**
- * @param {Folderr} folderr The Folderr-X client
+ * @param {Folderr} core The Core of the project
  *
  * @classdesc A lot of utility functions
  */
@@ -51,11 +47,9 @@ class Utils {
 
     public byteSize: number;
 
-    private folderr: Folderr;
+    #core: Core;
 
     private defaultShardOptions: { maxCores: number; enabled: boolean };
-
-    private base?: Base;
 
     public authorization: Authorization;
 
@@ -66,18 +60,17 @@ class Utils {
      *
      * @prop {number} saltRounds The rounds to salt with
      * @prop {number} byteSize The amount of random bytes to generate
-     * @prop {Folderr} folderr The Folderr client
+     * @prop {Core} core The Folderr client
      */
-    constructor(folderr: Folderr, base?: Base) {
+    constructor(core: Core, jwtConfig: KeyConfig['jwtConfig'] ) {
         this.saltRounds = 10;
         this.byteSize = 48;
-        this.folderr = folderr;
-        this.base = base;
+        this.#core = core;
         this.defaultShardOptions = {
             maxCores: 48,
             enabled: false,
         };
-        this.authorization = new Authorization(aConfig.auth, folderr);
+        this.authorization = new Authorization(jwtConfig, core);
         this.FoldCodes = FoldCodes;
     }
 
@@ -87,7 +80,7 @@ class Utils {
      * @returns {string}
      */
     toString(): string {
-        return '[Folderr Utils]';
+        return '[Core Utils]';
     }
 
     /**
@@ -159,7 +152,7 @@ class Utils {
             .replace(new RegExp('=|\\+|/', 'g'), '')
             .slice(min, max);
         let toReturn = true;
-        Promise.all( [this.folderr.base.db.findFile( { ID: str }, 'ID'), this.folderr.base.db.findLink( { ID: str }, 'ID')] ).then( ( [Uploaded, Lin] ) => {
+        Promise.all( [this.#core.db.findFile( { ID: str }, 'ID'), this.#core.db.findLink( { ID: str }, 'ID')] ).then( ( [Uploaded, Lin] ) => {
             if (Uploaded || Lin) {
                 toReturn = false;
             }
@@ -183,7 +176,7 @@ class Utils {
         const maxPass = 32;
         // If the password is not over min length
         // If password does not match the regex completely
-        const match: RegExpMatchArray | null = password.match(this.folderr.regexs.password);
+        const match: RegExpMatchArray | null = password.match(this.#core.regexs.password);
         if (password.length < minPass || (match && match.length !== password.length) ) {
             throw Error('[PSW1] Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`');
         }
@@ -209,7 +202,7 @@ class Utils {
     async genNotifyID(): Promise<string> {
         // Gen the ID, and dont let the ID equal a already made notify id
         const ID: string = await this.genUID();
-        const notify = await this.folderr.base.db.findAdminNotify( { ID } );
+        const notify = await this.#core.db.findAdminNotify( { ID } );
         if (notify) {
             // Retry if notify exists
             return this.genNotifyID();
@@ -263,7 +256,7 @@ class Utils {
         }
         // Find user on username, and if no user auth failed
 
-        const user = await this.folderr.base.db.findUser( { username: req.headers.username } );
+        const user = await this.#core.db.findUser( { username: req.headers.username } );
         if (!user) {
             return false;
         }
@@ -306,7 +299,7 @@ class Utils {
             return false;
         }
         // Find user on username, and if no user auth failed
-        const user = await this.folderr.base.db.findUser( { username: req.body.username } );
+        const user = await this.#core.db.findUser( { username: req.body.username } );
         if (!user) {
             return false;
         }
@@ -333,9 +326,6 @@ class Utils {
      * @returns {boolean}
      */
     verifyInsecureCookies(req: any): boolean {
-        if (this.base && this.base.options && this.base.options.security.disableInsecure) {
-            return true;
-        }
         if (!req.cookies) {
             return false;
         }
@@ -357,7 +347,7 @@ class Utils {
      * @returns {Promise<boolean>}
      */
     async findVerifying(validationToken: string, userID: string): Promise<PendingMember|false> {
-        const user: PendingMember | undefined | null = await this.folderr.base.db.findVerify( { userID } );
+        const user: PendingMember | undefined | null = await this.#core.db.findVerify( { userID } );
         if (!user) {
             return false;
         }
@@ -392,7 +382,7 @@ class Utils {
 
     async testMirrorURL(url: string): Promise<boolean> {
         try {
-            const test = await this.folderr.base.superagent.get(`${url}/api`);
+            const test = await this.#core.superagent.get(`${url}/api`);
             if (test?.text && JSON.parse(test?.text)?.message?.res === 'Pong! Mirror Operational!') {
                 return true;
             }
@@ -405,9 +395,9 @@ class Utils {
     async determineHomeURL(req: Request): Promise<string> {
         const protocol = `${req.protocol || 'http'}://`;
         try {
-            const test = await this.folderr.base.superagent.get(`${this.folderr.base.options.url}/api`);
+            const test = await this.#core.superagent.get(`${this.#core.config.url}/api`);
             if (test?.text && JSON.parse(test?.text)?.message?.message === 'Pong!') {
-                return this.folderr.base.options.url;
+                return this.#core.config.url;
             }
             return `${protocol}${req.get('host')}`;
         } catch (e) {

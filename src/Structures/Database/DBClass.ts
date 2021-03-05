@@ -89,7 +89,7 @@ export class DBClass {
         }
     }
 
-    async init(...args: any[] ): Promise<any> {
+    async init(url: string): Promise<any> {
         throw new Error('DB > NOT IMPLEMENTED - Method init is not implemented!');
     }
 

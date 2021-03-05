@@ -1,20 +1,18 @@
-/**
- * @file Initialize Folderr.
- */
+import * as StartupHandler from './Handlers/StartupHandler';
 
-import Folderr from './Structures/Folderr';
-import config from '../config.json';
+process.on('beforeExit', (code) => {
+    console.log(`Exiting with code ${code}`)
+})
 
-const folderr = new Folderr(config);
-
-folderr.init();
+process.on('exit', code => {
+    console.log("Exiting...")
+})
+StartupHandler.startFolderr();
 
 process.on('SIGINT', async() => {
-    await folderr.base.shutdown();
     process.exit(0);
 } );
 
 process.on('SIGTERM', async() => {
-    await folderr.base.shutdown();
     process.exit(0);
 } );

@@ -19,8 +19,7 @@
  *
  */
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import Package from '../../../package.json';
 import childProcess from 'child_process';
 import util from 'util';
@@ -32,8 +31,8 @@ const exec = util.promisify(childProcess.exec);
  * @classdesc System information such as branch, commit its on, and version
  */
 class Info extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Info';
         this.path = '/api/info';
         this.reqAuth = true;

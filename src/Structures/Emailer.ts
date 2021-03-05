@@ -20,7 +20,7 @@
  */
 
 import nodemailer, { SentMessageInfo } from 'nodemailer';
-import Folderr from './Folderr';
+import Core from './Core';
 import Mail from 'nodemailer/lib/mailer';
 
 /**
@@ -33,14 +33,14 @@ import Mail from 'nodemailer/lib/mailer';
 export default class Emailer {
     public active: boolean;
 
-    private folderr: Folderr;
+    #core: Core;
 
     private mailer?: Mail;
 
     private email?: string;
 
-    constructor(folderr: Folderr, email?: string, options?: { auth: { user: string; pass: string }; host: string; port?: number; secure?: boolean } ) {
-        this.folderr = folderr;
+    constructor(core: Core, email?: string, options?: { auth: { user: string; pass: string }; host: string; port?: number; secure?: boolean } ) {
+        this.#core = core;
         this.active = !!options;
         if (this.active) {
             this.mailer = nodemailer.createTransport(options);
@@ -49,7 +49,7 @@ export default class Emailer {
     }
 
     validateEmail(email: string): boolean {
-        return this.folderr.regexs.email.test(email);
+        return this.#core.regexs.email.test(email);
     }
 
     async verifyEmail(email: string, verifyLink: string, username: string): Promise<null | SentMessageInfo> {
@@ -58,7 +58,7 @@ export default class Emailer {
                 from: this.email,
                 to: email,
                 subject: 'Folderr Account Verification',
-                text: `Hello ${username},\nYour Foldderr verification link for instance ${verifyLink.split('/verify')[0]} is ${verifyLink}\nThe link will expire in 48 hours.\nDid not request an account? Click this link ${verifyLink.replace('verify', 'deny')}.`,
+                text: `Hello ${username},\nYour Foldderr verification link for instance ${verifyLink.split('/verify')[0]} is ${verifyLink}\nThe link will expire in 48 hours.\nDid not request an account? Click this link to deny the account request: ${verifyLink.replace('verify', 'deny')}.`,
                 priority: 'low',
             } );
         }

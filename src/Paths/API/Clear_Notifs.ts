@@ -19,16 +19,15 @@
  *
  */
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classdesc Clear the authorized users notifications
  */
 class ClearNotifs extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Clear Notifications';
         this.path = '/api/notifications';
         this.reqAuth = true;
@@ -44,7 +43,7 @@ class ClearNotifs extends Path {
         }
 
         // Clear the notifications and tell the user that happened
-        await this.base.db.updateUser( { userID: auth.userID }, { notifs: [] } );
+        await this.core.db.updateUser( { userID: auth.userID }, { notifs: [] } );
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

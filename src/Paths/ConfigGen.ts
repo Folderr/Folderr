@@ -20,19 +20,18 @@
  */
 
 import Path from '../../src/Structures/Path';
-import Folderr from '../Structures/Folderr';
+import Core from '../Structures/Core';
 import { Response } from 'express';
-import Base from '../Structures/Base';
 import { join } from 'path';
 
 class ConfigGen extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Configuration Generator';
 
         this.path = '/config';
         this.type = 'get';
-        this.enabled = !this.base.options.apiOnly;
+        this.enabled = false
     }
 
     /**

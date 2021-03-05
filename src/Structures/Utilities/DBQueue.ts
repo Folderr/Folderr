@@ -20,10 +20,10 @@
  */
 
 import { EventEmitter } from 'events';
-import FolderrConfig, { ActualOptions } from '../Folderr-Config';
+import Configurer, { DBConfig } from '../../Handlers/ConfigHandler';
 import config from '../../../config.json';
 import DB, { Upload } from '../Database/DBClass';
-import { pickDB } from '../Database/Pick';
+import NativeDB from '../Database/MongooseDB';
 import wlogger from '../WinstonLogger';
 
 
@@ -33,7 +33,7 @@ import wlogger from '../WinstonLogger';
 export default class DBQueue extends EventEmitter {
     public onGoing: boolean
 
-    private config: ActualOptions;
+    private config: DBConfig;
 
     private db: DB;
 
@@ -44,11 +44,11 @@ export default class DBQueue extends EventEmitter {
     constructor() {
         super();
         this.onGoing = true;
-        this.config = new FolderrConfig(config);
-        this.db = pickDB();
-        this.db.init(this.config.mongoUrl, false).then(r => r).catch(e => {
+        this.config = Configurer.verifyFetch().db;
+        this.db = new NativeDB();
+        this.db.init(this.config.url).then(r => r).catch(e => {
             wlogger.error(`CANNOT RUN DBQueue - Database Error ${e}`);
-            process.exit();
+            process.exit(1);
         } );
         this._loopBound = this._loop.bind(this);
         this.on('start', this._loopBound);

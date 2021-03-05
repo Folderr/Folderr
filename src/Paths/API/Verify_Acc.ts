@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
@@ -29,8 +28,8 @@ import { User } from '../../Structures/Database/DBClass';
  * @classdesc Administrators verify accounts via this endpoint
  */
 class VerifyAccount extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Verify Account';
 
         this.path = '/api/admin/verify';
@@ -57,10 +56,10 @@ class VerifyAccount extends Path {
 
         // Remove the user from verifying schema and add them to the actual user base
         const { username, userID } = user;
-        await this.base.db.verifyUser(userID);
+        await this.core.db.verifyUser(userID);
 
         // Alert the console and the admin that the user was verified
-        this.base.Logger.log('SYSTEM INFO', 'User account granted by administrator', { user: `${username} (${userID}`, responsible: `${auth.username} (${auth.userID})` }, 'accountAccept', 'Account Verified');
+        this.core.logger.info(`User account ${username} (${userID}) granted by administrator ${auth.username} (${auth.userID})`);
         return res.status(this.codes.created).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

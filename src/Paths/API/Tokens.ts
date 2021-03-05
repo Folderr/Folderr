@@ -21,15 +21,14 @@
 
 import { Response, Request } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 
 /**
  * @classdesc Fetchs users tokens information (actual token not stored by Folderr)
  */
 class Tokens extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] List Tokens';
         this.path = '/api/account/tokens';
     }
@@ -39,7 +38,7 @@ class Tokens extends Path {
         if (!auth) {
             return res.status(this.codes.unauth).json( { message: 'Authorization failed', code: this.codes.unauth } );
         }
-        const tokens = await this.base.db.findTokens(auth.userID);
+        const tokens = await this.core.db.findTokens(auth.userID);
         return res.status(this.codes.ok).json( {
             code: this.codes.ok, message: tokens.filter(token => !token.web).map(token => {
                 // eslint-disable-next-line @typescript-eslint/camelcase

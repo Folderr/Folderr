@@ -19,16 +19,15 @@
  *
  */
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classdesc Make a user an administrator
  */
 class AddAdmin extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Add Admin';
         this.path = '/api/manage/admin/:id';
         this.reqAuth = true;
@@ -50,7 +49,7 @@ class AddAdmin extends Path {
         if (!match || match[0].length !== req.params.id.length) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'ID is not a valid Folderr ID!' } );
         }
-        const user = await this.base.db.findAndUpdateUser( { uID: req.params.id, $nor: [{ admin: false }, { first: true }] }, { admin: true }, 'admin');
+        const user = await this.core.db.findAndUpdateUser( { uID: req.params.id, $nor: [{ admin: false }, { first: true }] }, { admin: true }, 'admin');
         if (!user) {
             return res.status(this.codes.notFound).json( { message: 'User not found!', code: this.Utils.FoldCodes.db_not_found } );
         }
@@ -58,7 +57,7 @@ class AddAdmin extends Path {
             return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.db_unknown_error } );
         }
         user.admin = true;
-        this.base.Logger.log('SYSTEM NOTICE - ADMIN', 'Administrator privileges granted to user.', { user: `${user.username} (${user.userID})`, responsible: `${auth.username} (${auth.userID})` }, 'adminGive', 'Account given Admin');
+        this.core.logger.info(`Administrator privileges granted to user ${user.username} (${user.userID}) by ${auth.username} (${auth.username}).`);
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: `OK` } );
     }
 }

@@ -20,20 +20,18 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import formidable from 'formidable';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
-import { WebhookExecOptions } from '../../Structures/DiscordWebhookHandler';
 
 /**
  * @classdesc Upload a file
  */
 class Image extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Upload Image';
         this.path = '/api/file';
         this.type = 'post';
@@ -104,14 +102,7 @@ class Image extends Path {
             return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.file_forbidden_mime, message: 'Forbidden MIME type.' } );
         }
 
-        const opts: WebhookExecOptions = { imageURL: `${this.base.options.url}/${type[0]}/${name}.${ext}` };
-        if (type !== 'image') {
-            opts.url = opts.imageURL;
-            opts.imageURL = undefined;
-        }
-        this.base.Logger.log('INFO - FILES', `File uploaded by ${auth.username} (${auth.userID})!`, opts, 'fileUpload', 'File Uploaded');
-
-        await Promise.all( [this.base.db.makeFile(name, auth.userID, file.path, type), this.base.db.updateUser( { userID: auth.userID }, { $inc: { files: 1 } } )] );
+        await Promise.all( [this.core.db.makeFile(name, auth.userID, file.path, type), this.core.db.updateUser( { userID: auth.userID }, { $inc: { files: 1 } } )] );
         return res.status(this.codes.ok).send(`${req.headers?.responseURL && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req)}/${type[0]}/${name}.${ext}`);
     }
 }

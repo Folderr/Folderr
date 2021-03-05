@@ -21,16 +21,15 @@
 
 import { Response, Request } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { User } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Ban a user via ID
  */
 class Ban extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Ban';
 
         this.path = '/api/admin/ban/:id';
@@ -45,23 +44,23 @@ class Ban extends Path {
         if (!req.params?.id || !req.body?.reason || !/^[0-9]+$/.test(req.params.id) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing requirements' } );
         }
-        const user = await this.base.db.findUser( { userID: req.params.id } );
+        const user = await this.core.db.findUser( { userID: req.params.id } );
         if (!user) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
         }
         const email = this.Utils.decrypt(user.email);
-        if (this.base.emailer.active) {
+        if (this.core.emailer.active) {
             const url = await this.Utils.determineHomeURL(req);
-            await this.base.emailer.banEmail(email, req.body.reason, user.username, url);
+            await this.core.emailer.banEmail(email, req.body.reason, user.username, url);
         }
-        const ban = await this.base.db.addFolderrBan(email);
+        const ban = await this.core.db.addFolderrBan(email);
         if (ban) {
-            await this.base.db.purgeUser(user.userID);
+            await this.core.db.purgeUser(user.userID);
             res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } ).end();
         } else {
             res.status(this.codes.notAccepted).json( { code: this.codes.notAccepted, message: 'BAN FAILED' } ).end();
         }
-        this.base.addDeleter(user.userID);
+        this.core.addDeleter(user.userID);
         // eslint-disable-next-line consistent-return
         return;
     }

@@ -6,19 +6,13 @@ yarn.lock
 
 node_modules/
 
-# Ignore files from converting to ts
+# Ignore core files
 
-src/*.js
-src/Structures/*.js
-src/Schemas/*.js
-src/Paths/*.js
-src/Paths/**/*.js
-src/Structures/**/*.js
-src/Structures/Database/*.js
-src/Structures/Utilities/*.js
+build/
 scripts/*.js
 Files/*
 logs/*.log
+configs/
 
 # Ignore yarn error
 

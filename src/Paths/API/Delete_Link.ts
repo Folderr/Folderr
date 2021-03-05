@@ -20,16 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classdesc Allow the user to delete a shortened link
  */
 class DeleteLink extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Delete Link';
         this.path = '/api/link/:id';
 
@@ -49,11 +48,10 @@ class DeleteLink extends Path {
             return res.status(this.codes.badReq).send( { code: this.codes.badReq, message: 'MISSING ID!' } );
         }
 
-        const short = await this.base.db.purgeLink( { ID: req.params.id, owner: auth.userID } );
+        const short = await this.core.db.purgeLink( { ID: req.params.id, owner: auth.userID } );
         if (!short) {
             return res.status(this.codes.notFound).send( { code: this.Utils.FoldCodes.db_not_found, message: 'Link not found!' } );
         }
-        this.base.Logger.log('INFO - SHORTS', `Short ${req.params.id} deleted`, { user: `${auth.username} (${auth.userID})` }, 'shortRemove', 'Link deleted by user');
 
         return res.status(this.codes.ok).send( { code: this.codes.ok, message: 'OK' } );
     }

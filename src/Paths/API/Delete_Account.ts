@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
@@ -34,8 +33,8 @@ interface DelReturns {
  * @classdesc Delete account. Admins can delete others accounts
  */
 class DelAccount extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Delete account';
         this.path = '/api/account';
         this.reqAuth = true;
@@ -53,11 +52,11 @@ class DelAccount extends Path {
     async deleteAccount(auth: User, id: string): Promise<DelReturns> {
         try {
             // Delete account by uID, and delete their pictures
-            await this.base.db.purgeUser(id);
+            await this.core.db.purgeUser(id);
             return { code: this.codes.ok, mess: { code: this.codes.ok, message: 'Account deleted!' } };
         } catch (err) {
             // If an error occurs, log this (as there should not be an error), and tell the user that an error occured
-            this.base.Logger.log('SYSTEM ERROR', `Account deletion failure - ${err.message || err}`, {}, 'error', 'Account deletion error.');
+            this.core.logger.error(`[SYSTEM ERROR] - Account deletion failure - ${err.message || err}`);
             return { code: this.codes.internalErr, mess: { code: this.codes.internalErr, message: `Account deletion error - ${err.message || err}` } };
         }
     }
@@ -77,7 +76,7 @@ class DelAccount extends Path {
                 return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
             }
             // Find the user, and if not return a not found
-            const mem = await this.base.db.findUser( { uID: req.query.uid } );
+            const mem = await this.core.db.findUser( { uID: req.query.uid } );
             if (!mem) {
                 return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
             }
@@ -91,9 +90,9 @@ class DelAccount extends Path {
             }
             // Delete the account
             out = await this.deleteAccount(auth, req.query.uid);
-            this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted by administrator', { user: `${mem.username} (${mem.userID}`, responsible: `${auth.username} (${auth.userID})` }, 'accountDelete', 'Account deleted by Admin');
+            this.core.logger.info(`Account ${mem.userID} deleted by administrator (${auth.username} - ${auth.userID})`);
             res.status(out.code).json(out.mess).end();
-            return this.base.addDeleter(req.query.uid);
+            return this.core.addDeleter(req.query.uid);
         }
         // Owner account may never be deleted
         if (auth.first) {
@@ -101,10 +100,10 @@ class DelAccount extends Path {
         }
         // Delete the users account
         out = await this.deleteAccount(auth, auth.userID); // Eslint, TS, I checked this at the top of the function. Please shut up
-        this.base.Logger.log('SYSTEM INFO - ACCOUNT DELETE', 'Account deleted', { user: `${auth.username} (${auth.userID}` }, 'accountDelete', 'Account deleted from Folderr-X');
+        this.core.logger.info(`Account ${auth.userID} deleted`);
 
         res.status(out.code).json(out.mess).end();
-        return this.base.addDeleter(auth.userID);
+        return this.core.addDeleter(auth.userID);
     }
 }
 

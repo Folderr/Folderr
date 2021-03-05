@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response, Request } from 'express';
 import wlogger from '../../Structures/WinstonLogger';
 
@@ -29,8 +28,8 @@ import wlogger from '../../Structures/WinstonLogger';
  * @classdesc Allows users to signup
  */
 class Signup extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Signup';
 
         this.path = '/api/signup';
@@ -40,7 +39,7 @@ class Signup extends Path {
     async genUID(): Promise<string> {
         // Generate an ID, and do not allow a users id to be reused
         const uID = await this.Utils.genUID();
-        const user = await this.base.db.findUser( { uID } );
+        const user = await this.core.db.findUser( { uID } );
         if (user) { // If the user was found, retry
             return this.genUID();
         }
@@ -54,13 +53,13 @@ class Signup extends Path {
         const notifyID = await this.Utils.genNotifyID();
         // Make a new notification and save to database
         try {
-            await Promise.all( [this.base.db.makeVerify(userID, username, password, validationToken.hash, email), this.base.db.makeAdminNotify(notifyID, `Username: ${username}\nUser ID: ${userID}\nValidation Token: ${validationToken.token}`, 'New user signup!')] );
+            await Promise.all( [this.core.db.makeVerify(userID, username, password, validationToken.hash, email), this.core.db.makeAdminNotify(notifyID, `Username: ${username}\nUser ID: ${userID}\nValidation Token: ${validationToken.token}`, 'New user signup!')] );
         } catch (e) {
             this._handleError(e, res, { noResponse: true, noIncrease: false } );
             return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
         }
         // Notify the console, and the user that the admins have been notified.
-        this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Folderr`, { user: `${username} (${userID})` }, 'signup', 'New user signup');
+        this.core.logger.info(`New user (${username} - ${userID})signed up to Folderr`);
         return { httpCode: this.codes.created, msg: { code: this.codes.created, message: 'OK' } };
     }
 
@@ -70,19 +69,19 @@ class Signup extends Path {
             url = `http://${url}`;
         }
         try {
-            await this.base.emailer.verifyEmail(this.Utils.decrypt(email), `${url}/verify/${userID}/${validationToken.token}`, username);
-            await this.base.db.makeVerify(userID, username, password, validationToken.hash, email);
+            await this.core.emailer.verifyEmail(this.Utils.decrypt(email), `${url}/verify/${userID}/${validationToken.token}`, username);
+            await this.core.db.makeVerify(userID, username, password, validationToken.hash, email);
         } catch (e) {
             this._handleError(e, res, { noResponse: true, noIncrease: false } );
             return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
         }
-        this.base.Logger.log('SYSTEM - SIGNUP', `New user signed up to Folderr`, { user: `${username} (${userID})` }, 'signup', 'New user signup');
+        this.core.logger.info(`New user (${username} - ${userID}) signed up to Folderr`);
         return { httpCode: this.codes.created, msg: { code: this.Utils.FoldCodes.email_sent, message: 'OK' } };
     }
 
     async execute(req: any, res: any): Promise<Response> {
         // If signups are closed, state that and do not allow them through
-        if (!this.base.options.signups) {
+        if (!this.core.config.signups) {
             return res.status(this.codes.locked).json( { code: this.codes.locked, message: 'Signup\'s are closed.' } );
         }
 
@@ -96,29 +95,29 @@ class Signup extends Path {
         // Max and min username lengths
         const maxUsername = 12;
         const minUsername = 3;
-        const uMatch = username.match(this.folderr.regexs.username);
+        const uMatch = username.match(this.core.regexs.username);
         // If the username length does not match criteria
         if (username.length > maxUsername || username.length < minUsername) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
         } if (!uMatch || (uMatch && username.length !== uMatch[0].length) ) { // If the username doess not match our username pattern
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_username, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
         }
-        if (!this.base.emailer.validateEmail(req.body.email) ) {
+        if (!this.core.emailer.validateEmail(req.body.email) ) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.bad_email, message: 'Invalid email!' } );
         }
-        const bans = await this.base.db.fetchFolderr( {} );
+        const bans = await this.core.db.fetchFolderr( {} );
         if (bans.bans.includes(req.query.email) ) {
             return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.banned_email, message: 'Email banned' } );
         }
 
         // See if the username is already taken. If its taken error the request with a code of "IM USED"
-        const user = await this.base.db.findUser( { $or: [{ username: req.body.username }, { email: req.body.email }] } ) || await this.base.db.findVerify( { $or: [{ username: req.body.username }, { email: req.body.email }] } );
+        const user = await this.core.db.findUser( { $or: [{ username: req.body.username }, { email: req.body.email }] } ) || await this.core.db.findVerify( { $or: [{ username: req.body.username }, { email: req.body.email }] } );
         if (user) {
             return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.username_or_email_taken, message: 'Username or email taken!' } );
         }
         // If the password is not over min length
         // If password does not match the regex completely
-        const match: RegExpMatchArray | null = password.match(this.folderr.regexs.password);
+        const match: RegExpMatchArray | null = password.match(this.core.regexs.password);
         if (!match || (match && match[0].length !== password.length) ) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.password_size, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.' } );
         }
@@ -144,7 +143,7 @@ class Signup extends Path {
         // Add the user to the VerifyingUser database and save
 
         // Find admin notifications, and generate an ID
-        const r = this.base.emailer.active && this.base.options.signups === 2 ? await this.email(username, uID, pswd, validationToken, email, req, res) : await this.noEmail(username, uID, pswd, validationToken, email, res);
+        const r = this.core.emailer.active && this.core.config.signups === 2 ? await this.email(username, uID, pswd, validationToken, email, req, res) : await this.noEmail(username, uID, pswd, validationToken, email, res);
         return res.status(r.httpCode).json(r.msg);
     }
 }

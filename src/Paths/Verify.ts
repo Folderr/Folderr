@@ -20,19 +20,18 @@
  */
 
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core';
 import { Response, Request } from 'express';
 
 /**
  * @classdesc Allow users to verify themselves
  */
 class Verify extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Verify Self';
         this.path = '/verify/:userid/:token';
-        this.enabled = this.base.emailer.active && this.base.options.signups === 2;
+        this.enabled = this.core.emailer.active && this.core.config.signups === 2;
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
@@ -46,12 +45,12 @@ class Verify extends Path {
         const expiresAfter = 172800000; // 48H in MS
         const timeSinceCreation = Date.now() - Number(verify.created);
         if (timeSinceCreation >= expiresAfter) {
-            await this.base.db.denySelf(verify.userID);
+            await this.core.db.denySelf(verify.userID);
             return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.user_denied, message: 'Validation time expired.' } );
         }
-        await this.base.db.verifySelf(verify.userID);
+        await this.core.db.verifySelf(verify.userID);
 
-        this.base.Logger.log('SYSTEM INFO', 'User account verified by self', { user: `${verify.username} (${verify.userID}`, responsible: `${verify.username} (${verify.userID})` }, 'accountAccept', 'Account Verified');
+        this.core.logger.info('User account verified by self');
         return res.status(this.codes.created).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

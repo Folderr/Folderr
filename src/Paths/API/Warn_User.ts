@@ -21,16 +21,15 @@
 
 import { Response } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { User } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Warn a user
  */
 class WarnUser extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Warn User';
         this.path = '/api/admin/warn/:id';
         this.type = 'post';
@@ -44,19 +43,19 @@ class WarnUser extends Path {
         if (!req.params?.id || !req.body?.reason || !/^[0-9]+$/.test(req.params.id) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Requirements missing or invalid!' } ).end();
         }
-        const user = await this.base.db.findUser( { userID: req.params.id } );
+        const user = await this.core.db.findUser( { userID: req.params.id } );
         if (!user) {
             return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } ).end();
         }
         const email = this.Utils.decrypt(user.email);
         const id = await this.Utils.genNotifyID();
-        const updated = await this.base.db.updateUser( { userID: req.params.id }, { $addToSet: { notifs: { ID: id, title: 'Warn', notify: `You were warned for: ${req.body.reason}` } } } );
+        const updated = await this.core.db.updateUser( { userID: req.params.id }, { $addToSet: { notifs: { ID: id, title: 'Warn', notify: `You were warned for: ${req.body.reason}` } } } );
         if (!updated) {
             return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.unknown_error, message: 'Warn failed' } ).end();
         }
-        if (this.base.emailer.active) {
+        if (this.core.emailer.active) {
             const url = await this.Utils.determineHomeURL(req);
-            await this.base.emailer.warnEmail(email, req.body.reason, user.username, url);
+            await this.core.emailer.warnEmail(email, req.body.reason, user.username, url);
         }
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }

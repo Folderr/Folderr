@@ -21,16 +21,15 @@
 
 import { Response, Request } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { User } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Allows admins to lookup content
  */
 class Lookup extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Lookup Content';
         this.path = '/api/admin/content/:type/:id';
     }
@@ -44,7 +43,7 @@ class Lookup extends Path {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid requirements' } );
         }
         try {
-            const out = req.params.type === 'file' ? await this.base.db.findFile( { ID: req.params.id } ) : await this.base.db.findLink( { ID: req.params.id } );
+            const out = req.params.type === 'file' ? await this.core.db.findFile( { ID: req.params.id } ) : await this.core.db.findLink( { ID: req.params.id } );
             if (!out) {
                 return res.status(this.codes.noContent).json( { code: this.Utils.FoldCodes.db_not_found, message: {} } );
             }

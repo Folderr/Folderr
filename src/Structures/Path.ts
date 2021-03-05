@@ -21,8 +21,7 @@
 
 import codes, { Codes } from './Utilities/Status_Codes';
 import ErrorHandler from './ErrorHandler';
-import Folderr from './Folderr';
-import Base from './Base';
+import Core from './Core';
 import express from 'express';
 import { join } from 'path';
 
@@ -48,11 +47,9 @@ class Path {
 
     public codes: Codes;
 
-    public folderr: Folderr;
+    public readonly core: Core
 
-    public base: Base;
-
-    public Utils: Base['Utils'];
+    public Utils: Core['Utils'];
 
     private eHandler: ErrorHandler;
 
@@ -62,8 +59,7 @@ class Path {
 
     /**
      *
-     * @param {Object<Folderr>} folderr The Folderr client
-     * @param {Object<Base>} base The base of the system
+     * @param {Core} core The core of the project
      *
      * @prop {String} label The label for this path to be called
      * @prop {String} path The path that this path will fall under in the website/api
@@ -72,14 +68,12 @@ class Path {
      * @prop {Boolean} lean=false Whether or not to ignore fatal (uncaught) errors in the long run
      *
      * @prop {Object} codes The http status codes Folderr uses
-     * @prop {Object} Folderr The Folderr-x client, at your disposal
-     * @prop {Object} base The base of Folderr (where useful stuff like schemas are held) at your disposal.
      * @prop {Object} Utils The Folderr utilities
      *
      * @prop {Object} eHandler The error handler for this path.
      * @prop {Number} _fatalErrors=0 Private. The amount of fatal errors this path has encountered.
      */
-    constructor(folderr: Folderr, base: Base) {
+    constructor(core: Core) {
         this.label = 'label'; // Label for the path.
         this.path = ''; // The path to server for
         this.type = 'get'; // What type of request it needs
@@ -88,9 +82,8 @@ class Path {
         this.secureOnly = false;
 
         this.codes = codes;
-        this.folderr = folderr;
-        this.base = base;
-        this.Utils = this.base.Utils;
+        this.core = core;
+        this.Utils = this.core.Utils;
 
         this.eHandler = new ErrorHandler(this);
         this._fatalErrors = 0;

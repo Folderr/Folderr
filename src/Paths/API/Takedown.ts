@@ -21,53 +21,52 @@
 
 import { Response, Request } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { User } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Admin endpoint for removing a users content
  */
 class Takedown extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Takedown Content';
         this.type = 'delete';
         this.path = '/api/admin/content/:type/:id';
     }
 
     async takedownFile(id: string, req: Request): Promise<{ httpCode: number; msg: { code: number; message: string } }> {
-        const del = await this.base.db.findAndDeleteFile( { ID: id } );
+        const del = await this.core.db.findAndDeleteFile( { ID: id } );
         if (!del) {
             return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.db_not_found, message: 'File not found!' } };
         }
-        await this.base.db.updateUser( { userID: del.owner }, { $inc: { files: -1 } } );
-        if (this.base.emailer.active) {
-            const user = await this.base.db.findUser( { userID: del.owner }, 'userID username email');
+        await this.core.db.updateUser( { userID: del.owner }, { $inc: { files: -1 } } );
+        if (this.core.emailer.active) {
+            const user = await this.core.db.findUser( { userID: del.owner }, 'userID username email');
             if (!user) {
                 return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
             }
             const email = this.Utils.decrypt(user.email);
             const url = await this.Utils.determineHomeURL(req);
-            await this.base.emailer.takedown(email, user.username, url, id, del.type);
+            await this.core.emailer.takedown(email, user.username, url, id, del.type);
         }
         return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
     }
 
     async takedownLink(id: string, req: Request): Promise<{ httpCode: number; msg: { code: number; message: string } }> {
-        const del = await this.base.db.findAndDeleteLink( { ID: id } );
+        const del = await this.core.db.findAndDeleteLink( { ID: id } );
         if (!del) {
             return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.db_not_found, message: 'Link not found!' } };
         }
-        await this.base.db.updateUser( { userID: del.owner }, { $inc: { links: -1 } } );
-        if (this.base.emailer.active) {
-            const user = await this.base.db.findUser( { userID: del.owner }, 'userID username email');
+        await this.core.db.updateUser( { userID: del.owner }, { $inc: { links: -1 } } );
+        if (this.core.emailer.active) {
+            const user = await this.core.db.findUser( { userID: del.owner }, 'userID username email');
             if (!user) {
                 return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
             }
             const email = this.Utils.decrypt(user.email);
             const url = await this.Utils.determineHomeURL(req);
-            await this.base.emailer.takedown(email, user.username, url, id, 'Link');
+            await this.core.emailer.takedown(email, user.username, url, id, 'Link');
         }
         return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
     }

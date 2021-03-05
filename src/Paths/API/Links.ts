@@ -21,16 +21,15 @@
 
 import { Response } from 'express';
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Link } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Allow a user to access their links
  */
 class Links extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Links';
         this.path = '/api/links';
         this.reqAuth = true;
@@ -79,7 +78,7 @@ class Links extends Path {
             }
         }
 
-        const shorts: Link[] = await this.base.db.findLinks(query, opts);
+        const shorts: Link[] = await this.core.db.findLinks(query, opts);
         if (!shorts || shorts.length === 0) {
             return res.status(this.codes.ok).json( { code: this.codes.ok, message: [] } );
         }

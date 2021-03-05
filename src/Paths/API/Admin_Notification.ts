@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
@@ -29,8 +28,8 @@ import { User } from '../../Structures/Database/DBClass';
  * @classdesc View the admin notification
  */
 class AdminNotification extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Notification';
         this.path = '/api/admin/notification/:id';
         this.reqAuth = true;
@@ -51,7 +50,7 @@ class AdminNotification extends Path {
         }
 
         // Find notification. If not found, return a not found status code
-        const notify = await this.base.db.findAdminNotify( { ID: req.params.id } );
+        const notify = await this.core.db.findAdminNotify( { ID: req.params.id } );
         if (!notify) {
             return res.status(this.codes.noContent).json( { code: this.Utils.FoldCodes.db_not_found, message: [] } );
         }

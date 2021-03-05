@@ -20,16 +20,15 @@
  */
 import { Response } from 'express';
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core';
 import { join } from 'path';
 
 /**
  * @class Allow users to access shortened links
  */
 class Short extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Link';
         this.path = ['/link/:id', '/l/:id'];
     }
@@ -41,13 +40,13 @@ class Short extends Path {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing short ID.');
         }
-        const short = await this.base.db.findLink( { ID: req.params.id }, 'link owner');
+        const short = await this.core.db.findLink( { ID: req.params.id }, 'link owner');
         if (!short) {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
         }
-        const owner = this.base.db.findUser( { userID: short.owner } );
+        const owner = this.core.db.findUser( { userID: short.owner } );
         if (!owner) {
-            this.base.addDeleter(short.owner);
+            this.core.addDeleter(short.owner);
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
         }
         return res.redirect(short.link.trim() );
