@@ -19,17 +19,16 @@
  *
  */
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core';
 import { Response } from 'express';
 import { join } from 'path';
 
 class Logout extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'logout';
         this.path = '/logout';
-        this.enabled = !this.base.options.apiOnly;
+        this.enabled = !this.core.config.apiOnly;
     }
 
     /**
@@ -40,7 +39,7 @@ class Logout extends Path {
         if (!req.uauth) {
             return res.redirect('/');
         }
-        await this.base.Utils.authorization.revoke(req.cookies.token, true);
+        await this.Utils.authorization.revoke(req.cookies.token, true);
         res.clearCookie('token', { sameSite: 'Strict' } );
         return res.sendFile(dir);
     }

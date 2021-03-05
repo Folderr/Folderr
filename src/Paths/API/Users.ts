@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
@@ -29,8 +28,8 @@ import { User } from '../../Structures/Database/DBClass';
  * @classdesc Shows users to admins
  */
 class Users extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Users';
         this.path = '/api/admin/users';
         this.reqAuth = true;
@@ -87,7 +86,7 @@ class Users extends Path {
             }
         }
 
-        const users: User[] = await this.base.db.findUsers(query, opts);
+        const users: User[] = await this.core.db.findUsers(query, opts);
         if (users.length === 0) {
             return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.db_not_found, message: [] } );
         }

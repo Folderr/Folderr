@@ -20,19 +20,18 @@
  */
 
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core';
 import { Response, Request } from 'express';
 
 /**
  * @classdesc Allow a user to deny the creation of their account
  */
 class Deny extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Deny Self';
         this.path = '/deny/:userid/:token';
-        this.enabled = this.base.emailer.active && this.base.options.signups === 2;
+        this.enabled = this.core.emailer.active && this.core.config.signups === 2;
     }
 
     async execute(req: Request, res: Response): Promise<Response> {
@@ -43,9 +42,7 @@ class Deny extends Path {
         if (!verify) {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
         }
-        await this.base.db.denySelf(verify.userID);
-
-        this.base.Logger.log('SYSTEM INFO', 'User account denied by self', { user: `${verify.username} (${verify.userID}`, responsible: `${verify.username} (${verify.userID})` }, 'accountDeny', 'Account Denied');
+        await this.core.db.denySelf(verify.userID);
         return res.status(this.codes.created).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

@@ -20,17 +20,16 @@
  */
 
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core'
 import { Response } from 'express';
 import { join } from 'path';
 
 class Account extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Account';
         this.path = '/account';
-        this.enabled = !this.base.options.apiOnly;
+        this.enabled = false;
     }
 
     /**

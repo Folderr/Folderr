@@ -21,16 +21,15 @@
 
 import { Response, Request } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { User } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Unbans a email from the service
  */
 class Unban extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Unban';
 
         this.path = '/api/admin/ban';
@@ -42,10 +41,10 @@ class Unban extends Path {
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
-        if (!req.body?.email || this.base.emailer.validateEmail(req.body.email) ) {
+        if (!req.body?.email || this.core.emailer.validateEmail(req.body.email) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid requirements' } );
         }
-        const unban = await this.base.db.removeFolderrBan(req.body.email);
+        const unban = await this.core.db.removeFolderrBan(req.body.email);
         if (unban) {
             res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } ).end();
         } else {

@@ -20,17 +20,16 @@
  */
 
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core';
 import { Response } from 'express';
 import { join } from 'path';
 
 class Signup extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Sign up';
         this.path = '/signup';
-        this.enabled = !this.base.options.apiOnly;
+        this.enabled = false;
     }
 
     /**
@@ -43,7 +42,7 @@ class Signup extends Path {
         if (req.uauth) {
             return res.redirect('./');
         }
-        if (!this.base.options.signups) {
+        if (!this.core.config.signups) {
             return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/closed.html') );
         }
 

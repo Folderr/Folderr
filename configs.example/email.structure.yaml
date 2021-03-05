@@ -1,0 +1,10 @@
+# mailerOptions: # optional
+  # auth: # required, email account authentication
+    # username: example # required, email account username
+    # password: example # required, email account password
+  # port: 537 # optional, SMTP port
+  # host: example.com # required, host server
+  # requireTls: true # optional, to require or not require tls
+  # ignoreTls: false # optional, to ignore connecting via tls or not to.
+  # secure: true # optional, whether to make connection secure or not
+# sendingEmail: example@example.com # optional, email you are sending from.

@@ -20,16 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classdesc Add a mirror
  */
 class MirrorAdd extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Add Mirror';
         this.path = '/api/account/mirror';
 
@@ -53,7 +52,7 @@ class MirrorAdd extends Path {
             const out = await this.Utils.authorization.genMirrorKey(u, req.body.url);
             // eslint-disable-next-line prefer-destructuring
             id = out.id;
-            r = await this.base.superagent.get(`${req.body.url}/api/verify`).send( { url: u, owner: auth.userID, token: out.key } );
+            r = await this.core.superagent.get(`${req.body.url}/api/verify`).send( { url: u, owner: auth.userID, token: out.key } );
         } catch (e) {
             if (e.message && (e.message.match('Not Found') || e.message.match('[FAIL]') ) ) {
                 return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.mirror_reject, message: 'Mirror failed Validation' } );
@@ -70,7 +69,7 @@ class MirrorAdd extends Path {
         if (!valid) {
             return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.mirror_reject, message: 'Mirror failed Validation' } );
         }
-        await this.base.db.updateUser( { userID: auth.userID }, { $addToSet: { cURLs: req.body.url } } );
+        await this.core.db.updateUser( { userID: auth.userID }, { $addToSet: { cURLs: req.body.url } } );
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

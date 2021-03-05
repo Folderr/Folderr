@@ -20,16 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classsdesc Allows users to remove a mirror
  */
 class MirrorRemove extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Mirror Remove';
         this.path = '/api/account/mirror';
 
@@ -48,7 +47,7 @@ class MirrorRemove extends Path {
         if (auth.cURLs.length === 0 || !auth.cURLs.includes(req.body.mirror) ) {
             return res.status(this.codes.badReq).json( { message: 'Mirror not linked!', code: this.Utils.FoldCodes.db_not_found } );
         }
-        await this.base.db.updateUser( { userID: auth.userID }, { $pullAll: { cURLs: req.body.mirror } } );
+        await this.core.db.updateUser( { userID: auth.userID }, { $pullAll: { cURLs: req.body.mirror } } );
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

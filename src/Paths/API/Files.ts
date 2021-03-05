@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { Upload } from '../../Structures/Database/DBClass';
 
@@ -29,8 +28,8 @@ import { Upload } from '../../Structures/Database/DBClass';
  * @classdesc Send users their files
  */
 class Files extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Files';
         this.path = '/api/files';
         this.reqAuth = true;
@@ -78,7 +77,7 @@ class Files extends Path {
             }
         }
 
-        const images: Upload[] = await this.base.db.findFiles(query, opts);
+        const images: Upload[] = await this.core.db.findFiles(query, opts);
         if (!images) {
             return res.status(this.codes.ok).json( { code: this.codes.noContent, message: [] } );
         }

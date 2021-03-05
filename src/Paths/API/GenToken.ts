@@ -21,16 +21,15 @@
 
 import { Response } from 'express';
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { TokenDB } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Allow a user to generate a token
  */
 class GenToken extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Generate Token';
         this.path = '/api/account/token';
 
@@ -44,7 +43,7 @@ class GenToken extends Path {
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
-        const tokens = await this.base.db.findTokens(auth.userID, { web: false } );
+        const tokens = await this.core.db.findTokens(auth.userID, { web: false } );
 
         // If the user has their token generated, make sure they know their current token will be gone
         if (tokens.length > 10 && !(req.query || !req.query.override || (req.query.override && req.query.override !== 'true') ) ) {
@@ -52,7 +51,7 @@ class GenToken extends Path {
         }
         if (tokens.length >= 10 && (req.query && req.query.override && req.query.override === 'true') ) {
             const tkns = tokens.sort( (a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created) );
-            await this.base.db.purgeToken(tkns[0].id, tkns[0].userID, { web: false } );
+            await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, { web: false } );
         }
 
         const token = await this.Utils.authorization.genKey(auth.userID);

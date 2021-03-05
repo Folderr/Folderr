@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { inspect } from 'util';
 
@@ -29,8 +28,8 @@ import { inspect } from 'util';
  * @classdesc Allows owner to eval on the instance.
  */
 class Eval extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Eval';
         this.path = '/api/eval';
         this.type = 'post';

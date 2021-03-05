@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { Notification } from '../../Structures/Database/DBClass';
 
@@ -29,8 +28,8 @@ import { Notification } from '../../Structures/Database/DBClass';
  * @classdesc View the authorized users account
  */
 class Account extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] View Account';
         this.path = '/api/account';
         this.reqAuth = true;

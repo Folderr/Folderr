@@ -21,15 +21,14 @@
 
 import { Response, Request } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 
 /**
  * @classdesc Allow the user to delete a token they have created
  */
 class DeleteToken extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Delete Token';
         this.path = '/api/account/token/:id';
         this.type = 'delete';
@@ -43,7 +42,7 @@ class DeleteToken extends Path {
         if (!req.params?.id || /^\d+$/.test(req.params.id) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid token ID!' } );
         }
-        const del = await this.base.db.purgeToken(req.params.id, auth.userID, { web: !!req.query?.web || false } );
+        const del = await this.core.db.purgeToken(req.params.id, auth.userID, { web: !!req.query?.web || false } );
         if (!del) {
             return res.status(this.codes.notAccepted).json( { code: this.codes.badReq, message: 'Token not deleted/found!' } );
         }

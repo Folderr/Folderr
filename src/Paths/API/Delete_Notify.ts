@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import moment from 'moment';
 
@@ -29,8 +28,8 @@ import moment from 'moment';
  * @classdesc User can delete a single notification
  */
 class DelNotify extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Delete notification';
         this.path = '/api/notification/:id';
 
@@ -74,7 +73,7 @@ class DelNotify extends Path {
             return res.status(this.codes.forbidden).json( { code: this.codes.forbidden, message: `Notification cannot be deleted for ${moment.duration(time).format('M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]')}` } );
         }
         // Remove the notification, update the users account, and return success
-        await this.base.db.updateUser( { uID: auth.userID }, { $pull: { notifs: { ID: req.params.id } } } );
+        await this.core.db.updateUser( { uID: auth.userID }, { $pull: { notifs: { ID: req.params.id } } } );
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

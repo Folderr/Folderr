@@ -20,18 +20,17 @@
  */
 
 import Path from '../../src/Structures/Path';
-import Folderr from '../Structures/Folderr';
+import Core from '../Structures/Core';
 import { Response } from 'express';
-import Base from '../Structures/Base';
 
 class Proceed extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Proceed Security Check';
 
         this.path = '/proceed';
         this.type = 'get';
-        this.enabled = !this.base.options.apiOnly;
+        this.enabled = !this.core.config.apiOnly;
     }
 
     /**

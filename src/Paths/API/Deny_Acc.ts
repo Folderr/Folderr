@@ -19,8 +19,7 @@
  *
  */
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
 
@@ -28,8 +27,8 @@ import { User } from '../../Structures/Database/DBClass';
  * @classdesc Admin can deny a users account
  */
 class DenyAccount extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Deny Account';
 
         this.path = '/api/admin/verify';
@@ -56,9 +55,9 @@ class DenyAccount extends Path {
             return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
         }
         // Deny the account & delete notification
-        await this.base.db.denyUser(user.userID);
+        await this.core.db.denyUser(user.userID);
         // Log that the account was denied by admin x, and tell the admin the account wa denied
-        this.base.Logger.log('SYSTEM INFO', 'User account denied by administrator', { user: `${user.username} (${user.userID})`, responsible: `${auth.username} (${auth.userID})` }, 'accountDeny', 'Account denied by Admin');
+        this.core.logger.info(`User account denied by administrator (${user.username} - ${user.userID})`);
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }
 }

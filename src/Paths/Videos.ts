@@ -20,8 +20,7 @@
  */
 
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core';
 import { Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
@@ -30,8 +29,8 @@ import { join } from 'path';
  * @classdesc Allow users to access videos over the web
  */
 class Videos extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Videos ID';
         this.path = ['/videos/:id', '/v/:id'];
     }
@@ -50,11 +49,11 @@ class Videos extends Path {
         if (!parts[1] ) {
             return res.status(this.codes.internalErr).send('500 Internal Error');
         }
-        const image = await this.base.db.findFile( { ID: parts[0] } );
+        const image = await this.core.db.findFile( { ID: parts[0] } );
         if (image) {
-            const owner = await this.base.db.findUser( { userID: image.owner } );
+            const owner = await this.core.db.findUser( { userID: image.owner } );
             if (!owner) {
-                this.base.addDeleter(image.owner);
+                this.core.addDeleter(image.owner);
                 return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
             }
         }

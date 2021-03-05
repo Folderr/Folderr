@@ -21,16 +21,15 @@
 
 import { Response, Request } from 'express';
 import Path from '../../Structures/Path';
-import Base from '../../Structures/Base';
-import Folderr from '../../Structures/Folderr';
+import Core from '../../Structures/Core';
 import { User } from '../../Structures/Database/DBClass';
 
 /**
  * @classdesc Allows admins to look up accounts
  */
 class LookupAccount extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Reverse Account Lookup';
         this.path = '/api/admin/content/:type/:id/account';
     }
@@ -43,11 +42,11 @@ class LookupAccount extends Path {
         if (!req.params?.type || !req.params?.id || !['file', 'link'].includes(req.params.type) || !/^[0-9A-Za-z]+$/.test(req.params.id) ) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid requirements' } );
         }
-        const out = req.params.type === 'file' ? await this.base.db.findFile( { ID: req.params.id } ) : await this.base.db.findLink( { ID: req.params.id } );
+        const out = req.params.type === 'file' ? await this.core.db.findFile( { ID: req.params.id } ) : await this.core.db.findLink( { ID: req.params.id } );
         if (!out) {
             return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.db_not_found, message: `${req.params.type[0].toUpperCase()}${req.params.type.slice(1)} not found!` } );
         }
-        const user = await this.base.db.findUser( { userID: out.owner }, 'userID username email created');
+        const user = await this.core.db.findUser( { userID: out.owner }, 'userID username email created');
         if (!user) {
             return res.status(this.codes.ok).json( { code: this.codes.ok, message: {} } );
         }

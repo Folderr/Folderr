@@ -20,16 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classdesc SHorten links endpoint
  */
 class Shorten extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Shorten';
         this.path = '/api/link';
         this.type = 'post';
@@ -49,7 +48,7 @@ class Shorten extends Path {
             return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.short_url_invalid, message: 'URL MUST BE STRING' } );
         }
         try {
-            await this.base.superagent.get(req.body.url);
+            await this.core.superagent.get(req.body.url);
         } catch (err) {
             if (err.code === 'ENOTFOUND') {
                 return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.short_url_not_found, message: 'URL not found!' } );
@@ -57,9 +56,8 @@ class Shorten extends Path {
         }
 
         const ID = this.Utils.genID();
-        await Promise.all( [this.base.db.makeLink(ID, auth.userID, req.body.url), this.base.db.updateUser( { userID: auth.userID }, { $inc: { links: 1 } } )] );
+        await Promise.all( [this.core.db.makeLink(ID, auth.userID, req.body.url), this.core.db.updateUser( { userID: auth.userID }, { $inc: { links: 1 } } )] );
 
-        this.base.Logger.log('INFO - SHORTS', `User shortened link`, { user: `${auth.username} (${auth.userID})`, url: `${this.base.options.url}/short/${ID}` }, 'shorten', 'Link Shortened');
         return res.status(this.codes.ok).send(`${req.headers?.responseURL && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req)}/l/${ID}`);
     }
 }

@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import Configurator from '../../Structures/Utilities/ShareXConfigurator';
 
@@ -31,8 +30,8 @@ import Configurator from '../../Structures/Utilities/ShareXConfigurator';
 class ShareXConfigurator extends Path {
     private configurator: Configurator;
 
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Configurator';
         this.path = '/api/sharex/config';
         this.type = 'post';

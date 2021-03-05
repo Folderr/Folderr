@@ -20,16 +20,15 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 
 /**
  * @classdesc Remove an administrators admin status
  */
 class DeleteAdmin extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Delete Admin';
         this.path = '/api/manage/admin/:id';
         this.reqAuth = true;
@@ -52,14 +51,14 @@ class DeleteAdmin extends Path {
         if (!match || match[0].length !== req.params.id.length) {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'ID is not a valid Folderr ID!' } );
         }
-        const user = await this.base.db.findAndUpdateUser( { userID: req.params.id, $nor: [{ admin: false }, { first: true }] }, { admin: false }, 'admin');
+        const user = await this.core.db.findAndUpdateUser( { userID: req.params.id, $nor: [{ admin: false }, { first: true }] }, { admin: false }, 'admin');
         if (!user) {
             return res.status(this.codes.notFound).json( { message: 'User not found!', code: this.Utils.FoldCodes.db_not_found } );
         }
         if (user.admin) {
             return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.db_unknown_error } );
         }
-        this.base.Logger.log(`SYSTEM NOTICE - ADMIN`, 'Administration privileges removed for user.', { user: `${user.username} (${user.userID})`, responsible: `${auth.username} (${auth.userID})` }, 'adminRemove', 'Administrator demoted.');
+        this.core.logger.info(`Administration privileges removed for user ${user.userID} by ${auth.username} (${auth.userID}).`);
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: `OK` } );
     }
 }

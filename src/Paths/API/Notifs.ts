@@ -21,8 +21,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { Notification } from '../../Schemas/User';
 
@@ -30,8 +29,8 @@ import { Notification } from '../../Schemas/User';
  * @classdesc Shows all user notifications
  */
 class Notifs extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Notifications';
         this.path = '/api/notifications';
 
@@ -55,7 +54,7 @@ class Notifs extends Path {
                 return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed. Who are you?' } );
             }
             // Get the notifications, and reset the notifications array
-            const anotifs = await this.base.db.findAdminNotifies( {} );
+            const anotifs = await this.core.db.findAdminNotifies( {} );
             notifs = anotifs.map( (notification: Notification) => {
                 return { ID: notification.ID, title: notification.title, notify: notification.notify.replace(/\n/g, ','), created: notification.created };
             } );

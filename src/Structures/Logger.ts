@@ -19,99 +19,25 @@
  *
  */
 
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
-import WebhookHandler, { WebhookExecOptions, WebhookTypes } from './DiscordWebhookHandler';
-import { ActualOptions, DiscordHook } from './Folderr-Config';
 import wlogger from './WinstonLogger';
-
-interface LoggerOptions {
-    discordURL?: string;
-    enableDiscordLogging?: boolean;
-}
 
 /**
  * @author VoidNulll
  *
  * @classdesc Class to handle logging certain elements, allows for sending info to Discord webhooks.
  */
-class Logger implements LoggerOptions {
-    public enableDiscordLogging?: boolean;
-
-    public discordURL?: string;
-
-    public webhookHandler?: WebhookHandler;
-
-    private discordHook?: DiscordHook;
-
-    private isMaxCores?: boolean;
-
-    /**
-     * @param [options] {ActualOptions} The options the Folderr-X client uses, contains needed options.
-     * @prop [discordURL] {string} Discord webhook URL
-     * @prop [enableDiscordLogging] {boolean} Whether or not to log items with discord
-     * @prop [discordHook] {object<{ name: string, avatar_url: string }>} Options to customize your webhook
-     */
-    constructor(options?: ActualOptions) {
-        this.discordURL = options && options.discordURL;
-        this.enableDiscordLogging = options && options.enableDiscordLogging;
-        this.discordHook = options && options.discordHook;
-        this.isMaxCores = options && options.sharder && options.sharder.enabled;
-        this._init();
-    }
-
-    /**
-     * @desc Init the webhook logger
-     * @private
-     */
-    _init(): void {
-        if (this.discordURL && this.enableDiscordLogging) {
-            this.webhookHandler = new WebhookHandler(this.discordURL, this.discordHook, this.isMaxCores);
-        } else {
-            this.enableDiscordLogging = false;
-        }
-    }
-
-    /**
-     * @desc Checks for the URL options, used in log function.
-     * @param [options] {object<WebhookExecOptions>} The options for the logger.
-     *
-     * @returns {boolean}
-     */
-    checkURLOptions(options?: WebhookExecOptions): boolean {
-        if (!options) {
-            return false;
-        }
-        if (!options.url && !options.imageURL) {
-            return false;
-        }
-        return true;
-    }
+class Logger {
 
     /**
      * @desc Log something to Discord, or try to...
      *
-     * @async
-     *
      * @param type {string} The type of log it is logging;
      * @param information {string} The information to send with the log
-     * @param options {WebhookExecOptions} Options for executing a webhook, helps with logging URLs & users.
-     * @param wType {WebhookTypes} The type of webhook to send, if any.
-     * @param wTitle {string} The title of the webhook
-     *
-     * @return {Promise<*>}
+     * 
+     * @return {void}
      */
-    log(type: string, information: string, options?: WebhookExecOptions, wType?: WebhookTypes, wTitle?: string): Promise<any> {
+    log(type: string, information: string): any {
         let base = `[${type}] - ${information}`;
-        if (this.checkURLOptions(options) ) {
-            // @ts-ignore
-            base += `\n    --- URL: ${options.imageURL || options.url}`;
-        }
-        if (options && options.user) {
-            base += `\n    --- User: ${options.user}`;
-        }
-        if (options && options.responsible) {
-            base += `\n    --- User Responsible: ${options.responsible}`;
-        }
         if (type.startsWith('SECURITY WARN') ) {
             wlogger.log( { level: 'warn', message: base.replace(/warn/i, ''), private: true } );
         } else if (type.startsWith('SYSTEM INFO') || type.startsWith('SYSTEM NOTICE') || type === 'SYSTEM - SIGNUP') {
@@ -119,16 +45,6 @@ class Logger implements LoggerOptions {
         } else {
             wlogger.log('verbose', base);
         }
-        if (!wType || !wTitle || !this.enableDiscordLogging || !this.webhookHandler) {
-            return Promise.resolve(false);
-        }
-        if (!this.webhookHandler.valid && wType !== 'online') {
-            return Promise.resolve(false);
-        }
-        if (information.match(/from ip/i) ) {
-            information = information.split(/from ip/i)[0];
-        }
-        return this.webhookHandler.execute(wType, wTitle, information, options);
     }
 }
 

@@ -20,8 +20,7 @@
  */
 
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import wlogger from '../../Structures/WinstonLogger';
 
@@ -29,8 +28,8 @@ import wlogger from '../../Structures/WinstonLogger';
  * @classdesc Delete an admin notification.
  */
 class DelANotify extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Delete notification';
         this.path = '/api/admin/notification/:id';
         this.reqAuth = true;
@@ -51,7 +50,7 @@ class DelANotify extends Path {
         }
 
         // Find the notification, and if it cant tell the user it  cannot find the notification with a code 404
-        const notify = await this.base.db.findAdminNotify( { ID: req.params.id } );
+        const notify = await this.core.db.findAdminNotify( { ID: req.params.id } );
         if (!notify) {
             return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'Notification not found!' } );
         }
@@ -61,7 +60,7 @@ class DelANotify extends Path {
         }
 
         // Remove the admin notification and tell the admin it was removed
-        await this.base.db.purgeAdminNotify( { ID: req.params.id } );
+        await this.core.db.purgeAdminNotify( { ID: req.params.id } );
         wlogger.info(`[SYSTEM] Admin notification ${notify.ID} removed by ${auth.username}!`);
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }

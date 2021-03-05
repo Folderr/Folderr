@@ -20,8 +20,7 @@
  */
 
 import Path from '../Structures/Path';
-import Folderr from '../Structures/Folderr';
-import Base from '../Structures/Base';
+import Core from '../Structures/Core';
 import { Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
@@ -30,8 +29,8 @@ import { join } from 'path';
  * @classdesc Allow images to be accessed over the web
  */
 class Images extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = 'Images ID';
         this.path = ['/image/:id', '/i/:id'];
     }
@@ -50,11 +49,11 @@ class Images extends Path {
         if (!parts[1] ) {
             return res.status(this.codes.badReq).send('Missing file extension!');
         }
-        const image = await this.base.db.findFile( { ID: parts[0], type: 'image' }, 'type path owner');
+        const image = await this.core.db.findFile( { ID: parts[0], type: 'image' }, 'type path owner');
         if (image) {
-            const owner = await this.base.db.findUser( { userID: image.owner } );
+            const owner = await this.core.db.findUser( { userID: image.owner } );
             if (!owner) {
-                this.base.addDeleter(image.owner);
+                this.core.addDeleter(image.owner);
                 return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
             }
         }

@@ -25,9 +25,9 @@
  */
 
 import jwt from 'jsonwebtoken';
-import { promises as fs } from 'fs';
+import fs from 'fs';
 import crypto from 'crypto';
-import Folderr from '../Folderr';
+import Core from '../Core';
 import { User } from '../Database/DBClass';
 
 interface Keys {
@@ -40,30 +40,22 @@ interface Keys {
  * @classdesc Handle token authorization.
  */
 export default class Authorization {
-    public secret: string | Keys;
+    #secret: Keys;
 
-    private _privKey?: Buffer;
+    #privKey!: Buffer;
 
-    private _pubKey?: Buffer;
+    #pubKey!: Buffer;
 
-    private readonly _secretStr: string;
+    #core: Core;
 
-    public folderr: Folderr;
-
-    constructor(secret: string | Keys, folderr: Folderr) {
-        this.secret = secret;
-        this._secretStr = '';
-        if (typeof this.secret === 'object') {
-            if (!this.secret.algorithm) {
-                this.secret.algorithm = 'RS256';
-            }
-        } else {
-            this._secretStr = this.secret;
+    constructor(secret: Keys, core: Core) {
+        this.#secret = secret;
+        if (!this.#secret.algorithm) {
+            this.#secret.algorithm = 'RS256';
         }
-        this.folderr = folderr;
-
-
-        this._init().then(r => r);
+        this.#pubKey = fs.readFileSync(this.#secret.pubKeyPath);
+        this.#privKey = fs.readFileSync(this.#secret.privKeyPath);
+        this.#core = core
     }
 
     public async verify(token: string, web?: boolean): Promise<string | void> {
@@ -71,11 +63,11 @@ export default class Authorization {
             token = token.substring(8);
         }
         try {
-            const result: any = jwt.verify(token, this._getKey().public, { issuer: 'folderr' } );
+            const result: any = jwt.verify(token, this.#pubKey, { issuer: 'folderr' } );
             if (!result) {
                 return;
             }
-            const verify = await this.folderr.base.db.findToken(result.jti, result.userID, { web } );
+            const verify = await this.#core.db.findToken(result.jti, result.userID, { web } );
             if (!verify) {
                 return;
             }
@@ -97,14 +89,14 @@ export default class Authorization {
             if (!userID) {
                 return;
             }
-            const user = await this.folderr.base.db.findUser( { userID } );
+            const user = await this.#core.db.findUser( { userID } );
             if (!user) {
                 return;
             }
             if (options && options.fn && !options.fn(user) ) {
                 return;
             }
-            user.email = this.folderr.base.Utils.decrypt(user.email);
+            user.email = this.#core.Utils.decrypt(user.email);
             return user;
         } catch (e) {
             return;
@@ -116,11 +108,11 @@ export default class Authorization {
             token = token.substring(8);
         }
         try {
-            const res: any = jwt.verify(token, this._getKey().public, { issuer: 'folderr' } );
+            const res: any = jwt.verify(token, this.#pubKey, { issuer: 'folderr' } );
             if (!res) {
                 return;
             }
-            const verifyDB = await this.folderr.base.db.purgeToken(res.jti, res.userID, { web } );
+            const verifyDB = await this.#core.db.purgeToken(res.jti, res.userID, { web } );
             if (!verifyDB) {
                 return;
             }
@@ -132,11 +124,11 @@ export default class Authorization {
 
     public async revokeAll(userID: string): Promise<boolean | void> {
         try {
-            const del = await this.folderr.base.db.purgeTokens(userID);
+            const del = await this.#core.db.purgeTokens(userID);
             if (!del || del === 0) {
                 return;
             }
-            this.folderr.base.logger.verbose(`[DB] Deleted ${del} Authorization Tokens`);
+            this.#core.logger.verbose(`[DB] Deleted ${del} Authorization Tokens`);
             return true;
         } catch (e) {
             return;
@@ -145,27 +137,23 @@ export default class Authorization {
 
     async genKeyWeb(userID: string): Promise<string> {
         const id = this._genID();
-        await this.folderr.base.db.makeToken(id, userID, { web: true } );
-        const key = this._getKey();
-        return `Bearer: ${jwt.sign( { userID }, key.private, { expiresIn: '14d', issuer: 'folderr', jwtid: id } )}`;
+        await this.#core.db.makeToken(id, userID, { web: true } );
+        return `Bearer: ${jwt.sign( { userID }, this.#privKey, { expiresIn: '14d', issuer: 'folderr', jwtid: id } )}`;
     }
 
     async genKey(userID: string): Promise<string> {
-        const key = this._getKey();
         const id = this._genID();
-        await this.folderr.base.db.makeToken(id, userID, { web: false } );
-        return jwt.sign( { userID }, key.private, { issuer: 'folderr', jwtid: id } );
+        await this.#core.db.makeToken(id, userID, { web: false } );
+        return jwt.sign( { userID }, this.#privKey, { issuer: 'folderr', jwtid: id } );
     }
 
     async genMirrorKey(url: string, mirrorURL: string): Promise<{ key: string; id: string }> {
-        const key = this._getKey();
         const id = this._genID();
-        return { key: jwt.sign( { url, mirrorURL }, key.private, { issuer: 'folderr', jwtid: id, expiresIn: '1h' } ), id };
+        return { key: jwt.sign( { url, mirrorURL }, this.#privKey, { issuer: 'folderr', jwtid: id, expiresIn: '1h' } ), id };
     }
 
     verifyMirrorKey(message: { res: string; token: string }, id: string, url: string, mirrorURL: string): boolean {
-        const key = this._getKey();
-        const out: any = jwt.verify(message.token, key.private, { issuer: 'folderr' } );
+        const out: any = jwt.verify(message.token, this.#privKey, { issuer: 'folderr' } );
         if (out && typeof out === 'object' && out.jti === id && out.url === url && out.mirrorURL === mirrorURL && message.res === 'Pong! Mirror Operational!') {
             return true;
         }
@@ -174,19 +162,5 @@ export default class Authorization {
 
     private _genID(): string {
         return `${crypto.randomBytes(10).toString('hex') + Buffer.from(new Date().toString() ).toString('base64').substring(0, 8)}`;
-    }
-
-    public async _init(): Promise<void> {
-        if (typeof this.secret == 'object') {
-            this._privKey = await fs.readFile(this.secret.privKeyPath);
-            this._pubKey = await fs.readFile(this.secret.pubKeyPath);
-        }
-    }
-
-    private _getKey(): { private: string | Buffer; public: string | Buffer; algorithm: string } {
-        if (typeof this.secret == 'object' && this._privKey && this._pubKey) {
-            return { private: this._privKey, public: this._pubKey, algorithm: this.secret.algorithm || 'RS256' };
-        }
-        return { private: this._secretStr, public: this._secretStr, algorithm: 'RS256' };
     }
 }

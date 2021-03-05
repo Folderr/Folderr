@@ -19,8 +19,7 @@
  *
  */
 import Path from '../../Structures/Path';
-import Folderr from '../../Structures/Folderr';
-import Base from '../../Structures/Base';
+import Core from '../../Structures/Core';
 import { Response } from 'express';
 import childProcess from 'child_process';
 import util from 'util';
@@ -45,8 +44,8 @@ import('../../../package.json').then(f => {
  * @classdesc Allows the owner to manage the instance
  */
 class Manage extends Path {
-    constructor(evolve: Folderr, base: Base) {
-        super(evolve, base);
+    constructor(core: Core) {
+        super(core);
         this.label = '[API] Manage';
         this.path = '/api/manage';
 
@@ -65,35 +64,14 @@ class Manage extends Path {
         }
         if (req.query.type === 's') {
             res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
-            await this.base.Logger.log('SYSTEM - SHUTDOWN', 'System shutdown remotely by owner', { responsible: `${auth.username} (${auth.userID})` }, 'manage', 'System shutdown by system owner');
+            await this.core.logger.info(`System shutdown remotely by owner (${auth.username} - ${auth.userID})`);
             const min = 60000;
             await sleep(min);
-            if (this.base.useSharder) {
-                if (isMaster) {
-                    await this.base.killAll();
-                    process.exit();
-                } else {
-                    this.base.sendToMaster( { messageType: 'kill', value: 0 } );
-                    // eslint-disable-next-line consistent-return
-                    return;
-                }
-            }
             process.exit();
         } else if (req.query.type === 'u') {
             res.status(this.codes.accepted).json( { code: this.codes.ok, message: 'OK' } );
             try {
-                const cmd = platform() !== 'win32' ? 'which' : 'where';
-                let ecmd = 'yarn';
-                try {
-                    const hasYarn = await exec(`${cmd} yarn`);
-                    if (hasYarn.stderr) {
-                        ecmd = 'npm';
-                    } else if (hasYarn.stdout && hasYarn.stdout.match('/yarn') ) {
-                        ecmd = 'yarn';
-                    }
-                } catch (e) {
-                    ecmd = 'npm';
-                }
+                let ecmd = 'npm';
 
                 await exec(`${ecmd} update`);
             } catch (err) {
@@ -114,7 +92,7 @@ class Manage extends Path {
             } else {
                 v = `Version downgraded from ${oPackage.version} to ${af.version}`;
             }
-            await this.base.Logger.log('SYSTEM - UPDATE', `System updated. ${v}`, { responsible: `${auth.username} (${auth.userID})` }, 'manage', 'System update');
+            await this.core.logger.info(`System updated. ${v}`);
             // eslint-disable-next-line require-atomic-updates
             oPackage = af;
             return Promise.resolve();
@@ -122,7 +100,7 @@ class Manage extends Path {
             res.status(this.codes.accepted).json( { code: this.codes.ok, message: 'OK' } );
             try {
                 await exec('tsc');
-                await this.base.Logger.log('SYSTEM - TRANSPILE', 'System remotely transpiled', { responsible: `${auth.username} (${auth.userID})` }, 'manage', 'System Transpile');
+                await this.core.logger.info(`System remotely transpiled by ${auth.username} (${auth.userID})`);
             } catch (e) {
                 await this._handleError(e, res, { noIncrease: true, noResponse: true } );
             }
