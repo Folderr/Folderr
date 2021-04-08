@@ -24,6 +24,7 @@ import Package from '../../../package.json';
 import childProcess from 'child_process';
 import util from 'util';
 import { Response } from 'express';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -38,8 +39,8 @@ class Info extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
-        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization) : await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin } );
+    async execute(req: Request, res: Response): Promise<Response> {
+        const auth = await this.checkAuthAdmin(req);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }

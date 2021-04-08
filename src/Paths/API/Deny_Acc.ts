@@ -21,7 +21,7 @@
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
-import { User } from '../../Structures/Database/DBClass';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Admin can deny a users account
@@ -36,9 +36,9 @@ class DenyAccount extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check auth by id/token
-        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user: User) => !!user.admin } ) : await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin, web: true } );
+        const auth = await this.checkAuthAdmin(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
@@ -52,7 +52,7 @@ class DenyAccount extends Path {
         // Search for the user, and if not found send in an error
         const user = await this.Utils.findVerifying(req.body.token, req.body.uid);
         if (!user) {
-            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
+            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
         }
         // Deny the account & delete notification
         await this.core.db.denyUser(user.userID);

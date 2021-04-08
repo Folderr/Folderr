@@ -27,17 +27,16 @@ import wlogger from './WinstonLogger';
  * @classdesc Class to handle logging certain elements, allows for sending info to Discord webhooks.
  */
 class Logger {
-
     /**
      * @desc Log something to Discord, or try to...
      *
      * @param type {string} The type of log it is logging;
      * @param information {string} The information to send with the log
-     * 
+     *
      * @return {void}
      */
     log(type: string, information: string): any {
-        let base = `[${type}] - ${information}`;
+        const base = `[${type}] - ${information}`;
         if (type.startsWith('SECURITY WARN') ) {
             wlogger.log( { level: 'warn', message: base.replace(/warn/i, ''), private: true } );
         } else if (type.startsWith('SYSTEM INFO') || type.startsWith('SYSTEM NOTICE') || type === 'SYSTEM - SIGNUP') {

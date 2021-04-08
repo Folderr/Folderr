@@ -37,7 +37,8 @@ class Account extends Path {
         this.type = 'get';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    async execute(req: any, res: Response): Promise<Response> {
         // Check headers, and check auth
         const auth = !req.cookies?.token ? await this.Utils.authPassword(req) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
         if (!auth || typeof auth === 'string') {
@@ -52,22 +53,22 @@ class Account extends Path {
             owner: boolean;
             files: number;
             links: number;
-            custom_urls?: string[];
+            customUrls?: string[];
             email: string;
-            pending_email?: string;
+            pendingEmail?: string;
             notifications: Notification[];
             created: number;
         } = {
-            username: auth.username, // eslint-disable-next-line @typescript-eslint/camelcase
+            username: auth.username,
             userID: auth.userID,
             admin: !!auth.admin,
             owner: !!auth.first,
             files: auth.files,
             links: auth.links,
-            email: auth.email, // eslint-disable-next-line @typescript-eslint/camelcase
-            pending_email: auth.pendingEmail,
-            notifications: auth.notifs, // eslint-disable-next-line @typescript-eslint/camelcase
-            custom_urls: auth.cURLs,
+            email: auth.email,
+            pendingEmail: auth.pendingEmail,
+            notifications: auth.notifs,
+            customUrls: auth.cURLs,
             created: Math.round(auth.created.getTime() / 1000),
         };
         return res.status(this.codes.ok).json( { message: acc, code: this.codes.ok } );

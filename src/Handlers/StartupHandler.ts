@@ -1,9 +1,8 @@
 import Core from '../Structures/Core';
-import logger from '../Structures/WinstonLogger';
 
 const core = new Core();
 
-export async function startFolderr() {
+export async function startFolderr(): Promise<void> {
     await core.initDB();
     const paths = core.initPaths();
     if (!paths) {

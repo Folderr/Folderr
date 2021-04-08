@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
 import wlogger from '../../Structures/WinstonLogger';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Delete an admin notification.
@@ -37,9 +38,9 @@ class DelANotify extends Path {
         this.type = 'delete';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Authorize the user as admin, or throw error.
-        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin, web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user) => !!user.admin } );
+        const auth = await this.checkAuthAdmin(req);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).send('Authorization failed.'); // Unauthorized
         }
@@ -52,7 +53,7 @@ class DelANotify extends Path {
         // Find the notification, and if it cant tell the user it  cannot find the notification with a code 404
         const notify = await this.core.db.findAdminNotify( { ID: req.params.id } );
         if (!notify) {
-            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'Notification not found!' } );
+            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'Notification not found!' } );
         }
         // Signup notifications are invincible, at least to manually remove
         if (notify.title === 'New user signup!') {

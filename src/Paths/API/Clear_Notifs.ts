@@ -20,7 +20,7 @@
  */
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 /**
  * @classdesc Clear the authorized users notifications
@@ -35,9 +35,9 @@ class ClearNotifs extends Path {
         this.type = 'delete';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check auth
-        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization);
+        const auth = await this.checkAuth(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }

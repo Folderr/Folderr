@@ -14,7 +14,7 @@ const loggingLevels = {
         debug: 5,
         startup: 6,
         prelisten: 6,
-        ready: 6
+        ready: 6,
     },
 };
 

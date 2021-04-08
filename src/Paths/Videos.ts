@@ -38,7 +38,8 @@ class Videos extends Path {
     /**
      * @desc Display an image to the user, or the 404 page if image doesn't exist.
      */
-    async execute(req: any, res: any): Promise<Response | void> {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    async execute(req: any, res: Response): Promise<Response | void> {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing video ID.');
         }

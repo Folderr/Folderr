@@ -20,7 +20,7 @@
  */
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 /**
  * @classdesc Make a user an administrator
@@ -35,7 +35,7 @@ class AddAdmin extends Path {
         this.type = 'post';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         const auth = await this.Utils.authPassword(req, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
@@ -51,10 +51,10 @@ class AddAdmin extends Path {
         }
         const user = await this.core.db.findAndUpdateUser( { uID: req.params.id, $nor: [{ admin: false }, { first: true }] }, { admin: true }, 'admin');
         if (!user) {
-            return res.status(this.codes.notFound).json( { message: 'User not found!', code: this.Utils.FoldCodes.db_not_found } );
+            return res.status(this.codes.notFound).json( { message: 'User not found!', code: this.Utils.FoldCodes.dbNotFound } );
         }
         if (!user.admin) {
-            return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.db_unknown_error } );
+            return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.dbUnkownError } );
         }
         user.admin = true;
         this.core.logger.info(`Administrator privileges granted to user ${user.username} (${user.userID}) by ${auth.username} (${auth.username}).`);

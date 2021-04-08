@@ -22,6 +22,7 @@
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Remove an administrators admin status
@@ -36,7 +37,7 @@ class DeleteAdmin extends Path {
         this.type = 'delete';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Actually check auth, and make sure they are the owner
         const auth = await this.Utils.authPassword(req, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
@@ -53,10 +54,10 @@ class DeleteAdmin extends Path {
         }
         const user = await this.core.db.findAndUpdateUser( { userID: req.params.id, $nor: [{ admin: false }, { first: true }] }, { admin: false }, 'admin');
         if (!user) {
-            return res.status(this.codes.notFound).json( { message: 'User not found!', code: this.Utils.FoldCodes.db_not_found } );
+            return res.status(this.codes.notFound).json( { message: 'User not found!', code: this.Utils.FoldCodes.dbNotFound } );
         }
         if (user.admin) {
-            return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.db_unknown_error } );
+            return res.status(this.codes.notAccepted).json( { message: 'Update fail!', code: this.Utils.FoldCodes.dbUnkownError } );
         }
         this.core.logger.info(`Administration privileges removed for user ${user.userID} by ${auth.username} (${auth.userID}).`);
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: `OK` } );

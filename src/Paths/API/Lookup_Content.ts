@@ -45,11 +45,11 @@ class Lookup extends Path {
         try {
             const out = req.params.type === 'file' ? await this.core.db.findFile( { ID: req.params.id } ) : await this.core.db.findLink( { ID: req.params.id } );
             if (!out) {
-                return res.status(this.codes.noContent).json( { code: this.Utils.FoldCodes.db_not_found, message: {} } );
+                return res.status(this.codes.noContent).json( { code: this.Utils.FoldCodes.dbNotFound, message: {} } );
             }
             return res.status(this.codes.ok).json( { code: this.codes.ok, message: out } );
         } catch (e) {
-            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.db_error, message: `An error occurred!\n${e.message || e}` } );
+            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.dbError, message: `An error occurred!\n${e.message || e}` } );
         }
     }
 }

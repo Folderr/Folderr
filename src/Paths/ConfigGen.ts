@@ -22,6 +22,7 @@
 import Path from '../../src/Structures/Path';
 import Core from '../Structures/Core';
 import { Response } from 'express';
+import { Request } from '../Structures/Interfaces/ExpressExtended';
 import { join } from 'path';
 
 class ConfigGen extends Path {
@@ -31,13 +32,13 @@ class ConfigGen extends Path {
 
         this.path = '/config';
         this.type = 'get';
-        this.enabled = false
+        this.enabled = false;
     }
 
     /**
      * @desc ShareX Configuration Generator Frontend.
      */
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response|void> {
         const dir = join(__dirname, '../Frontend/input_token.html');
         if (!req.uauth) {
             return res.redirect('/');

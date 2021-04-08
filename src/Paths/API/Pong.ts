@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /**
  * @license
  *
@@ -25,7 +26,7 @@ import pkg from '../../../package.json';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 momentDurationFormatSetup(moment);
 
@@ -43,19 +44,18 @@ class Pong extends Path {
     /**
      * @desc PONG! Just a simple response, no auth needed
      */
-    execute(req: any, res: any): Promise<Response | void> {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    execute(req: any, res: Response): Promise<Response | void> {
         const out: { message: { version: string; node_version: string; online_since: number; message: string }; code: number } = {
             message: {
-                version: pkg.version, // eslint-disable-next-line @typescript-eslint/camelcase
-                node_version: process.version, // eslint-disable-next-line @typescript-eslint/camelcase
+                version: pkg.version,
+                node_version: process.version,
                 online_since: new Date(Date.now() - (process.uptime() * 1000) ).getTime(),
                 message: 'Pong!',
             },
             code: this.codes.ok,
         };
-        return res.status(this.codes.ok).json(out);
+        return Promise.resolve(res.status(this.codes.ok).json(out) );
     }
 }
 

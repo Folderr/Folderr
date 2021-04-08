@@ -34,13 +34,14 @@ class Logout extends Path {
     /**
      * @desc Logs you out or displays the deleted account page, if you decided to delete your account.
      */
-    async execute(req: any, res: any): Promise<Response | void> {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    async execute(req: any, res: Response): Promise<Response | void> {
         const dir = join(__dirname, '../Frontend/loggedout.html');
         if (!req.uauth) {
             return res.redirect('/');
         }
         await this.Utils.authorization.revoke(req.cookies.token, true);
-        res.clearCookie('token', { sameSite: 'Strict' } );
+        res.clearCookie('token', { sameSite: 'strict' } );
         return res.sendFile(dir);
     }
 }

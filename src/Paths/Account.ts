@@ -20,8 +20,9 @@
  */
 
 import Path from '../Structures/Path';
-import Core from '../Structures/Core'
+import Core from '../Structures/Core';
 import { Response } from 'express';
+import { Request } from '../Structures/Interfaces/ExpressExtended';
 import { join } from 'path';
 
 class Account extends Path {
@@ -35,7 +36,7 @@ class Account extends Path {
     /**
      * @desc Account page only shows if you are signed in.
      */
-    async execute(req: any, res: any): Promise<Response | void> {
+    async execute(req: Request, res: Response): Promise<Response | void> {
         if (!req.uauth) {
             return res.redirect('./');
         }

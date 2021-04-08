@@ -25,6 +25,12 @@ interface EmailOptions {
     sendingEmail?: string;
 }
 
+export interface DBConfig {
+    url: string;
+    protocol?: string;
+    dbName?: string
+    extraConfig?: Record<string, unknown>;
+}
 export interface KeyOptions {
     privKeyPath: string;
     algorithm?: string;
@@ -60,13 +66,6 @@ export interface ServerConfig {
         requestCert?: boolean;
         ca?: string[];
     }
-}
-
-export interface DBConfig {
-    url: string;
-    protocol?: string;
-    dbName?: string
-    extraConfig?: object;
 }
 
 export interface EmailConfig {
@@ -122,28 +121,30 @@ export interface ActEmailConfig {
 }
 
 export default class ConfigHandler {
-
-    static fetchFiles(): { server: object, db: object, email: object | undefined | false } {
+    // TypeScript, PLEASE, FOR SANTIY, SHUT IT
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    static fetchFiles(): { server: object, db: object, email: object | undefined | false } { // yes yes "object bad"
+        // I know.
         const dir = join(process.cwd(), 'configs');
         const server = existsSync(join(dir, 'server.yaml') ) && yaml.load(fs.readFileSync(join(dir, 'server.yaml'), { encoding: 'utf8' } ) );
         const db = existsSync(join(dir, 'db.yaml') ) && yaml.load(fs.readFileSync(join(dir, 'db.yaml'), { encoding: 'utf8' } ) );
         const email = existsSync(join(dir, 'email.yaml') ) && yaml.load(fs.readFileSync(join(dir, 'email.yaml'), { encoding: 'utf8' } ) );
         const missing: string[] = [];
         if (typeof server !== 'object') {
-            missing.push("server.yaml");
+            missing.push('server.yaml');
         }
         if (typeof db !== 'object') {
-            missing.push("db.yaml");
+            missing.push('db.yaml');
         }
         if (typeof email !== 'object' && typeof email !== 'undefined') {
-            missing.push("email.yaml");
+            missing.push('email.yaml');
         }
         if (missing.length > 0 && !(missing.length === 1 && missing[0] === 'email.yaml') ) {
-            console.log(`Invalid YAML config, missing: ${missing.join(', ')}`)
+            console.log(`Invalid YAML config, missing: ${missing.join(', ')}`);
             throw Error(`Invalid YAML config, missing: ${missing.join(', ')}`);
         } // OK TS, shut up.
-        // @ts-ignore
-        return { server, db, email };
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        return { server: server as object, db: db as object, email: email as object | undefined | false };
     }
 
     static verifyFetch(): { core: CoreConfig, email: ActEmailConfig, key: KeyConfig, db: DBConfig } {
@@ -151,7 +152,7 @@ export default class ConfigHandler {
         let failedSignups: boolean | string = false;
         const missingFiles: string[] = [];
 
-        const files = <{server: ServerConfig, db: DBConfig, email?: EmailConfig}>this.fetchFiles();
+        const files = <{server: ServerConfig, db: DBConfig, email?: EmailConfig}> this.fetchFiles();
         const missingConfigs: { server: string[], db: string[] } = { server: [], db: [] };
         if (!files.server.jwtConfig || !files.server.jwtConfig.privKeyPath || !files.server.jwtConfig.pubKeyPath) {
             missingConfigs.server.push('server/auth_config - See documentation');
@@ -159,22 +160,22 @@ export default class ConfigHandler {
         if (!files.server.port || typeof files.server.port !== 'number') {
             missingConfigs.server.push('server/port - Must be a number');
         }
-        if ((!files.server.signups && files.server.signups !== 0) || typeof files.server.signups !== 'number') {
-            missingConfigs.server.push('server/signups - Must be a number')
+        if ( (!files.server.signups && files.server.signups !== 0) || typeof files.server.signups !== 'number') {
+            missingConfigs.server.push('server/signups - Must be a number');
         }
         if (!files.server.url || typeof files.server.url !== 'string') {
             missingConfigs.db.push('server/url - Must be a url string');
         }
         if (!files.db.url || typeof files.db.url !== 'string') {
-            missingConfigs.db.push("db/url - Must be a url string");
+            missingConfigs.db.push('db/url - Must be a url string');
         }
         if (missingConfigs.server.length > 0 || missingConfigs.db.length > 0) {
-            console.log('[CONFIG] Missing/Invalid Required Options:')
+            console.log('[CONFIG] Missing/Invalid Required Options:');
             if (missingConfigs.server.length > 0) {
-                console.log(missingConfigs.server.join("\n") );
+                console.log(missingConfigs.server.join('\n') );
             }
             if (missingConfigs.db.length > 0) {
-                console.log(missingConfigs.db.join("\n") );
+                console.log(missingConfigs.db.join('\n') );
             }
             throw Error('[CONFIG] Missing/Invalid Required Options');
         }
@@ -189,8 +190,8 @@ export default class ConfigHandler {
                 cert: (files.server.httpsCertOptions && files.server.httpsCertOptions.cert),
                 ca: (files.server.httpsCertOptions && files.server.httpsCertOptions.ca),
                 requestCert: (files.server.httpsCertOptions && !!files.server.httpsCertOptions.requestCert),
-            }
-        }
+            },
+        };
         const coreConfig = {
             url: files.server.url,
             port: files.server.port,
@@ -203,11 +204,11 @@ export default class ConfigHandler {
             url: files.db.url,
             dbName: files.db.dbName,
             protocol: files.db.protocol,
-            extraConfig: files.db.extraConfig
-        }
+            extraConfig: files.db.extraConfig,
+        };
         if (files.email) {
             emailConfig.sendingEmail = files.email.sendingEmail;
-            const hasAuth = !!files.email.mailerOptions?.auth && !!files.email.mailerOptions?.auth.password && !!files.email.mailerOptions?.auth.username
+            const hasAuth = !!files.email.mailerOptions?.auth && !!files.email.mailerOptions?.auth.password && !!files.email.mailerOptions?.auth.username;
             if (files.email.mailerOptions && hasAuth) {
                 emailConfig.mailerOptions = {
                     auth: {
@@ -220,8 +221,8 @@ export default class ConfigHandler {
                     requireTLS: files.email.mailerOptions.requireTls,
                     ignoreTLS: files.email.mailerOptions.ignoreTls,
                 };
-            };
-        };
+            }
+        }
         // Validate all files
         if (!existsSync(keyConfig.jwtConfig.privKeyPath) ) {
             missingFiles.push('auth/private key path');
@@ -230,10 +231,10 @@ export default class ConfigHandler {
             missingFiles.push('jwtConfig/public key path');
         }
         if (keyConfig.httpsCertOptions?.key && !existsSync(keyConfig.httpsCertOptions?.key) ) {
-            missingFiles.push('https certificate options/key')
+            missingFiles.push('https certificate options/key');
         }
         if (keyConfig.httpsCertOptions?.cert && !existsSync(keyConfig.httpsCertOptions?.cert) ) {
-            missingFiles.push('https certificate options/cert')
+            missingFiles.push('https certificate options/cert');
         }
         // Validate ports
         const maxPort = 65535;
@@ -241,10 +242,10 @@ export default class ConfigHandler {
             failedPort = true;
         }
         // Validate signups type
-        if ( (!coreConfig.signups && coreConfig.signups !== 0) || 0 > coreConfig.signups || coreConfig.signups > 2) {
+        if ( (!coreConfig.signups && coreConfig.signups !== 0) || coreConfig.signups < 0 || coreConfig.signups > 2) {
             failedSignups = 'Signup type invalid';
         }
-        if (coreConfig.signups == 2 && (!emailConfig.sendingEmail || !emailConfig.mailerOptions?.auth.pass || !emailConfig.mailerOptions?.auth.user) ) {
+        if (coreConfig.signups === 2 && (!emailConfig.sendingEmail || !emailConfig.mailerOptions?.auth.pass || !emailConfig.mailerOptions?.auth.user) ) {
             failedSignups = 'Signup Type Not Configured Properly (Emailer not configured)';
         }
         // Check if anything has failed
@@ -261,9 +262,10 @@ export default class ConfigHandler {
             }
             console.log(err);
             wlogger.error(err);
+            const ms = 500;
             setTimeout( () => {
                 process.exit(1);
-            }, 500);
+            }, ms);
         }
         return { key: keyConfig, email: emailConfig, core: coreConfig, db: dbConfig };
     }

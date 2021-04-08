@@ -41,7 +41,7 @@ class Tokens extends Path {
         const tokens = await this.core.db.findTokens(auth.userID);
         return res.status(this.codes.ok).json( {
             code: this.codes.ok, message: tokens.filter(token => !token.web).map(token => {
-                // eslint-disable-next-line @typescript-eslint/camelcase
+                // eslint-disable-next-line camelcase
                 return { created: Math.round(token.created.getTime() / 1000), id: token.id, for_user: token.userID };
             } ),
         } );

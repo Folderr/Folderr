@@ -44,7 +44,7 @@ class LookupAccount extends Path {
         }
         const out = req.params.type === 'file' ? await this.core.db.findFile( { ID: req.params.id } ) : await this.core.db.findLink( { ID: req.params.id } );
         if (!out) {
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.db_not_found, message: `${req.params.type[0].toUpperCase()}${req.params.type.slice(1)} not found!` } );
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.dbNotFound, message: `${req.params.type[0].toUpperCase()}${req.params.type.slice(1)} not found!` } );
         }
         const user = await this.core.db.findUser( { userID: out.owner }, 'userID username email created');
         if (!user) {

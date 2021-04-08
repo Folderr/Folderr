@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Administrators verify accounts via this endpoint
@@ -37,7 +38,7 @@ class VerifyAccount extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Handle authorization
         const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
         if (!auth || typeof auth === 'string') {
@@ -51,7 +52,7 @@ class VerifyAccount extends Path {
         // Look for the user
         const user = await this.Utils.findVerifying(req.body.token, req.body.userid);
         if (!user) {
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
         }
 
         // Remove the user from verifying schema and add them to the actual user base

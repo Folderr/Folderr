@@ -20,15 +20,13 @@
  */
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import childProcess from 'child_process';
 import util from 'util';
 const exec = util.promisify(childProcess.exec);
-import { platform } from 'os';
 import { promises } from 'fs';
-import { isMaster } from 'cluster';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const sleep = (ms: number): Promise<void> => {
     setTimeout( () => Promise.resolve(), ms);
@@ -53,7 +51,7 @@ class Manage extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response | void> {
+    async execute(req: Request, res: Response): Promise<Response | void> {
         const auth = await this.Utils.authPassword(req, (user) => !!user.first);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
@@ -71,7 +69,7 @@ class Manage extends Path {
         } else if (req.query.type === 'u') {
             res.status(this.codes.accepted).json( { code: this.codes.ok, message: 'OK' } );
             try {
-                let ecmd = 'npm';
+                const ecmd = 'npm';
 
                 await exec(`${ecmd} update`);
             } catch (err) {

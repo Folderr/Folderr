@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { User } from '../../Structures/Database/DBClass';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 interface DelReturns {
     code: number;
@@ -61,16 +62,16 @@ class DelAccount extends Path {
         }
     }
 
-    async execute(req: any, res: any): Promise<Response | void> {
+    async execute(req: Request, res: Response): Promise<Response | void> {
         // Check headers, and check auth
-        const auth = !req.cookies && !req.cookies.token && await this.Utils.authPassword(req);
+        const auth = await this.Utils.authPassword(req);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         let out;
         // If you are an admin you can delete someones account by ID
-        if (req.query && req.query.uid) {
+        if (req.query && req.query.uid && typeof req.query.uid === 'string') {
             // If they are not an admin, they arent authorized
             if (!auth.admin) {
                 return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
@@ -78,7 +79,7 @@ class DelAccount extends Path {
             // Find the user, and if not return a not found
             const mem = await this.core.db.findUser( { uID: req.query.uid } );
             if (!mem) {
-                return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
+                return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
             }
 
             // Protect the owner and admins from unauthorized account deletions

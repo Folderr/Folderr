@@ -18,15 +18,18 @@ import wlogger from './WinstonLogger';
 import Emailer from './Emailer';
 import Regexs from './Utilities/RegExps';
 import Utils from './Utilities/Utils';
-import Status_Codes from './Utilities/Status_Codes';
+import StatusCodes from './Utilities/Status_Codes';
 import { MemoryLimiter } from './Middleware/ratelimiter';
 import Configurer, { CoreConfig, DBConfig, ActEmailConfig, KeyConfig } from '../Handlers/ConfigHandler';
 import * as endpoints from '../Paths/index';
+import Path from './Path';
+
+const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
 
 const ee = new EventEmitter();
 ee.on('fail', code => {
     setTimeout( () => {
-        // process.exit(code || 1);
+        process.exit(code || 1);
     }, 1000);
 } );
 
@@ -45,7 +48,7 @@ export default class Core {
 
     public readonly regexs: Regexs;
 
-    public readonly codes: typeof Status_Codes;
+    public readonly codes: typeof StatusCodes;
 
     public readonly Utils: Utils;
 
@@ -59,7 +62,7 @@ export default class Core {
 
     #dbConfig: DBConfig;
 
-    constructor()  {
+    constructor() {
         const limiter = new MemoryLimiter();
         this.db = new DB();
         this.app = express(); // Time to abuse Node
@@ -81,7 +84,7 @@ export default class Core {
         this.regexs = new Regexs();
         this.Utils = new Utils(this, this.#keys.jwtConfig);
         this.emailer = new Emailer(this, this.#emailConfig?.sendingEmail, this.#emailConfig?.mailerOptions);
-        this.codes = Status_Codes;
+        this.codes = StatusCodes;
         this.logger = wlogger;
         this.superagent = superagent;
         this.#deleter = fork(join(__dirname, '../FileDelQueue'), undefined, { silent: true } );
@@ -99,17 +102,17 @@ export default class Core {
         }
         if (this.#keys.httpsCertOptions?.key && this.#keys.httpsCertOptions?.cert) {
             // IMPL http/2 server
-            const server = spdy.createServer({
+            const server = spdy.createServer( {
                 cert: fs.readFileSync(this.#keys.httpsCertOptions.cert),
                 key: fs.readFileSync(this.#keys.httpsCertOptions.key),
                 spdy: {
-                    protocols: [ 'h2', 'http/1.1' ],
+                    protocols: ['h2', 'http/1.1'],
                 },
-            }, this.app)
-            wlogger.log('prelisten', "Initalized Server");
+            }, this.app);
+            wlogger.log('prelisten', 'Initalized Server');
             return server;
         }
-        wlogger.log('prelisten', "Initalized Server");
+        wlogger.log('prelisten', 'Initalized Server');
         return http.createServer(this.app);
     }
 
@@ -121,8 +124,8 @@ export default class Core {
     initPaths(): boolean {
         let pathCount = 0;
         for (const endpoint in endpoints) { // This works TS, trust me.
-            const base = endpoint; // @ts-ignore
-            const ActualEndpoint = endpoints[endpoint];
+            const base = endpoint;
+            const ActualEndpoint = Endpoints[endpoint];
             const path = new ActualEndpoint(this);
             if (path.enabled) {
                 if (!path.label || !path.path) {
@@ -136,7 +139,7 @@ export default class Core {
                 if (path.type === 'post') {
                     this.app.post(path.path, path._execute.bind(path) );
                 } else if (path.type === 'delete') {
-                    this.app.delete(path.path, path._execute.bind(path));
+                    this.app.delete(path.path, path._execute.bind(path) );
                 } else if (path.type === 'patch') {
                     this.app.patch(path.path, path._execute.bind(path) );
                 } else {
@@ -154,8 +157,9 @@ export default class Core {
         const linuxRootPorts = 1024;
         const linuxRootUid = 0;
         if ( (process.getuid && process.getuid() !== linuxRootUid) && this.config.port < linuxRootPorts && platform() === 'linux') {
+            // eslint-disable-next-line no-magic-numbers
             ee.emit('fail', 13);
-            wlogger.error(`[FATAL] Cannot listen to port ${this.config.port} as you are not root!`)
+            wlogger.error(`[FATAL] Cannot listen to port ${this.config.port} as you are not root!`);
             throw Error(`Cannot listen to port ${this.config.port} as you are not root!`);
         }
         wlogger.log('prelisten', 'Listen Port OK');
@@ -164,6 +168,6 @@ export default class Core {
 
     listen(): http.Server | boolean {
         this.checkPorts();
-        return this.server.listen(this.config.port)
+        return this.server.listen(this.config.port);
     }
 }

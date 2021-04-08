@@ -40,7 +40,7 @@ class Deny extends Path {
         }
         const verify = await this.Utils.findVerifying(req.params.token, req.params.userid);
         if (!verify) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
         }
         await this.core.db.denySelf(verify.userID);
         return res.status(this.codes.created).json( { code: this.codes.ok, message: 'OK' } );

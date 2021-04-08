@@ -23,6 +23,7 @@ import Core from '../../Structures/Core';
 import { compareSync } from 'bcrypt';
 import { Response } from 'express';
 import wlogger from '../../Structures/WinstonLogger';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Updating the authorized users account
@@ -37,7 +38,7 @@ class UpdateAcc extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check pass/username auth
         const auth = await this.Utils.authPassword(req);
         if (!auth || typeof auth === 'string') {
@@ -61,13 +62,13 @@ class UpdateAcc extends Path {
                 update.password = psw;
             } catch (err) {
                 if (err.message.startsWith('[PSW1]') ) {
-                    return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.password_size, message: 'Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`' } );
+                    return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.passwordSize, message: 'Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`' } );
                 }
                 if (err.message.startsWith('[PSW2]') ) {
-                    return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_password, message: 'Password is too long, password must be under 32 characters of length' } );
+                    return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegalPassword, message: 'Password is too long, password must be under 32 characters of length' } );
                 }
                 if (err.message.startsWith('[PSW3]') ) {
-                    return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegal_password, message: 'NUL character not allowed in password!' } );
+                    return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegalPassword, message: 'NUL character not allowed in password!' } );
                 }
                 wlogger.error(`[Update Account - Password] - ${err}`);
                 return res.status(this.codes.badReq).json( { code: this.codes.internalErr, message: `${err}` } );
@@ -80,13 +81,13 @@ class UpdateAcc extends Path {
             // If username does not match length criteria error
             const match = req.body.username.match(this.core.regexs.username);
             if (req.body.username.length > maxUsername || req.body.username.length < minUsername) {
-                return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
+                return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.usernameSizeLimit, message: 'Username must be between 3 and 12 characters!' } );
             } if (match && req.body.username.length !== match.length) { // If username does not matdch regex pattern error
-                res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_username, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
+                res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegalUsername, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
             }
             const user = await this.core.db.findUser( { username: req.body.username } ) || await this.core.db.findVerify( { username: req.body.username } );
             if (user) {
-                return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.username_or_email_taken, message: 'Username taken!' } );
+                return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.usernameOrEmailTaken, message: 'Username taken!' } );
             }
 
             update.username = req.body.username;
@@ -94,11 +95,11 @@ class UpdateAcc extends Path {
 
         if (req.body.email && this.core.emailer.validateEmail(req.body.email) && req.body.email !== auth.email) {
             if (!this.core.emailer.active) {
-                return res.status(this.codes.notImplemented).json( { code: this.Utils.FoldCodes.emailer_not_configured, message: 'Emailer not configured. Email is unable to be updated.' } );
+                return res.status(this.codes.notImplemented).json( { code: this.Utils.FoldCodes.emailerNotConfigured, message: 'Emailer not configured. Email is unable to be updated.' } );
             }
             const bans = await this.core.db.fetchFolderr( {} );
-            if (bans.bans.includes(req.query.email) ) {
-                return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.banned_email, message: 'Email banned' } );
+            if (bans.bans.includes(req.body.email) ) {
+                return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.bannedEmail, message: 'Email banned' } );
             }
             const encrypted = this.Utils.encrypt(req.body.email);
             const user = await this.core.db.findUsers( { $or: [{ email: encrypted }, { pendingEmail: encrypted }] } ) || await this.core.db.findVerifies( { email: encrypted } );
@@ -120,7 +121,7 @@ class UpdateAcc extends Path {
             await this.core.db.updateUser( { uID: auth.userID }, update);
         } catch (err) {
             this.core.logger.error(`Database failed to update user - ${err}`);
-            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.db_unknown_error, message: 'Unknown Error encountered while updating your account' } );
+            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.dbUnkownError, message: 'Unknown Error encountered while updating your account' } );
         }
 
         // Return the output

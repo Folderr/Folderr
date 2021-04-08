@@ -325,7 +325,10 @@ class Utils {
      *
      * @returns {boolean}
      */
-    verifyInsecureCookies(req: any): boolean {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    verifyInsecureCookies(req: any): boolean { // The use of "any" as a type is disliked. So, here is a justification
+        // We cannot use Express.Request due to it not having "Express.Request.cookies", because cookies is supplied
+        // by middleware. We use any to get around this, as we know we use the cookie-parser middleware.
         if (!req.cookies) {
             return false;
         }
