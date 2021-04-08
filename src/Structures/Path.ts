@@ -24,6 +24,8 @@ import ErrorHandler from './ErrorHandler';
 import Core from './Core';
 import express from 'express';
 import { join } from 'path';
+import { Request } from './Interfaces/ExpressExtended';
+import { User } from './Database/DBClass';
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -35,7 +37,7 @@ class Path {
 
     public path: string[] | string;
 
-    public type?: string;
+    public type: string;
 
     public enabled?: boolean;
 
@@ -124,7 +126,7 @@ class Path {
      * @returns {Object<express.Response>|Boolean}
      * @private
      */
-    protected _handleError(err: Error, res: any, options?: { noIncrease: boolean; noResponse: boolean } ): express.Response|void {
+    protected _handleError(err: Error, res: express.Response, options?: { noIncrease: boolean; noResponse: boolean } ): express.Response|void {
         const ops = options || { noIncrease: false, noResponse: false };
         let severity;
         const e = err.message;
@@ -146,9 +148,31 @@ class Path {
         }
         // eslint-disable-next-line consistent-return
         res.status(this.codes.internalErr).send(out);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
-        throw new Error(err);
+        throw new Error(err.message);
+    }
+
+    async checkAuth(req: Request | express.Request): Promise<User | void | undefined> {
+        if (req.headers.authorization && typeof req.headers.authorization === 'string') {
+            return this.Utils.authorization.verifyAccount(req.headers.authorization);
+        }
+        if (req.cookies && req.cookies.token && typeof req.cookies.token === 'string') {
+            return this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
+        }
+        // IT DOESN'T EXPECT A RETURN VALUE
+        // eslint-disable-next-line consistent-return
+        return undefined;
+    }
+
+    async checkAuthAdmin(req: Request | express.Request): Promise<User | void | undefined> {
+        if (req.headers.authorization && typeof req.headers.authorization === 'string') {
+            return this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user) => !!user.admin } );
+        }
+        if (req.cookies && req.cookies.token && typeof req.cookies.token === 'string') {
+            return this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin, web: true } );
+        }
+        // IT DOESN'T EXPECT A RETURN VALUE
+        // eslint-disable-next-line consistent-return
+        return undefined;
     }
 
     /**
@@ -159,7 +183,11 @@ class Path {
      * @returns {express.Response|void}
      * @private
      */
-    async _execute(req: any, res: any): Promise<express.Response | void> {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    async _execute(req: any, res: express.Response): Promise<express.Response | void> { // TypeScript, I know.
+        // While =this shouldn't be done it has to as for some reason Request.path or Request.secure are not in ExpressJS's
+        // typings and I do not see why.
+
         // If path is not enabled, and it is not lean... end the endpoint here
         if (this.locked && !this.lean) {
             if (!req.path.match('/api') ) {
@@ -169,7 +197,7 @@ class Path {
         }
 
         if (this.secureOnly && !req.secure) {
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.security_error, message: 'Endpoint needs to be secure!' } );
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.securityError, message: 'Endpoint needs to be secure!' } );
         }
 
         // Execute the endpoint and catch errors

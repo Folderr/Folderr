@@ -23,6 +23,7 @@ import { Response } from 'express';
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { TokenDB } from '../../Structures/Database/DBClass';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Allow a user to generate a token
@@ -37,7 +38,7 @@ class GenToken extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check auth
         const auth = await this.Utils.authPassword(req);
         if (!auth || typeof auth === 'string') {
@@ -46,8 +47,8 @@ class GenToken extends Path {
         const tokens = await this.core.db.findTokens(auth.userID, { web: false } );
 
         // If the user has their token generated, make sure they know their current token will be gone
-        if (tokens.length > 10 && !(req.query || !req.query.override || (req.query.override && req.query.override !== 'true') ) ) {
-            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.token_size_limit, message: 'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.' } );
+        if (tokens.length > 10 && !(req.query && !req.query.override && req.query.override !== 'true') ) {
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.tokenSizeLimit, message: 'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.' } );
         }
         if (tokens.length >= 10 && (req.query && req.query.override && req.query.override === 'true') ) {
             const tkns = tokens.sort( (a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created) );

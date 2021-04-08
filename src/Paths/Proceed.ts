@@ -21,7 +21,7 @@
 
 import Path from '../../src/Structures/Path';
 import Core from '../Structures/Core';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 class Proceed extends Path {
     constructor(core: Core) {
@@ -36,14 +36,14 @@ class Proceed extends Path {
     /**
      * @desc Allows the user to make insecure requests, for 30 minutes ... if they came from an evolve-x page.
      */
-    async execute(req: any, res: any): Promise<Response | void> {
+    async execute(req: Request, res: Response): Promise<Response | void> {
         const r =  req.header('Referer');
         if (!r) {
             return res.redirect('/');
         }
         const mins = 1800000;
         const endTime = new Date(Date.now() + mins);
-        res.cookie('i', 't', { expires: endTime, secure: false, sameSite: 'Strict', httpOnly: true } );
+        res.cookie('i', 't', { expires: endTime, secure: false, sameSite: 'strict', httpOnly: true } );
         return res.redirect(`${r}`);
     }
 }

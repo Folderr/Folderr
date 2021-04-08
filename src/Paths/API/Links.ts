@@ -23,6 +23,7 @@ import { Response } from 'express';
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Link } from '../../Structures/Database/DBClass';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Allow a user to access their links
@@ -35,27 +36,36 @@ class Links extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check auth
-        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization);
+        const auth = await this.checkAuth(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
         const query: { $gt?: { created: Date }; $lt?: { created: Date }; owner: string } = { owner: auth.userID };
-        const opts: { sort?: object; limit?: number } = req.query?.gallery ? { sort: { created: -1 } } : {};
+        const opts: { sort?: Record<string, unknown>; limit?: number } = req.query?.gallery ? { sort: { created: -1 } } : {};
         const limits = {
             max: 20,
             middle: 15,
             min: 10,
         };
-        if (req.query?.gallery) {
-            if (req.query?.limit >= limits.max) {
+        let limit = req.query?.limit as string | number | undefined;
+        if (typeof limit === 'string') {
+            try {
+                limit = Number(limit);
+            } catch (e) {
+                this.core.logger.log('debug', e.message);
+                return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.unkownError, message: 'An unknown error has occured!' } );
+            }
+        }
+        if (req.query?.gallery && limit && typeof limit === 'number') {
+            if (limit >= limits.max) {
                 opts.limit = limits.max;
-            } else if (req.query?.limit >= limits.middle) {
-                opts.limit = limits.middle;
-            } else if (req.query?.limit >= limits.min && req.query?.limit < limits.middle) {
+            } else if (limit >= limits.middle) {
+                opts.limit = limits.max;
+            } else if (limit >= limits.min && limit < limits.middle) {
                 opts.limit = limits.min;
-            } else if (req.query?.limit <= limits.min) {
+            } else if (limit <= limits.min) {
                 opts.limit = limits.min;
             } else {
                 opts.limit = limits.min;
@@ -66,14 +76,14 @@ class Links extends Path {
         if (req.query?.before) {
             if (req.query.before instanceof Date) {
                 query.$lt = { created: req.query.before };
-            } else if (req.query.before instanceof Number) {
+            } else if (typeof req.query.before === 'number') {
                 query.$lt = { created: new Date(req.query.before) };
             }
         }
         if (req.query?.after) {
-            if (req.query.before instanceof Date) {
+            if (req.query.after instanceof Date) {
                 query.$gt = { created: req.query.after };
-            } else if (req.query.before instanceof Number) {
+            } else if (typeof req.query.after === 'number') {
                 query.$gt = { created: new Date(req.query.after) };
             }
         }
@@ -82,10 +92,10 @@ class Links extends Path {
         if (!shorts || shorts.length === 0) {
             return res.status(this.codes.ok).json( { code: this.codes.ok, message: [] } );
         }
-        let url = req.headers?.responseURL && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req);
+        let url = req.headers?.responseURL && typeof req.headers.responseURL === 'string' && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req);
         url = url.replace(/\/$/g, '');
         const aShorts = shorts.map( (short: Link) => {
-            // eslint-disable-next-line @typescript-eslint/camelcase
+            // eslint-disable-next-line camelcase
             return { ID: short.ID, points_to: short.link, created: Math.round(short.created.getTime() / 1000), link: `${url}/${short.ID}` };
         } );
 

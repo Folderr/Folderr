@@ -22,7 +22,7 @@
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
-import { User } from '../../Structures/Database/DBClass';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc View the admin notification
@@ -37,9 +37,9 @@ class AdminNotification extends Path {
         this.type = 'get';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check auth
-        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user: User) => !!user.admin } ) : await this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user: User) => !!user.admin, web: true } );
+        const auth = await this.checkAuthAdmin(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
@@ -52,7 +52,7 @@ class AdminNotification extends Path {
         // Find notification. If not found, return a not found status code
         const notify = await this.core.db.findAdminNotify( { ID: req.params.id } );
         if (!notify) {
-            return res.status(this.codes.noContent).json( { code: this.Utils.FoldCodes.db_not_found, message: [] } );
+            return res.status(this.codes.noContent).json( { code: this.Utils.FoldCodes.dbNotFound, message: [] } );
         }
 
         // Oh look a notification!

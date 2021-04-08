@@ -56,7 +56,7 @@ class Signup extends Path {
             await Promise.all( [this.core.db.makeVerify(userID, username, password, validationToken.hash, email), this.core.db.makeAdminNotify(notifyID, `Username: ${username}\nUser ID: ${userID}\nValidation Token: ${validationToken.token}`, 'New user signup!')] );
         } catch (e) {
             this._handleError(e, res, { noResponse: true, noIncrease: false } );
-            return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
+            return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unkownError, message: 'An internal error occurred while signing up!' } };
         }
         // Notify the console, and the user that the admins have been notified.
         this.core.logger.info(`New user (${username} - ${userID})signed up to Folderr`);
@@ -73,13 +73,13 @@ class Signup extends Path {
             await this.core.db.makeVerify(userID, username, password, validationToken.hash, email);
         } catch (e) {
             this._handleError(e, res, { noResponse: true, noIncrease: false } );
-            return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unknown_error, message: 'An internal error occurred while signing up!' } };
+            return { httpCode: this.codes.internalErr, msg: { code: this.Utils.FoldCodes.unkownError, message: 'An internal error occurred while signing up!' } };
         }
         this.core.logger.info(`New user (${username} - ${userID}) signed up to Folderr`);
-        return { httpCode: this.codes.created, msg: { code: this.Utils.FoldCodes.email_sent, message: 'OK' } };
+        return { httpCode: this.codes.created, msg: { code: this.Utils.FoldCodes.emailSent, message: 'OK' } };
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // If signups are closed, state that and do not allow them through
         if (!this.core.config.signups) {
             return res.status(this.codes.locked).json( { code: this.codes.locked, message: 'Signup\'s are closed.' } );
@@ -98,32 +98,32 @@ class Signup extends Path {
         const uMatch = username.match(this.core.regexs.username);
         // If the username length does not match criteria
         if (username.length > maxUsername || username.length < minUsername) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.username_size_limit, message: 'Username must be between 3 and 12 characters!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.usernameSizeLimit, message: 'Username must be between 3 and 12 characters!' } );
         } if (!uMatch || (uMatch && username.length !== uMatch[0].length) ) { // If the username doess not match our username pattern
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegal_username, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.illegalUsername, message: 'Username may only contain lowercase letters, numbers, and an underscore.' } );
         }
         if (!this.core.emailer.validateEmail(req.body.email) ) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.bad_email, message: 'Invalid email!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.badEmail, message: 'Invalid email!' } );
         }
         const bans = await this.core.db.fetchFolderr( {} );
-        if (bans.bans.includes(req.query.email) ) {
-            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.banned_email, message: 'Email banned' } );
+        if (bans.bans.includes(req.body.email) ) {
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.bannedEmail, message: 'Email banned' } );
         }
 
         // See if the username is already taken. If its taken error the request with a code of "IM USED"
         const user = await this.core.db.findUser( { $or: [{ username: req.body.username }, { email: req.body.email }] } ) || await this.core.db.findVerify( { $or: [{ username: req.body.username }, { email: req.body.email }] } );
         if (user) {
-            return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.username_or_email_taken, message: 'Username or email taken!' } );
+            return res.status(this.codes.used).json( { code: this.Utils.FoldCodes.usernameOrEmailTaken, message: 'Username or email taken!' } );
         }
         // If the password is not over min length
         // If password does not match the regex completely
         const match: RegExpMatchArray | null = password.match(this.core.regexs.password);
         if (!match || (match && match[0].length !== password.length) ) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.password_size, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.passwordSize, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.' } );
         }
         // No NUL charater
         if (password.match('\0') ) {
-            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegal_password, messsage: 'NUL character forbidden in passwords!' } );
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.illegalPassword, messsage: 'NUL character forbidden in passwords!' } );
         }
 
         // Hash the password and catch errors

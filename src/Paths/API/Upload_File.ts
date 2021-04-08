@@ -21,7 +21,7 @@
 
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import formidable from 'formidable';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
@@ -38,7 +38,7 @@ class Image extends Path {
         this.reqAuth = true;
     }
 
-    _formidablePromise(req: any): Promise<any> {
+    _formidablePromise(req: Request): Promise<any> {
         return new Promise( (resolve, reject): formidable.File | void => {
             const path = join(__dirname, '../../../Files/');
             const form = new formidable.IncomingForm();
@@ -56,8 +56,8 @@ class Image extends Path {
         } );
     }
 
-    async execute(req: any, res: any): Promise<Response|void> {
-        const auth = !req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
+    async execute(req: Request, res: Response): Promise<Response|void> {
+        const auth = await this.checkAuth(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
@@ -66,12 +66,12 @@ class Image extends Path {
         try {
             file = await this._formidablePromise(req);
         } catch (err) {
-            res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.file_parse_error, message: `Parser error!\n${err}` } );
+            res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.fileParserError, message: `Parser error!\n${err}` } );
             throw Error(err);
         }
 
         if (!file) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.no_file, message: 'Files not parsed/found!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.noFile, message: 'Files not parsed/found!' } );
         }
         if (file.image) {
             file = file.image;
@@ -82,7 +82,7 @@ class Image extends Path {
         }
         if (!file.type) {
             unlinkSync(file.path);
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.file_mime_error, message: 'Invalid file!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.fileMimeError, message: 'Invalid file!' } );
         }
         let type = 'image';
         if (file.type.startsWith('video') ) {
@@ -92,18 +92,18 @@ class Image extends Path {
         }
         if (file.type.includes('html') || file.type.includes('ecmascript' || 'javascript') ) {
             unlinkSync(file.path);
-            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.file_forbidden_mime, message: 'Forbidden MIME type.' } );
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.fileForbiddenMime, message: 'Forbidden MIME type.' } );
         }
 
         let ext = file.path.split('.');
         ext = ext[ext.length - 1];
         if (/exe|sh|bat/.test(ext) ) {
             unlinkSync(file.image.path);
-            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.file_forbidden_mime, message: 'Forbidden MIME type.' } );
+            return res.status(this.codes.forbidden).json( { code: this.Utils.FoldCodes.fileForbiddenMime, message: 'Forbidden MIME type.' } );
         }
 
         await Promise.all( [this.core.db.makeFile(name, auth.userID, file.path, type), this.core.db.updateUser( { userID: auth.userID }, { $inc: { files: 1 } } )] );
-        return res.status(this.codes.ok).send(`${req.headers?.responseURL && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req)}/${type[0]}/${name}.${ext}`);
+        return res.status(this.codes.ok).send(`${req.headers?.responseURL && auth.cURLs.includes(req.headers.responseURL as string) && await this.Utils.testMirrorURL(req.headers.responseURL as string) ? req.headers.responseURL : await this.Utils.determineHomeURL(req)}/${type[0]}/${name}.${ext}`);
     }
 }
 

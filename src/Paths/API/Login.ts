@@ -21,7 +21,7 @@
 
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 /**
  * @classdesc Allow a user to login
@@ -36,7 +36,7 @@ class Login extends Path {
         this.type = 'post';
     }
 
-    async execute(req: any, res: any): Promise<Response|void> {
+    async execute(req: Request, res: Response): Promise<Response|void> {
         if (!req.body || (req.body && (!req.body.username || !req.body.password) ) ) {
             if (req.body && (req.body.username || req.body.password) ) {
                 return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'MISSING DETAIL(S)' } );
@@ -52,7 +52,7 @@ class Login extends Path {
         const week = 604800000;
         const endTime = new Date(Date.now() + (week * 2) );
         const jwt = await this.core.Utils.authorization.genKeyWeb(auth.userID);
-        res.cookie('token', jwt, { expires: endTime, secure: false, httpOnly: true, sameSite: 'Strict' } );
+        res.cookie('token', jwt, { expires: endTime, secure: false, httpOnly: true, sameSite: 'strict' } );
         // Set cookies
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );
     }

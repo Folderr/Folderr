@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { promises as fs, existsSync } from 'fs';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Have a user delete their file
@@ -38,19 +39,19 @@ class DeleteFile extends Path {
 
     
     // eslint-disable-next-line consistent-return
-    async execute(req: any, res: any): Promise<Response | void> {
-        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization);
+    async execute(req: Request, res: Response): Promise<Response | void> {
+        const auth = await this.checkAuth(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         if (!req.params?.id) {
-            return res.status(this.codes.badReq).jsson( { code: this.codes.badReq, message: 'Missing File ID!' } );
+            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing File ID!' } );
         }
 
         const File = await this.core.db.findFile( { owner: auth.userID, ID: req.params.id } );
         if (!File) {
-            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'File not found!' } );
+            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'File not found!' } );
         }
 
         await this.core.db.purgeFile( { ID: File.ID, owner: auth.userID } );

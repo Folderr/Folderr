@@ -22,6 +22,7 @@
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classsdesc Allows users to remove a mirror
@@ -35,9 +36,9 @@ class MirrorRemove extends Path {
         this.type = 'delete';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check auth
-        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.authorization) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
+        const auth = await this.checkAuth(req);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
@@ -45,7 +46,7 @@ class MirrorRemove extends Path {
             return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'No mirror given to remove!' } );
         }
         if (auth.cURLs.length === 0 || !auth.cURLs.includes(req.body.mirror) ) {
-            return res.status(this.codes.badReq).json( { message: 'Mirror not linked!', code: this.Utils.FoldCodes.db_not_found } );
+            return res.status(this.codes.badReq).json( { message: 'Mirror not linked!', code: this.Utils.FoldCodes.dbNotFound } );
         }
         await this.core.db.updateUser( { userID: auth.userID }, { $pullAll: { cURLs: req.body.mirror } } );
         return res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } );

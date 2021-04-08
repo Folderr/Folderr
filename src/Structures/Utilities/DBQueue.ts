@@ -21,7 +21,6 @@
 
 import { EventEmitter } from 'events';
 import Configurer, { DBConfig } from '../../Handlers/ConfigHandler';
-import config from '../../../config.json';
 import DB, { Upload } from '../Database/DBClass';
 import NativeDB from '../Database/MongooseDB';
 import wlogger from '../WinstonLogger';
@@ -31,7 +30,7 @@ import wlogger from '../WinstonLogger';
  * @classdesc Handles deleting files
  */
 export default class DBQueue extends EventEmitter {
-    public onGoing: boolean
+    public onGoing: boolean;
 
     private config: DBConfig;
 

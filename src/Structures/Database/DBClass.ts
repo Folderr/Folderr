@@ -101,7 +101,7 @@ export class DBClass {
         throw new Error('DB > NOT IMPLEMENTED - Method addFolderrBan is not implemented!');
     }
 
-    async fetchFolderr(query: object): Promise<Folderr> {
+    async fetchFolderr(query: Record<string, unknown>): Promise<Folderr> {
         throw new Error('DB > NOT IMPLEMENTED - Method fetchFolderr is not implemented!');
     }
 
@@ -113,23 +113,23 @@ export class DBClass {
         throw new Error('DB > NOT IMPLEMENTED - Method makeOwner is not implemented!');
     }
 
-    async findUser(query: object, selector?: string): Promise<User | null | undefined> {
+    async findUser(query: Record<string, unknown>, selector?: string): Promise<User | null | undefined> {
         throw new Error('DB > NOT IMPLEMENTED - Method findUser is not implemented!');
     }
 
-    async findUsers(query: object, options?: { sort?: object; limit?: number; selector?: string } ): Promise<User[] | []> {
+    async findUsers(query: Record<string, unknown>, options?: { sort?: Record<string, unknown>; limit?: number; selector?: string } ): Promise<User[] | []> {
         throw new Error('DB > NOT IMPLEMENTED - Method findUsers is not implemented!');
     }
 
-    async findFullUser(query: object, selectors?: { user?: string; file?: string; link?: string } ): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
+    async findFullUser(query: Record<string, unknown>[], selectors?: { user?: string; file?: string; link?: string } ): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
         throw new Error('DB > NOT IMPLEMENTED - Method findFullUser is not implemented!');
     }
 
-    async findAndUpdateUser(query: object, update: object, selector?: string): Promise<User | undefined | null> {
+    async findAndUpdateUser(query: Record<string, unknown>, update: Record<string, unknown>, selector?: string): Promise<User | undefined | null> {
         throw new Error('DB > NOT IMPLEMENTED - Method findAndUpdateUser is not implemented!');
     }
 
-    async updateUser(query: object, update: object): Promise<boolean | undefined> {
+    async updateUser(query: Record<string, unknown>, update: Record<string, unknown>): Promise<boolean | undefined> {
         throw new Error('DB > NOT IMPLEMENTED - Method updateUser is not implemented!');
     }
 
@@ -141,11 +141,11 @@ export class DBClass {
         throw new Error('DB > NOT IMPLEMENTED - Method purgeUser is not implemented!');
     }
 
-    async findVerify(query: object): Promise<PendingMember | undefined | null> {
+    async findVerify(query: Record<string, unknown>): Promise<PendingMember | undefined | null> {
         throw new Error('DB > NOT IMPLEMENTED - Method findVerify is not implemented!');
     }
 
-    async findVerifies(query: object): Promise<PendingMember[]> {
+    async findVerifies(query: Record<string, unknown>): Promise<PendingMember[]> {
         throw new Error('DB > NOT IMPLEMENTED - Method findVerifies is not implemented!');
     }
 
@@ -169,20 +169,20 @@ export class DBClass {
         throw new Error('DB > NOT IMPLEMENTED - Method makeVerify is not implemented!');
     }
 
-    async findFile(query: object, selector?: string): Promise<Upload | undefined | null> {
+    async findFile(query: Record<string, unknown>, selector?: string): Promise<Upload | undefined | null> {
         throw new Error('DB > NOT IMPLEMENTED - Method findFile is not implemented!');
     }
 
-    async findAndDeleteFile(query: object): Promise<Upload | undefined | null> {
+    async findAndDeleteFile(query: Record<string, unknown>): Promise<Upload | undefined | null> {
         throw new Error('DB > NOT IMPLEMENTED - Method findAndDeleteFile is not implemented!');
     }
 
 
-    async findFiles(query: object, options?: { limit?: number; selector?: string; sort?: object } ): Promise<Upload[]> {
+    async findFiles(query: Record<string, unknown>, options?: { limit?: number; selector?: string; sort?: Record<string, unknown> } ): Promise<Upload[]> {
         throw new Error('DB > NOT IMPLEMENTED - Method findFiles is not implemented!');
     }
 
-    async updateFile(query: object, update: object): Promise<boolean | undefined> {
+    async updateFile(query: Record<string, unknown>, update: Record<string, unknown>): Promise<boolean | undefined> {
         throw new Error('DB > NOT IMPLEMENTED - Method updateFile is not implemented!');
     }
 
@@ -190,23 +190,23 @@ export class DBClass {
         throw new Error('DB > NOT IMPLEMENTED - Method makeFile is not implemented!');
     }
 
-    async purgeFile(query: object): Promise<boolean> {
+    async purgeFile(query: Record<string, unknown>): Promise<boolean> {
         throw new Error('DB > NOT IMPLEMENTED - Method purgeFile is not implemented!');
     }
 
-    async findLink(query: object, selector?: string): Promise<Link | undefined | null> {
+    async findLink(query: Record<string, unknown>, selector?: string): Promise<Link | undefined | null> {
         throw new Error('DB > NOT IMPLEMENTED - Method findLink is not implemented!');
     }
 
-    async findLinks(query: object, options?: { limit?: number; selector?: string; sort?: object } ): Promise<Link[]> {
+    async findLinks(query: Record<string, unknown>, options?: { limit?: number; selector?: string; sort?: Record<string, unknown> } ): Promise<Link[]> {
         throw new Error('DB > NOT IMPLEMENTED - Method findLinks is not implemented!');
     }
 
-    async findAndDeleteLink(query: object): Promise<Link | undefined | null> {
+    async findAndDeleteLink(query: Record<string, unknown>): Promise<Link | undefined | null> {
         throw new Error('DB > NOT IMPLEMENTED - Method findAndDeleteLink is not implemented!');
     }
 
-    async updateLink(query: object, update: object): Promise<boolean | undefined> {
+    async updateLink(query: Record<string, unknown>, update: Record<string, unknown>): Promise<boolean | undefined> {
         throw new Error('DB > NOT IMPLEMENTED - Method updateLink is not implemented!');
     }
 
@@ -214,7 +214,7 @@ export class DBClass {
         throw new Error('DB > NOT IMPLEMENTED - Method makeFile is not implemented!');
     }
 
-    async purgeLink(query: object): Promise<boolean> {
+    async purgeLink(query: Record<string, unknown>): Promise<boolean> {
         throw new Error('DB > NOT IMPLEMENTED - Method purgeLink is not implemented!');
     }
 
@@ -242,15 +242,15 @@ export class DBClass {
         throw new Error('DB > NOT IMPLEMENTED - Method makeAdminNotify is not implemented!');
     }
 
-    async findAdminNotify(query: object): Promise<Notification | undefined | null> {
+    async findAdminNotify(query: Record<string, unknown>): Promise<Notification | undefined | null> {
         throw new Error('DB > NOT IMPLEMENTED - Method findAdminNotify is not implemented!');
     }
 
-    async findAdminNotifies(query: object): Promise<Notification[]> {
+    async findAdminNotifies(query: Record<string, unknown>): Promise<Notification[]> {
         throw new Error('DB > NOT IMPLEMENTED - Method findAdminNotifies is not implemented!');
     }
 
-    async purgeAdminNotify(query: object): Promise<boolean> {
+    async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
         throw new Error('DB > NOT IMPLEMENTED - Method purgeAdminNotify is not implemented!');
     }
 

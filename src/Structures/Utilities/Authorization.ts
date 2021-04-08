@@ -55,7 +55,7 @@ export default class Authorization {
         }
         this.#pubKey = fs.readFileSync(this.#secret.pubKeyPath);
         this.#privKey = fs.readFileSync(this.#secret.privKeyPath);
-        this.#core = core
+        this.#core = core;
     }
 
     public async verify(token: string, web?: boolean): Promise<string | void> {

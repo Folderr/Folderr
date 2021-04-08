@@ -23,6 +23,7 @@ import { Response } from 'express';
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { User } from '../../Structures/Database/DBClass';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Warn a user
@@ -35,7 +36,7 @@ class WarnUser extends Path {
         this.type = 'post';
     }
 
-    async execute(req: any, res: any): Promise<Response | void> {
+    async execute(req: Request, res: Response): Promise<Response | void> {
         const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } ).end();
@@ -45,13 +46,13 @@ class WarnUser extends Path {
         }
         const user = await this.core.db.findUser( { userID: req.params.id } );
         if (!user) {
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } ).end();
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } ).end();
         }
         const email = this.Utils.decrypt(user.email);
         const id = await this.Utils.genNotifyID();
         const updated = await this.core.db.updateUser( { userID: req.params.id }, { $addToSet: { notifs: { ID: id, title: 'Warn', notify: `You were warned for: ${req.body.reason}` } } } );
         if (!updated) {
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.unknown_error, message: 'Warn failed' } ).end();
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.unkownError, message: 'Warn failed' } ).end();
         }
         if (this.core.emailer.active) {
             const url = await this.Utils.determineHomeURL(req);

@@ -40,13 +40,13 @@ class Verify extends Path {
         }
         const verify = await this.Utils.findVerifying(req.params.token, req.params.userid);
         if (!verify) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
         }
         const expiresAfter = 172800000; // 48H in MS
         const timeSinceCreation = Date.now() - Number(verify.created);
         if (timeSinceCreation >= expiresAfter) {
             await this.core.db.denySelf(verify.userID);
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.user_denied, message: 'Validation time expired.' } );
+            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.userDenied, message: 'Validation time expired.' } );
         }
         await this.core.db.verifySelf(verify.userID);
 

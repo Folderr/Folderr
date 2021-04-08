@@ -22,6 +22,7 @@
 import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc SHorten links endpoint
@@ -35,30 +36,30 @@ class Shorten extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
-        const auth = req.headers.authorization ? await this.Utils.authorization.verifyAccount(req.headers.authorization) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
+    async execute(req: Request, res: Response): Promise<Response> {
+        const auth = await this.checkAuth(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
 
         if (!req.body || !req.body.url) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.short_url_missing, message: 'BODY URL MISSING!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.shortUrlMissing, message: 'BODY URL MISSING!' } );
         }
         if (typeof req.body.url !== 'string') {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.short_url_invalid, message: 'URL MUST BE STRING' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.shortUrlInvalid, message: 'URL MUST BE STRING' } );
         }
         try {
             await this.core.superagent.get(req.body.url);
         } catch (err) {
             if (err.code === 'ENOTFOUND') {
-                return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.short_url_not_found, message: 'URL not found!' } );
+                return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.shortUrlNotFound, message: 'URL not found!' } );
             }
         }
 
         const ID = this.Utils.genID();
         await Promise.all( [this.core.db.makeLink(ID, auth.userID, req.body.url), this.core.db.updateUser( { userID: auth.userID }, { $inc: { links: 1 } } )] );
 
-        return res.status(this.codes.ok).send(`${req.headers?.responseURL && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req)}/l/${ID}`);
+        return res.status(this.codes.ok).send(`${req.headers?.responseURL && typeof req.headers.responseURL === 'string' && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req)}/l/${ID}`);
     }
 }
 

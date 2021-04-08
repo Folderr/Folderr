@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
 import moment from 'moment';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc User can delete a single notification
@@ -37,9 +38,9 @@ class DelNotify extends Path {
         this.reqAuth = true;
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         // Check auth
-        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authorization.verifyAccount(req.headers.authorization);
+        const auth = await this.checkAuth(req);
         if (!auth || typeof auth === 'string') {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }
@@ -57,7 +58,7 @@ class DelNotify extends Path {
         const notify = notifs.find(notification => notification.ID === req.params.id);
         // If no notification, tell the user that notification does not exist
         if (!notify) {
-            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.db_not_found, message: 'Notification not found!' } );
+            return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'Notification not found!' } );
         }
         // Days * hours/day * minutes/hour * seconds/minute * milliseconds/second
         const breakdown = {

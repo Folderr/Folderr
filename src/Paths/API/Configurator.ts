@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
 import Configurator from '../../Structures/Utilities/ShareXConfigurator';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Generate a sharex configuration
@@ -41,8 +42,8 @@ class ShareXConfigurator extends Path {
     /**
      * @desc Generate a ShareX configuration
      */
-    async execute(req: any, res: any): Promise<Response | void> {
-        const auth = !req.cookies && !req.cookies.token ? await this.Utils.authorization.verifyAccount(req.headers.token) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
+    async execute(req: Request, res: Response): Promise<Response | void> {
+        const auth = await this.checkAuth(req);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
         }

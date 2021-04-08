@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import Path from '../Structures/Path';
 import Core from '../Structures/Core';
 import { join } from 'path';
@@ -36,7 +36,7 @@ class Short extends Path {
     /**
      * @desc Sends a user to a shortened link.
      */
-    async execute(req: any, res: any): Promise<Response|void> {
+    async execute(req: Request, res: Response): Promise<Response|void> {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing short ID.');
         }

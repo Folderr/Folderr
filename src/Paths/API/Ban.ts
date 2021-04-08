@@ -46,7 +46,7 @@ class Ban extends Path {
         }
         const user = await this.core.db.findUser( { userID: req.params.id } );
         if (!user) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.db_not_found, message: 'User not found!' } );
+            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
         }
         const email = this.Utils.decrypt(user.email);
         if (this.core.emailer.active) {

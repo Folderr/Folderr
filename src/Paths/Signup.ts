@@ -35,7 +35,8 @@ class Signup extends Path {
     /**
      * @desc Displays the signup page for signed out users.
      */
-    async execute(req: any, res: any): Promise<Response> {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    async execute(req: any, res: Response): Promise<Response|void> {
         if (!req.secure && !this.Utils.verifyInsecureCookies(req) ) {
             return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure.html') );
         }

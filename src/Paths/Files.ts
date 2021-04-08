@@ -21,7 +21,7 @@
 
 import Path from '../Structures/Path';
 import Core from '../Structures/Core';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import mime from 'mime-types';
 import { join } from 'path';
 
@@ -38,7 +38,7 @@ class Files extends Path {
     /**
      * @desc Display an image to the user, or the 404 page if image doesn't exist.
      */
-    async execute(req: any, res: any): Promise<Response | void> {
+    async execute(req: Request, res: Response): Promise<Response | void> {
         if (!req.params || !req.params.id) {
             return res.status(this.codes.badReq).send('[ERROR] Missing file ID.');
         }

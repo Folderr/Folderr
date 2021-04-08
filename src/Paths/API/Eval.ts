@@ -23,6 +23,7 @@ import Path from '../../Structures/Path';
 import Core from '../../Structures/Core';
 import { Response } from 'express';
 import { inspect } from 'util';
+import { Request } from '../../Structures/Interfaces/ExpressExtended';
 
 /**
  * @classdesc Allows owner to eval on the instance.
@@ -34,9 +35,10 @@ class Eval extends Path {
         this.path = '/api/eval';
         this.type = 'post';
         this.reqAuth = true;
+        this.enabled = process.env.NODE_ENV !== 'production';
     }
 
-    async execute(req: any, res: any): Promise<Response> {
+    async execute(req: Request, res: Response): Promise<Response> {
         const auth = await this.Utils.authPassword(req, (user) => !!user.first);
         if (!auth) {
             return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
@@ -61,11 +63,11 @@ class Eval extends Path {
             }
             const maxLength = 2000;
             if (evaled.length > maxLength) {
-                return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.eval_size_limit, message: 'Eval too big' } );
+                return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.evalSizeLimit, message: 'Eval too big' } );
             }
             return res.status(this.codes.ok).json( { code: this.codes.ok, message: evaled } );
         } catch (err) {
-            return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.eval_error, message: `${err}` } );
+            return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.evalError, message: `${err}` } );
         }
     }
 }

@@ -38,7 +38,7 @@ class Takedown extends Path {
     async takedownFile(id: string, req: Request): Promise<{ httpCode: number; msg: { code: number; message: string } }> {
         const del = await this.core.db.findAndDeleteFile( { ID: id } );
         if (!del) {
-            return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.db_not_found, message: 'File not found!' } };
+            return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.dbNotFound, message: 'File not found!' } };
         }
         await this.core.db.updateUser( { userID: del.owner }, { $inc: { files: -1 } } );
         if (this.core.emailer.active) {
@@ -56,7 +56,7 @@ class Takedown extends Path {
     async takedownLink(id: string, req: Request): Promise<{ httpCode: number; msg: { code: number; message: string } }> {
         const del = await this.core.db.findAndDeleteLink( { ID: id } );
         if (!del) {
-            return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.db_not_found, message: 'Link not found!' } };
+            return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.dbNotFound, message: 'Link not found!' } };
         }
         await this.core.db.updateUser( { userID: del.owner }, { $inc: { links: -1 } } );
         if (this.core.emailer.active) {
@@ -87,7 +87,7 @@ class Takedown extends Path {
             const out = await this.takedownLink(req.params.id, req);
             return res.status(out.httpCode).json(out.msg);
         } catch (e) {
-            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.unknown_error, message: `An error occurred!\n${e.message || e}` } );
+            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.unkownError, message: `An error occurred!\n${e.message || e}` } );
         }
     }
 }
