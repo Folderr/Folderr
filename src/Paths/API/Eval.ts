@@ -19,57 +19,67 @@
  *
  */
 
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { Response } from 'express';
-import { inspect } from 'util';
-import { Request } from '../../Structures/Interfaces/ExpressExtended';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {Response} from 'express';
+import {inspect} from 'util';
+import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Allows owner to eval on the instance.
  */
 class Eval extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Eval';
-        this.path = '/api/eval';
-        this.type = 'post';
-        this.reqAuth = true;
-        this.enabled = process.env.NODE_ENV !== 'production';
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Eval';
+		this.path = '/api/eval';
+		this.type = 'post';
+		this.reqAuth = true;
+		this.enabled = process.env.NODE_ENV === 'dev';
+	}
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        const auth = await this.Utils.authPassword(req, (user) => !!user.first);
-        if (!auth) {
-            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
-        }
-        if (!req.body || !req.body.eval) {
-            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Eval code not provided.' } );
-        }
-        try {
-            // eslint-disable-next-line no-eval
-            let evaled = await eval(req.body.eval);
-            switch (typeof evaled) {
-                case 'object': {
-                    evaled = inspect(evaled, { depth: 0, showHidden: true } );
-                    break;
-                }
-                default: {
-                    evaled = String(evaled);
-                }
-            }
-            if (!evaled || evaled.length === 0) {
-                return res.status(this.codes.noContent).json( { code: this.codes.ok, message: '' } );
-            }
-            const maxLength = 2000;
-            if (evaled.length > maxLength) {
-                return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.evalSizeLimit, message: 'Eval too big' } );
-            }
-            return res.status(this.codes.ok).json( { code: this.codes.ok, message: evaled } );
-        } catch (err) {
-            return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.evalError, message: `${err}` } );
-        }
-    }
+	async execute(request: Request, response: Response): Promise<Response> {
+		const auth = await this.Utils.authPassword(request, user => Boolean(user.first));
+		if (!auth) {
+			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+		}
+
+		if (!request.body || !request.body.eval) {
+			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Eval code not provided.'});
+		}
+
+		try {
+			// eslint-disable-next-line no-eval
+			let evaled = await eval(request.body.eval);
+			switch (typeof evaled) {
+			case 'object': {
+				evaled = inspect(evaled, {depth: 0, showHidden: true});
+				break;
+			}
+
+			default: {
+				evaled = String(evaled);
+			}
+			}
+
+			if (!evaled || evaled.length === 0) {
+				return response.status(this.codes.noContent).json({code: this.codes.ok, message: ''});
+			}
+
+			const maxLength = 2000; // This limit makes sense.
+			if (evaled.length > maxLength) {
+				return response.status(this.codes.ok).json({code: this.Utils.FoldCodes.evalSizeLimit, message: 'Eval input too big'});
+			}
+
+			return response.status(this.codes.ok).json({code: this.codes.ok, message: evaled});
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.evalError, message: `${error.message}`});
+			}
+
+			return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.evalError, message: 'Unknown Eval Error. No error object returned.'});
+		}
+	}
 }
 
 export default Eval;

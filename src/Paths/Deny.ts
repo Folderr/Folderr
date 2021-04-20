@@ -19,32 +19,34 @@
  *
  */
 
-import Path from '../Structures/Path';
-import Core from '../Structures/Core';
-import { Response, Request } from 'express';
+import Path from '../Structures/path';
+import Core from '../Structures/core';
+import {Response, Request} from 'express';
 
 /**
  * @classdesc Allow a user to deny the creation of their account
  */
 class Deny extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = 'Deny Self';
-        this.path = '/deny/:userid/:token';
-        this.enabled = this.core.emailer.active && this.core.config.signups === 2;
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = 'Deny Self';
+		this.path = '/deny/:userid/:token';
+		this.enabled = this.core.emailer.active && this.core.config.signups === 2;
+	}
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        if (!req.params?.userid || !req.params?.token) {
-            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing requirements!' } );
-        }
-        const verify = await this.Utils.findVerifying(req.params.token, req.params.userid);
-        if (!verify) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
-        }
-        await this.core.db.denySelf(verify.userID);
-        return res.status(this.codes.created).json( { code: this.codes.ok, message: 'OK' } );
-    }
+	async execute(request: Request, response: Response): Promise<Response> {
+		if (!request.params?.userid || !request.params?.token) {
+			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing requirements!'});
+		}
+
+		const verify = await this.Utils.findVerifying(request.params.token, request.params.userid);
+		if (!verify) {
+			return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!'});
+		}
+
+		await this.core.db.denySelf(verify.userID);
+		return response.status(this.codes.created).json({code: this.codes.ok, message: 'OK'});
+	}
 }
 
 export default Deny;

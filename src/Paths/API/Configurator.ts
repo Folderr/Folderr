@@ -19,56 +19,61 @@
  *
  */
 
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { Response } from 'express';
-import Configurator from '../../Structures/Utilities/ShareXConfigurator';
-import { Request } from '../../Structures/Interfaces/ExpressExtended';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {Response} from 'express';
+import Configurator from '../../Structures/Utilities/sharex-configurator';
+import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Generate a sharex configuration
  */
 class ShareXConfigurator extends Path {
-    private configurator: Configurator;
+	private readonly configurator: Configurator;
 
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Configurator';
-        this.path = '/api/sharex/config';
-        this.type = 'post';
-        this.configurator = new Configurator();
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Configurator';
+		this.path = '/api/sharex/config';
+		this.type = 'post';
+		this.configurator = new Configurator();
+	}
 
-    /**
+	/**
      * @desc Generate a ShareX configuration
      */
-    async execute(req: Request, res: Response): Promise<Response | void> {
-        const auth = await this.checkAuth(req);
-        if (!auth) {
-            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
-        }
-        if (!req.body || !req.body.token) {
-            return res.status(this.codes.unauth).json( { code: this.codes.badReq, message: 'Missing token in body!' } );
-        }
-        const compare = this.Utils.authorization.verifyAccount(req.body.token);
-        if (!compare) {
-            return res.status(this.codes.unauth).json( { code: this.codes.notAccepted, message: 'Invalid Token!' } );
-        }
-        const url = await this.Utils.determineHomeURL(req);
+	async execute(request: Request, response: Response): Promise<Response | void> {
+		const auth = await this.checkAuth(request);
+		if (!auth) {
+			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+		}
 
-        const config = this.configurator.generateFiles(url, req.body.token);
-        if (req.query && req.query.d === 'file') {
-            res.type('text/plain; charset=binary');
-            res.set('Content-Disposition', 'attachment; filename=Folderr-File-Config.sxcu');
-            return res.status(this.codes.ok).send(config[0] );
-        }
-        if (req.query?.d && req.query.d === 'link') {
-            res.type('text/plain; charset=binary');
-            res.set('Content-Disposition', 'attachment; filename=Folderr-Link-Config.sxcu');
-            return res.status(this.codes.ok).send(config[1] );
-        }
-        return res.status(this.codes.ok).json( { code: this.codes.ok, message: config } );
-    }
+		if (!request.body || !request.body.token) {
+			return response.status(this.codes.unauth).json({code: this.codes.badReq, message: 'Missing token in body!'});
+		}
+
+		const compare = await this.Utils.authorization.verifyAccount(request.body.token);
+		if (!compare) {
+			return response.status(this.codes.unauth).json({code: this.codes.notAccepted, message: 'Invalid Token!'});
+		}
+
+		const url = await this.Utils.determineHomeURL(request);
+
+		const config = this.configurator.generateFiles(url, request.body.token);
+		if (request.query && request.query.d === 'file') {
+			response.type('text/plain; charset=binary');
+			response.set('Content-Disposition', 'attachment; filename=Folderr-File-Config.sxcu');
+			return response.status(this.codes.ok).send(config[0]);
+		}
+
+		if (request.query?.d && request.query.d === 'link') {
+			response.type('text/plain; charset=binary');
+			response.set('Content-Disposition', 'attachment; filename=Folderr-Link-Config.sxcu');
+			return response.status(this.codes.ok).send(config[1]);
+		}
+
+		return response.status(this.codes.ok).json({code: this.codes.ok, message: config});
+	}
 }
 
 export default ShareXConfigurator;

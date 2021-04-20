@@ -19,40 +19,40 @@
  *
  */
 
-import { Response, Request } from 'express';
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { User } from '../../Structures/Database/DBClass';
+import {Response, Request} from 'express';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {User} from '../../Structures/Database/db-class';
 
 /**
  * @classdesc Unbans a email from the service
  */
 class Unban extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Unban';
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Unban';
 
-        this.path = '/api/admin/ban';
-        this.type = 'delete';
-    }
+		this.path = '/api/admin/ban';
+		this.type = 'delete';
+	}
 
-    async execute(req: Request, res: Response): Promise<void | Response> {
-        const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
-        if (!auth) {
-            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
-        }
-        if (!req.body?.email || this.core.emailer.validateEmail(req.body.email) ) {
-            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid requirements' } );
-        }
-        const unban = await this.core.db.removeFolderrBan(req.body.email);
-        if (unban) {
-            res.status(this.codes.ok).json( { code: this.codes.ok, message: 'OK' } ).end();
-        } else {
-            res.status(this.codes.notAccepted).json( { code: this.codes.notAccepted, message: 'UNBAN FAILED' } ).end();
-        }
-        // eslint-disable-next-line consistent-return
-        return;
-    }
+	async execute(request: Request, response: Response): Promise<void | Response> {
+		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+		if (!auth) {
+			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+		}
+
+		if (!request.body?.email || this.core.emailer.validateEmail(request.body.email)) {
+			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing or invalid requirements'});
+		}
+
+		const unban = await this.core.db.removeFolderrBan(request.body.email);
+		if (unban) {
+			response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'}).end();
+		} else {
+			response.status(this.codes.notAccepted).json({code: this.codes.notAccepted, message: 'UNBAN FAILED'}).end();
+		}
+	}
 }
 
 export default Unban;

@@ -19,77 +19,92 @@
  *
  */
 
-import { Response, Request } from 'express';
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { User } from '../../Structures/Database/DBClass';
+import {Response, Request} from 'express';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {User} from '../../Structures/Database/db-class';
 
 /**
  * @classdesc Admin endpoint for removing a users content
  */
 class Takedown extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Takedown Content';
-        this.type = 'delete';
-        this.path = '/api/admin/content/:type/:id';
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Takedown Content';
+		this.type = 'delete';
+		this.path = '/api/admin/content/:type/:id';
+	}
 
-    async takedownFile(id: string, req: Request): Promise<{ httpCode: number; msg: { code: number; message: string } }> {
-        const del = await this.core.db.findAndDeleteFile( { ID: id } );
-        if (!del) {
-            return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.dbNotFound, message: 'File not found!' } };
-        }
-        await this.core.db.updateUser( { userID: del.owner }, { $inc: { files: -1 } } );
-        if (this.core.emailer.active) {
-            const user = await this.core.db.findUser( { userID: del.owner }, 'userID username email');
-            if (!user) {
-                return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
-            }
-            const email = this.Utils.decrypt(user.email);
-            const url = await this.Utils.determineHomeURL(req);
-            await this.core.emailer.takedown(email, user.username, url, id, del.type);
-        }
-        return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
-    }
+	async takedownFile(id: string, request: Request): Promise<{httpCode: number; msg: {code: number; message: string}}> {
+		const del = await this.core.db.findAndDeleteFile({ID: id});
+		if (!del) {
+			return {httpCode: this.codes.notAccepted, msg: {code: this.Utils.FoldCodes.dbNotFound, message: 'File not found!'}};
+		}
 
-    async takedownLink(id: string, req: Request): Promise<{ httpCode: number; msg: { code: number; message: string } }> {
-        const del = await this.core.db.findAndDeleteLink( { ID: id } );
-        if (!del) {
-            return { httpCode: this.codes.notAccepted, msg: { code: this.Utils.FoldCodes.dbNotFound, message: 'Link not found!' } };
-        }
-        await this.core.db.updateUser( { userID: del.owner }, { $inc: { links: -1 } } );
-        if (this.core.emailer.active) {
-            const user = await this.core.db.findUser( { userID: del.owner }, 'userID username email');
-            if (!user) {
-                return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
-            }
-            const email = this.Utils.decrypt(user.email);
-            const url = await this.Utils.determineHomeURL(req);
-            await this.core.emailer.takedown(email, user.username, url, id, 'Link');
-        }
-        return { httpCode: this.codes.ok, msg: { code: this.codes.ok, message: 'OK' } };
-    }
+		await this.core.db.updateUser({userID: del.owner}, {$inc: {files: -1}});
+		if (this.core.emailer.active) {
+			const user = await this.core.db.findUser({userID: del.owner}, 'userID username email');
+			if (!user) {
+				return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+			}
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
-        if (!auth) {
-            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed' } );
-        }
-        if (!req.params?.type || !req.params?.id || !['file', 'link'].includes(req.params.type) || !/^[0-9A-Za-z]+$/.test(req.params.id) ) {
-            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing or invalid requirements' } );
-        }
-        try {
-            if (req.params.type === 'file') {
-                const out = await this.takedownFile(req.params.id, req);
-                return res.status(out.httpCode).json(out.msg);
-            }
-            const out = await this.takedownLink(req.params.id, req);
-            return res.status(out.httpCode).json(out.msg);
-        } catch (e) {
-            return res.status(this.codes.internalErr).json( { code: this.Utils.FoldCodes.unkownError, message: `An error occurred!\n${e.message || e}` } );
-        }
-    }
+			const email = this.Utils.decrypt(user.email);
+			const url = await this.Utils.determineHomeURL(request);
+			await this.core.emailer.takedown({email, username: user.username, id, type: del.type}, url);
+		}
+
+		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+	}
+
+	async takedownLink(id: string, request: Request): Promise<{httpCode: number; msg: {code: number; message: string}}> {
+		const del = await this.core.db.findAndDeleteLink({ID: id});
+		if (!del) {
+			return {httpCode: this.codes.notAccepted, msg: {code: this.Utils.FoldCodes.dbNotFound, message: 'Link not found!'}};
+		}
+
+		await this.core.db.updateUser({userID: del.owner}, {$inc: {links: -1}});
+		if (this.core.emailer.active) {
+			const user = await this.core.db.findUser({userID: del.owner}, 'userID username email');
+			if (!user) {
+				return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+			}
+
+			const email = this.Utils.decrypt(user.email);
+			const url = await this.Utils.determineHomeURL(request);
+			await this.core.emailer.takedown({email, username: user.username, id, type: 'Link'}, url);
+		}
+
+		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+	}
+
+	async execute(request: Request, response: Response): Promise<Response> {
+		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+		if (!auth) {
+			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed'});
+		}
+
+		if (!request.params?.type || !request.params?.id || !['file', 'link'].includes(request.params.type) || !/^[\dA-Za-z]+$/.test(request.params.id)) {
+			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing or invalid requirements'});
+		}
+
+		try {
+			if (request.params.type === 'file') {
+				const out = await this.takedownFile(request.params.id, request);
+				return response.status(out.httpCode).json(out.msg);
+			}
+
+			const out = await this.takedownLink(request.params.id, request);
+			return response.status(out.httpCode).json(out.msg);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				return response.status(this.codes.internalErr).json({code: this.Utils.FoldCodes.unkownError, message: `An error occurred!\n${error.message}`});
+			}
+
+			this.core.logger.log('fatal', `[PATH ${this.label}] Unknown fatal error!`);
+
+			return response.status(this.codes.internalErr).json({code: this.Utils.FoldCodes.unkownError, message: 'An unknown error occurred with this operation!'});
+		}
+	}
 }
 
 export default Takedown;

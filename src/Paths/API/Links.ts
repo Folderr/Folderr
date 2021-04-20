@@ -19,88 +19,66 @@
  *
  */
 
-import { Response } from 'express';
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { Link } from '../../Structures/Database/DBClass';
-import { Request } from '../../Structures/Interfaces/ExpressExtended';
+import {Response} from 'express';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {Link} from '../../Structures/Database/db-class';
+import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Allow a user to access their links
  */
 class Links extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Links';
-        this.path = '/api/links';
-        this.reqAuth = true;
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Links';
+		this.path = '/api/links';
+		this.reqAuth = true;
+	}
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        // Check auth
-        const auth = await this.checkAuth(req);
-        if (!auth) {
-            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
-        }
-        const query: { $gt?: { created: Date }; $lt?: { created: Date }; owner: string } = { owner: auth.userID };
-        const opts: { sort?: Record<string, unknown>; limit?: number } = req.query?.gallery ? { sort: { created: -1 } } : {};
-        const limits = {
-            max: 20,
-            middle: 15,
-            min: 10,
-        };
-        let limit = req.query?.limit as string | number | undefined;
-        if (typeof limit === 'string') {
-            try {
-                limit = Number(limit);
-            } catch (e) {
-                this.core.logger.log('debug', e.message);
-                return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.unkownError, message: 'An unknown error has occured!' } );
-            }
-        }
-        if (req.query?.gallery && limit && typeof limit === 'number') {
-            if (limit >= limits.max) {
-                opts.limit = limits.max;
-            } else if (limit >= limits.middle) {
-                opts.limit = limits.max;
-            } else if (limit >= limits.min && limit < limits.middle) {
-                opts.limit = limits.min;
-            } else if (limit <= limits.min) {
-                opts.limit = limits.min;
-            } else {
-                opts.limit = limits.min;
-            }
-        } else {
-            opts.limit = 20;
-        }
-        if (req.query?.before) {
-            if (req.query.before instanceof Date) {
-                query.$lt = { created: req.query.before };
-            } else if (typeof req.query.before === 'number') {
-                query.$lt = { created: new Date(req.query.before) };
-            }
-        }
-        if (req.query?.after) {
-            if (req.query.after instanceof Date) {
-                query.$gt = { created: req.query.after };
-            } else if (typeof req.query.after === 'number') {
-                query.$gt = { created: new Date(req.query.after) };
-            }
-        }
+	async execute(request: Request, response: Response): Promise<Response> {
+		// Check auth
+		const auth = await this.checkAuth(request);
+		if (!auth) {
+			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+		}
 
-        const shorts: Link[] = await this.core.db.findLinks(query, opts);
-        if (!shorts || shorts.length === 0) {
-            return res.status(this.codes.ok).json( { code: this.codes.ok, message: [] } );
-        }
-        let url = req.headers?.responseURL && typeof req.headers.responseURL === 'string' && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req);
-        url = url.replace(/\/$/g, '');
-        const aShorts = shorts.map( (short: Link) => {
-            // eslint-disable-next-line camelcase
-            return { ID: short.ID, points_to: short.link, created: Math.round(short.created.getTime() / 1000), link: `${url}/${short.ID}` };
-        } );
+		const generated = this.generatePageQuery(request, auth.userID);
+		if (generated.errored) {
+			const genType = generated as unknown as {
+				httpCode: number;
+				json: Record<string, string|number>;
+				errored: boolean;
+			};
+			return response.status(genType.httpCode).json(genType.json);
+		}
 
-        return res.status(this.codes.ok).json( { code: this.codes.ok, message: aShorts } );
-    }
+		const {query, options} = generated as unknown as {
+			query: {
+				$gt?: {created: Date};
+				$lt?: {created: Date};
+				owner: string;
+			};
+			options: {
+				sort?: Record<string, unknown>;
+				limit?: number;
+			};
+			errored: boolean;
+		};
+
+		const shorts: Link[] = await this.core.db.findLinks(query, options);
+		if (!shorts || shorts.length === 0) {
+			return response.status(this.codes.ok).json({code: this.codes.ok, message: []});
+		}
+
+		let url = request.headers?.responseURL && typeof request.headers.responseURL === 'string' && auth.cURLs.includes(request.headers.responseURL) && await this.Utils.testMirrorURL(request.headers.responseURL) ? request.headers.responseURL : await this.Utils.determineHomeURL(request);
+		url = url.replace(/\/$/g, '');
+		const aShorts = shorts.map((short: Link) => {
+			return {ID: short.ID, points_to: short.link, created: Math.round(short.created.getTime() / 1000), link: `${url}/${short.ID}`};
+		});
+
+		return response.status(this.codes.ok).json({code: this.codes.ok, message: aShorts});
+	}
 }
 
 export default Links;

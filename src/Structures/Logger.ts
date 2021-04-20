@@ -19,7 +19,7 @@
  *
  */
 
-import wlogger from './WinstonLogger';
+import wlogger from './winston-logger';
 
 /**
  * @author VoidNulll
@@ -27,7 +27,7 @@ import wlogger from './WinstonLogger';
  * @classdesc Class to handle logging certain elements, allows for sending info to Discord webhooks.
  */
 class Logger {
-    /**
+	/**
      * @desc Log something to Discord, or try to...
      *
      * @param type {string} The type of log it is logging;
@@ -35,16 +35,16 @@ class Logger {
      *
      * @return {void}
      */
-    log(type: string, information: string): any {
-        const base = `[${type}] - ${information}`;
-        if (type.startsWith('SECURITY WARN') ) {
-            wlogger.log( { level: 'warn', message: base.replace(/warn/i, ''), private: true } );
-        } else if (type.startsWith('SYSTEM INFO') || type.startsWith('SYSTEM NOTICE') || type === 'SYSTEM - SIGNUP') {
-            wlogger.log('info', base.replace('[SYSTEM INFO] - ', '') );
-        } else {
-            wlogger.log('verbose', base);
-        }
-    }
+	log(type: string, information: string): any {
+		const base = `[${type}] - ${information}`;
+		if (type.startsWith('SECURITY WARN')) {
+			wlogger.log({level: 'warn', message: base.replace(/warn/i, ''), private: true});
+		} else if (type.startsWith('SYSTEM INFO') || type.startsWith('SYSTEM NOTICE') || type === 'SYSTEM - SIGNUP') {
+			wlogger.log('info', base.replace('[SYSTEM INFO] - ', ''));
+		} else {
+			wlogger.log('verbose', base);
+		}
+	}
 }
 
 export default Logger;

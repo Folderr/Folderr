@@ -19,36 +19,41 @@
  *
  */
 
-import Path from '../Structures/Path';
-import Core from '../Structures/Core';
-import { Response } from 'express';
-import { join } from 'path';
+import Path from '../Structures/path';
+import Core from '../Structures/core';
+import {Response} from 'express';
+import {join} from 'path';
+import {Request} from '../Structures/Interfaces/express-extended';
 
 class Signup extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = 'Sign up';
-        this.path = '/signup';
-        this.enabled = false;
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = 'Sign up';
+		this.path = '/signup';
+		this.enabled = false;
+	}
 
-    /**
+	/**
      * @desc Displays the signup page for signed out users.
      */
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    async execute(req: any, res: Response): Promise<Response|void> {
-        if (!req.secure && !this.Utils.verifyInsecureCookies(req) ) {
-            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure.html') );
-        }
-        if (req.uauth) {
-            return res.redirect('./');
-        }
-        if (!this.core.config.signups) {
-            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/closed.html') );
-        }
+	async execute(request: Request, response: Response): Promise<Response|void> {
+		if (!request.secure && !this.Utils.verifyInsecureCookies(request)) {
+			response.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure.html'));
+			return;
+		}
 
-        return res.sendFile(join(__dirname, '../Frontend/signups.html') );
-    }
+		if (request.uauth) {
+			response.redirect('./');
+			return;
+		}
+
+		if (!this.core.config.signups) {
+			response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/closed.html'));
+			return;
+		}
+
+		response.sendFile(join(__dirname, '../Frontend/signups.html'));
+	}
 }
 
 export default Signup;

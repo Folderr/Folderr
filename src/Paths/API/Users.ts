@@ -19,108 +19,78 @@
  *
  */
 
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { Response } from 'express';
-import { User } from '../../Structures/Database/DBClass';
-import { Request } from '../../Structures/Interfaces/ExpressExtended';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {Response} from 'express';
+import {User} from '../../Structures/Database/db-class';
+import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Shows users to admins
  */
 class Users extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Users';
-        this.path = '/api/admin/users';
-        this.reqAuth = true;
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Users';
+		this.path = '/api/admin/users';
+		this.reqAuth = true;
+	}
 
-    async execute(req: Request, res: Response): Promise<Response | void> {
-        const auth = await this.Utils.authPassword(req, (user: User) => !!user.admin);
-        if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
-        }
-        const query: { $gt?: { created: Date }; $lt?: { created: Date }; userID?: string; username?: RegExp } = {};
-        if (req.query?.type && req.query?.query) {
-            if (req.query.type === 'userID' && typeof req.query.query === 'string') {
-                query.userID = req.query.query;
-            } else if (req.query.type === 'username') {
-                query.username = new RegExp(`^${req.query.query}`);
-            }
-        } else if (req.query?.query && !req.query?.type && typeof req.query.query === 'string') {
-            query.userID = req.query.query;
-        }
-        const limits = {
-            max: 20,
-            middle: 15,
-            min: 10,
-        };
-        const opts: { sort?: Record<string, unknown>; limit?: number; selector: string } = req.query?.gallery ? { sort: { created: -1 }, selector: 'username admin first email files links userID' } : { sort: { created: -1 }, selector: 'username admin first email files links userID' };
-        let limit = req.query?.limit as string | number | undefined;
-        if (typeof limit === 'string') {
-            try {
-                limit = Number(limit);
-            } catch (e) {
-                this.core.logger.log('debug', e.message);
-                return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.unkownError, message: 'An unknown error has occured!' } );
-            }
-        }
-        if (req.query?.gallery && limit && typeof limit === 'number') {
-            if (limit >= limits.max) {
-                opts.limit = limits.max;
-            } else if (limit >= limits.middle) {
-                opts.limit = limits.max;
-            } else if (limit >= limits.min && limit < limits.middle) {
-                opts.limit = limits.min;
-            } else if (limit <= limits.min) {
-                opts.limit = limits.min;
-            } else {
-                opts.limit = limits.min;
-            }
-        } else {
-            opts.limit = 20;
-        }
-        if (req.query?.before) {
-            if (req.query.before instanceof Date) {
-                query.$lt = { created: req.query.before };
-            } else if (typeof req.query.before === 'number') {
-                query.$lt = { created: new Date(req.query.before) };
-            }
-        }
-        if (req.query?.after) {
-            if (req.query.after instanceof Date) {
-                query.$gt = { created: req.query.after };
-            } else if (typeof req.query.after === 'number') {
-                query.$gt = { created: new Date(req.query.after) };
-            }
-        }
+	async execute(request: Request, response: Response): Promise<Response | void> {
+		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+		if (!auth || typeof auth === 'string') {
+			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+		}
 
-        const users: User[] = await this.core.db.findUsers(query, opts);
-        if (users.length === 0) {
-            return res.status(this.codes.ok).json( { code: this.Utils.FoldCodes.dbNotFound, message: [] } );
-        }
-        const arr: {
-            title?: string | boolean;
-            username: string;
-            files: number;
-            links: number;
-            email: string;
-            userID: string;
-            created: number;
-        }[] = users.map( (user: User) => {
-            return {
-                title: !user.admin && !user.first ? '' : (user.admin && 'admin') || (user.first && 'first'),
-                username: user.username,
-                files: user.files,
-                links: user.links,
-                email: user.email,
-                userID: user.userID,
-                created: Math.round(user.created.getTime() / 1000),
-            };
-        } );
-        return res.status(this.codes.ok).json( { code: this.codes.ok, message: arr } );
-    }
+		const generated = this.generatePageQuery(request, auth.userID);
+		if (generated.errored) {
+			const genType = generated as unknown as {
+				httpCode: number;
+				json: Record<string, string|number>;
+				errored: boolean;
+			};
+			return response.status(genType.httpCode).json(genType.json);
+		}
+
+		const {query, options} = generated as unknown as {
+			query: {
+				$gt?: {created: Date};
+				$lt?: {created: Date};
+				owner: string;
+			};
+			options: {
+				sort?: Record<string, unknown>;
+				limit?: number;
+			};
+			errored: boolean;
+		};
+
+		const users: User[] = await this.core.db.findUsers(query, options);
+		if (users.length === 0) {
+			return response.status(this.codes.ok).json({code: this.Utils.FoldCodes.dbNotFound, message: []});
+		}
+
+		const array: Array<{
+			title?: string | boolean;
+			username: string;
+			files: number;
+			links: number;
+			email: string;
+			userID: string;
+			created: number;
+		}> = users.map((user: User) => {
+			return {
+				title: !user.admin && !user.first ? '' : (user.admin && 'admin') || (user.first && 'first'),
+				username: user.username,
+				files: user.files,
+				links: user.links,
+				email: user.email,
+				userID: user.userID,
+				created: Math.round(user.created.getTime() / 1000)
+			};
+		});
+		return response.status(this.codes.ok).json({code: this.codes.ok, message: array});
+	}
 }
 
 export default Users;

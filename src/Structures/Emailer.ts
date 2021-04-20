@@ -19,8 +19,8 @@
  *
  */
 
-import nodemailer, { SentMessageInfo } from 'nodemailer';
-import Core from './Core';
+import nodemailer, {SentMessageInfo} from 'nodemailer';
+import Core from './core';
 import Mail from 'nodemailer/lib/mailer';
 
 /**
@@ -30,103 +30,111 @@ import Mail from 'nodemailer/lib/mailer';
  * @author VoidNulll
  *
  */
-export default class Emailer {
-    public active: boolean;
+export default class Emailer { /* eslint-disable @typescript-eslint/indent */
+	public active: boolean;
 
     #core: Core;
 
-    private mailer?: Mail;
+    private readonly mailer?: Mail;
 
-    private email?: string;
+    private readonly email?: string;
 
-    constructor(core: Core, email?: string, options?: { auth: { user: string; pass: string }; host: string; port?: number; secure?: boolean } ) {
-        this.#core = core;
-        this.active = !!options;
-        if (this.active) {
-            this.mailer = nodemailer.createTransport(options);
-            this.email = email;
-        }
+    constructor(core: Core, email?: string, options?: {auth: {user: string; pass: string}; host: string; port?: number; secure?: boolean}) {
+		this.#core = core;
+		this.active = Boolean(options);
+		if (this.active) {
+			this.mailer = nodemailer.createTransport(options);
+			this.email = email;
+		}
     }
 
     validateEmail(email: string): boolean {
-        return this.#core.regexs.email.test(email);
+		return this.#core.regexs.email.test(email);
     }
 
     async verifyEmail(email: string, verifyLink: string, username: string): Promise<null | SentMessageInfo> {
-        if (this.email && this.mailer) {
-            return this.mailer.sendMail( {
-                from: this.email,
-                to: email,
-                subject: 'Folderr Account Verification',
-                text: `Hello ${username},\nYour Foldderr verification link for instance ${verifyLink.split('/verify')[0]} is ${verifyLink}\nThe link will expire in 48 hours.\nDid not request an account? Click this link to deny the account request: ${verifyLink.replace('verify', 'deny')}.`,
-                priority: 'low',
-            } );
-        }
-        return null;
+		if (this.email && this.mailer) {
+			return this.mailer.sendMail({
+				from: this.email,
+				to: email,
+				subject: 'Folderr Account Verification',
+				text: `Hello ${username},\nYour Foldderr verification link for instance ${verifyLink.split('/verify')[0]} is ${verifyLink}\nThe link will expire in 48 hours.\nDid not request an account? Click this link to deny the account request: ${verifyLink.replace('verify', 'deny')}.`,
+				priority: 'low'
+			});
+		}
+
+		return null;
     }
 
     async forgotPasswordEmail(email: string, forgotLink: string, username: string, instanceLink: string): Promise<null | SentMessageInfo> {
-        if (this.email && this.mailer) {
-            return this.mailer.sendMail( {
-                from: this.email,
-                to: email,
-                subject: 'Your Folderr account has had a password reset request',
-                text: `Hello ${username},\nPlease click the link below to reset your ${instanceLink} password. If you didn't request a password reset, ignore this email and make sure your account is still secure.\nYour password reset link is ${forgotLink}`,
-                priority: 'high',
-            } );
-        }
-        return null;
+		if (this.email && this.mailer) {
+			return this.mailer.sendMail({
+				from: this.email,
+				to: email,
+				subject: 'Your Folderr account has had a password reset request',
+				text: `Hello ${username},\nPlease click the link below to reset your ${instanceLink} password. If you didn't request a password reset, ignore this email and make sure your account is still secure.\nYour password reset link is ${forgotLink}`,
+				priority: 'high'
+			});
+		}
+
+		return null;
     }
 
     async warnEmail(email: string, reason: string, username: string, instanceURL: string): Promise<null | SentMessageInfo> {
-        if (this.email && this.mailer) {
-            return this.mailer.sendMail( {
-                from: this.email,
-                to: email,
-                subject: 'Folderr Account Warning',
-                text: `Hello ${username},\nYou have been warned on Folderr instance ${instanceURL}\nReason: ${reason}`,
-                priority: 'high',
-            } );
-        }
-        return null;
+		if (this.email && this.mailer) {
+			return this.mailer.sendMail({
+				from: this.email,
+				to: email,
+				subject: 'Folderr Account Warning',
+				text: `Hello ${username},\nYou have been warned on Folderr instance ${instanceURL}\nReason: ${reason}`,
+				priority: 'high'
+			});
+		}
+
+		return null;
     }
 
     async banEmail(email: string, reason: string, username: string, instanceURL: string): Promise<null | SentMessageInfo> {
-        if (this.email && this.mailer) {
-            return this.mailer.sendMail( {
-                from: this.email,
-                to: email,
-                subject: 'Folderr Account Banned',
-                text: `Hello ${username},\nYou have been banned on Folderr instance ${instanceURL}\nReason: ${reason}`,
-                priority: 'high',
-            } );
-        }
-        return null;
+		if (this.email && this.mailer) {
+			return this.mailer.sendMail({
+				from: this.email,
+				to: email,
+				subject: 'Folderr Account Banned',
+				text: `Hello ${username},\nYou have been banned on Folderr instance ${instanceURL}\nReason: ${reason}`,
+				priority: 'high'
+			});
+		}
+
+		return null;
     }
 
     async changeEmail(email: string, confirmLink: string, username: string): Promise<null | SentMessageInfo> {
-        if (this.email && this.mailer) {
-            return this.mailer.sendMail( {
-                from: this.email,
-                to: email,
-                subject: 'Email Change Confirmation',
-                text: `Hello ${username},\nHere is a link to confirm your email change ${confirmLink}\nIf you did not request an email change, please ignore this email.`,
-                priority: 'low',
-            } );
-        }
-        return null;
+		if (this.email && this.mailer) {
+			return this.mailer.sendMail({
+				from: this.email,
+				to: email,
+				subject: 'Email Change Confirmation',
+				text: `Hello ${username},\nHere is a link to confirm your email change ${confirmLink}\nIf you did not request an email change, please ignore this email.`,
+				priority: 'low'
+			});
+		}
+
+		return null;
     }
 
-    async takedown(email: string, username: string, instanceURL: string, id: string, type: string): Promise<null | SentMessageInfo> {
-        if (this.email && this.mailer) {
-            return this.mailer.sendMail( {
-                from: this.email,
-                to: email,
-                subject: 'Content Takedown',
-                text: `Hello ${username},\nYour content (type: ${type}) with ID ${id} was taken down by service administrators for Folderr instance ${instanceURL}`,
-                priority: 'low',
-            } );
-        }
-        return null;
+    async takedown({email, username, id, type}: {email: string; username: string; id: string; type: string}, instanceURL: string): Promise<null | SentMessageInfo> {
+		if (this.email && this.mailer) {
+			return this.mailer.sendMail({
+				from: this.email,
+				to: email,
+				subject: 'Content Takedown',
+				text: `Hello ${username},\nYour content (type: ${type}) with ID ${id} was taken down by service administrators for Folderr instance ${instanceURL}`,
+				priority: 'low'
+			});
+		}
+
+		return null;
     }
 }
+
+/* eslint-enable @typescript-eslint/indent */

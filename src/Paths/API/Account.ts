@@ -19,60 +19,60 @@
  *
  */
 
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { Response } from 'express';
-import { Notification } from '../../Structures/Database/DBClass';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {Response} from 'express';
+import {Notification} from '../../Structures/Database/db-class';
+import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc View the authorized users account
  */
 class Account extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] View Account';
-        this.path = '/api/account';
-        this.reqAuth = true;
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] View Account';
+		this.path = '/api/account';
+		this.reqAuth = true;
 
-        this.type = 'get';
-    }
+		this.type = 'get';
+	}
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    async execute(req: any, res: Response): Promise<Response> {
-        // Check headers, and check auth
-        const auth = !req.cookies?.token ? await this.Utils.authPassword(req) : await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
-        if (!auth || typeof auth === 'string') {
-            return res.status(this.codes.unauth).send( { code: this.codes.unauth, message: 'Authorization failed.' } );
-        }
+	async execute(request: Request, response: Response): Promise<Response> {
+		// Check headers, and check auth
+		const auth = request.cookies?.token ? await this.Utils.authorization.verifyAccount(request.cookies.token as string | string[] | undefined, {web: true}) : await this.Utils.authPassword(request);
+		if (!auth || typeof auth === 'string') {
+			return response.status(this.codes.unauth).send({code: this.codes.unauth, message: 'Authorization failed.'});
+		}
 
-        // Return a nice version of this users account.
-        const acc: {
-            username: string;
-            userID: string;
-            admin: boolean;
-            owner: boolean;
-            files: number;
-            links: number;
-            customUrls?: string[];
-            email: string;
-            pendingEmail?: string;
-            notifications: Notification[];
-            created: number;
-        } = {
-            username: auth.username,
-            userID: auth.userID,
-            admin: !!auth.admin,
-            owner: !!auth.first,
-            files: auth.files,
-            links: auth.links,
-            email: auth.email,
-            pendingEmail: auth.pendingEmail,
-            notifications: auth.notifs,
-            customUrls: auth.cURLs,
-            created: Math.round(auth.created.getTime() / 1000),
-        };
-        return res.status(this.codes.ok).json( { message: acc, code: this.codes.ok } );
-    }
+		// Return a nice version of this users account.
+		const acc: {
+			username: string;
+			userID: string;
+			admin: boolean;
+			owner: boolean;
+			files: number;
+			links: number;
+			customUrls?: string[];
+			email: string;
+			pendingEmail?: string;
+			notifications: Notification[];
+			created: number;
+		} = {
+			username: auth.username,
+			userID: auth.userID,
+			admin: Boolean(auth.admin),
+			owner: Boolean(auth.first),
+			files: auth.files,
+			links: auth.links,
+			email: auth.email,
+			pendingEmail: auth.pendingEmail,
+			notifications: auth.notifs,
+			customUrls: auth.cURLs,
+			created: Math.round(auth.created.getTime() / 1000)
+		};
+		return response.status(this.codes.ok).json({message: acc, code: this.codes.ok});
+	}
 }
 
 export default Account;

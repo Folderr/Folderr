@@ -19,34 +19,37 @@
  *
  */
 
-import Path from '../Structures/Path';
-import Core from '../Structures/Core';
-import { Response } from 'express';
-import { Request } from '../Structures/Interfaces/ExpressExtended';
-import { join } from 'path';
+import Path from '../Structures/path';
+import Core from '../Structures/core';
+import {Response} from 'express';
+import {Request} from '../Structures/Interfaces/express-extended';
+import {join} from 'path';
 
 class Account extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = 'Account';
-        this.path = '/account';
-        this.enabled = false;
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = 'Account';
+		this.path = '/account';
+		this.enabled = false;
+	}
 
-    /**
+	/**
      * @desc Account page only shows if you are signed in.
      */
-    async execute(req: Request, res: Response): Promise<Response | void> {
-        if (!req.uauth) {
-            return res.redirect('./');
-        }
-        if (!req.secure && !this.Utils.verifyInsecureCookies(req) ) {
-            return res.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure_loggedIn.html') );
-        }
+	async execute(request: Request, response: Response): Promise<Response | void> {
+		if (!request.uauth) {
+			response.redirect('./');
+			return;
+		}
 
-        const dir = join(__dirname, '../Frontend/account.html');
-        return res.sendFile(dir);
-    }
+		if (!request.secure && !this.Utils.verifyInsecureCookies(request)) {
+			response.status(this.codes.notAccepted).sendFile(join(__dirname, '../Frontend/insecure_loggedIn.html'));
+			return;
+		}
+
+		const dir = join(__dirname, '../Frontend/account.html');
+		response.sendFile(dir);
+	}
 }
 
 export default Account;

@@ -19,48 +19,50 @@
  *
  */
 
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { Response } from 'express';
-import { Request } from '../../Structures/Interfaces/ExpressExtended';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {Response} from 'express';
+import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc SHorten links endpoint
  */
 class Shorten extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Shorten';
-        this.path = '/api/link';
-        this.type = 'post';
-        this.reqAuth = true;
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Shorten';
+		this.path = '/api/link';
+		this.type = 'post';
+		this.reqAuth = true;
+	}
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        const auth = await this.checkAuth(req);
-        if (!auth) {
-            return res.status(this.codes.unauth).json( { code: this.codes.unauth, message: 'Authorization failed.' } );
-        }
+	async execute(request: Request, response: Response): Promise<Response> {
+		const auth = await this.checkAuth(request);
+		if (!auth) {
+			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+		}
 
-        if (!req.body || !req.body.url) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.shortUrlMissing, message: 'BODY URL MISSING!' } );
-        }
-        if (typeof req.body.url !== 'string') {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.shortUrlInvalid, message: 'URL MUST BE STRING' } );
-        }
-        try {
-            await this.core.superagent.get(req.body.url);
-        } catch (err) {
-            if (err.code === 'ENOTFOUND') {
-                return res.status(this.codes.notFound).json( { code: this.Utils.FoldCodes.shortUrlNotFound, message: 'URL not found!' } );
-            }
-        }
+		if (!request.body || !request.body.url) {
+			return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.shortUrlMissing, message: 'BODY URL MISSING!'});
+		}
 
-        const ID = this.Utils.genID();
-        await Promise.all( [this.core.db.makeLink(ID, auth.userID, req.body.url), this.core.db.updateUser( { userID: auth.userID }, { $inc: { links: 1 } } )] );
+		if (typeof request.body.url !== 'string') {
+			return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.shortUrlInvalid, message: 'URL MUST BE STRING'});
+		}
 
-        return res.status(this.codes.ok).send(`${req.headers?.responseURL && typeof req.headers.responseURL === 'string' && auth.cURLs.includes(req.headers.responseURL) && await this.Utils.testMirrorURL(req.headers.responseURL) ? req.headers.responseURL : await this.Utils.determineHomeURL(req)}/l/${ID}`);
-    }
+		try {
+			await this.core.superagent.get(request.body.url); // eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
+		} catch (error: any) { // Force any
+			if (error.code === 'ENOTFOUND') {
+				return response.status(this.codes.notFound).json({code: this.Utils.FoldCodes.shortUrlNotFound, message: 'URL not found!'});
+			}
+		}
+
+		const ID = await this.Utils.genID();
+		await Promise.all([this.core.db.makeLink(ID, auth.userID, request.body.url), this.core.db.updateUser({userID: auth.userID}, {$inc: {links: 1}})]);
+
+		return response.status(this.codes.ok).send(`${request.headers?.responseURL && typeof request.headers.responseURL === 'string' && auth.cURLs.includes(request.headers.responseURL) && await this.Utils.testMirrorURL(request.headers.responseURL) ? request.headers.responseURL : await this.Utils.determineHomeURL(request)}/l/${ID}`);
+	}
 }
 
 export default Shorten;

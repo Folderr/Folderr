@@ -19,40 +19,43 @@
  *
  */
 
-import Path from '../Structures/Path';
-import Core from '../Structures/Core';
-import { Response, Request } from 'express';
+import Path from '../Structures/path';
+import Core from '../Structures/core';
+import {Response, Request} from 'express';
 
 /**
  * @classdesc Allow users to verify themselves
  */
 class Verify extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = 'Verify Self';
-        this.path = '/verify/:userid/:token';
-        this.enabled = this.core.emailer.active && this.core.config.signups === 2;
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = 'Verify Self';
+		this.path = '/verify/:userid/:token';
+		this.enabled = this.core.emailer.active && this.core.config.signups === 2;
+	}
 
-    async execute(req: Request, res: Response): Promise<Response> {
-        if (!req.params?.userid || !req.params?.token) {
-            return res.status(this.codes.badReq).json( { code: this.codes.badReq, message: 'Missing requirements!' } );
-        }
-        const verify = await this.Utils.findVerifying(req.params.token, req.params.userid);
-        if (!verify) {
-            return res.status(this.codes.badReq).json( { code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!' } );
-        }
-        const expiresAfter = 172800000; // 48H in MS
-        const timeSinceCreation = Date.now() - Number(verify.created);
-        if (timeSinceCreation >= expiresAfter) {
-            await this.core.db.denySelf(verify.userID);
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.userDenied, message: 'Validation time expired.' } );
-        }
-        await this.core.db.verifySelf(verify.userID);
+	async execute(request: Request, response: Response): Promise<Response> {
+		if (!request.params?.userid || !request.params?.token) {
+			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing requirements!'});
+		}
 
-        this.core.logger.info('User account verified by self');
-        return res.status(this.codes.created).json( { code: this.codes.ok, message: 'OK' } );
-    }
+		const verify = await this.Utils.findVerifying(request.params.token, request.params.userid);
+		if (!verify) {
+			return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!'});
+		}
+
+		const expiresAfter = 172800000; // 48H in MS
+		const timeSinceCreation = Date.now() - Number(verify.created);
+		if (timeSinceCreation >= expiresAfter) {
+			await this.core.db.denySelf(verify.userID);
+			return response.status(this.codes.notAccepted).json({code: this.Utils.FoldCodes.userDenied, message: 'Validation time expired.'});
+		}
+
+		await this.core.db.verifySelf(verify.userID);
+
+		this.core.logger.info('User account verified by self');
+		return response.status(this.codes.created).json({code: this.codes.ok, message: 'OK'});
+	}
 }
 
 export default Verify;

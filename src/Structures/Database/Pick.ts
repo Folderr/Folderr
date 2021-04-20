@@ -1,8 +1,6 @@
-import MongooseDB from './MongooseDB';
-import DBClass from './DBClass';
+import MongooseDB from './mongoose-db';
+import {DBClass} from './db-class';
 
 export function pickDB(): DBClass {
-    return new MongooseDB();
+	return new MongooseDB();
 }
-
-export default pickDB();

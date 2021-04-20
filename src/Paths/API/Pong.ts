@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 /**
  * @license
  *
@@ -19,44 +18,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
-import { Response } from 'express';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import {Request, Response} from 'express';
 import pkg from '../../../package.json';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// @ts-expect-error
 momentDurationFormatSetup(moment);
 
 /**
  * @classdesc Shows overall information
  */
 class Pong extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] Pong';
-        this.path = '/api/';
-        this.type = 'get';
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] Pong';
+		this.path = '/api/';
+		this.type = 'get';
+	}
 
-    /**
+	/**
      * @desc PONG! Just a simple response, no auth needed
      */
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    execute(req: any, res: Response): Promise<Response | void> {
-        const out: { message: { version: string; node_version: string; online_since: number; message: string }; code: number } = {
-            message: {
-                version: pkg.version,
-                node_version: process.version,
-                online_since: new Date(Date.now() - (process.uptime() * 1000) ).getTime(),
-                message: 'Pong!',
-            },
-            code: this.codes.ok,
-        };
-        return Promise.resolve(res.status(this.codes.ok).json(out) );
-    }
+	async execute(request: Request, response: Response): Promise<Response | void> {
+		const out: {message: {version: string; node_version: string; online_since: number; message: string}; code: number} = {
+			message: {
+				version: pkg.version,
+				node_version: process.version,
+				online_since: new Date(Date.now() - (process.uptime() * 1000)).getTime(),
+				message: 'Pong!'
+			},
+			code: this.codes.ok
+		};
+		return Promise.resolve(response.status(this.codes.ok).json(out));
+	}
 }
 
 export default Pong;

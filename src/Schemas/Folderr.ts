@@ -19,14 +19,14 @@
  *
  */
 
-import { Schema, model, Document } from 'mongoose';
+import {Schema, model, Document} from 'mongoose';
 
 export interface FolderrDB extends Document {
-    bans: string[];
+	bans: string[];
 }
 
-const Folderr: Schema = new Schema( {
-    bans: { type: Array, default: [], required: false },
-} );
+const Folderr: Schema = new Schema({
+	bans: {type: Array, default: [], required: false}
+});
 
 export default model<FolderrDB>('folderr', Folderr);

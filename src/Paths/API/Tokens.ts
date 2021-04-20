@@ -19,33 +19,33 @@
  *
  */
 
-import { Response, Request } from 'express';
-import Path from '../../Structures/Path';
-import Core from '../../Structures/Core';
+import {Response, Request} from 'express';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
 
 /**
  * @classdesc Fetchs users tokens information (actual token not stored by Folderr)
  */
 class Tokens extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = '[API] List Tokens';
-        this.path = '/api/account/tokens';
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = '[API] List Tokens';
+		this.path = '/api/account/tokens';
+	}
 
-    async execute(req: Request, res: Response): Promise<Response | void> {
-        const auth = req.cookies?.token ? await this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } ) : await this.Utils.authPassword(req);
-        if (!auth) {
-            return res.status(this.codes.unauth).json( { message: 'Authorization failed', code: this.codes.unauth } );
-        }
-        const tokens = await this.core.db.findTokens(auth.userID);
-        return res.status(this.codes.ok).json( {
-            code: this.codes.ok, message: tokens.filter(token => !token.web).map(token => {
-                // eslint-disable-next-line camelcase
-                return { created: Math.round(token.created.getTime() / 1000), id: token.id, for_user: token.userID };
-            } ),
-        } );
-    }
+	async execute(request: Request, response: Response): Promise<Response | void> {
+		const auth = request.cookies?.token ? await this.Utils.authorization.verifyAccount(request.cookies.token, {web: true}) : await this.Utils.authPassword(request);
+		if (!auth) {
+			return response.status(this.codes.unauth).json({message: 'Authorization failed', code: this.codes.unauth});
+		}
+
+		const tokens = await this.core.db.findTokens(auth.userID);
+		return response.status(this.codes.ok).json({
+			code: this.codes.ok, message: tokens.filter(token => !token.web).map(token => {
+				return {created: Math.round(token.created.getTime() / 1000), id: token.id, for_user: token.userID};
+			})
+		});
+	}
 }
 
 export default Tokens;

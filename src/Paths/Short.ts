@@ -18,39 +18,44 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import { Request, Response } from 'express';
-import Path from '../Structures/Path';
-import Core from '../Structures/Core';
-import { join } from 'path';
+import {Request, Response} from 'express';
+import Path from '../Structures/path';
+import Core from '../Structures/core';
+import {join} from 'path';
 
 /**
  * @class Allow users to access shortened links
  */
 class Short extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = 'Link';
-        this.path = ['/link/:id', '/l/:id'];
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = 'Link';
+		this.path = ['/link/:id', '/l/:id'];
+	}
 
-    /**
+	/**
      * @desc Sends a user to a shortened link.
      */
-    async execute(req: Request, res: Response): Promise<Response|void> {
-        if (!req.params || !req.params.id) {
-            return res.status(this.codes.badReq).send('[ERROR] Missing short ID.');
-        }
-        const short = await this.core.db.findLink( { ID: req.params.id }, 'link owner');
-        if (!short) {
-            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
-        }
-        const owner = this.core.db.findUser( { userID: short.owner } );
-        if (!owner) {
-            this.core.addDeleter(short.owner);
-            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
-        }
-        return res.redirect(short.link.trim() );
-    }
+	async execute(request: Request, response: Response): Promise<Response|void> {
+		if (!request.params || !request.params.id) {
+			return response.status(this.codes.badReq).send('[ERROR] Missing short ID.');
+		}
+
+		const short = await this.core.db.findLink({ID: request.params.id}, 'link owner');
+		if (!short) {
+			response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+			return;
+		}
+
+		const owner = await this.core.db.findUser({userID: short.owner});
+		if (!owner) {
+			this.core.addDeleter(short.owner);
+			response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+			return;
+		}
+
+		response.redirect(short.link.trim());
+	}
 }
 
 export default Short;

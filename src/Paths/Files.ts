@@ -19,67 +19,74 @@
  *
  */
 
-import Path from '../Structures/Path';
-import Core from '../Structures/Core';
-import { Request, Response } from 'express';
+import Path from '../Structures/path';
+import Core from '../Structures/core';
+import {Request, Response} from 'express';
 import mime from 'mime-types';
-import { join } from 'path';
+import {join} from 'path';
 
 /**
  * @classdesc Allow files to be accessed over the web
  */
 class Files extends Path {
-    constructor(core: Core) {
-        super(core);
-        this.label = 'Files ID';
-        this.path = ['/file/:id', '/f/:id'];
-    }
+	constructor(core: Core) {
+		super(core);
+		this.label = 'Files ID';
+		this.path = ['/file/:id', '/f/:id'];
+	}
 
-    /**
+	/**
      * @desc Display an image to the user, or the 404 page if image doesn't exist.
      */
-    async execute(req: Request, res: Response): Promise<Response | void> {
-        if (!req.params || !req.params.id) {
-            return res.status(this.codes.badReq).send('[ERROR] Missing file ID.');
-        }
-        if (!req.params.id.match('.') ) {
-            return res.status(this.codes.badReq).send('Missing file extension!');
-        }
-        const parts = req.params.id.split('.');
-        if (!parts[1] ) {
-            return res.status(this.codes.badReq).send('Missing file extension!');
-        }
-        const image = await this.core.db.findFile( { ID: parts[0] }, 'path type owner');
-        if (image) {
-            const owner = await this.core.db.findUser( { uID: image.owner } );
-            if (!owner) {
-                this.core.addDeleter(image.owner);
-                return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
-            }
-        }
-        if (!image || (image && image.type && image.type !== 'file') ) {
-            return res.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html') );
-        }
-        let content = mime.contentType(image.path);
-        const arr = image.path.split('.');
-        if (arr[arr.length - 1] !== parts[1] ) {
-            return res.status(this.codes.internalErr);
-        }
-        if (!content) {
-            return res.status(this.codes.notFound).send('File type not found!');
-        }
-        if (!arr[arr.length - 1].includes('html') ) {
-            if (content !== image.path) {
-                res.setHeader('Content-Type', content);
-            } else {
-                content = `text/${arr[arr.length - 1].toLowerCase()}`;
-                res.setHeader('Content-Type', content);
-            }
-        }
+	async execute(request: Request, response: Response): Promise<Response | void> {
+		if (!request.params || !request.params.id) {
+			return response.status(this.codes.badReq).send('[ERROR] Missing file ID.');
+		}
 
+		if (!request.params.id.includes('.')) {
+			return response.status(this.codes.badReq).send('Missing file extension!');
+		}
 
-        return res.sendFile(image.path);
-    }
+		const parts = request.params.id.split('.');
+		if (!parts[1]) {
+			return response.status(this.codes.badReq).send('Missing file extension!');
+		}
+
+		const image = await this.core.db.findFile({ID: parts[0]}, 'path type owner');
+		if (image) {
+			const owner = await this.core.db.findUser({uID: image.owner});
+			if (!owner) {
+				this.core.addDeleter(image.owner);
+				response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+				return;
+			}
+		}
+
+		if (!image || (image?.type && image.type !== 'file')) {
+			response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+			return;
+		}
+
+		let content = mime.contentType(image.path);
+		const array = image.path.split('.');
+		if (array[array.length - 1] !== parts[1]) {
+			return response.status(this.codes.internalErr);
+		}
+
+		if (!content) {
+			return response.status(this.codes.notFound).send('File type not found!');
+		}
+
+		if (!array[array.length - 1].includes('html')) {
+			if (content === image.path) {
+				content = `text/${array[array.length - 1].toLowerCase()}`;
+			}
+
+			response.setHeader('Content-Type', content);
+		}
+
+		response.sendFile(image.path);
+	}
 }
 
 export default Files;

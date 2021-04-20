@@ -19,13 +19,14 @@
  *
  */
 
-import codes, { Codes } from './Utilities/Status_Codes';
-import ErrorHandler from './ErrorHandler';
-import Core from './Core';
+import codes, {Codes} from './Utilities/status-codes';
+import ErrorHandler from './error-handler';
+import Core from './core';
 import express from 'express';
-import { join } from 'path';
-import { Request } from './Interfaces/ExpressExtended';
-import { User } from './Database/DBClass';
+import {join} from 'path';
+import {Request} from './Interfaces/express-extended';
+import {User} from './Database/db-class';
+import uuid from 'uuid-random';
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -33,33 +34,33 @@ import { User } from './Database/DBClass';
  * @author VoidNulll
  */
 class Path {
-    public label: string;
+	public label: string;
 
-    public path: string[] | string;
+	public path: string[] | string;
 
-    public type: string;
+	public type: string;
 
-    public enabled?: boolean;
+	public enabled?: boolean;
 
-    public secureOnly?: boolean;
+	public secureOnly?: boolean;
 
-    public lean?: boolean;
+	public lean?: boolean;
 
-    public reqAuth?: boolean;
+	public reqAuth?: boolean;
 
-    public codes: Codes;
+	public codes: Codes;
 
-    public readonly core: Core
+	public readonly core: Core;
 
-    public Utils: Core['Utils'];
+	public Utils: Core['Utils'];
 
-    private eHandler: ErrorHandler;
+	public locked: boolean;
 
-    private _fatalErrors: number;
+	private readonly eHandler: ErrorHandler;
 
-    public locked: boolean;
+	private _fatalErrors: number;
 
-    /**
+	/**
      *
      * @param {Core} core The core of the project
      *
@@ -75,139 +76,233 @@ class Path {
      * @prop {Object} eHandler The error handler for this path.
      * @prop {Number} _fatalErrors=0 Private. The amount of fatal errors this path has encountered.
      */
-    constructor(core: Core) {
-        this.label = 'label'; // Label for the path.
-        this.path = ''; // The path to server for
-        this.type = 'get'; // What type of request it needs
-        this.enabled = true;
-        this.lean = false;
-        this.secureOnly = false;
+	constructor(core: Core) {
+		this.label = 'label'; // Label for the path.
+		this.path = ''; // The path to server for
+		this.type = 'get'; // What type of request it needs
+		this.enabled = true;
+		this.lean = false;
+		this.secureOnly = false;
 
-        this.codes = codes;
-        this.core = core;
-        this.Utils = this.core.Utils;
+		this.codes = codes;
+		this.core = core;
+		this.Utils = this.core.Utils;
 
-        this.eHandler = new ErrorHandler(this);
-        this._fatalErrors = 0;
-        this.locked = false;
-    }
+		this.eHandler = new ErrorHandler(this);
+		this._fatalErrors = 0;
+		this.locked = false;
+	}
 
-    /**
+	/**
      * Just toString the path, lol.
      * @returns {string}
      */
-    toString(): string {
-        return `[Path ${this.path}]`;
-    }
+	toString(): string {
+		return `[Path ${typeof this.path === 'string' ? this.path : this.path[0]}]`;
+	}
 
-    /* eslint-disable */
-    /**
+	/**
      * @desc Actual endpoint execution
      * @async
      * @abstract
      *
-     * @param {Object} req The request object
-     * @param {Object} res Some object used for sending data back
+     * @param {Object} request The request object
+     * @param {Object} response Some object used for sending data back
      */
-    execute(req: any, res: any): Promise<express.Response | void> {
-        throw Error('Not implemented!');
-    }
-    /* eslint-enable */
+	async execute(request: any, response: any): Promise<express.Response | void> {
+		throw new Error('Not implemented!');
+	}
 
-    /**
+	async checkAuth(request: Request | express.Request): Promise<User | void> {
+		if (request.headers.authorization && typeof request.headers.authorization === 'string') {
+			return this.Utils.authorization.verifyAccount(request.headers.authorization);
+		}
+
+		if (request.cookies?.token && typeof request.cookies.token === 'string') {
+			return this.Utils.authorization.verifyAccount(request.cookies.token, {web: true});
+		}
+	}
+
+	async checkAuthAdmin(request: Request | express.Request): Promise<User | void> {
+		if (request.headers.authorization && typeof request.headers.authorization === 'string') {
+			return this.Utils.authorization.verifyAccount(request.headers.authorization, {fn: user => Boolean(user.admin)});
+		}
+
+		if (request.cookies?.token && typeof request.cookies.token === 'string') {
+			return this.Utils.authorization.verifyAccount(request.cookies.token, {fn: user => Boolean(user.admin), web: true});
+		}
+	}
+
+	generatePageQuery(request: Request, owner: string):
+	{
+		httpCode: number;
+		json: Record<string, string|number>;
+		errored: boolean;
+	}
+	|
+	{
+		query: {
+			$gt?: {created: Date};
+			$lt?: {created: Date};
+			owner: string;
+		};
+		options: {
+			sort?: Record<string, unknown>;
+			limit?: number;
+		};
+		errored: boolean;
+	} {
+		const query: {
+			$gt?: {created: Date};
+			$lt?: {created: Date};
+			owner: string;
+		} = {owner};
+		const options: {
+			sort?: Record<string, unknown>;
+			limit?: number;
+		} = request.query?.gallery ? {sort: {created: -1}} : {};
+		const limits = {
+			max: 20,
+			middle: 15,
+			min: 10
+		};
+		let limit = request.query?.limit as string | number | undefined;
+		if (typeof limit === 'string') {
+			try {
+				limit = Number(limit);
+			} catch (error: unknown) {
+				if (error instanceof Error) {
+					if (process.env.DEBUG === 'true') {
+						this.core.logger.log('debug', error.message);
+					}
+
+					return {httpCode: this.codes.notAccepted, json: {code: this.Utils.FoldCodes.unkownError, message: 'An unknown error has occured!'}, errored: true};
+				}
+			}
+		}
+
+		if (request.query?.gallery && limit && typeof limit === 'number') {
+			if (limit >= limits.max) {
+				options.limit = limits.max;
+			} else if (limit >= limits.middle) {
+				options.limit = limits.max;
+			} else if (limit >= limits.min && limit < limits.middle) {
+				options.limit = limits.min;
+			} else if (limit <= limits.min) {
+				options.limit = limits.min;
+			} else {
+				options.limit = limits.min;
+			}
+		} else {
+			options.limit = 20;
+		}
+
+		if (request.query?.before) {
+			if (request.query.before instanceof Date) {
+				query.$lt = {created: request.query.before};
+			} else if (typeof request.query.before === 'number') {
+				query.$lt = {created: new Date(request.query.before)};
+			}
+		}
+
+		if (request.query?.after) {
+			if (request.query.after instanceof Date) {
+				query.$gt = {created: request.query.after};
+			} else if (typeof request.query.after === 'number') {
+				query.$gt = {created: new Date(request.query.after)};
+			}
+		}
+
+		return {query, options, errored: false};
+	}
+
+	/**
+     * Handle rate limits, unhandled errors, execute actual endpoint
+     *
+     * @param {object} req The request object
+     * @param {object} response Some object used for sending data back
+     * @returns {express.Response|void}
+     * @private
+     */
+	async _execute(request: any, response: express.Response): Promise<express.Response | void> {
+		// If path is not enabled, and it is not lean... end the endpoint here
+		if (this.locked && !this.lean) {
+			if (!request.path.match('/api')) {
+				response.status(this.codes.locked).sendFile(join(__dirname, '../Frontend/locked.html'));
+				return;
+			}
+
+			return response.status(this.codes.locked).json({code: this.Utils.FoldCodes.locked, message: 'Endpoint locked!'});
+		}
+
+		if (this.secureOnly && !request.secure) {
+			return response.status(this.codes.notAccepted).json({code: this.Utils.FoldCodes.securityError, message: 'Endpoint needs to be secure!'});
+		}
+
+		// Execute the endpoint and catch errors
+
+		const id = uuid();
+		this.core.addRequestID(id);
+		try {
+			const request_ = await this.execute(request, response);
+			this.core.removeRequestID(id);
+			return request_;
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				return this._handleError(error, response, id);
+			}
+		}
+	}
+
+	/**
      * @desc Handle uncaught errors.
      *
      * @param {Object<Error>} err The error that occurred
-     * @param {Object<express.Response>} res Express response that is with the error
+     * @param {Object<express.Response>} response Express response that is with the error
      * @param {Object} [options]
      * @param {Boolean} [options.noIncrease] Whether or not to increase the fatal errors
      * @param {Boolean} [options.noResponse] Whether or not to send a response to the res.
      *
      * @returns {Object<express.Response>|Boolean}
-     * @private
-     */
-    protected _handleError(err: Error, res: express.Response, options?: { noIncrease: boolean; noResponse: boolean } ): express.Response|void {
-        const ops = options || { noIncrease: false, noResponse: false };
-        let severity;
-        const e = err.message;
-        if (!e.startsWith('[ERROR]') && !ops.noIncrease) {
-            if (this._fatalErrors > 2) {
-                severity = 'fatal';
-            } else {
-                this._fatalErrors++;
-                severity = '[fatal]';
-            }
-        }
-        // Parse error and log the error
-        const handled = this.eHandler.handlePathError(err, severity);
-        const formattedMessage = `[INTERNAL ERROR] [PATH ${this.label}] ${handled.message}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file.slice(1).replace(/\)$/, '')}\n  Severity: ${handled.severity}`;
-        console.log(formattedMessage);
-        const out = err.stack ? err.stack.replace(/\n/g, '<br>') : formattedMessage.replace(/\n/g, '<br>');
-        if (ops.noResponse) {
-            return;
-        }
-        // eslint-disable-next-line consistent-return
-        res.status(this.codes.internalErr).send(out);
-        throw new Error(err.message);
-    }
+     * @protected
+    */
+	protected _handleError(error: Error, response: express.Response, uuid?: string, options?: {noIncrease: boolean; noResponse: boolean}): express.Response|void {
+		const ops = options ?? {noIncrease: false, noResponse: false};
+		let severity;
+		const error_ = error.message;
+		if (!error_.startsWith('[ERROR]') && !ops.noIncrease) {
+			if (this._fatalErrors > 2) {
+				severity = 'fatal';
+			} else {
+				this._fatalErrors++;
+				severity = '[fatal]';
+			}
+		}
 
-    async checkAuth(req: Request | express.Request): Promise<User | void | undefined> {
-        if (req.headers.authorization && typeof req.headers.authorization === 'string') {
-            return this.Utils.authorization.verifyAccount(req.headers.authorization);
-        }
-        if (req.cookies && req.cookies.token && typeof req.cookies.token === 'string') {
-            return this.Utils.authorization.verifyAccount(req.cookies.token, { web: true } );
-        }
-        // IT DOESN'T EXPECT A RETURN VALUE
-        // eslint-disable-next-line consistent-return
-        return undefined;
-    }
+		// Parse error and log the error
+		const handled = this.eHandler.handlePathError(error, severity);
+		const formattedMessage = `[PATH ${this.label}] ${handled.message}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file.slice(1).replace(/\)$/, '')}\n  Severity: ${handled.severity ?? 'undefined'}`;
+		this.core.logger.log('fatal', formattedMessage);
+		const out = error.stack ? error.stack.replace(/\n/g, '<br>') : formattedMessage.replace(/\n/g, '<br>');
+		if (ops.noResponse) {
+			if (uuid) {
+				this.core.removeRequestID(uuid);
+			}
 
-    async checkAuthAdmin(req: Request | express.Request): Promise<User | void | undefined> {
-        if (req.headers.authorization && typeof req.headers.authorization === 'string') {
-            return this.Utils.authorization.verifyAccount(req.headers.authorization, { fn: (user) => !!user.admin } );
-        }
-        if (req.cookies && req.cookies.token && typeof req.cookies.token === 'string') {
-            return this.Utils.authorization.verifyAccount(req.cookies.token, { fn: (user) => !!user.admin, web: true } );
-        }
-        // IT DOESN'T EXPECT A RETURN VALUE
-        // eslint-disable-next-line consistent-return
-        return undefined;
-    }
+			return;
+		}
 
-    /**
-     * Handle rate limits, unhandled errors, execute actual endpoint
-     *
-     * @param {object} req The request object
-     * @param {object} res Some object used for sending data back
-     * @returns {express.Response|void}
-     * @private
-     */
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    async _execute(req: any, res: express.Response): Promise<express.Response | void> { // TypeScript, I know.
-        // While =this shouldn't be done it has to as for some reason Request.path or Request.secure are not in ExpressJS's
-        // typings and I do not see why.
+		response.status(this.codes.internalErr).send(out);
+		if (uuid) {
+			this.core.removeRequestID(uuid);
+		}
 
-        // If path is not enabled, and it is not lean... end the endpoint here
-        if (this.locked && !this.lean) {
-            if (!req.path.match('/api') ) {
-                return res.status(this.codes.locked).sendFile(join(__dirname, '../Frontend/locked.html') );
-            }
-            return res.status(this.codes.locked).json( { code: this.Utils.FoldCodes.locked, message: 'Endpoint locked!' } );
-        }
+		throw new Error(error.message);
+	}
 
-        if (this.secureOnly && !req.secure) {
-            return res.status(this.codes.notAccepted).json( { code: this.Utils.FoldCodes.securityError, message: 'Endpoint needs to be secure!' } );
-        }
-
-        // Execute the endpoint and catch errors
-
-        try {
-            return await this.execute(req, res);
-        } catch (err) {
-            return this._handleError(err, res);
-        }
-    }
+	protected addFatalError(): void {
+		this._fatalErrors++;
+	}
 }
 
 export default Path;
