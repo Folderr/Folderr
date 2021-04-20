@@ -11,4 +11,4 @@ jwtConfig: # this is required
   # key: # Add https private key here
   # cert: # Add https cert here
   # ca: # No idea, def optional
-  # requestCert: # No idea, def optional
+  # requestCert: # Request the certificate from the end user. Not recommended to use but w/e
