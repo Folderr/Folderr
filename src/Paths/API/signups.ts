@@ -50,55 +50,137 @@ class Signup extends Path {
 
 	// NoEmail means there is no email server set up
 	// userInfo: { username: string; userID: string; password: string; email: string }
-	async noEmail(userInfo: {username: string; userID: string; password: string; email: string}, validationToken: {hash: string; token: string}, response: Response): Promise<{httpCode: number; msg: {code: number; message: string}}> {
+	async noEmail(
+		userInfo: {
+			username: string;
+			userID: string;
+			password: string;
+			email: string;
+		},
+		validationToken: {
+			hash: string;
+			token: string;
+		},
+		response: Response
+	): Promise<{httpCode: number; msg: {code: number; message: string}}> {
 		// Find admin notifications, and generate an ID
 		const notifyID = await this.Utils.genNotifyID();
 		// Make a new notification and save to database
 		try {
-			await Promise.all([this.core.db.makeVerify(userInfo, validationToken.hash), this.core.db.makeAdminNotify(notifyID, `Username: ${userInfo.username}\nUser ID: ${userInfo.userID}\nValidation Token: ${validationToken.token}`, 'New user signup!')]);
+			await Promise.all([
+				this.core.db.makeVerify(userInfo, validationToken.hash),
+				this.core.db.makeAdminNotify(
+					notifyID,
+					`Username: ${userInfo.username}\n` +
+					`User ID: ${userInfo.userID}\n` +
+					`Validation Token: ${validationToken.token}`,
+					'New user signup!'
+				)
+			]);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				this._handleError(error, response, undefined, {noResponse: true, noIncrease: false});
+				this.handleError(error, response, undefined, {noResponse: true, noIncrease: false});
 			}
 
-			return {httpCode: this.codes.internalErr, msg: {code: this.Utils.FoldCodes.unkownError, message: 'An internal error occurred while signing up!'}};
+			return {
+				httpCode: this.codes.internalErr,
+				msg: {
+					code: this.Utils.FoldCodes.unkownError,
+					message: 'An internal error occurred while signing up!'
+				}
+			};
 		}
 
 		// Notify the console, and the user that the admins have been notified.
-		this.core.logger.info(`New user (${userInfo.username} - ${userInfo.userID})signed up to Folderr`);
+		this.core.logger.info(
+			`New user (${userInfo.username} - ${userInfo.userID})signed up to Folderr`
+		);
 		return {httpCode: this.codes.created, msg: {code: this.codes.created, message: 'OK'}};
 	}
 
-	async email(userInfo: {username: string; userID: string; password: string; email: string}, validationToken: {hash: string; token: string}, request: Request, response: Response): Promise<{httpCode: number; msg: {message: string; code: number}}> {
+	async email(
+		userInfo: {
+			username: string;
+			userID: string;
+			password: string;
+			email: string;
+		},
+		validationToken: {
+			hash: string;
+			token: string;
+		},
+		request: Request,
+		response: Response
+	): Promise<{
+			httpCode: number;
+			msg: {
+				message: string;
+				code: number;
+			};
+		}> {
 		let url = await this.Utils.determineHomeURL(request);
 		if (!/http(s)?:\/\//.test(url)) {
 			url = `http://${url}`;
 		}
 
 		try {
-			await this.core.emailer.verifyEmail(this.Utils.decrypt(userInfo.email), `${url}/verify/${userInfo.userID}/${validationToken.token}`, userInfo.username);
+			await this.core.emailer.verifyEmail(
+				this.Utils.decrypt(userInfo.email),
+				`${url}/verify/${userInfo.userID}/${validationToken.token}`,
+				userInfo.username
+			);
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				this._handleError(error, response, undefined, {noResponse: true, noIncrease: false});
+				this.handleError(error, response, undefined, {noResponse: true, noIncrease: false});
 			}
 
-			return {httpCode: this.codes.internalErr, msg: {code: this.Utils.FoldCodes.unkownError, message: 'An internal error occurred while signing up!'}};
+			return {
+				httpCode: this.codes.internalErr,
+				msg: {
+					code: this.Utils.FoldCodes.unkownError,
+					message: 'An internal error occurred while signing up!'
+				}
+			};
 		}
 
-		this.core.logger.info(`New user (${userInfo.username} - ${userInfo.userID}) signed up to Folderr`);
-		return {httpCode: this.codes.created, msg: {code: this.Utils.FoldCodes.emailSent, message: 'OK'}};
+		this.core.logger.info(
+			`New user (${userInfo.username} - ${userInfo.userID}) signed up to Folderr`
+		);
+		return {
+			httpCode: this.codes.created,
+			msg: {
+				code: this.Utils.FoldCodes.emailSent,
+				message: 'OK'
+			}
+		};
 	}
 
 	async execute(request: Request, response: Response): Promise<Response> {
 		// If signups are closed, state that and do not allow them through
 		if (!this.core.config.signups) {
-			return response.status(this.codes.locked).json({code: this.codes.locked, message: 'Signup\'s are closed.'});
+			return response.status(this.codes.locked).json({
+				code: this.codes.locked,
+				message: 'Signup\'s are closed.'
+			});
 		}
 
 		// Check all required body is there
-		if (!request.body || (request.body && (!request.body.username || !request.body.password || !request.body.email))) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'MISSING DETAIL(S)'});
+		if (
+			!request.body ||
+			(
+				request.body &&
+				(
+					!request.body.username ||
+					!request.body.password ||
+					!request.body.email
+				)
+			)
+		) {
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'MISSING DETAIL(S)'
+			});
 		}
 
 		// Fetch the username and password from the body
@@ -112,13 +194,20 @@ class Signup extends Path {
 		let pswd;
 		try {
 			pswd = await this.Utils.hashPass(password);
-		} catch (error: unknown) { // Errors shouldnt happen here, so notify the console.. Also notify the user
+		} catch (error: unknown) {
+			// Errors shouldnt happen here, so notify the console.. Also notify the user
 			if (error instanceof Error) {
 				wlogger.error(`[SIGNUP -  Create password] - ${error.message}`);
-				return response.status(this.codes.internalErr).json({code: this.codes.internalErr, message: `${error.message}`});
+				return response.status(this.codes.internalErr).json({
+					code: this.codes.internalErr,
+					message: `${error.message}`
+				});
 			}
 
-			return response.status(this.codes.internalErr).json({code: this.codes.internalErr, message: 'An unknown error occured!'});
+			return response.status(this.codes.internalErr).json({
+				code: this.codes.internalErr,
+				message: 'An unknown error occured!'
+			});
 		}
 
 		// Generate the user ID and validation token.
@@ -128,7 +217,19 @@ class Signup extends Path {
 		// Add the user to the VerifyingUser database and save
 
 		// Find admin notifications, and generate an ID
-		const r = this.core.emailer.active && this.core.config.signups === 2 ? await this.email({username, userID: uID, password: pswd, email}, validationToken, request, response) : await this.noEmail({username, userID: uID, password: pswd, email}, validationToken, response);
+		const r = this.core.emailer.active && this.core.config.signups === 2 ?
+			await this.email({
+				username,
+				userID: uID,
+				password: pswd,
+				email
+			}, validationToken, request, response) :
+			await this.noEmail({
+				username,
+				userID: uID,
+				password: pswd,
+				email
+			}, validationToken, response);
 		return response.status(r.httpCode).json(r.msg);
 	}
 
@@ -144,38 +245,82 @@ class Signup extends Path {
 		const uMatch = this.core.regexs.username.exec(username);
 		// If the username length does not match criteria
 		if (username.length > maxUsername || username.length < minUsername) {
-			return {httpCode: this.codes.badReq, response: {code: this.Utils.FoldCodes.usernameSizeLimit, message: 'Username must be between 3 and 12 characters!'}};
+			return {
+				httpCode: this.codes.badReq,
+				response: {
+					code: this.Utils.FoldCodes.usernameSizeLimit,
+					message: 'Username must be between 3 and 12 characters!'
+				}
+			};
 		}
 
-		if (!uMatch || (uMatch && username.length !== uMatch[0].length)) { // If the username doess not match our username pattern
-			return {httpCode: this.codes.badReq, response: {code: this.Utils.FoldCodes.illegalUsername, message: 'Username may only contain lowercase letters, numbers, and an underscore.'}};
+		// If the username doess not match our username pattern
+		if (!uMatch || (uMatch && username.length !== uMatch[0].length)) {
+			return {
+				httpCode: this.codes.badReq,
+				response: {
+					code: this.Utils.FoldCodes.illegalUsername,
+					message: 'Username may only contain lowercase letters, numbers, and an underscore.'
+				}
+			};
 		}
 
 		if (!this.core.emailer.validateEmail(email)) {
-			return {httpCode: this.codes.badReq, response: {code: this.Utils.FoldCodes.badEmail, message: 'Invalid email!'}};
+			return {
+				httpCode: this.codes.badReq,
+				response: {
+					code: this.Utils.FoldCodes.badEmail,
+					message: 'Invalid email!'
+				}
+			};
 		}
 
 		const bans = await this.core.db.fetchFolderr({});
 		if (bans.bans.includes(email)) {
-			return {httpCode: this.codes.forbidden, response: {code: this.Utils.FoldCodes.bannedEmail, message: 'Email banned'}};
+			return {
+				httpCode: this.codes.forbidden,
+				response: {
+					code: this.Utils.FoldCodes.bannedEmail,
+					message: 'Email banned'
+				}
+			};
 		}
 
-		// See if the username is already taken. If its taken error the request with a code of "IM USED"
-		const user = await this.core.db.findUser({$or: [{username}, {email}]}) ?? await this.core.db.findVerify({$or: [{username}, {email}]});
+		// See if the username is already taken. Fail if so.
+		const user = await this.core.db.findUser({$or: [{username}, {email}]}) ??
+			await this.core.db.findVerify({$or: [{username}, {email}]});
 		if (user) {
-			return {httpCode: this.codes.used, response: {code: this.Utils.FoldCodes.usernameOrEmailTaken, message: 'Username or email taken!'}};
+			return {
+				httpCode: this.codes.used,
+				response: {
+					code: this.Utils.FoldCodes.usernameOrEmailTaken,
+					message: 'Username or email taken!'
+				}
+			};
 		}
 
 		// If the password is not over min length
 		// If password does not match the regex completely
 		const match = this.core.regexs.password.exec(password);
 		if (!match || (match && match[0].length !== password.length)) {
-			return {httpCode: this.codes.badReq, response: {code: this.Utils.FoldCodes.passwordSize, message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.'}};
+			return {
+				httpCode: this.codes.badReq,
+				response: {
+					code: this.Utils.FoldCodes.passwordSize,
+					message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.'
+				}
+			};
 		}
 
 		// No NUL charater
 		if (password.includes('\0')) {
-			return {httpCode: this.codes.forbidden, response: {code: this.Utils.FoldCodes.illegalPassword, message: 'NUL character forbidden in passwords!'}};
+			return {
+				httpCode: this.codes.forbidden,
+				response: {
+					code: this.Utils.FoldCodes.illegalPassword,
+					message: 'NUL character forbidden in passwords!'
+				}
+			};
 		}
 
 		return true;

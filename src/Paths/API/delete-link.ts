@@ -41,17 +41,26 @@ class DeleteLink extends Path {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		// Check query
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).send({code: this.codes.badReq, message: 'MISSING ID!'});
+			return response.status(this.codes.badReq).send({
+				code: this.codes.badReq,
+				message: 'MISSING ID!'
+			});
 		}
 
 		const short = await this.core.db.purgeLink({ID: request.params.id, owner: auth.userID});
 		if (!short) {
-			return response.status(this.codes.notFound).send({code: this.Utils.FoldCodes.dbNotFound, message: 'Link not found!'});
+			return response.status(this.codes.notFound).send({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: 'Link not found!'
+			});
 		}
 
 		return response.status(this.codes.ok).send({code: this.codes.ok, message: 'OK'});

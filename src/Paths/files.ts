@@ -21,49 +21,53 @@
 
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Response} from 'express';
+import {Request, Response} from 'express';
 import mime from 'mime-types';
 import {join} from 'path';
 
 /**
- * @classdesc Allow users to access videos over the web
+ * @classdesc Allow files to be accessed over the web
  */
-class Videos extends Path {
+class Files extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Videos ID';
-		this.path = ['/videos/:id', '/v/:id'];
+		this.label = 'Files ID';
+		this.path = ['/file/:id', '/f/:id'];
 	}
 
 	/**
      * @desc Display an image to the user, or the 404 page if image doesn't exist.
      */
-	async execute(request: any, response: Response): Promise<Response | void> {
+	async execute(request: Request, response: Response): Promise<Response | void> {
 		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).send('[ERROR] Missing video ID.');
+			return response.status(this.codes.badReq).send('[ERROR] Missing file ID.');
 		}
 
-		if (!request.params.id.match('.')) {
+		if (!request.params.id.includes('.')) {
 			return response.status(this.codes.badReq).send('Missing file extension!');
 		}
 
 		const parts = request.params.id.split('.');
 		if (!parts[1]) {
-			return response.status(this.codes.internalErr).send('500 Internal Error');
+			return response.status(this.codes.badReq).send('Missing file extension!');
 		}
 
-		const image = await this.core.db.findFile({ID: parts[0]});
+		const image = await this.core.db.findFile({ID: parts[0]}, 'path type owner');
 		if (image) {
-			const owner = await this.core.db.findUser({userID: image.owner});
+			const owner = await this.core.db.findUser({uID: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+				response.status(this.codes.notFound).sendFile(
+					join(__dirname, '../Frontend/notfound.html')
+				);
 				return;
 			}
 		}
 
-		if (!image || (image?.type && image.type !== 'video')) {
-			response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+		if (!image || (image?.type && image.type !== 'file')) {
+			response.status(this.codes.notFound).sendFile(
+				join(__dirname, '../Frontend/notfound.html')
+			);
 			return;
 		}
 
@@ -74,17 +78,19 @@ class Videos extends Path {
 		}
 
 		if (!content) {
-			return response.status(this.codes.notFound).send('Video type not found!');
+			return response.status(this.codes.notFound).send('File type not found!');
 		}
 
-		if (content === image.path) {
-			content = `video/${array[array.length - 1].toLowerCase()}`;
-		}
+		if (!array[array.length - 1].includes('html')) {
+			if (content === image.path) {
+				content = `text/${array[array.length - 1].toLowerCase()}`;
+			}
 
-		response.setHeader('Content-Type', content);
+			response.setHeader('Content-Type', content);
+		}
 
 		response.sendFile(image.path);
 	}
 }
 
-export default Videos;
+export default Files;

@@ -40,28 +40,42 @@ class DenyAccount extends Path {
 		// Check auth by id/token
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		// Verify body
 		if (!request.body.token && !request.body.uid) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'BODY MISSING!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'BODY MISSING!'
+			});
 		}
 
 		if (!request.body.token || !request.body.uid) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'BODY INCOMPLETE!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'BODY INCOMPLETE!'
+			});
 		}
 
 		// Search for the user, and if not found send in an error
 		const user = await this.Utils.findVerifying(request.body.token, request.body.uid);
 		if (!user) {
-			return response.status(this.codes.notFound).json({code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!'});
+			return response.status(this.codes.notFound).json({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: 'User not found!'
+			});
 		}
 
 		// Deny the account & delete notification
 		await this.core.db.denyUser(user.userID);
-		// Log that the account was denied by admin x, and tell the admin the account wa denied
-		this.core.logger.info(`User account denied by administrator (${user.username} - ${user.userID})`);
+		// Log that the account was denied by admin x, and tell the admin the account was denied
+		this.core.logger.info(
+			`User account denied by administrator (${user.username} - ${user.userID})`
+		);
 		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
 	}
 }

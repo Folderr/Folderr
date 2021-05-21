@@ -37,22 +37,41 @@ class Lookup extends Path {
 	async execute(request: Request, response: Response): Promise<Response> {
 		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed'
+			});
 		}
 
-		if (!request.params?.type || !request.params?.id || !['file', 'link'].includes(request.params.type) || !/^[A-Za-z\d]+$/.test(request.params.id)) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing or invalid requirements'});
+		if (
+			!request.params?.type ||
+			!request.params?.id ||
+			!['file', 'link'].includes(request.params.type) ||
+			!/^[A-Za-z\d]+$/.test(request.params.id)
+		) {
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Missing or invalid requirements'
+			});
 		}
 
 		try {
-			const out = request.params.type === 'file' ? await this.core.db.findFile({ID: request.params.id}) : await this.core.db.findLink({ID: request.params.id});
+			const out = request.params.type === 'file' ?
+				await this.core.db.findFile({ID: request.params.id}) :
+				await this.core.db.findLink({ID: request.params.id});
 			if (!out) {
-				return response.status(this.codes.noContent).json({code: this.Utils.FoldCodes.dbNotFound, message: {}});
+				return response.status(this.codes.noContent).json({
+					code: this.Utils.FoldCodes.dbNotFound,
+					message: {}
+				});
 			}
 
 			return response.status(this.codes.ok).json({code: this.codes.ok, message: out});
 		} catch (error: unknown) {
-			return response.status(this.codes.internalErr).json({code: this.Utils.FoldCodes.dbError, message: `An error occurred!\n${(error as Error).message || error as string}`});
+			return response.status(this.codes.internalErr).json({
+				code: this.Utils.FoldCodes.dbError,
+				message: `An error occurred!\n${(error as Error).message || error as string}`
+			});
 		}
 	}
 }

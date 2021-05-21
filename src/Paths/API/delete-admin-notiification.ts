@@ -47,18 +47,27 @@ class DelANotify extends Path {
 
 		// In case they forgot the ID for the notification
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing notification ID'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Missing notification ID'
+			});
 		}
 
-		// Find the notification, and if it cant tell the user it  cannot find the notification with a code 404
+		// Find the notification or try to
 		const notify = await this.core.db.findAdminNotify({ID: request.params.id});
 		if (!notify) {
-			return response.status(this.codes.notFound).json({code: this.Utils.FoldCodes.dbNotFound, message: 'Notification not found!'});
+			return response.status(this.codes.notFound).json({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: 'Notification not found!'
+			});
 		}
 
 		// Signup notifications are invincible, at least to manually remove
 		if (notify.title === 'New user signup!') {
-			return response.status(this.codes.forbidden).json({code: this.codes.forbidden, message: 'Signup notifications cannot be removed!'});
+			return response.status(this.codes.forbidden).json({
+				code: this.codes.forbidden,
+				message: 'Signup notifications cannot be removed!'
+			});
 		}
 
 		// Remove the admin notification and tell the admin it was removed

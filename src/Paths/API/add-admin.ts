@@ -38,30 +38,60 @@ class AddAdmin extends Path {
 	async execute(request: Request, response: Response): Promise<Response> {
 		const auth = await this.Utils.authPassword(request, user => Boolean(user.first));
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		// You need to use the query to supply the users ID
 		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Users ID is required!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Users ID is required!'
+			});
 		}
 
 		const match = /^\d+$/.exec(request.params.id);
 		if (!match || match[0].length !== request.params.id.length) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'ID is not a valid Folderr ID!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'ID is not a valid Folderr ID!'
+			});
 		}
 
-		const user = await this.core.db.findAndUpdateUser({uID: request.params.id, $nor: [{admin: false}, {first: true}]}, {admin: true}, 'admin');
+		const user = await this.core.db.findAndUpdateUser(
+			{
+				uID: request.params.id,
+				$nor: [
+					{admin: false},
+					{first: true}
+				]
+			},
+			{admin: true},
+			'admin'
+		);
 		if (!user) {
-			return response.status(this.codes.notFound).json({message: 'User not found!', code: this.Utils.FoldCodes.dbNotFound});
+			return response.status(this.codes.notFound).json({
+				message: 'User not found!',
+				code: this.Utils.FoldCodes.dbNotFound
+			});
 		}
 
 		if (!user.admin) {
-			return response.status(this.codes.notAccepted).json({message: 'Update fail!', code: this.Utils.FoldCodes.dbUnkownError});
+			return response.status(this.codes.notAccepted).json({
+				message: 'Update fail!',
+				code: this.Utils.FoldCodes.dbUnkownError
+			});
 		}
 
+		const responsible = `${auth.username} (${auth.userID})`;
+		const userFormatted = `${user.username} (${user.userID})`;
+
 		user.admin = true;
-		this.core.logger.info(`Administrator privileges granted to user ${user.username} (${user.userID}) by ${auth.username} (${auth.username}).`);
+		this.core.logger.info(
+			`Administrator privileges granted to user ${userFormatted} by ${responsible}`
+		);
 		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
 	}
 }

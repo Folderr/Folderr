@@ -37,25 +37,57 @@ class LookupAccount extends Path {
 	async execute(request: Request, response: Response): Promise<Response> {
 		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed'
+			});
 		}
 
-		if (!request.params?.type || !request.params?.id || !['file', 'link'].includes(request.params.type) || !/^[\dA-Za-z]+$/.test(request.params.id)) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing or invalid requirements'});
+		if (
+			!request.params?.type ||
+			!request.params?.id ||
+			!['file', 'link'].includes(request.params.type) ||
+			!/^[\dA-Za-z]+$/.test(request.params.id)
+		) {
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Missing or invalid requirements'
+			});
 		}
 
-		const out = request.params.type === 'file' ? await this.core.db.findFile({ID: request.params.id}) : await this.core.db.findLink({ID: request.params.id});
+		const out = request.params.type === 'file' ?
+			await this.core.db.findFile({ID: request.params.id}) :
+			await this.core.db.findLink({ID: request.params.id});
 		if (!out) {
-			return response.status(this.codes.notAccepted).json({code: this.Utils.FoldCodes.dbNotFound, message: `${request.params.type[0].toUpperCase()}${request.params.type.slice(1)} not found!`});
+			const formattedType = request.params.type === 'file' ? 'File' : 'Link';
+			console.log(formattedType);
+			return response.status(this.codes.notAccepted).json({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: `${formattedType} not found!`
+			});
 		}
 
-		const user = await this.core.db.findUser({userID: out.owner}, 'userID username email created');
+		const user = await this.core.db.findUser(
+			{userID: out.owner},
+			'userID username email created'
+		);
 		if (!user) {
-			return response.status(this.codes.ok).json({code: this.codes.ok, message: {}});
+			return response.status(this.codes.ok).json({
+				code: this.codes.ok,
+				message: {}
+			});
 		}
 
 		user.email = this.Utils.decrypt(user.email);
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: {email: user.email, username: user.username, userID: user.userID, created: Number(user.created)}});
+		return response.status(this.codes.ok).json({
+			code: this.codes.ok,
+			message: {
+				email: user.email,
+				username: user.username,
+				userID: user.userID,
+				created: Number(user.created)
+			}
+		});
 	}
 }
 

@@ -18,33 +18,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../Structures/path';
-import Core from '../Structures/core';
-import {Response} from 'express';
-import {join} from 'path';
 
-class Logout extends Path {
-	constructor(core: Core) {
-		super(core);
-		this.label = 'logout';
-		this.path = '/logout';
-		this.enabled = !this.core.config.apiOnly;
-	}
+import {Schema, model, Document} from 'mongoose';
 
-	/**
-     * @desc Logs you out or displays the deleted account page
-     */
-	async execute(request: any, response: Response): Promise<Response | void> {
-		const dir = join(__dirname, '../Frontend/loggedout.html');
-		if (!request.uauth) {
-			response.redirect('/');
-			return;
-		}
-
-		await this.Utils.authorization.revoke(request.cookies.token, true);
-		response.clearCookie('token', {sameSite: 'strict'});
-		response.sendFile(dir);
-	}
+export interface FolderrDB extends Document {
+	bans: string[];
 }
 
-export default Logout;
+const Folderr: Schema = new Schema({
+	bans: {type: Array, default: [], required: false}
+});
+
+export default model<FolderrDB>('folderr', Folderr);

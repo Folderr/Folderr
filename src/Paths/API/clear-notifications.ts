@@ -39,7 +39,10 @@ class ClearNotifs extends Path {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		// Clear the notifications and tell the user that happened

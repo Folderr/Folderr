@@ -38,39 +38,32 @@ class Image extends Path {
 		this.reqAuth = true;
 	}
 
-	async _formidablePromise(request: Request): Promise<any> {
-		return new Promise((resolve, reject): formidable.File | void => {
-			const path = join(__dirname, '../../../Files/');
-			const form = new formidable.IncomingForm({uploadDir: path, multiples: false, keepExtensions: true, enabledPlugins: ['multipart']});
-
-			form.parse(request, (error: Error, fields: any, files: any) => {
-				if (error) {
-					reject(error);
-					return;
-				}
-
-				resolve(files);
-			});
-		});
-	}
-
 	async execute(request: Request, response: Response): Promise<Response|void> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		const name = await this.Utils.genID();
 		let file;
 		try {
-			file = await this._formidablePromise(request);
+			file = await this.formidablePromise(request);
 		} catch (error: unknown) {
-			response.status(this.codes.internalErr).json({code: this.Utils.FoldCodes.fileParserError, message: `Parser error!\n${(error as Error).message}`});
+			response.status(this.codes.internalErr).json({
+				code: this.Utils.FoldCodes.fileParserError,
+				message: `Parser error!\n${(error as Error).message}`
+			});
 			throw new Error((error as Error).message);
 		}
 
 		if (!file) {
-			return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.noFile, message: 'Files not parsed/found!'});
+			return response.status(this.codes.badReq).json({
+				code: this.Utils.FoldCodes.noFile,
+				message: 'Files not parsed/found!'
+			});
 		}
 
 		if (file.image) {
@@ -83,7 +76,10 @@ class Image extends Path {
 
 		if (!file.type) {
 			unlinkSync(file.path);
-			return response.status(this.codes.badReq).json({code: this.Utils.FoldCodes.fileMimeError, message: 'Invalid file!'});
+			return response.status(this.codes.badReq).json({
+				code: this.Utils.FoldCodes.fileMimeError,
+				message: 'Invalid file!'
+			});
 		}
 
 		let type = 'image';
@@ -93,20 +89,41 @@ class Image extends Path {
 			type = 'file';
 		}
 
-		if (file.type.includes('html') || file.type.includes('ecmascript' || 'javascript')) {
-			unlinkSync(file.path);
-			return response.status(this.codes.forbidden).json({code: this.Utils.FoldCodes.fileForbiddenMime, message: 'Forbidden MIME type.'});
-		}
-
 		let ext = file.path.split('.');
 		ext = ext[ext.length - 1];
-		if (/exe|sh|bat/.test(ext)) {
-			unlinkSync(file.image.path);
-			return response.status(this.codes.forbidden).json({code: this.Utils.FoldCodes.fileForbiddenMime, message: 'Forbidden MIME type.'});
-		}
 
-		await Promise.all([this.core.db.makeFile(name, auth.userID, file.path, type), this.core.db.updateUser({userID: auth.userID}, {$inc: {files: 1}})]);
-		return response.status(this.codes.ok).send(`${typeof request.headers?.responseURL === 'string' && auth.cURLs.includes(request.headers.responseURL) && await this.Utils.testMirrorURL(request.headers.responseURL!) ? request.headers.responseURL : await this.Utils.determineHomeURL(request)}/${type[0]}/${name}.${ext as string}`);
+		await Promise.all([
+			this.core.db.makeFile(name, auth.userID, file.path, type),
+			this.core.db.updateUser({userID: auth.userID}, {$inc: {files: 1}})
+		]);
+		return response.status(this.codes.ok).send(
+			`${typeof request.headers?.responseURL === 'string' &&
+			auth.cURLs.includes(request.headers.responseURL) &&
+			await this.Utils.testMirrorURL(request.headers.responseURL!) ?
+				request.headers.responseURL :
+				await this.Utils.determineHomeURL(request)}/${type[0]}/${name}.${ext as string}`
+		);
+	}
+
+	private async formidablePromise(request: Request): Promise<any> {
+		return new Promise((resolve, reject): formidable.File | void => {
+			const path = join(__dirname, '../../../Files/');
+			const form = new formidable.IncomingForm({
+				uploadDir: path,
+				multiples: false,
+				keepExtensions: true,
+				enabledPlugins: ['multipart']
+			});
+
+			form.parse(request, (error: Error, fields: any, files: any) => {
+				if (error) {
+					reject(error);
+					return;
+				}
+
+				resolve(files);
+			});
+		});
 	}
 }
 

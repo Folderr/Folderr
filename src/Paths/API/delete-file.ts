@@ -40,16 +40,25 @@ class DeleteFile extends Path {
 	async execute(request: Request, response: Response): Promise<Response | void> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing File ID!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Missing File ID!'
+			});
 		}
 
 		const File = await this.core.db.findFile({owner: auth.userID, ID: request.params.id});
 		if (!File) {
-			return response.status(this.codes.notFound).json({code: this.Utils.FoldCodes.dbNotFound, message: 'File not found!'});
+			return response.status(this.codes.notFound).json({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: 'File not found!'
+			});
 		}
 
 		await this.core.db.purgeFile({ID: File.ID, owner: auth.userID});

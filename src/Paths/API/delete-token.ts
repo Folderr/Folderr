@@ -35,21 +35,36 @@ class DeleteToken extends Path {
 	}
 
 	async execute(request: Request, response: Response): Promise<Response | void> {
-		const auth = request.cookies?.token ? await this.Utils.authorization.verifyAccount(request.cookies.token, {web: true}) : await this.Utils.authPassword(request);
+		const auth = request.cookies?.token ?
+			await this.Utils.authorization.verifyAccount(request.cookies.token, {web: true}) :
+			await this.Utils.authPassword(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({message: 'Authorization failed', code: this.codes.unauth});
+			return response.status(this.codes.unauth).json({
+				message: 'Authorization failed',
+				code: this.codes.unauth
+			});
 		}
 
 		if (!request.params?.id || /^\d+$/.test(request.params.id)) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing or invalid token ID!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Missing or invalid token ID!'
+			});
 		}
 
-		const del = await this.core.db.purgeToken(request.params.id, auth.userID, {web: Boolean(request.query?.web) || false});
+		const web = Boolean(request.query?.web) || false;
+		const del = await this.core.db.purgeToken(request.params.id, auth.userID, {web});
 		if (!del) {
-			return response.status(this.codes.notAccepted).json({code: this.codes.badReq, message: 'Token not deleted/found!'});
+			return response.status(this.codes.notAccepted).json({
+				code: this.codes.badReq,
+				message: 'Token not deleted/found!'
+			});
 		}
 
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		return response.status(this.codes.ok).json({
+			code: this.codes.ok,
+			message: 'OK'
+		});
 	}
 }
 

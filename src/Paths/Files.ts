@@ -57,13 +57,17 @@ class Files extends Path {
 			const owner = await this.core.db.findUser({uID: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+				response.status(this.codes.notFound).sendFile(
+					join(__dirname, '../Frontend/notfound.html')
+				);
 				return;
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'file')) {
-			response.status(this.codes.notFound).sendFile(join(__dirname, '../Frontend/notfound.html'));
+			response.status(this.codes.notFound).sendFile(
+				join(__dirname, '../Frontend/notfound.html')
+			);
 			return;
 		}
 

@@ -56,10 +56,19 @@ class DelAccount extends Path {
 			await this.core.db.purgeUser(id);
 			return {code: this.codes.ok, mess: {code: this.codes.ok, message: 'Account deleted!'}};
 		} catch (error: unknown) {
-			// If an error occurs, log this (as there should not be an error), and tell the user that an error occured
+			// If an error occurs, tell the user that an error occured
 			const declaredError = error as Error;
-			this.core.logger.error(`[SYSTEM ERROR] - Account deletion failure - ${declaredError.message || error as string}`);
-			return {code: this.codes.internalErr, mess: {code: this.codes.internalErr, message: `Account deletion error - ${declaredError.message || error as string}`}};
+			const formattedError = declaredError.message || error as string;
+			this.core.logger.error( // eslint disable-next-line max-len
+				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
+			);
+			return {
+				code: this.codes.internalErr,
+				mess: {
+					code: this.codes.internalErr,
+					message: `Account deletion error - ${formattedError}`
+				}
+			};
 		}
 	}
 
@@ -67,7 +76,10 @@ class DelAccount extends Path {
 		// Check headers, and check auth
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		let out;
@@ -75,27 +87,41 @@ class DelAccount extends Path {
 		if (request.query?.uid && typeof request.query.uid === 'string') {
 			// If they are not an admin, they arent authorized
 			if (!auth.admin) {
-				return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+				return response.status(this.codes.unauth).json({
+					code: this.codes.unauth,
+					message: 'Authorization failed.'
+				});
 			}
 
 			// Find the user, and if not return a not found
 			const mem = await this.core.db.findUser({uID: request.query.uid});
 			if (!mem) {
-				return response.status(this.codes.notFound).json({code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!'});
+				return response.status(this.codes.notFound).json({
+					code: this.Utils.FoldCodes.dbNotFound,
+					message: 'User not found!'
+				});
 			}
 
 			// Protect the owner and admins from unauthorized account deletions
 			if (mem.first) {
-				return response.status(this.codes.forbidden).json({code: this.codes.forbidden, message: 'You can not delete that account as they are the owner!'});
+				return response.status(this.codes.forbidden).json({
+					code: this.codes.forbidden,
+					message: 'You can not delete that account as they are the owner!'
+				});
 			}
 
 			if (mem.admin && !auth.first) {
-				return response.status(this.codes.forbidden).json({code: this.codes.forbidden, message: 'You cannot delete another admins account!'});
+				return response.status(this.codes.forbidden).json({
+					code: this.codes.forbidden,
+					message: 'You cannot delete another admins account!'
+				});
 			}
 
 			// Delete the account
 			out = await this.deleteAccount(auth, request.query.uid);
-			this.core.logger.info(`Account ${mem.userID} deleted by administrator (${auth.username} - ${auth.userID})`);
+			this.core.logger.info(
+				`Account ${mem.userID} deleted by administrator (${auth.username} - ${auth.userID})`
+			);
 			response.status(out.code).json(out.mess).end();
 			this.core.addDeleter(request.query.uid);
 			return;
@@ -103,11 +129,14 @@ class DelAccount extends Path {
 
 		// Owner account may never be deleted
 		if (auth.first) {
-			return response.status(this.codes.forbidden).json({message: 'You can not delete your account as you are the owner!'});
+			return response.status(this.codes.forbidden).json({
+				message: 'You can not delete your account as you are the owner!',
+				code: this.codes.forbidden
+			});
 		}
 
 		// Delete the users account
-		out = await this.deleteAccount(auth, auth.userID); // Eslint, TS, I checked this at the top of the function. Please shut up
+		out = await this.deleteAccount(auth, auth.userID);
 		this.core.logger.info(`Account ${auth.userID} deleted`);
 
 		response.status(out.code).json(out.mess).end();

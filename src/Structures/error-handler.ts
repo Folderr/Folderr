@@ -29,7 +29,7 @@ export interface HandlerMessage {
 }
 
 /**
- * @classdesc Error handler for Folderr paths, makes sure that you don't get the default response from express.
+ * @classdesc Error handler for Folderr paths.
  *
  * @author VoidNulll
  */
@@ -60,7 +60,12 @@ class ErrorHandler {
 		const cul: string = base[2].slice(7);
 		const file = cul;
 		const culprit: string = cul.split(' ')[0];
-		const message: HandlerMessage = {culprit, file: file.slice(culprit.length + 1), message: base[0], severity};
+		const message: HandlerMessage = {
+			culprit,
+			file: file.slice(culprit.length + 1),
+			message: base[0],
+			severity
+		};
 
 		// Disable path if the error was fatal
 		if (severity && severity === 'fatal') {

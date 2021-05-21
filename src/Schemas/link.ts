@@ -18,33 +18,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../Structures/path';
-import Core from '../Structures/core';
-import {Response} from 'express';
-import {join} from 'path';
 
-class Logout extends Path {
-	constructor(core: Core) {
-		super(core);
-		this.label = 'logout';
-		this.path = '/logout';
-		this.enabled = !this.core.config.apiOnly;
-	}
+import {Schema, Model, model, Document} from 'mongoose';
 
-	/**
-     * @desc Logs you out or displays the deleted account page
-     */
-	async execute(request: any, response: Response): Promise<Response | void> {
-		const dir = join(__dirname, '../Frontend/loggedout.html');
-		if (!request.uauth) {
-			response.redirect('/');
-			return;
-		}
-
-		await this.Utils.authorization.revoke(request.cookies.token, true);
-		response.clearCookie('token', {sameSite: 'strict'});
-		response.sendFile(dir);
-	}
+export interface Link extends Document {
+	link: string;
+	owner: string;
+	ID: string;
+	created: Date;
 }
 
-export default Logout;
+const ShortSchema: Schema<Link> = new Schema({
+	link: {type: String, required: true},
+	owner: {type: String, required: true},
+	ID: {type: String, required: true, index: true},
+	created: {type: Date, default: new Date()}
+});
+
+const ShortModel: Model<Link> = model('short', ShortSchema);
+
+export default ShortModel;

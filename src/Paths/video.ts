@@ -21,38 +21,38 @@
 
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Request, Response} from 'express';
+import {Response} from 'express';
 import mime from 'mime-types';
 import {join} from 'path';
 
 /**
- * @classdesc Allow images to be accessed over the web
+ * @classdesc Allow users to access videos over the web
  */
-class Images extends Path {
+class Videos extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Images ID';
-		this.path = ['/image/:id', '/i/:id'];
+		this.label = 'Videos ID';
+		this.path = ['/videos/:id', '/v/:id'];
 	}
 
 	/**
      * @desc Display an image to the user, or the 404 page if image doesn't exist.
      */
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	async execute(request: any, response: Response): Promise<Response | void> {
 		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).send('[ERROR] Missing image ID.');
+			return response.status(this.codes.badReq).send('[ERROR] Missing video ID.');
 		}
 
-		if (!request.params.id.includes('.')) {
+		if (!request.params.id.match('.')) {
 			return response.status(this.codes.badReq).send('Missing file extension!');
 		}
 
 		const parts = request.params.id.split('.');
 		if (!parts[1]) {
-			return response.status(this.codes.badReq).send('Missing file extension!');
+			return response.status(this.codes.internalErr).send('500 Internal Error');
 		}
 
-		const image = await this.core.db.findFile({ID: parts[0], type: 'image'}, 'type path owner');
+		const image = await this.core.db.findFile({ID: parts[0]});
 		if (image) {
 			const owner = await this.core.db.findUser({userID: image.owner});
 			if (!owner) {
@@ -64,7 +64,7 @@ class Images extends Path {
 			}
 		}
 
-		if (!image || (image?.type && image.type !== 'image')) {
+		if (!image || (image?.type && image.type !== 'video')) {
 			response.status(this.codes.notFound).sendFile(
 				join(__dirname, '../Frontend/notfound.html')
 			);
@@ -78,11 +78,11 @@ class Images extends Path {
 		}
 
 		if (!content) {
-			return response.status(this.codes.notFound).send('Image type not found!');
+			return response.status(this.codes.notFound).send('Video type not found!');
 		}
 
 		if (content === image.path) {
-			content = `image/${array[array.length - 1].toLowerCase()}`;
+			content = `video/${array[array.length - 1].toLowerCase()}`;
 		}
 
 		response.setHeader('Content-Type', content);
@@ -91,4 +91,4 @@ class Images extends Path {
 	}
 }
 
-export default Images;
+export default Videos;

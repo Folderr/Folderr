@@ -39,26 +39,54 @@ class WarnUser extends Path {
 	async execute(request: Request, response: Response): Promise<Response | void> {
 		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
 		if (!auth) {
-			response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'}).end();
+			response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			}).end();
 			return;
 		}
 
-		if (!request.params?.id || !request.body?.reason || typeof request.body.reason !== 'string' || !/^\d+$/.test(request.params.id)) {
-			response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Requirements missing or invalid!'}).end();
+		if (
+			!request.params?.id ||
+			!request.body?.reason ||
+			typeof request.body.reason !== 'string' ||
+			!/^\d+$/.test(request.params.id)
+		) {
+			response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Requirements missing or invalid!'
+			}).end();
 			return;
 		}
 
 		const user = await this.core.db.findUser({userID: request.params.id});
 		if (!user) {
-			response.status(this.codes.notAccepted).json({code: this.Utils.FoldCodes.dbNotFound, message: 'User not found!'}).end();
+			response.status(this.codes.notAccepted).json({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: 'User not found!'
+			}).end();
 			return;
 		}
 
 		const email = this.Utils.decrypt(user.email);
 		const id = await this.Utils.genNotifyID();
-		const updated = await this.core.db.updateUser({userID: request.params.id}, {$addToSet: {notifs: {ID: id, title: 'Warn', notify: `You were warned for: ${request.body.reason as string}`}}});
+		const updated = await this.core.db.updateUser(
+			{userID: request.params.id},
+			{
+				$addToSet: {
+					notifs: {
+						ID: id,
+						title: 'Warn',
+						notify: `You were warned for: ${request.body.reason as string}`
+					}
+				}
+			}
+		);
 		if (!updated) {
-			response.status(this.codes.notAccepted).json({code: this.Utils.FoldCodes.unkownError, message: 'Warn failed'}).end();
+			response.status(this.codes.notAccepted).json({
+				code: this.Utils.FoldCodes.unkownError,
+				message: 'Warn failed'
+			}).end();
 			return;
 		}
 
@@ -67,7 +95,10 @@ class WarnUser extends Path {
 			await this.core.emailer.warnEmail(email, request.body.reason, user.username, url);
 		}
 
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		return response.status(this.codes.ok).json({
+			code: this.codes.ok,
+			message: 'OK'
+		});
 	}
 }
 

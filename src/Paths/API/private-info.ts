@@ -42,7 +42,10 @@ class Info extends Path {
 	async execute(request: Request, response: Response): Promise<Response> {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).send({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).send({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		let branch: any = await exec('git branch');

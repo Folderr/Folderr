@@ -40,19 +40,35 @@ class MirrorRemove extends Path {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		if (!request.body || !request.body.mirror) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'No mirror given to remove!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'No mirror given to remove!'
+			});
 		}
 
 		if (auth.cURLs.length === 0 || !auth.cURLs.includes(request.body.mirror)) {
-			return response.status(this.codes.badReq).json({message: 'Mirror not linked!', code: this.Utils.FoldCodes.dbNotFound});
+			return response.status(this.codes.badReq).json({
+				message: 'Mirror not linked!',
+				code: this.Utils.FoldCodes.dbNotFound
+			});
 		}
 
-		await this.core.db.updateUser({userID: auth.userID}, {$pullAll: {cURLs: request.body.mirror}});
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		await this.core.db.updateUser({userID: auth.userID}, {
+			$pullAll: {
+				cURLs: request.body.mirror
+			}
+		});
+		return response.status(this.codes.ok).json({
+			code: this.codes.ok,
+			message: 'OK'
+		});
 	}
 }
 

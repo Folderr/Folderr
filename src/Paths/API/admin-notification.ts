@@ -41,18 +41,27 @@ class AdminNotification extends Path {
 		// Check auth
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		// Verify query
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Notification ID required!'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Notification ID required!'
+			});
 		}
 
 		// Find notification. If not found, return a not found status code
 		const notify = await this.core.db.findAdminNotify({ID: request.params.id});
 		if (!notify) {
-			return response.status(this.codes.noContent).json({code: this.Utils.FoldCodes.dbNotFound, message: []});
+			return response.status(this.codes.noContent).json({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: []
+			});
 		}
 
 		// Oh look a notification!

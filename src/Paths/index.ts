@@ -1,7 +1,7 @@
 // Export { default as Home } from './Home';
 export {default as Short} from './short';
 export {default as Images} from './image';
-export {default as Videos} from './videos';
+export {default as Videos} from './video';
 export {default as Files} from './files';
 export {default as APISignup} from './API/signups';
 export {default as APIPVerify} from './API/verify-account';
@@ -36,7 +36,7 @@ export {default as APIUnban} from './API/unban';
 export {default as APIWarn} from './API/warn-user';
 export {default as APITakedown} from './API/takedown';
 export {default as APILookup} from './API/lookup-content';
-export {default as APIAccountLookup} from './API/lookup-account';
+export {default as APIAccountLookup} from './API/reverse-lookup-account';
 export {default as APITokens} from './API/tokens';
 export {default as APIDeleteToken} from './API/delete-token';
 export {default as APIAddAdmin} from './API/add-admin';

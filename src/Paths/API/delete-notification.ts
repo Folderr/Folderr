@@ -42,24 +42,36 @@ class DelNotify extends Path {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		// Check query
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({code: this.codes.badReq, message: 'Missing notification ID'});
+			return response.status(this.codes.badReq).json({
+				code: this.codes.badReq,
+				message: 'Missing notification ID'
+			});
 		}
 
 		// Grab the users notifications, and find the one they are looking for
 		const {notifs} = auth;
 		if (!notifs) {
-			return response.status(this.codes.notFound).json({code: this.codes.notFound, message: 'You have no notifications!'});
+			return response.status(this.codes.notFound).json({
+				code: this.codes.notFound,
+				message: 'You have no notifications!'
+			});
 		}
 
 		const notify = notifs.find(notification => notification.ID === request.params.id);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
-			return response.status(this.codes.notFound).json({code: this.Utils.FoldCodes.dbNotFound, message: 'Notification not found!'});
+			return response.status(this.codes.notFound).json({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: 'Notification not found!'
+			});
 		}
 
 		// Days * hours/day * minutes/hour * seconds/minute * milliseconds/second
@@ -73,7 +85,10 @@ class DelNotify extends Path {
 		let limit = 0;
 		for (const setLimit of Object.values(breakdown)) {
 			if (Number.isNaN(limit)) {
-				return response.status(this.codes.internalErr).json({code: this.codes.internalErr, message: 'Internal Math Error'});
+				return response.status(this.codes.internalErr).json({
+					code: this.codes.internalErr,
+					message: 'Internal Math Error'
+				});
 			}
 
 			limit *= setLimit;
@@ -81,12 +96,30 @@ class DelNotify extends Path {
 
 		if (notify?.title === 'Warn' && (Date.now() - notify.created.getTime()) < limit) {
 			const time = new Date(Date.now() + limit).getTime() - Date.now();
-			return response.status(this.codes.forbidden).json({code: this.codes.forbidden, message: `Notification cannot be deleted for ${moment.duration(time).format('M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]')}`});
+			const formattedTime = moment
+				.duration(time)
+				.format('M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]');
+			return response.status(this.codes.forbidden).json({
+				code: this.codes.forbidden,
+				message: `Notification cannot be deleted for ${formattedTime}`
+			});
 		}
 
 		// Remove the notification, update the users account, and return success
-		await this.core.db.updateUser({uID: auth.userID}, {$pull: {notifs: {ID: request.params.id}}});
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		await this.core.db.updateUser(
+			{uID: auth.userID},
+			{
+				$pull: {
+					notifs: {
+						ID: request.params.id
+					}
+				}
+			}
+		);
+		return response.status(this.codes.ok).json({
+			code: this.codes.ok,
+			message: 'OK'
+		});
 	}
 }
 

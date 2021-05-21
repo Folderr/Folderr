@@ -43,7 +43,10 @@ class Notifs extends Path {
 		// Check auth by token/id
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		// Grab the notifications from the user
@@ -53,13 +56,21 @@ class Notifs extends Path {
 		if (request.query && request.query.admin === 'true') {
 			// If they arent a admin, they do not get to see these notifications
 			if (!auth.admin) {
-				return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed. Who are you?'});
+				return response.status(this.codes.unauth).json({
+					code: this.codes.unauth,
+					message: 'Authorization failed'
+				});
 			}
 
 			// Get the notifications, and reset the notifications array
 			const anotifs = await this.core.db.findAdminNotifies({});
 			notifs = anotifs.map((notification: Notification) => {
-				return {ID: notification.ID, title: notification.title, notify: notification.notify.replace(/\n/g, ','), created: notification.created};
+				return {
+					ID: notification.ID,
+					title: notification.title,
+					notify: notification.notify.replace(/\n/g, ','),
+					created: notification.created
+				};
 			});
 		}
 

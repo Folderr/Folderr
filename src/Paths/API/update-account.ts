@@ -48,8 +48,16 @@ class UpdateAcc extends Path {
 
 		const auth = (base as {failed: false; user: User}).user;
 
-		const update: {password?: string; username?: string; pendingEmail?: string; pendingEmailToken?: string} = {};
-		if (request.body.password && typeof request.body.password === 'string' && !compareSync(request.body.password, auth.password)) {
+		const update: {
+			password?: string;
+			username?: string;
+			pendingEmail?: string; pendingEmailToken?: string;
+		} = {};
+		if (
+			request.body.password &&
+			typeof request.body.password === 'string' &&
+			!compareSync(request.body.password, auth.password)
+		) {
 			const passwd = await this.handlePassword(request.body.password);
 			if (typeof passwd === 'string') {
 				update.password = passwd;
@@ -84,11 +92,17 @@ class UpdateAcc extends Path {
 					this.core.logger.debug(error);
 				}
 
-				return response.status(this.codes.internalErr).json({code: this.Utils.FoldCodes.unkownError, message: 'An unknown error has occured!'});
+				return response.status(this.codes.internalErr).json({
+					code: this.Utils.FoldCodes.unkownError,
+					message: 'An unknown error has occured!'
+				});
 			}
 
 			this.core.logger.error(`Database failed to update user - ${error.message}`);
-			return response.status(this.codes.internalErr).json({code: this.Utils.FoldCodes.dbUnkownError, message: 'Unknown Error encountered while updating your account'});
+			return response.status(this.codes.internalErr).json({
+				code: this.Utils.FoldCodes.dbUnkownError,
+				message: 'An unknown error encountered while updating your account'
+			});
 		}
 
 		// Return the output
@@ -108,7 +122,8 @@ class UpdateAcc extends Path {
 			const psw = await this.Utils.hashPass(password);
 			return psw;
 		} catch (error: unknown) {
-			if (!(error instanceof Error)) { // If not a real error well, we don't care about it then
+			if (!(error instanceof Error)) {
+				// If not a real error well, we don't care about it then
 				if (process.env.DEBUG) { // We'll still log it if the project is in debug mode
 					this.core.logger.debug(error);
 				}
@@ -193,7 +208,11 @@ class UpdateAcc extends Path {
 			};
 		}
 
-		if (request.body.email && this.core.emailer.validateEmail(request.body.email) && preEmail === request.body.email) { // Case email is present, valid, and same as email
+		if (
+			request.body.email &&
+			this.core.emailer.validateEmail(request.body.email) &&
+			preEmail === request.body.email
+		) { // Case email is present, valid, and same as email
 			return {
 				httpCode: this.codes.notAccepted,
 				message: {
@@ -228,7 +247,18 @@ class UpdateAcc extends Path {
 		}
 
 		const encrypted = this.Utils.encrypt(request.body.email);
-		const user = await this.core.db.findUsers({$or: [{email: encrypted}, {pendingEmail: encrypted}]}) || await this.core.db.findVerifies({email: encrypted});
+		const user = await this.core.db.findUsers(
+			{
+				$or: [
+					{
+						email: encrypted
+					},
+					{
+						pendingEmail: encrypted
+					}
+				]
+			}
+		) || await this.core.db.findVerifies({email: encrypted});
 		if (user) {
 			return {
 				httpCode: this.codes.used,
@@ -243,7 +273,11 @@ class UpdateAcc extends Path {
 		const url = await this.Utils.determineHomeURL(request);
 		const token = await this.Utils.genValidationToken();
 		// Send confirmation email
-		await this.core.emailer.changeEmail(request.body.email, `${url}/account/confirm/${token.token}`, username);
+		await this.core.emailer.changeEmail(
+			request.body.email,
+			`${url}/account/confirm/${token.token}`,
+			username
+		);
 		// Update
 		return {
 			accepted: true,
@@ -288,7 +322,8 @@ class UpdateAcc extends Path {
 				};
 			}
 
-			const user = await this.core.db.findUser({username}) ?? await this.core.db.findVerify({username});
+			const user = await this.core.db.findUser({username}) ??
+				await this.core.db.findVerify({username});
 			if (user) {
 				return {
 					httpCode: this.codes.used,
@@ -331,7 +366,12 @@ class UpdateAcc extends Path {
 		}
 
 		// Check the query and new_key are correct
-		if (!request.body || !request.body.username || !request.body.password || !request.body.email) {
+		if (
+			!request.body ||
+			!request.body.username ||
+			!request.body.password ||
+			!request.body.email
+		) {
 			return {
 				httpCode: this.codes.badReq,
 				message: {

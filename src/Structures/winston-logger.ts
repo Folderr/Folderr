@@ -18,7 +18,11 @@ const loggingLevels = {
 	}
 };
 
-const format = winston.format.printf(({level, message, timestamp}) => `[${moment(timestamp).format('MM/DD/YY HH:MM')}] [${level.toUpperCase()}]: ${message}`);
+const format = winston.format.printf(({
+	level,
+	message,
+	timestamp
+}) => `[${moment(timestamp).format('MM/DD/YY HH:MM')}] [${level.toUpperCase()}]: ${message}`);
 const logger = winston.createLogger({
 	format: winston.format.combine(
 		winston.format.timestamp(),

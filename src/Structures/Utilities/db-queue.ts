@@ -35,7 +35,7 @@ export default class DBQueue extends EventEmitter {
 
 	private readonly db: DB;
 
-	private readonly _loopBound: () => Promise<void>;
+	private readonly loopBound: () => Promise<void>;
 
 	private readonly queue: Set<string>;
 
@@ -52,8 +52,8 @@ export default class DBQueue extends EventEmitter {
 
 			throw new Error('CANNOT RUN DBQueue - Database Error');
 		});
-		this._loopBound = this._loop.bind(this);
-		this.on('start', this._loopBound);
+		this.loopBound = this.loop.bind(this);
+		this.on('start', this.loopBound);
 		this.queue = new Set();
 	}
 
@@ -75,7 +75,7 @@ export default class DBQueue extends EventEmitter {
 				await this.db.purgeFile({ID: file.ID});
 				files = files.filter(fil => fil.ID !== file.ID);
 			} catch (error: unknown) {
-				if (error instanceof Error) {
+				if (error instanceof Error) { // eslint-disable-next-line max-len
 					wlogger.error(`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`);
 				}
 
@@ -84,23 +84,23 @@ export default class DBQueue extends EventEmitter {
 		}
 	}
 
-	private async _loop(): Promise<void> {
+	private async loop(): Promise<void> {
 		if (this.queue.size === 0) {
 			this.onGoing = false;
 			this.emit('stopped');
 			return;
 		}
 
-		// eslint-disable-next-line guard-for-in
-		for (const value in this.queue.values()) { // Await is needed here, also eslint, yes this is checked
+		for (const value of this.queue.values()) {
+			// Await is needed here, also eslint, yes this is checked
 			/* eslint-disable no-await-in-loop */
 			const files = await this.db.findFiles({owner: value}, {selector: 'ID, path'});
-			if (files.length > 0) { /* eslint-enable no-await-in-loop */
-				void this.removeFiles(files);
+			if (files.length > 0) {
+				await this.removeFiles(files); /* eslint-enable no-await-in-loop */
 				this.queue.delete(value);
 			}
 		}
 
-		return this._loopBound();
+		return this.loopBound();
 	}
 }

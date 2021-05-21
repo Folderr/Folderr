@@ -42,18 +42,28 @@ class GenToken extends Path {
 		// Check auth
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({code: this.codes.unauth, message: 'Authorization failed.'});
+			return response.status(this.codes.unauth).json({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
 		const tokens = await this.core.db.findTokens(auth.userID, {web: false});
 
-		// If the user has their token generated, make sure they know their current token will be gone
-		if (tokens.length > 10 && !(request.query && !request.query.override && request.query.override !== 'true')) {
-			return response.status(this.codes.forbidden).json({code: this.Utils.FoldCodes.tokenSizeLimit, message: 'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.'});
+		if (tokens.length > 10 && !(request.query &&
+			!request.query.override &&
+			request.query.override !== 'true'
+		)) {
+			return response.status(this.codes.forbidden).json({ // This is string
+				code: this.Utils.FoldCodes.tokenSizeLimit, // eslint-disable-next-line max-len
+				message: 'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.'
+			});
 		}
 
 		if (tokens.length >= 10 && (request.query?.override && request.query.override === 'true')) {
-			const tkns = tokens.sort((a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created));
+			const tkns = tokens.sort(
+				(a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created)
+			);
 			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {web: false});
 		}
 
