@@ -1,23 +1,13 @@
 # Ignore package lock files
 package-lock.json
-yarn.lock
 
 # Ignore node modules
-
 node_modules/
 
 # Ignore core files
-
 build/
+dist/
 scripts/*.js
 Files/*
 logs/*.log
 configs/
-
-# Ignore yarn error
-
-yarn-error.log
-
-# Ignore images
-
-src/images/*

@@ -4,15 +4,15 @@
   "description": "A secure open source host for images, and shortened urls..",
   "main": "src/index.js",
   "scripts": {
-    "start": "NODE_ENV=production node build/src/index.js",
-    "start:dev": "NODE_ENV=dev DEBUG=true node build/src/index.js",
+    "start": "NODE_ENV=production node dist/src/index.js",
+    "start:dev": "NODE_ENV=dev DEBUG=true node dist/src/index.js",
     "first": "tsc && build/scripts/init-first.js",
     "update": "echo \"updating\" && git pull && npm install && tsc && echo \"Update Success\"",
     "build": "tsc --skipLibCheck",
-    "startpm2": "pm2 start --name folderr build/src/index.js",
+    "startpm2": "pm2 start --name folderr dist/src/index.js",
     "lint": "xo src/ scripts/",
     "lintfix": "xo --fix src/ scripts/",
-    "test": "xo && NODE_ENV=test node build/src/index.js"
+    "test": "xo && NODE_ENV=test node dist/src/index.js"
   },
   "xo": {
     "plugins": [
@@ -24,15 +24,7 @@
     ],
     "rules": {
       "indent": "off",
-      "@typescript-eslint/indent": [
-        "off",
-        "tab",
-        {
-          "FunctionDeclaration": {
-            "body": 1
-          }
-        }
-      ],
+      "@typescript-eslint/indent": "off",
       "max-len": [
         "error",
         {
