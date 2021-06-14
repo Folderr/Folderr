@@ -12,7 +12,8 @@
     "startpm2": "pm2 start --name folderr dist/src/index.js",
     "lint": "xo src/ scripts/",
     "lintfix": "xo --fix src/ scripts/",
-    "test": "xo && NODE_ENV=test node dist/src/index.js"
+    "test": "xo && NODE_ENV=test node dist/src/index.js",
+    "prepare": "husky install"
   },
   "xo": {
     "plugins": [
@@ -88,7 +89,14 @@
     "@typescript-eslint/parser": "^4.16.1",
     "eslint-plugin-optimize-regex": "^1.2.0",
     "eslint-plugin-radar": "^0.2.1",
+    "husky": "^6.0.0",
+    "lint-staged": "^11.0.0",
     "prettier": "2.3.1",
     "xo": "^0.38.2"
+  },
+  "lint-staged": {
+    "src/*.ts": "xo",
+    "scripts/*.ts": "xo",
+    "*.{md,yaml}": "prettier --write"
   }
 }
