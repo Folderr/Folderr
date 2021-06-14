@@ -36,13 +36,21 @@ class WarnUser extends Path {
 		this.type = 'post';
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
-		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth) {
-			response.status(this.codes.unauth).json({
-				code: this.codes.unauth,
-				message: 'Authorization failed.'
-			}).end();
+			response
+				.status(this.codes.unauth)
+				.json({
+					code: this.codes.unauth,
+					message: 'Authorization failed.'
+				})
+				.end();
 			return;
 		}
 
@@ -52,19 +60,25 @@ class WarnUser extends Path {
 			typeof request.body.reason !== 'string' ||
 			!/^\d+$/.test(request.params.id)
 		) {
-			response.status(this.codes.badReq).json({
-				code: this.codes.badReq,
-				message: 'Requirements missing or invalid!'
-			}).end();
+			response
+				.status(this.codes.badReq)
+				.json({
+					code: this.codes.badReq,
+					message: 'Requirements missing or invalid!'
+				})
+				.end();
 			return;
 		}
 
 		const user = await this.core.db.findUser({userID: request.params.id});
 		if (!user) {
-			response.status(this.codes.notAccepted).json({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'User not found!'
-			}).end();
+			response
+				.status(this.codes.notAccepted)
+				.json({
+					code: this.Utils.FoldCodes.dbNotFound,
+					message: 'User not found!'
+				})
+				.end();
 			return;
 		}
 
@@ -83,16 +97,24 @@ class WarnUser extends Path {
 			}
 		);
 		if (!updated) {
-			response.status(this.codes.notAccepted).json({
-				code: this.Utils.FoldCodes.unkownError,
-				message: 'Warn failed'
-			}).end();
+			response
+				.status(this.codes.notAccepted)
+				.json({
+					code: this.Utils.FoldCodes.unkownError,
+					message: 'Warn failed'
+				})
+				.end();
 			return;
 		}
 
 		if (this.core.emailer.active) {
 			const url = await this.Utils.determineHomeURL(request);
-			await this.core.emailer.warnEmail(email, request.body.reason, user.username, url);
+			await this.core.emailer.warnEmail(
+				email,
+				request.body.reason,
+				user.username,
+				url
+			);
 		}
 
 		return response.status(this.codes.ok).json({

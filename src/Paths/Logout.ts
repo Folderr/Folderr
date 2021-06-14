@@ -32,8 +32,8 @@ class Logout extends Path {
 	}
 
 	/**
-     * @desc Logs you out or displays the deleted account page
-     */
+	 * @desc Logs you out or displays the deleted account page
+	 */
 	async execute(request: any, response: Response): Promise<Response | void> {
 		const dir = join(__dirname, '../Frontend/loggedout.html');
 		if (!request.uauth) {

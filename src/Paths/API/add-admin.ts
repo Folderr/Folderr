@@ -36,7 +36,9 @@ class AddAdmin extends Path {
 	}
 
 	async execute(request: Request, response: Response): Promise<Response> {
-		const auth = await this.Utils.authPassword(request, user => Boolean(user.first));
+		const auth = await this.Utils.authPassword(request, (user) =>
+			Boolean(user.first)
+		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -63,10 +65,7 @@ class AddAdmin extends Path {
 		const user = await this.core.db.findAndUpdateUser(
 			{
 				uID: request.params.id,
-				$nor: [
-					{admin: false},
-					{first: true}
-				]
+				$nor: [{admin: false}, {first: true}]
 			},
 			{admin: true},
 			'admin'
@@ -92,7 +91,9 @@ class AddAdmin extends Path {
 		this.core.logger.info(
 			`Administrator privileges granted to user ${userFormatted} by ${responsible}`
 		);
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 }
 

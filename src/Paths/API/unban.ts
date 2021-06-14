@@ -36,8 +36,13 @@ class Unban extends Path {
 		this.type = 'delete';
 	}
 
-	async execute(request: Request, response: Response): Promise<void | Response> {
-		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<void | Response> {
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -45,7 +50,10 @@ class Unban extends Path {
 			});
 		}
 
-		if (!request.body?.email || this.core.emailer.validateEmail(request.body.email)) {
+		if (
+			!request.body?.email ||
+			this.core.emailer.validateEmail(request.body.email)
+		) {
 			return response.status(this.codes.badReq).json({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'
@@ -54,12 +62,18 @@ class Unban extends Path {
 
 		const unban = await this.core.db.removeFolderrBan(request.body.email);
 		if (unban) {
-			response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'}).end();
+			response
+				.status(this.codes.ok)
+				.json({code: this.codes.ok, message: 'OK'})
+				.end();
 		} else {
-			response.status(this.codes.notAccepted).json({
-				code: this.codes.notAccepted,
-				message: 'UNBAN FAILED'
-			}).end();
+			response
+				.status(this.codes.notAccepted)
+				.json({
+					code: this.codes.notAccepted,
+					message: 'UNBAN FAILED'
+				})
+				.end();
 		}
 	}
 }

@@ -44,8 +44,13 @@ class Manage extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
-		const auth = await this.Utils.authPassword(request, user => Boolean(user.first));
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
+		const auth = await this.Utils.authPassword(request, (user) =>
+			Boolean(user.first)
+		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -70,13 +75,16 @@ class Manage extends Path {
 			);
 			this.core.shutdownServer();
 		} else if (request.query.type === 'update') {
-			response.status(this.codes.accepted).json({
-				code: this.codes.ok,
-				message: 'Attempting update.'
-			}).end();
+			response
+				.status(this.codes.accepted)
+				.json({
+					code: this.codes.ok,
+					message: 'Attempting update.'
+				})
+				.end();
 			const oPackage: Record<string, string> = JSON.parse(
-				(await promises.readFile('./package.json'))
-					.toString());
+				(await promises.readFile('./package.json')).toString()
+			);
 			try {
 				await exec('npm run update'); // Eventually make file to handle this
 			} catch (error: unknown) {

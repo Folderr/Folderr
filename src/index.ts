@@ -1,6 +1,6 @@
 import * as StartupHandler from './handlers/startup-handler';
 
-process.on('beforeExit', code => {
+process.on('beforeExit', (code) => {
 	console.log(`Exiting with code ${code}`);
 });
 

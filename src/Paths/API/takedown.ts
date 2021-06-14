@@ -35,7 +35,10 @@ class Takedown extends Path {
 		this.path = '/api/admin/content/:type/:id';
 	}
 
-	async takedownFile(id: string, request: Request): Promise<{
+	async takedownFile(
+		id: string,
+		request: Request
+	): Promise<{
 		httpCode: number;
 		msg: {
 			code: number;
@@ -55,25 +58,37 @@ class Takedown extends Path {
 
 		await this.core.db.updateUser({userID: del.owner}, {$inc: {files: -1}});
 		if (this.core.emailer.active) {
-			const user = await this.core.db.findUser({userID: del.owner}, 'userID username email');
+			const user = await this.core.db.findUser(
+				{userID: del.owner},
+				'userID username email'
+			);
 			if (!user) {
-				return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+				return {
+					httpCode: this.codes.ok,
+					msg: {code: this.codes.ok, message: 'OK'}
+				};
 			}
 
 			const email = this.Utils.decrypt(user.email);
 			const url = await this.Utils.determineHomeURL(request);
-			await this.core.emailer.takedown({
-				email,
-				username: user.username,
-				id,
-				type: del.type
-			}, url);
+			await this.core.emailer.takedown(
+				{
+					email,
+					username: user.username,
+					id,
+					type: del.type
+				},
+				url
+			);
 		}
 
 		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
 	}
 
-	async takedownLink(id: string, request: Request): Promise<{
+	async takedownLink(
+		id: string,
+		request: Request
+	): Promise<{
 		httpCode: number;
 		msg: {
 			code: number;
@@ -93,26 +108,37 @@ class Takedown extends Path {
 
 		await this.core.db.updateUser({userID: del.owner}, {$inc: {links: -1}});
 		if (this.core.emailer.active) {
-			const user = await this.core.db.findUser({userID: del.owner}, 'userID username email');
+			const user = await this.core.db.findUser(
+				{userID: del.owner},
+				'userID username email'
+			);
 			if (!user) {
-				return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+				return {
+					httpCode: this.codes.ok,
+					msg: {code: this.codes.ok, message: 'OK'}
+				};
 			}
 
 			const email = this.Utils.decrypt(user.email);
 			const url = await this.Utils.determineHomeURL(request);
-			await this.core.emailer.takedown({
-				email,
-				username: user.username,
-				id,
-				type: 'Link'
-			}, url);
+			await this.core.emailer.takedown(
+				{
+					email,
+					username: user.username,
+					id,
+					type: 'Link'
+				},
+				url
+			);
 		}
 
 		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
 	}
 
 	async execute(request: Request, response: Response): Promise<Response> {
-		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -148,7 +174,10 @@ class Takedown extends Path {
 				});
 			}
 
-			this.core.logger.log('fatal', `[PATH ${this.label}] Unknown fatal error!`);
+			this.core.logger.log(
+				'fatal',
+				`[PATH ${this.label}] Unknown fatal error!`
+			);
 
 			return response.status(this.codes.internalErr).json({
 				code: this.Utils.FoldCodes.unkownError,

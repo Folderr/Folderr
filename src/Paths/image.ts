@@ -36,11 +36,16 @@ class Images extends Path {
 	}
 
 	/**
-     * @desc Display an image to the user, or the 404 page if image doesn't exist.
-     */
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	 * @desc Display an image to the user, or the 404 page if image doesn't exist.
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).send('[ERROR] Missing image ID.');
+			return response
+				.status(this.codes.badReq)
+				.send('[ERROR] Missing image ID.');
 		}
 
 		if (!request.params.id.includes('.')) {
@@ -52,22 +57,25 @@ class Images extends Path {
 			return response.status(this.codes.badReq).send('Missing file extension!');
 		}
 
-		const image = await this.core.db.findFile({ID: parts[0], type: 'image'}, 'type path owner');
+		const image = await this.core.db.findFile(
+			{ID: parts[0], type: 'image'},
+			'type path owner'
+		);
 		if (image) {
 			const owner = await this.core.db.findUser({userID: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				response.status(this.codes.notFound).sendFile(
-					join(__dirname, '../Frontend/notfound.html')
-				);
+				response
+					.status(this.codes.notFound)
+					.sendFile(join(__dirname, '../Frontend/notfound.html'));
 				return;
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'image')) {
-			response.status(this.codes.notFound).sendFile(
-				join(__dirname, '../Frontend/notfound.html')
-			);
+			response
+				.status(this.codes.notFound)
+				.sendFile(join(__dirname, '../Frontend/notfound.html'));
 			return;
 		}
 

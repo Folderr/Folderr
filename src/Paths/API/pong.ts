@@ -40,9 +40,12 @@ class Pong extends Path {
 	}
 
 	/**
-     * @desc PONG! Just a simple response, no auth needed
-     */
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	 * @desc PONG! Just a simple response, no auth needed
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const out: {
 			message: {
 				version: string;
@@ -55,7 +58,7 @@ class Pong extends Path {
 			message: {
 				version: pkg.version,
 				node_version: process.version,
-				online_since: new Date(Date.now() - (process.uptime() * 1000)).getTime(),
+				online_since: new Date(Date.now() - process.uptime() * 1000).getTime(),
 				message: 'Pong!'
 			},
 			code: this.codes.ok

@@ -40,11 +40,12 @@ class Account extends Path {
 
 	async execute(request: Request, response: Response): Promise<Response> {
 		// Check headers, and check auth
-		const auth = request.cookies?.token ?
-			await this.Utils.authorization.verifyAccount(
-				request.cookies.token as string | string[] | undefined,
-				{web: true}) :
-			await this.Utils.authPassword(request);
+		const auth = request.cookies?.token
+			? await this.Utils.authorization.verifyAccount(
+					request.cookies.token as string | string[] | undefined,
+					{web: true}
+			  )
+			: await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
@@ -78,7 +79,9 @@ class Account extends Path {
 			customUrls: auth.cURLs,
 			created: Math.round(auth.created.getTime() / 1000)
 		};
-		return response.status(this.codes.ok).json({message: acc, code: this.codes.ok});
+		return response
+			.status(this.codes.ok)
+			.json({message: acc, code: this.codes.ok});
 	}
 }
 

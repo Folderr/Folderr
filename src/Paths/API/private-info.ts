@@ -66,7 +66,9 @@ class Info extends Path {
 			branch,
 			version: Package.version
 		};
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: object});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: object});
 	}
 }
 

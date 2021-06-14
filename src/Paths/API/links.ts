@@ -50,7 +50,7 @@ class Links extends Path {
 		if (generated.errored) {
 			const genType = generated as unknown as {
 				httpCode: number;
-				json: Record<string, string|number>;
+				json: Record<string, string | number>;
 				errored: boolean;
 			};
 			return response.status(genType.httpCode).json(genType.json);
@@ -71,15 +71,18 @@ class Links extends Path {
 
 		const shorts: Link[] = await this.core.db.findLinks(query, options);
 		if (!shorts || shorts.length === 0) {
-			return response.status(this.codes.ok).json({code: this.codes.ok, message: []});
+			return response
+				.status(this.codes.ok)
+				.json({code: this.codes.ok, message: []});
 		}
 
-		let url = request.headers?.responseURL &&
-		typeof request.headers.responseURL === 'string' &&
-		auth.cURLs.includes(request.headers.responseURL) &&
-		await this.Utils.testMirrorURL(request.headers.responseURL) ?
-			request.headers.responseURL :
-			await this.Utils.determineHomeURL(request);
+		let url =
+			request.headers?.responseURL &&
+			typeof request.headers.responseURL === 'string' &&
+			auth.cURLs.includes(request.headers.responseURL) &&
+			(await this.Utils.testMirrorURL(request.headers.responseURL))
+				? request.headers.responseURL
+				: await this.Utils.determineHomeURL(request);
 		url = url.replace(/\/$/g, '');
 		const aShorts = shorts.map((short: Link) => {
 			return {
@@ -90,7 +93,9 @@ class Links extends Path {
 			};
 		});
 
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: aShorts});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: aShorts});
 	}
 }
 

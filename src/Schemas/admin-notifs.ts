@@ -35,6 +35,9 @@ export interface Notification extends Document {
 	created: Date;
 }
 
-const mod: Model<Notification> = model<Notification>('admin_notifs', AdminNotifs);
+const mod: Model<Notification> = model<Notification>(
+	'admin_notifs',
+	AdminNotifs
+);
 
 export default mod;

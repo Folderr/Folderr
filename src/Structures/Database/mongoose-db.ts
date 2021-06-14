@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/indent */
 /**
  * @license
  *
@@ -40,7 +39,7 @@ import * as constants from '../constants/index';
  * @classdesc Handle all MongoDB operations.
  */
 export default class MongooseDB extends DBClass {
-    #Schemas: {
+	#Schemas: {
 		User: mongoose.Model<Schemas.UserI>;
 		Token: mongoose.Model<Schemas.Token>;
 		Link: mongoose.Model<Schemas.Link>;
@@ -50,11 +49,11 @@ export default class MongooseDB extends DBClass {
 		Folderr: mongoose.Model<Schemas.FolderrDB>;
 	};
 
-    #internals: {
+	#internals: {
 		connection: mongoose.Connection;
 	};
 
-    constructor() {
+	constructor() {
 		super();
 
 		this.#Schemas = {
@@ -69,66 +68,71 @@ export default class MongooseDB extends DBClass {
 		this.#internals = {
 			connection: mongoose.connection
 		};
-    }
+	}
 
-    async init(url: string): Promise<void> { /* eslint-disable unicorn/no-process-exit */
+	async init(url: string): Promise<void> {
+		/* eslint-disable unicorn/no-process-exit */
 		try {
-			await mongoose.connect(
-				url,
-				{
-					useNewUrlParser: true,
-					useFindAndModify: false,
-					useCreateIndex: true,
-					useUnifiedTopology: true
-				}
-			);
+			await mongoose.connect(url, {
+				useNewUrlParser: true,
+				useFindAndModify: false,
+				useCreateIndex: true,
+				useUnifiedTopology: true
+			});
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				wlogger.error('[FATAL - DB] MongoDB connection error!\n' +
-				error.message +
-				'\n[FATAL] Folderr is unable to work without a database!' +
-				'\nFolderr process terminated.');
+				wlogger.error(
+					'[FATAL - DB] MongoDB connection error!\n' +
+						error.message +
+						'\n[FATAL] Folderr is unable to work without a database!' +
+						'\nFolderr process terminated.'
+				);
 				process.exit(1);
 			}
 
-			wlogger.error('[FATAL - DB] MongoDB connection error!' +
-			'\n[FATAL] Folderr is unable to work without a database!' +
-			'\nFolderr process terminated.');
+			wlogger.error(
+				'[FATAL - DB] MongoDB connection error!' +
+					'\n[FATAL] Folderr is unable to work without a database!' +
+					'\nFolderr process terminated.'
+			);
 			process.exit(1);
 		}
 
 		this.#internals.connection.on('error', (error: Error) => {
 			if (process.env.NODE_ENV !== 'test') {
-				wlogger.error('[FATAL - DB] MongoDB connection error!\n' +
-				error.message +
-				'\n[FATAL] Folderr is unable to work without a database!' +
-				'\nFolderr process terminated.');
+				wlogger.error(
+					'[FATAL - DB] MongoDB connection error!\n' +
+						error.message +
+						'\n[FATAL] Folderr is unable to work without a database!' +
+						'\nFolderr process terminated.'
+				);
 				process.exit(1);
 			}
 		});
 		this.#internals.connection.on('disconnect', async () => {
 			try {
-				await mongoose.connect(
-					url,
-					{
-						useNewUrlParser: true,
-						useFindAndModify: false,
-						useCreateIndex: true,
-						useUnifiedTopology: true
-					}
-				);
+				await mongoose.connect(url, {
+					useNewUrlParser: true,
+					useFindAndModify: false,
+					useCreateIndex: true,
+					useUnifiedTopology: true
+				});
 			} catch (error: unknown) {
 				if (error instanceof Error) {
-					wlogger.error('[FATAL - DB] MongoDB connection error!\n' +
-					error.message +
-					'\n[FATAL] Folderr is unable to work without a database!' +
-					'\nFolderr process terminated.');
+					wlogger.error(
+						'[FATAL - DB] MongoDB connection error!\n' +
+							error.message +
+							'\n[FATAL] Folderr is unable to work without a database!' +
+							'\nFolderr process terminated.'
+					);
 					process.exit(1);
 				}
 
-				wlogger.error('[FATAL - DB] MongoDB connection error!\n' +
-				'[FATAL] Folderr is unable to work without a database!\n' +
-				'Folderr process terminated.');
+				wlogger.error(
+					'[FATAL - DB] MongoDB connection error!\n' +
+						'[FATAL] Folderr is unable to work without a database!\n' +
+						'Folderr process terminated.'
+				);
 				process.exit(1);
 			}
 		});
@@ -137,34 +141,40 @@ export default class MongooseDB extends DBClass {
 			await this.fetchFolderr({});
 			wlogger.log('startup', '[SYSTEM - DB] Connected to MongoDB!');
 		});
-    }
+	}
 
-    async addFolderrBan(email: string): Promise<boolean> {
-		const add = await this.#Schemas.Folderr.updateOne({}, {$addToSet: {bans: email}}).exec();
-		return (add?.nModified > 0);
-    }
+	async addFolderrBan(email: string): Promise<boolean> {
+		const add = await this.#Schemas.Folderr.updateOne(
+			{},
+			{$addToSet: {bans: email}}
+		).exec();
+		return add?.nModified > 0;
+	}
 
-    async removeFolderrBan(email: string): Promise<boolean> {
-		const add = await this.#Schemas.Folderr.updateOne({}, {$pull: {bans: email}}).exec();
-		return (add?.nModified > 0);
-    }
+	async removeFolderrBan(email: string): Promise<boolean> {
+		const add = await this.#Schemas.Folderr.updateOne(
+			{},
+			{$pull: {bans: email}}
+		).exec();
+		return add?.nModified > 0;
+	}
 
-    async fetchFolderr(query: Record<string, unknown>): Promise<Folderr> {
+	async fetchFolderr(query: Record<string, unknown>): Promise<Folderr> {
 		const fldr = await this.#Schemas.Folderr.findOne(query).lean().exec();
 		if (!fldr) {
 			return this.createFolderr();
 		}
 
 		return fldr;
-    }
+	}
 
-    async createFolderr(): Promise<Folderr> {
+	async createFolderr(): Promise<Folderr> {
 		const fldr = new this.#Schemas.Folderr({bans: []});
 		await fldr.save();
 		return fldr;
-    }
+	}
 
-    async makeOwner(
+	async makeOwner(
 		username: string,
 		password: string,
 		userID: string,
@@ -185,15 +195,18 @@ export default class MongooseDB extends DBClass {
 		});
 		await user.save();
 		return user;
-    }
+	}
 
-    async findUser(query: Record<string, unknown>, selector?: string): Promise<User | null> {
-		return selector ?
-			this.#Schemas.User.findOne(query, selector).lean().exec() :
-			this.#Schemas.User.findOne(query).lean().exec();
-    }
+	async findUser(
+		query: Record<string, unknown>,
+		selector?: string
+	): Promise<User | null> {
+		return selector
+			? this.#Schemas.User.findOne(query, selector).lean().exec()
+			: this.#Schemas.User.findOne(query).lean().exec();
+	}
 
-    async findUsers(
+	async findUsers(
 		query: Record<string, unknown>,
 		options?: {
 			sort?: Record<string, unknown>;
@@ -211,12 +224,14 @@ export default class MongooseDB extends DBClass {
 		}
 
 		/* eslint-disable unicorn/no-array-callback-reference */
-		return options ?
-			this.#Schemas.User.find(query, options?.selector, qoptions).lean().exec() :
-			this.#Schemas.User.find(query).lean().exec();
-    }
+		return options
+			? this.#Schemas.User.find(query, options?.selector, qoptions)
+					.lean()
+					.exec()
+			: this.#Schemas.User.find(query).lean().exec();
+	}
 
-    async findFullUser(
+	async findFullUser(
 		queries: Array<Record<string, unknown>>,
 		selector?: {
 			user?: string;
@@ -230,58 +245,50 @@ export default class MongooseDB extends DBClass {
 			);
 		}
 
-		const [
-			account,
-			files,
-			links
-		] = await Promise.all([
+		const [account, files, links] = await Promise.all([
 			this.findUser(queries[0], selector?.user),
-			selector?.file ?
-				this.#Schemas.Upload.find(queries[1], selector.file).lean().exec() :
-				this.#Schemas.Upload.find(queries[1]).lean().exec(),
-			selector?.link ?
-				this.#Schemas.Link.find(queries[1], selector.link).lean().exec() :
-				this.#Schemas.Link.find(queries[1]).lean().exec()
+			selector?.file
+				? this.#Schemas.Upload.find(queries[1], selector.file).lean().exec()
+				: this.#Schemas.Upload.find(queries[1]).lean().exec(),
+			selector?.link
+				? this.#Schemas.Link.find(queries[1], selector.link).lean().exec()
+				: this.#Schemas.Link.find(queries[1]).lean().exec()
 		]);
 		if (!account) {
 			return undefined;
 		}
 
 		return {account, files, links};
-    } /* eslint-enable unicorn/no-array-callback-reference */
+	} /* eslint-enable unicorn/no-array-callback-reference */
 
-    async findAndUpdateUser(
+	async findAndUpdateUser(
 		query: Record<string, unknown>,
 		update: Record<string, unknown>,
 		selector?: string
 	): Promise<User | null> {
-		return selector ?
-			this.#Schemas.User.findOneAndUpdate(
-				query,
-				update,
-				{
+		return selector
+			? this.#Schemas.User.findOneAndUpdate(query, update, {
 					fields: selector,
 					new: true
-				}
-			).lean().exec() :
-			this.#Schemas.User.findOneAndUpdate(
-				query,
-				update,
-				{
+			  })
+					.lean()
+					.exec()
+			: this.#Schemas.User.findOneAndUpdate(query, update, {
 					new: true
-				}
-			).lean().exec();
-    }
+			  })
+					.lean()
+					.exec();
+	}
 
-    async updateUser(
+	async updateUser(
 		query: Record<string, unknown>,
 		update: Record<string, unknown>
 	): Promise<boolean> {
 		const upd = await this.#Schemas.User.updateOne(query, update).exec();
 		return Boolean(upd?.nModified && upd.nModified > 0);
-    }
+	}
 
-    async makeUser(
+	async makeUser(
 		userInfo: {
 			username: string;
 			userID: string;
@@ -292,7 +299,10 @@ export default class MongooseDB extends DBClass {
 			admin?: boolean;
 		}
 	): Promise<User | undefined> {
-		const cUser = await this.findUser({username: userInfo.username}, 'username');
+		const cUser = await this.findUser(
+			{username: userInfo.username},
+			'username'
+		);
 		if (cUser) {
 			return undefined;
 		}
@@ -306,9 +316,9 @@ export default class MongooseDB extends DBClass {
 		});
 		await user.save();
 		return user;
-    }
+	}
 
-    async purgeUser(userID: string): Promise<{account: boolean; links: boolean}> {
+	async purgeUser(userID: string): Promise<{account: boolean; links: boolean}> {
 		const [account, links] = await Promise.all([
 			this.#Schemas.User.deleteOne({userID}).exec(),
 			this.#Schemas.Link.deleteMany({owner: userID}).exec()
@@ -318,36 +328,50 @@ export default class MongooseDB extends DBClass {
 			account: Boolean(account?.deletedCount && account?.deletedCount > 0),
 			links: Boolean(links?.deletedCount && links?.deletedCount > 0)
 		};
-    }
+	}
 
-    async findVerify(query: Record<string, unknown>): Promise<PendingMember | null> {
+	async findVerify(
+		query: Record<string, unknown>
+	): Promise<PendingMember | null> {
 		return this.#Schemas.PendingMember.findOne(query).lean().exec();
-    }
+	}
 
-    async findVerifies(query: Record<string, unknown>): Promise<PendingMember[]> {
+	async findVerifies(query: Record<string, unknown>): Promise<PendingMember[]> {
 		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return this.#Schemas.PendingMember.find(query).lean().exec();
-    }
+	}
 
-    async verifyUser(userID: string, options?: {admin?: boolean}): Promise<User | undefined> {
-		const verify = await this.#Schemas.PendingMember.findOneAndDelete({userID}).lean().exec();
+	async verifyUser(
+		userID: string,
+		options?: {admin?: boolean}
+	): Promise<User | undefined> {
+		const verify = await this.#Schemas.PendingMember.findOneAndDelete({userID})
+			.lean()
+			.exec();
 		if (!verify) {
 			return undefined;
 		}
 
 		const reg = new RegExp(userID);
-		await this.#Schemas.AdminNotification.deleteOne({notify: reg}).lean().exec();
+		await this.#Schemas.AdminNotification.deleteOne({notify: reg})
+			.lean()
+			.exec();
 
-		return this.makeUser({
-			username: verify.username,
-			userID: verify.userID,
-			password: verify.password,
-			email: verify.email
-		}, options);
-    }
+		return this.makeUser(
+			{
+				username: verify.username,
+				userID: verify.userID,
+				password: verify.password,
+				email: verify.email
+			},
+			options
+		);
+	}
 
-    async verifySelf(userID: string): Promise<User | undefined> {
-		const verify = await this.#Schemas.PendingMember.findOneAndDelete({userID}).lean().exec();
+	async verifySelf(userID: string): Promise<User | undefined> {
+		const verify = await this.#Schemas.PendingMember.findOneAndDelete({userID})
+			.lean()
+			.exec();
 		if (!verify) {
 			return undefined;
 		}
@@ -358,21 +382,27 @@ export default class MongooseDB extends DBClass {
 			password: verify.password,
 			email: verify.email
 		});
-    }
+	}
 
-    async denyUser(userID: string): Promise<boolean> {
+	async denyUser(userID: string): Promise<boolean> {
 		const reg = new RegExp(userID);
-		await this.#Schemas.AdminNotification.deleteOne({notify: reg}).lean().exec();
-		const del = await this.#Schemas.PendingMember.deleteOne({userID}).lean().exec();
+		await this.#Schemas.AdminNotification.deleteOne({notify: reg})
+			.lean()
+			.exec();
+		const del = await this.#Schemas.PendingMember.deleteOne({userID})
+			.lean()
+			.exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
-    }
+	}
 
-    async denySelf(userID: string): Promise<boolean> {
-		const del = await this.#Schemas.PendingMember.deleteOne({userID}).lean().exec();
+	async denySelf(userID: string): Promise<boolean> {
+		const del = await this.#Schemas.PendingMember.deleteOne({userID})
+			.lean()
+			.exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
-    }
+	}
 
-    async makeVerify(
+	async makeVerify(
 		userInfo: {
 			username: string;
 			userID: string;
@@ -383,27 +413,31 @@ export default class MongooseDB extends DBClass {
 	): Promise<PendingMember> {
 		const verify = new this.#Schemas.PendingMember({
 			userID: userInfo.userID,
-			username:
-			userInfo.username,
+			username: userInfo.username,
 			password: userInfo.password,
 			validationToken,
 			email: userInfo.email
 		});
 		await verify.save();
 		return verify;
-    }
+	}
 
-    async findFile(query: Record<string, unknown>, selector?: string): Promise<Upload | null> {
-		return selector ?
-			this.#Schemas.Upload.findOne(query, selector).lean().exec() :
-			this.#Schemas.Upload.findOne(query).lean().exec();
-    }
+	async findFile(
+		query: Record<string, unknown>,
+		selector?: string
+	): Promise<Upload | null> {
+		return selector
+			? this.#Schemas.Upload.findOne(query, selector).lean().exec()
+			: this.#Schemas.Upload.findOne(query).lean().exec();
+	}
 
-    async findAndDeleteFile(query: Record<string, unknown>): Promise<Upload | null> {
+	async findAndDeleteFile(
+		query: Record<string, unknown>
+	): Promise<Upload | null> {
 		return this.#Schemas.Upload.findOneAndDelete(query).lean().exec();
-    }
+	}
 
-    async findFiles(
+	async findFiles(
 		query: Record<string, unknown>,
 		options?: {
 			limit?: number;
@@ -420,10 +454,12 @@ export default class MongooseDB extends DBClass {
 			queryOptions.sort = options.sort;
 		}
 
-		return this.#Schemas.Upload.find(query, options?.selector, queryOptions).lean().exec();
-    }
+		return this.#Schemas.Upload.find(query, options?.selector, queryOptions)
+			.lean()
+			.exec();
+	}
 
-    async updateFile(
+	async updateFile(
 		query: Record<string, unknown>,
 		update: Record<string, unknown>
 	): Promise<boolean | undefined> {
@@ -433,21 +469,25 @@ export default class MongooseDB extends DBClass {
 		}
 
 		return undefined;
-    }
+	}
 
-    async makeFile(id: string, owner: string, path: string, type: string): Promise<Upload> {
+	async makeFile(
+		id: string,
+		owner: string,
+		path: string,
+		type: string
+	): Promise<Upload> {
 		const file = new this.#Schemas.Upload({ID: id, owner, path, type});
 		await file.save();
 		return file;
-    }
+	}
 
-    async purgeFile(query: Record<string, unknown>): Promise<boolean> {
-		const file = await this.#Schemas.Upload.findOneAndDelete(
-			query,
-			{
-				projection: 'path'
-			}
-		).lean().exec();
+	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
+		const file = await this.#Schemas.Upload.findOneAndDelete(query, {
+			projection: 'path'
+		})
+			.lean()
+			.exec();
 		if (!file) {
 			return false;
 		}
@@ -459,7 +499,7 @@ export default class MongooseDB extends DBClass {
 				if (error instanceof Error) {
 					wlogger.error(
 						`Database could not delete file ${file.path}. See error below.\n` +
-						`Error: ${error.message}`
+							`Error: ${error.message}`
 					);
 				}
 
@@ -470,19 +510,24 @@ export default class MongooseDB extends DBClass {
 		}
 
 		return true;
-    }
+	}
 
-    async findLink(query: Record<string, unknown>, selector?: string): Promise<Link | null> {
-		return selector ?
-			this.#Schemas.Link.findOne(query, selector).lean().exec() :
-			this.#Schemas.Link.findOne(query).lean().exec();
-    }
+	async findLink(
+		query: Record<string, unknown>,
+		selector?: string
+	): Promise<Link | null> {
+		return selector
+			? this.#Schemas.Link.findOne(query, selector).lean().exec()
+			: this.#Schemas.Link.findOne(query).lean().exec();
+	}
 
-    async findAndDeleteLink(query: Record<string, unknown>): Promise<Link | null> {
+	async findAndDeleteLink(
+		query: Record<string, unknown>
+	): Promise<Link | null> {
 		return this.#Schemas.Link.findOneAndDelete(query).lean().exec();
-    }
+	}
 
-    async findLinks(
+	async findLinks(
 		query: Record<string, unknown>,
 		options?: {
 			limit?: number;
@@ -500,28 +545,28 @@ export default class MongooseDB extends DBClass {
 		}
 
 		return this.#Schemas.Link.find(query, options?.selector, qoptions).lean();
-    }
+	}
 
-    async updateLink(
+	async updateLink(
 		query: Record<string, unknown>,
 		update: Record<string, unknown>
 	): Promise<boolean> {
 		const out = await this.#Schemas.Upload.updateOne(query, update).exec();
 		return Boolean(out?.nModified && out.nModified > 0);
-    }
+	}
 
-    async makeLink(id: string, owner: string, link: string): Promise<Link> {
+	async makeLink(id: string, owner: string, link: string): Promise<Link> {
 		const link1 = new this.#Schemas.Link({ID: id, owner, link});
 		await link1.save();
 		return link1;
-    }
+	}
 
-    async purgeLink(query: Record<string, unknown>): Promise<boolean> {
+	async purgeLink(query: Record<string, unknown>): Promise<boolean> {
 		const del = await this.#Schemas.Link.deleteOne(query).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
-    }
+	}
 
-    async findToken(
+	async findToken(
 		tokenID: string,
 		userID: string,
 		options?: {
@@ -532,66 +577,91 @@ export default class MongooseDB extends DBClass {
 			id: tokenID,
 			userID,
 			web: options?.web ?? false
-		}).lean<TokenDB>().exec();
-    }
+		})
+			.lean<TokenDB>()
+			.exec();
+	}
 
-    async findTokens(userID: string, options?: {web?: boolean}): Promise<TokenDB[]> {
+	async findTokens(
+		userID: string,
+		options?: {web?: boolean}
+	): Promise<TokenDB[]> {
 		return this.#Schemas.Token.find({
 			userID,
 			web: options?.web ?? false
-		}).lean<TokenDB[]>().exec();
-    }
+		})
+			.lean<TokenDB[]>()
+			.exec();
+	}
 
-    async makeToken(
+	async makeToken(
 		tokenID: string,
 		userID: string,
 		options?: {
 			web?: boolean;
-	}): Promise<TokenDB | undefined> {
-		const tken = new this.#Schemas.Token({id: tokenID, userID, web: options?.web ?? false});
+		}
+	): Promise<TokenDB | undefined> {
+		const tken = new this.#Schemas.Token({
+			id: tokenID,
+			userID,
+			web: options?.web ?? false
+		});
 		await tken.save();
 		return tken;
-    }
+	}
 
-    async purgeToken(tokenID: string, userID: string, options?: {web?: boolean}): Promise<boolean> {
+	async purgeToken(
+		tokenID: string,
+		userID: string,
+		options?: {web?: boolean}
+	): Promise<boolean> {
 		const del = await this.#Schemas.Token.deleteOne({
 			id: tokenID,
 			userID,
 			web: options?.web
 		}).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
-    }
+	}
 
-    async purgeTokens(userID: string, web?: boolean): Promise<number | undefined> {
-		const del = web ?
-			await this.#Schemas.Token.deleteMany({userID, web}).exec() :
-			await this.#Schemas.Token.deleteMany({userID}).exec();
+	async purgeTokens(
+		userID: string,
+		web?: boolean
+	): Promise<number | undefined> {
+		const del = web
+			? await this.#Schemas.Token.deleteMany({userID, web}).exec()
+			: await this.#Schemas.Token.deleteMany({userID}).exec();
 		return del.n;
-    }
+	}
 
-    async makeAdminNotify(id: string, notify: string, title: string): Promise<Notification> {
+	async makeAdminNotify(
+		id: string,
+		notify: string,
+		title: string
+	): Promise<Notification> {
 		const notif = new this.#Schemas.AdminNotification({ID: id, notify, title});
 		await notif.save();
 		return notif;
-    }
+	}
 
-    async findAdminNotify(query: Record<string, unknown>): Promise<Notification | null> {
+	async findAdminNotify(
+		query: Record<string, unknown>
+	): Promise<Notification | null> {
 		return this.#Schemas.AdminNotification.findOne(query).lean().exec();
-    }
+	}
 
-    async findAdminNotifies(query: Record<string, unknown>): Promise<Notification[]> {
+	async findAdminNotifies(
+		query: Record<string, unknown>
+	): Promise<Notification[]> {
 		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return this.#Schemas.AdminNotification.find(query).lean().exec();
-    }
+	}
 
-    async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
+	async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
 		const del = await this.#Schemas.AdminNotification.deleteOne(query).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
-    }
+	}
 
-    async shutdown(): Promise<void> {
+	async shutdown(): Promise<void> {
 		return this.#internals.connection.close();
-    }
+	}
 }
-
-/* eslint-enable @typescript-eslint/indent */

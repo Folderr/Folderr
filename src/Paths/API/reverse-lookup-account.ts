@@ -35,7 +35,9 @@ class LookupAccount extends Path {
 	}
 
 	async execute(request: Request, response: Response): Promise<Response> {
-		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -55,9 +57,10 @@ class LookupAccount extends Path {
 			});
 		}
 
-		const out = request.params.type === 'file' ?
-			await this.core.db.findFile({ID: request.params.id}) :
-			await this.core.db.findLink({ID: request.params.id});
+		const out =
+			request.params.type === 'file'
+				? await this.core.db.findFile({ID: request.params.id})
+				: await this.core.db.findLink({ID: request.params.id});
 		if (!out) {
 			const formattedType = request.params.type === 'file' ? 'File' : 'Link';
 			console.log(formattedType);

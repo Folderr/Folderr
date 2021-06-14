@@ -36,9 +36,12 @@ class ConfigGen extends Path {
 	}
 
 	/**
-     * @desc ShareX Configuration Generator Frontend.
-     */
-	async execute(request: Request, response: Response): Promise<Response|void> {
+	 * @desc ShareX Configuration Generator Frontend.
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const dir = join(__dirname, '../Frontend/input_token.html');
 		if (!request.uauth) {
 			response.redirect('/');

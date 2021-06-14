@@ -34,16 +34,20 @@ class Account extends Path {
 	}
 
 	/**
-     * @desc Account page only shows if you are signed in.
-     */
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	 * @desc Account page only shows if you are signed in.
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		if (!request.uauth) {
 			response.redirect('./');
 			return;
 		}
 
 		if (!request.secure && !this.Utils.verifyInsecureCookies(request)) {
-			response.status(this.codes.notAccepted)
+			response
+				.status(this.codes.notAccepted)
 				.sendFile(join(__dirname, '../Frontend/insecure_loggedIn.html'));
 			return;
 		}

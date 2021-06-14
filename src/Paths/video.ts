@@ -36,11 +36,13 @@ class Videos extends Path {
 	}
 
 	/**
-     * @desc Display an image to the user, or the 404 page if image doesn't exist.
-     */
+	 * @desc Display an image to the user, or the 404 page if image doesn't exist.
+	 */
 	async execute(request: any, response: Response): Promise<Response | void> {
 		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).send('[ERROR] Missing video ID.');
+			return response
+				.status(this.codes.badReq)
+				.send('[ERROR] Missing video ID.');
 		}
 
 		if (!request.params.id.match('.')) {
@@ -57,17 +59,17 @@ class Videos extends Path {
 			const owner = await this.core.db.findUser({userID: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				response.status(this.codes.notFound).sendFile(
-					join(__dirname, '../Frontend/notfound.html')
-				);
+				response
+					.status(this.codes.notFound)
+					.sendFile(join(__dirname, '../Frontend/notfound.html'));
 				return;
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'video')) {
-			response.status(this.codes.notFound).sendFile(
-				join(__dirname, '../Frontend/notfound.html')
-			);
+			response
+				.status(this.codes.notFound)
+				.sendFile(join(__dirname, '../Frontend/notfound.html'));
 			return;
 		}
 

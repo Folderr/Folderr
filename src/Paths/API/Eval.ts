@@ -39,7 +39,9 @@ class Eval extends Path {
 	}
 
 	async execute(request: Request, response: Response): Promise<Response> {
-		const auth = await this.Utils.authPassword(request, user => Boolean(user.first));
+		const auth = await this.Utils.authPassword(request, (user) =>
+			Boolean(user.first)
+		);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -57,9 +59,10 @@ class Eval extends Path {
 		try {
 			// eslint-disable-next-line no-eval
 			let evaled = await eval(request.body.eval);
-			evaled = typeof evaled === 'object' ?
-				evaled = inspect(evaled, {depth: 0, showHidden: true}) :
-				evaled = String(evaled);
+			evaled =
+				typeof evaled === 'object'
+					? (evaled = inspect(evaled, {depth: 0, showHidden: true}))
+					: (evaled = String(evaled));
 
 			if (!evaled || evaled.length === 0) {
 				return response.status(this.codes.noContent).json({

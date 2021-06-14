@@ -127,12 +127,15 @@ const ConfigHandler = {
 		email: Record<string, unknown> | undefined | false;
 	} {
 		const dir = join(process.cwd(), 'configs');
-		const server = existsSync(join(dir, 'server.yaml')) &&
-		yaml.load(fs.readFileSync(join(dir, 'server.yaml'), {encoding: 'utf8'}));
-		const db = existsSync(join(dir, 'db.yaml')) &&
-		yaml.load(fs.readFileSync(join(dir, 'db.yaml'), {encoding: 'utf8'}));
-		const email = existsSync(join(dir, 'email.yaml')) &&
-		yaml.load(fs.readFileSync(join(dir, 'email.yaml'), {encoding: 'utf8'}));
+		const server =
+			existsSync(join(dir, 'server.yaml')) &&
+			yaml.load(fs.readFileSync(join(dir, 'server.yaml'), {encoding: 'utf8'}));
+		const db =
+			existsSync(join(dir, 'db.yaml')) &&
+			yaml.load(fs.readFileSync(join(dir, 'db.yaml'), {encoding: 'utf8'}));
+		const email =
+			existsSync(join(dir, 'email.yaml')) &&
+			yaml.load(fs.readFileSync(join(dir, 'email.yaml'), {encoding: 'utf8'}));
 		const missing: string[] = [];
 		if (typeof server !== 'object') {
 			missing.push('server.yaml');
@@ -146,7 +149,10 @@ const ConfigHandler = {
 			missing.push('email.yaml');
 		}
 
-		if (missing.length > 0 && !(missing.length === 1 && missing[0] === 'email.yaml')) {
+		if (
+			missing.length > 0 &&
+			!(missing.length === 1 && missing[0] === 'email.yaml')
+		) {
 			console.log(`Invalid YAML config, missing: ${missing.join(', ')}`);
 			throw new Error(`Invalid YAML config, missing: ${missing.join(', ')}`);
 		} // OK TS, shut up.
@@ -158,7 +164,12 @@ const ConfigHandler = {
 		};
 	},
 
-	verifyFetch(): {core: CoreConfig; email: ActEmailConfig; key: KeyConfig; db: DBConfig} {
+	verifyFetch(): {
+		core: CoreConfig;
+		email: ActEmailConfig;
+		key: KeyConfig;
+		db: DBConfig;
+	} {
 		const files = this.fetchFiles() as unknown as {
 			server: ServerConfig;
 			db: DBConfig;
@@ -204,9 +215,10 @@ const ConfigHandler = {
 		};
 		if (files.email) {
 			emailConfig.sendingEmail = files.email.sendingEmail;
-			const hasAuth = Boolean(files.email.mailerOptions?.auth) &&
-			Boolean(files.email.mailerOptions?.auth.password) &&
-			Boolean(files.email.mailerOptions?.auth.username);
+			const hasAuth =
+				Boolean(files.email.mailerOptions?.auth) &&
+				Boolean(files.email.mailerOptions?.auth.password) &&
+				Boolean(files.email.mailerOptions?.auth.username);
 			if (files.email.mailerOptions && hasAuth) {
 				emailConfig.mailerOptions = {
 					auth: {
@@ -228,7 +240,11 @@ const ConfigHandler = {
 		return {key: keyConfig, email: emailConfig, core: coreConfig, db: dbConfig};
 	},
 
-	preCheck(files: {server: ServerConfig; db: DBConfig; email?: EmailConfig}): true|void {
+	preCheck(files: {
+		server: ServerConfig;
+		db: DBConfig;
+		email?: EmailConfig;
+	}): true | void {
 		const missingConfigs = {
 			server: [] as string[],
 			db: [] as string[]
@@ -246,10 +262,7 @@ const ConfigHandler = {
 		}
 
 		if (
-			(
-				!files.server.signups &&
-				files.server.signups !== 0
-			) ||
+			(!files.server.signups && files.server.signups !== 0) ||
 			typeof files.server.signups !== 'number'
 		) {
 			missingConfigs.server.push('server/signups - Must be a number');
@@ -289,11 +302,17 @@ const ConfigHandler = {
 			missingFiles.push('jwtConfig/public key path');
 		}
 
-		if (keyConfig.httpsCertOptions?.key && !existsSync(keyConfig.httpsCertOptions?.key)) {
+		if (
+			keyConfig.httpsCertOptions?.key &&
+			!existsSync(keyConfig.httpsCertOptions?.key)
+		) {
 			missingFiles.push('https certificate options/key');
 		}
 
-		if (keyConfig.httpsCertOptions?.cert && !existsSync(keyConfig.httpsCertOptions?.cert)) {
+		if (
+			keyConfig.httpsCertOptions?.cert &&
+			!existsSync(keyConfig.httpsCertOptions?.cert)
+		) {
 			missingFiles.push('https certificate options/cert');
 		}
 
@@ -304,7 +323,7 @@ const ConfigHandler = {
 		coreConfig: CoreConfig,
 		keyConfig: KeyConfig,
 		emailConfig: ActEmailConfig
-	): true|void {
+	): true | void {
 		const missingFiles = this.keyCheck(keyConfig);
 
 		// Validate ports
@@ -317,10 +336,7 @@ const ConfigHandler = {
 
 		// Validate signups type
 		if (
-			(
-				!coreConfig.signups &&
-				coreConfig.signups !== 0
-			) ||
+			(!coreConfig.signups && coreConfig.signups !== 0) ||
 			coreConfig.signups < 0 ||
 			coreConfig.signups > 2
 		) {
@@ -329,20 +345,20 @@ const ConfigHandler = {
 
 		if (
 			coreConfig.signups === 2 &&
-			(
-				!emailConfig.sendingEmail ||
+			(!emailConfig.sendingEmail ||
 				!emailConfig.mailerOptions?.auth.pass ||
-				!emailConfig.mailerOptions?.auth.user
-			)
+				!emailConfig.mailerOptions?.auth.user)
 		) {
-			failedSignups = 'Signup Type Not Configured Properly (Emailer not configured)';
+			failedSignups =
+				'Signup Type Not Configured Properly (Emailer not configured)';
 		}
 
 		// Check if anything has failed
 		if (failedSignups || failedPort || missingFiles.length > 0) {
 			let error = '[CONFIG - INVALID CONFIG]';
 			if (failedPort) {
-				error += '\nPort configuration invalid. Please be below 65535 and above 0';
+				error +=
+					'\nPort configuration invalid. Please be below 65535 and above 0';
 			}
 
 			if (failedSignups && typeof failedSignups === 'string') {
@@ -350,14 +366,16 @@ const ConfigHandler = {
 			}
 
 			if (missingFiles.length > 0) {
-				error += '\nThe following files were not found but in the config:\n' +
+				error +=
+					'\nThe following files were not found but in the config:\n' +
 					missingFiles.join('\n');
 			}
 
 			console.log(error);
 			wlogger.error(error);
 			const ms = 500;
-			setTimeout(() => { // This is the one time im going to tell unicorn to can it
+			setTimeout(() => {
+				// This is the one time im going to tell unicorn to can it
 				// eslint-disable-next-line unicorn/no-process-exit
 				process.exit(1);
 			}, ms);

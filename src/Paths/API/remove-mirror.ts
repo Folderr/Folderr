@@ -60,11 +60,14 @@ class MirrorRemove extends Path {
 			});
 		}
 
-		await this.core.db.updateUser({userID: auth.userID}, {
-			$pullAll: {
-				cURLs: request.body.mirror
+		await this.core.db.updateUser(
+			{userID: auth.userID},
+			{
+				$pullAll: {
+					cURLs: request.body.mirror
+				}
 			}
-		});
+		);
 		return response.status(this.codes.ok).json({
 			code: this.codes.ok,
 			message: 'OK'

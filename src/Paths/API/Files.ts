@@ -36,7 +36,10 @@ class Files extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({
@@ -49,7 +52,7 @@ class Files extends Path {
 		if (generated.errored) {
 			const genType = generated as unknown as {
 				httpCode: number;
-				json: Record<string, string|number>;
+				json: Record<string, string | number>;
 				errored: boolean;
 			};
 			return response.status(genType.httpCode).json(genType.json);
@@ -70,15 +73,18 @@ class Files extends Path {
 
 		const images: Upload[] = await this.core.db.findFiles(query, options);
 		if (!images) {
-			return response.status(this.codes.ok).json({code: this.codes.noContent, message: []});
+			return response
+				.status(this.codes.ok)
+				.json({code: this.codes.noContent, message: []});
 		}
 
-		let url = request.headers?.responseURL &&
+		let url =
+			request.headers?.responseURL &&
 			typeof request.headers.responseURL === 'string' &&
 			auth.cURLs.includes(request.headers.responseURL) &&
-			await this.Utils.testMirrorURL(request.headers.responseURL) ?
-			request.headers.responseURL :
-			await this.Utils.determineHomeURL(request);
+			(await this.Utils.testMirrorURL(request.headers.responseURL))
+				? request.headers.responseURL
+				: await this.Utils.determineHomeURL(request);
 		url = url.replace(/\/$/g, '');
 		const files = images.map((image: Upload) => {
 			const split = image.path.split('.');
@@ -90,7 +96,9 @@ class Files extends Path {
 				link: `${url}/${image.type ? image.type[0] : 'i'}/${image.ID}.${type}`
 			};
 		});
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: files});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: files});
 	}
 }
 

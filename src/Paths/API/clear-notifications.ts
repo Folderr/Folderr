@@ -47,7 +47,9 @@ class ClearNotifs extends Path {
 
 		// Clear the notifications and tell the user that happened
 		await this.core.db.updateUser({userID: auth.userID}, {notifs: []});
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 }
 

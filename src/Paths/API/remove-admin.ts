@@ -39,7 +39,9 @@ class RemoveAdmin extends Path {
 
 	async execute(request: Request, response: Response): Promise<Response> {
 		// Actually check auth, and make sure they are the owner
-		const auth = await this.Utils.authPassword(request, user => Boolean(user.first));
+		const auth = await this.Utils.authPassword(request, (user) =>
+			Boolean(user.first)
+		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -66,10 +68,7 @@ class RemoveAdmin extends Path {
 		const user = await this.core.db.findAndUpdateUser(
 			{
 				userID: request.params.id,
-				$nor: [
-					{admin: false},
-					{first: true}
-				]
+				$nor: [{admin: false}, {first: true}]
 			},
 			{admin: false},
 			'admin'

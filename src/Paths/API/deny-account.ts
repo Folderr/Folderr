@@ -62,7 +62,10 @@ class DenyAccount extends Path {
 		}
 
 		// Search for the user, and if not found send in an error
-		const user = await this.Utils.findVerifying(request.body.token, request.body.uid);
+		const user = await this.Utils.findVerifying(
+			request.body.token,
+			request.body.uid
+		);
 		if (!user) {
 			return response.status(this.codes.notFound).json({
 				code: this.Utils.FoldCodes.dbNotFound,
@@ -76,7 +79,9 @@ class DenyAccount extends Path {
 		this.core.logger.info(
 			`User account denied by administrator (${user.username} - ${user.userID})`
 		);
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 }
 

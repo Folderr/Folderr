@@ -32,8 +32,9 @@ import Path from './path';
 const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
 
 const ee = new EventEmitter();
-ee.on('fail', code => {
-	setTimeout(() => { // eslint-disable-next-line unicorn/no-process-exit
+ee.on('fail', (code) => {
+	setTimeout(() => {
+		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(code || 1); // Justification: Process may not exit if this is not called
 	}, 1000);
 });
@@ -59,13 +60,13 @@ export default class Core {
 
 	public readonly superagent: SuperAgent<SuperAgentRequest>;
 
-    #deleter: ChildProcess;
+	#deleter: ChildProcess;
 
-    #keys: KeyConfig;
+	#keys: KeyConfig;
 
-    #emailConfig: ActEmailConfig;
+	#emailConfig: ActEmailConfig;
 
-    #dbConfig: DBConfig;
+	#dbConfig: DBConfig;
 
 	#requestIDs: Set<string>;
 
@@ -75,7 +76,7 @@ export default class Core {
 		noRequests: boolean;
 	};
 
-	constructor() { /* eslint-disable @typescript-eslint/indent */
+	constructor() {
 		const limiter = new MemoryLimiter();
 		this.db = new DB();
 		this.app = express(); // Time to abuse Node
@@ -104,7 +105,9 @@ export default class Core {
 		this.codes = StatusCodes;
 		this.logger = wlogger;
 		this.superagent = superagent;
-		this.#deleter = fork(join(__dirname, '../file-del-queue'), undefined, {silent: true});
+		this.#deleter = fork(join(__dirname, '../file-del-queue'), undefined, {
+			silent: true
+		});
 
 		this.server = this.initServer();
 		this.#requestIDs = new Set();
@@ -113,42 +116,46 @@ export default class Core {
 			deleterShutdown: false,
 			noRequests: true
 		};
-    }
+	}
 
-    addDeleter(userID: string): void {
+	addDeleter(userID: string): void {
 		this.#deleter.send({message: 'add', data: userID});
-    }
+	}
 
-    initServer(): http.Server {
+	initServer(): http.Server {
 		if (this.config.trustProxies) {
 			this.app.enable('trust proxy');
 		}
 
 		if (this.#keys.httpsCertOptions?.key && this.#keys.httpsCertOptions?.cert) {
 			// IMPL http/2 server
-			const server = spdy.createServer({
-				cert: fs.readFileSync(this.#keys.httpsCertOptions.cert),
-				key: fs.readFileSync(this.#keys.httpsCertOptions.key),
-				spdy: {
-					protocols: ['h2', 'http/1.1']
-				}
-			}, this.app);
+			const server = spdy.createServer(
+				{
+					cert: fs.readFileSync(this.#keys.httpsCertOptions.cert),
+					key: fs.readFileSync(this.#keys.httpsCertOptions.key),
+					spdy: {
+						protocols: ['h2', 'http/1.1']
+					}
+				},
+				this.app
+			);
 			wlogger.log('prelisten', 'Initalized Server');
 			return server;
 		}
 
 		wlogger.log('prelisten', 'Initalized Server');
 		return http.createServer(this.app);
-    }
+	}
 
-    async initDB(): Promise<void> {
+	async initDB(): Promise<void> {
 		wlogger.info('Init DB');
 		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/fldrrDB');
-    }
+	}
 
-    initPaths(): boolean {
+	initPaths(): boolean {
 		let pathCount = 0;
-		for (const endpoint in endpoints) { // This works TS, trust me.
+		for (const endpoint in endpoints) {
+			// This works TS, trust me.
 			if (endpoint.startsWith('debug') && !process.env.DEBUG) {
 				continue;
 			}
@@ -156,9 +163,8 @@ export default class Core {
 			const base = endpoint;
 			const ActualEndpoint = Endpoints[endpoint];
 			const path = new ActualEndpoint(this);
-			const endpointName = (
-				(typeof path.path === 'string' && path.path) || path.label) ??
-				base;
+			const endpointName =
+				((typeof path.path === 'string' && path.path) || path.label) ?? base;
 			if (path.enabled) {
 				if (!path.label || !path.path) {
 					wlogger.error(
@@ -168,7 +174,9 @@ export default class Core {
 				}
 
 				if (!path.execute) {
-					wlogger.error(`Path ${endpointName} executable found, fail init of Path.`);
+					wlogger.error(
+						`Path ${endpointName} executable found, fail init of Path.`
+					);
 					continue;
 				}
 
@@ -185,7 +193,9 @@ export default class Core {
 				// eslint, this is a string. Do not mark this as max-len.
 				wlogger.log(
 					'startup',
-					`Initalized path ${path.label} (${base}) with method ${path.type.toUpperCase()}`
+					`Initalized path ${
+						path.label
+					} (${base}) with method ${path.type.toUpperCase()}`
 				);
 				pathCount++;
 			}
@@ -193,28 +203,34 @@ export default class Core {
 
 		wlogger.log('startup', `Initalized ${pathCount} paths`);
 		return true;
-    }
+	}
 
-    checkPorts(): boolean {
+	checkPorts(): boolean {
 		const linuxRootPorts = 1024;
 		const linuxRootUid = 0;
-		if ((process.getuid && process.getuid() !== linuxRootUid) &&
+		if (
+			process.getuid &&
+			process.getuid() !== linuxRootUid &&
 			this.config.port < linuxRootPorts &&
 			platform() === 'linux'
 		) {
 			ee.emit('fail', 13);
-			wlogger.error(`[FATAL] Cannot listen to port ${this.config.port} as you are not root!`);
-			throw new Error(`Cannot listen to port ${this.config.port} as you are not root!`);
+			wlogger.error(
+				`[FATAL] Cannot listen to port ${this.config.port} as you are not root!`
+			);
+			throw new Error(
+				`Cannot listen to port ${this.config.port} as you are not root!`
+			);
 		}
 
 		wlogger.log('prelisten', 'Listen Port OK');
 		return true;
-    }
+	}
 
-    listen(): http.Server | boolean {
+	listen(): http.Server | boolean {
 		this.checkPorts();
 		return this.server.listen(this.config.port);
-    }
+	}
 
 	shutdownServer(): void {
 		this.#deleter.send({msg: 'stop'});
@@ -238,9 +254,12 @@ export default class Core {
 					console.log(`Logger shutdown error:\n${error.message}`);
 				}
 
-				console.log('Logger shutdown encountered an unkown error (result may be weird):\n');
+				console.log(
+					'Logger shutdown encountered an unkown error (result may be weird):\n'
+				);
 				console.log(error);
-			} finally { // Silence unicorn.
+			} finally {
+				// Silence unicorn.
 				// eslint-disable-next-line unicorn/no-process-exit
 				process.exit(0);
 			}
@@ -262,5 +281,3 @@ export default class Core {
 		return this.#requestIDs.has(id);
 	}
 }
-
-/* eslint-enable @typescript-eslint/indent */

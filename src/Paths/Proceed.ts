@@ -34,9 +34,12 @@ class Proceed extends Path {
 	}
 
 	/**
-     * @desc Allows the user to make insecure requests, for 30 minutes.
-     */
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	 * @desc Allows the user to make insecure requests, for 30 minutes.
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const r = request.header('Referer');
 		if (!r) {
 			response.redirect('/');

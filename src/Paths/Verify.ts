@@ -42,7 +42,10 @@ class Verify extends Path {
 			});
 		}
 
-		const verify = await this.Utils.findVerifying(request.params.token, request.params.userid);
+		const verify = await this.Utils.findVerifying(
+			request.params.token,
+			request.params.userid
+		);
 		if (!verify) {
 			return response.status(this.codes.badReq).json({
 				code: this.Utils.FoldCodes.dbNotFound,
@@ -63,7 +66,9 @@ class Verify extends Path {
 		await this.core.db.verifySelf(verify.userID);
 
 		this.core.logger.info('User account verified by self');
-		return response.status(this.codes.created).json({code: this.codes.ok, message: 'OK'});
+		return response
+			.status(this.codes.created)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 }
 

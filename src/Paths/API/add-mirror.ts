@@ -62,13 +62,18 @@ class MirrorAdd extends Path {
 		let u;
 		try {
 			u = await this.Utils.determineHomeURL(request);
-			const out = await this.Utils.authorization.genMirrorKey(u, request.body.url);
+			const out = await this.Utils.authorization.genMirrorKey(
+				u,
+				request.body.url
+			);
 			id = out.id;
-			r = await this.core.superagent.get(`${request.body.url as string}/api/verify`).send({
-				url: u,
-				owner: auth.userID,
-				token: out.key
-			});
+			r = await this.core.superagent
+				.get(`${request.body.url as string}/api/verify`)
+				.send({
+					url: u,
+					owner: auth.userID,
+					token: out.key
+				});
 		} catch (error: unknown) {
 			if (!error || !(error instanceof Error)) {
 				return response.status(this.codes.internalErr).json({
@@ -81,7 +86,7 @@ class MirrorAdd extends Path {
 				error &&
 				error instanceof Error &&
 				error.message &&
-				(/Not Found|\[FAIL]/.test(error.message))
+				/Not Found|\[FAIL]/.test(error.message)
 			) {
 				return response.status(this.codes.notAccepted).json({
 					code: this.Utils.FoldCodes.mirrorReject,
@@ -105,9 +110,15 @@ class MirrorAdd extends Path {
 
 		const nOut = JSON.parse(out);
 		const {message} = nOut;
-		const valid = id && u ?
-			this.Utils.authorization.verifyMirrorKey(message, id, u, request.body.url) :
-			false;
+		const valid =
+			id && u
+				? this.Utils.authorization.verifyMirrorKey(
+						message,
+						id,
+						u,
+						request.body.url
+				  )
+				: false;
 		if (!valid) {
 			return response.status(this.codes.notAccepted).json({
 				code: this.Utils.FoldCodes.mirrorReject,
@@ -125,7 +136,9 @@ class MirrorAdd extends Path {
 				}
 			}
 		);
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 }
 

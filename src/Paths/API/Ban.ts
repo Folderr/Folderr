@@ -36,7 +36,10 @@ class Ban extends Path {
 		this.type = 'post';
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
@@ -45,7 +48,11 @@ class Ban extends Path {
 			});
 		}
 
-		if (!request.params?.id || !request.body?.reason || !/^\d+$/.test(request.params.id)) {
+		if (
+			!request.params?.id ||
+			!request.body?.reason ||
+			!/^\d+$/.test(request.params.id)
+		) {
 			return response.status(this.codes.badReq).json({
 				code: this.codes.badReq,
 				message: 'Missing requirements'
@@ -63,21 +70,32 @@ class Ban extends Path {
 		const email = this.Utils.decrypt(user.email);
 		if (this.core.emailer.active) {
 			const url = await this.Utils.determineHomeURL(request);
-			await this.core.emailer.banEmail(email, request.body.reason, user.username, url);
+			await this.core.emailer.banEmail(
+				email,
+				request.body.reason,
+				user.username,
+				url
+			);
 		}
 
 		const ban = await this.core.db.addFolderrBan(email);
 		if (ban) {
 			await this.core.db.purgeUser(user.userID);
-			response.status(this.codes.ok).json({
-				code: this.codes.ok,
-				message: 'OK'
-			}).end();
+			response
+				.status(this.codes.ok)
+				.json({
+					code: this.codes.ok,
+					message: 'OK'
+				})
+				.end();
 		} else {
-			response.status(this.codes.notAccepted).json({
-				code: this.codes.notAccepted,
-				message: 'BAN FAILED'
-			}).end();
+			response
+				.status(this.codes.notAccepted)
+				.json({
+					code: this.codes.notAccepted,
+					message: 'BAN FAILED'
+				})
+				.end();
 		}
 
 		this.core.addDeleter(user.userID);

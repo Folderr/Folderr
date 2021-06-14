@@ -33,10 +33,15 @@ class Tokens extends Path {
 		this.path = '/api/account/tokens';
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
-		const auth = request.cookies?.token ?
-			await this.Utils.authorization.verifyAccount(request.cookies.token, {web: true}) :
-			await this.Utils.authPassword(request);
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
+		const auth = request.cookies?.token
+			? await this.Utils.authorization.verifyAccount(request.cookies.token, {
+					web: true
+			  })
+			: await this.Utils.authPassword(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
 				message: 'Authorization failed',
@@ -46,13 +51,16 @@ class Tokens extends Path {
 
 		const tokens = await this.core.db.findTokens(auth.userID);
 		return response.status(this.codes.ok).json({
-			code: this.codes.ok, message: tokens.filter(token => !token.web).map(token => {
-				return {
-					created: Math.round(token.created.getTime() / 1000),
-					id: token.id,
-					for_user: token.userID
-				};
-			})
+			code: this.codes.ok,
+			message: tokens
+				.filter((token) => !token.web)
+				.map((token) => {
+					return {
+						created: Math.round(token.created.getTime() / 1000),
+						id: token.id,
+						for_user: token.userID
+					};
+				})
 		});
 	}
 }

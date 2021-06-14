@@ -18,11 +18,12 @@ const loggingLevels = {
 	}
 };
 
-const format = winston.format.printf(({
-	level,
-	message,
-	timestamp
-}) => `[${moment(timestamp).format('MM/DD/YY HH:MM')}] [${level.toUpperCase()}]: ${message}`);
+const format = winston.format.printf(
+	({level, message, timestamp}) =>
+		`[${moment(timestamp).format(
+			'MM/DD/YY HH:MM'
+		)}] [${level.toUpperCase()}]: ${message}`
+);
 const logger = winston.createLogger({
 	format: winston.format.combine(
 		winston.format.timestamp(),
@@ -40,13 +41,12 @@ winston.exceptions.handle(
 	new winston.transports.File({filename: '../logs/exception.log'})
 );
 if (process.env.NODE_ENV !== 'production') {
-	logger.add(new winston.transports.Console({
-		format: winston.format.combine(
-			winston.format.timestamp(),
-			format
-		),
-		level: 'startup'
-	}));
+	logger.add(
+		new winston.transports.Console({
+			format: winston.format.combine(winston.format.timestamp(), format),
+			level: 'startup'
+		})
+	);
 }
 
 export default logger;

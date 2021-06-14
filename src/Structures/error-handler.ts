@@ -37,19 +37,19 @@ class ErrorHandler {
 	private Path: Path;
 
 	/**
-     * @param {Object} path The Path to use
-     */
+	 * @param {Object} path The Path to use
+	 */
 	constructor(path: Path) {
 		this.Path = path;
 	}
 
 	/**
-     * @desc Handle a paths error when it arises
-     *
-     * @param {Object} err The error object
-     * @param {String} [severity] String on how severe the error is
-     * @returns {{severity: String, culprit: String, file: String, message: String}}
-     */
+	 * @desc Handle a paths error when it arises
+	 *
+	 * @param {Object} err The error object
+	 * @param {String} [severity] String on how severe the error is
+	 * @returns {{severity: String, culprit: String, file: String, message: String}}
+	 */
 	handlePathError(error: Error, severity?: string): HandlerMessage {
 		if (!error || !error.stack) {
 			throw new Error('[ERROR] - Missing error (REQUIRED)');

@@ -38,7 +38,10 @@ class Image extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(request: Request, response: Response): Promise<Response|void> {
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
@@ -96,13 +99,17 @@ class Image extends Path {
 			this.core.db.makeFile(name, auth.userID, file.path, type),
 			this.core.db.updateUser({userID: auth.userID}, {$inc: {files: 1}})
 		]);
-		return response.status(this.codes.ok).send(
-			`${typeof request.headers?.responseURL === 'string' &&
-			auth.cURLs.includes(request.headers.responseURL) &&
-			await this.Utils.testMirrorURL(request.headers.responseURL!) ?
-				request.headers.responseURL :
-				await this.Utils.determineHomeURL(request)}/${type[0]}/${name}.${ext as string}`
-		);
+		return response
+			.status(this.codes.ok)
+			.send(
+				`${
+					typeof request.headers?.responseURL === 'string' &&
+					auth.cURLs.includes(request.headers.responseURL) &&
+					(await this.Utils.testMirrorURL(request.headers.responseURL!))
+						? request.headers.responseURL
+						: await this.Utils.determineHomeURL(request)
+				}/${type[0]}/${name}.${ext as string}`
+			);
 	}
 
 	private async formidablePromise(request: Request): Promise<any> {

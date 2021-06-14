@@ -41,7 +41,8 @@ class Signup extends Path {
 		// Generate an ID, and do not allow a users id to be reused
 		const uID = await this.Utils.genUID();
 		const user = await this.core.db.findUser({uID});
-		if (user) { // If the user was found, retry
+		if (user) {
+			// If the user was found, retry
 			return this.genUID();
 		}
 
@@ -73,14 +74,17 @@ class Signup extends Path {
 				this.core.db.makeAdminNotify(
 					notifyID,
 					`Username: ${userInfo.username}\n` +
-					`User ID: ${userInfo.userID}\n` +
-					`Validation Token: ${validationToken.token}`,
+						`User ID: ${userInfo.userID}\n` +
+						`Validation Token: ${validationToken.token}`,
 					'New user signup!'
 				)
 			]);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				this.handleError(error, response, undefined, {noResponse: true, noIncrease: false});
+				this.handleError(error, response, undefined, {
+					noResponse: true,
+					noIncrease: false
+				});
 			}
 
 			return {
@@ -96,7 +100,10 @@ class Signup extends Path {
 		this.core.logger.info(
 			`New user (${userInfo.username} - ${userInfo.userID})signed up to Folderr`
 		);
-		return {httpCode: this.codes.created, msg: {code: this.codes.created, message: 'OK'}};
+		return {
+			httpCode: this.codes.created,
+			msg: {code: this.codes.created, message: 'OK'}
+		};
 	}
 
 	async email(
@@ -113,12 +120,12 @@ class Signup extends Path {
 		request: Request,
 		response: Response
 	): Promise<{
-			httpCode: number;
-			msg: {
-				message: string;
-				code: number;
-			};
-		}> {
+		httpCode: number;
+		msg: {
+			message: string;
+			code: number;
+		};
+	}> {
 		let url = await this.Utils.determineHomeURL(request);
 		if (!/http(s)?:\/\//.test(url)) {
 			url = `http://${url}`;
@@ -133,7 +140,10 @@ class Signup extends Path {
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				this.handleError(error, response, undefined, {noResponse: true, noIncrease: false});
+				this.handleError(error, response, undefined, {
+					noResponse: true,
+					noIncrease: false
+				});
 			}
 
 			return {
@@ -162,21 +172,17 @@ class Signup extends Path {
 		if (!this.core.config.signups) {
 			return response.status(this.codes.locked).json({
 				code: this.codes.locked,
-				message: 'Signup\'s are closed.'
+				message: "Signup's are closed."
 			});
 		}
 
 		// Check all required body is there
 		if (
 			!request.body ||
-			(
-				request.body &&
-				(
-					!request.body.username ||
+			(request.body &&
+				(!request.body.username ||
 					!request.body.password ||
-					!request.body.email
-				)
-			)
+					!request.body.email))
 		) {
 			return response.status(this.codes.badReq).json({
 				code: this.codes.badReq,
@@ -186,7 +192,11 @@ class Signup extends Path {
 
 		// Fetch the username and password from the body
 		const {username, password} = request.body;
-		const isValid = await this.checkUserInput(request.body.email, username, password);
+		const isValid = await this.checkUserInput(
+			request.body.email,
+			username,
+			password
+		);
 		if (typeof isValid !== 'boolean') {
 			return response.status(isValid.httpCode).json(isValid.response);
 		}
@@ -218,29 +228,46 @@ class Signup extends Path {
 		// Add the user to the VerifyingUser database and save
 
 		// Find admin notifications, and generate an ID
-		const r = this.core.emailer.active && this.core.config.signups === 2 ?
-			await this.email({
-				username,
-				userID: uID,
-				password: pswd,
-				email
-			}, validationToken, request, response) :
-			await this.noEmail({
-				username,
-				userID: uID,
-				password: pswd,
-				email
-			}, validationToken, response);
+		const r =
+			this.core.emailer.active && this.core.config.signups === 2
+				? await this.email(
+						{
+							username,
+							userID: uID,
+							password: pswd,
+							email
+						},
+						validationToken,
+						request,
+						response
+				  )
+				: await this.noEmail(
+						{
+							username,
+							userID: uID,
+							password: pswd,
+							email
+						},
+						validationToken,
+						response
+				  );
 		return response.status(r.httpCode).json(r.msg);
 	}
 
-	private async checkUserInput(email: string, username: string, password: string): Promise<{
-		httpCode: number;
-		response: {
-			code: number;
-			message: string;
-		};
-	} | boolean> {
+	private async checkUserInput(
+		email: string,
+		username: string,
+		password: string
+	): Promise<
+		| {
+				httpCode: number;
+				response: {
+					code: number;
+					message: string;
+				};
+		  }
+		| boolean
+	> {
 		const maxUsername = 12;
 		const minUsername = 3;
 		const uMatch = this.core.regexs.username.exec(username);
@@ -261,7 +288,8 @@ class Signup extends Path {
 				httpCode: this.codes.badReq,
 				response: {
 					code: this.Utils.FoldCodes.illegalUsername,
-					message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
+					message:
+						constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
 				}
 			};
 		}
@@ -288,8 +316,9 @@ class Signup extends Path {
 		}
 
 		// See if the username is already taken. Fail if so.
-		const user = await this.core.db.findUser({$or: [{username}, {email}]}) ??
-			await this.core.db.findVerify({$or: [{username}, {email}]});
+		const user =
+			(await this.core.db.findUser({$or: [{username}, {email}]})) ??
+			(await this.core.db.findVerify({$or: [{username}, {email}]}));
 		if (user) {
 			return {
 				httpCode: this.codes.used,

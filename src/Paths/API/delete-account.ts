@@ -44,22 +44,26 @@ class DelAccount extends Path {
 	}
 
 	/**
-     * @desc Delete the account, separate function to make things be CLEAN
-     * @param auth {UserI} The user deleting the account
-     * @param id {string} The ID of the account that is being deleted
-     * @async
-     * @returns {DelReturns}
-     */
+	 * @desc Delete the account, separate function to make things be CLEAN
+	 * @param auth {UserI} The user deleting the account
+	 * @param id {string} The ID of the account that is being deleted
+	 * @async
+	 * @returns {DelReturns}
+	 */
 	async deleteAccount(auth: User, id: string): Promise<DelReturns> {
 		try {
 			// Delete account by uID, and delete their pictures
 			await this.core.db.purgeUser(id);
-			return {code: this.codes.ok, mess: {code: this.codes.ok, message: 'Account deleted!'}};
+			return {
+				code: this.codes.ok,
+				mess: {code: this.codes.ok, message: 'Account deleted!'}
+			};
 		} catch (error: unknown) {
 			// If an error occurs, tell the user that an error occured
 			const declaredError = error as Error;
-			const formattedError = declaredError.message || error as string;
-			this.core.logger.error( // eslint disable-next-line max-len
+			const formattedError = declaredError.message || (error as string);
+			this.core.logger.error(
+				// eslint disable-next-line max-len
 				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
 			);
 			return {
@@ -72,7 +76,10 @@ class DelAccount extends Path {
 		}
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		// Check headers, and check auth
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {

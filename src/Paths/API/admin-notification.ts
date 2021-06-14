@@ -65,7 +65,9 @@ class AdminNotification extends Path {
 		}
 
 		// Oh look a notification!
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: notify});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: notify});
 	}
 }
 

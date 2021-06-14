@@ -38,16 +38,16 @@ interface Keys {
 /**
  * @classdesc Handle token authorization.
  */
-export default class Authorization { /* eslint-disable @typescript-eslint/indent */
-    #secret: Keys;
+export default class Authorization {
+	#secret: Keys;
 
-    #privKey!: Buffer;
+	#privKey!: Buffer;
 
-    #pubKey!: Buffer;
+	#pubKey!: Buffer;
 
-    #core: Core;
+	#core: Core;
 
-    constructor(secret: Keys, core: Core) {
+	constructor(secret: Keys, core: Core) {
 		this.#secret = secret;
 		if (!this.#secret.algorithm) {
 			this.#secret.algorithm = 'RS256';
@@ -56,9 +56,9 @@ export default class Authorization { /* eslint-disable @typescript-eslint/indent
 		this.#pubKey = fs.readFileSync(this.#secret.pubKeyPath);
 		this.#privKey = fs.readFileSync(this.#secret.privKeyPath);
 		this.#core = core;
-    }
+	}
 
-    public async verify(token: string, web?: boolean): Promise<string | void> {
+	public async verify(token: string, web?: boolean): Promise<string | void> {
 		if (web) {
 			token = token.slice(8);
 		}
@@ -69,16 +69,18 @@ export default class Authorization { /* eslint-disable @typescript-eslint/indent
 				return;
 			}
 
-			const verify = await this.#core.db.findToken(result.jti, result.userID, {web});
+			const verify = await this.#core.db.findToken(result.jti, result.userID, {
+				web
+			});
 			if (!verify) {
 				return;
 			}
 
 			return result.userID;
 		} catch {}
-    }
+	}
 
-    public async verifyAccount(
+	public async verifyAccount(
 		token?: string | string[],
 		options?: {
 			fn?: (args0: User) => boolean;
@@ -111,9 +113,9 @@ export default class Authorization { /* eslint-disable @typescript-eslint/indent
 			user.email = this.#core.Utils.decrypt(user.email);
 			return user;
 		} catch {}
-    }
+	}
 
-    public async revoke(token: string, web?: boolean): Promise<boolean | void> {
+	public async revoke(token: string, web?: boolean): Promise<boolean | void> {
 		if (web) {
 			token = token.slice(8);
 		}
@@ -124,16 +126,20 @@ export default class Authorization { /* eslint-disable @typescript-eslint/indent
 				return;
 			}
 
-			const verifyDB = await this.#core.db.purgeToken(result.jti, result.userID, {web});
+			const verifyDB = await this.#core.db.purgeToken(
+				result.jti,
+				result.userID,
+				{web}
+			);
 			if (!verifyDB) {
 				return;
 			}
 
 			return true;
 		} catch {}
-    }
+	}
 
-    public async revokeAll(userID: string): Promise<boolean | void> {
+	public async revokeAll(userID: string): Promise<boolean | void> {
 		try {
 			const del = await this.#core.db.purgeTokens(userID);
 			if (!del || del === 0) {
@@ -143,51 +149,58 @@ export default class Authorization { /* eslint-disable @typescript-eslint/indent
 			this.#core.logger.verbose(`[DB] Deleted ${del} Authorization Tokens`);
 			return true;
 		} catch {}
-    }
+	}
 
-    async genKeyWeb(userID: string): Promise<string> {
+	async genKeyWeb(userID: string): Promise<string> {
 		const id = this.genID();
 		await this.#core.db.makeToken(id, userID, {web: true});
-		return `Bearer: ${jwt.sign(
-				{userID},
-				this.#privKey,
-				{
-					expiresIn: '14d',
-					issuer: 'folderr',
-					jwtid: id
-				}
-			)}`;
-    }
+		return `Bearer: ${jwt.sign({userID}, this.#privKey, {
+			expiresIn: '14d',
+			issuer: 'folderr',
+			jwtid: id
+		})}`;
+	}
 
-    async genKey(userID: string): Promise<string> {
+	async genKey(userID: string): Promise<string> {
 		const id = this.genID();
 		await this.#core.db.makeToken(id, userID, {web: false});
 		return jwt.sign({userID}, this.#privKey, {issuer: 'folderr', jwtid: id});
-    }
+	}
 
-    async genMirrorKey(url: string, mirrorURL: string): Promise<{key: string; id: string}> {
+	async genMirrorKey(
+		url: string,
+		mirrorURL: string
+	): Promise<{key: string; id: string}> {
 		const id = this.genID();
 		return {
-			key: jwt.sign({
-				url,
-				mirrorURL
-			},
-			this.#privKey,
-			{
-				issuer: 'folderr',
-				jwtid: id,
-				expiresIn: '1h'
-			}
+			key: jwt.sign(
+				{
+					url,
+					mirrorURL
+				},
+				this.#privKey,
+				{
+					issuer: 'folderr',
+					jwtid: id,
+					expiresIn: '1h'
+				}
 			),
 			id
 		};
-    }
+	}
 
-    verifyMirrorKey(message: {
-		res: string;
-		token: string;
-	}, id: string, url: string, mirrorURL: string): boolean {
-		const out: any = jwt.verify(message.token, this.#privKey, {issuer: 'folderr'});
+	verifyMirrorKey(
+		message: {
+			res: string;
+			token: string;
+		},
+		id: string,
+		url: string,
+		mirrorURL: string
+	): boolean {
+		const out: any = jwt.verify(message.token, this.#privKey, {
+			issuer: 'folderr'
+		});
 		if (
 			out &&
 			typeof out === 'object' &&
@@ -200,12 +213,12 @@ export default class Authorization { /* eslint-disable @typescript-eslint/indent
 		}
 
 		return false;
-    }
+	}
 
-    private genID(): string {
-		return `${crypto.randomBytes(10).toString('hex') +
-		Buffer.from(new Date().toString()).toString('base64').slice(0, 8)}`;
-    }
+	private genID(): string {
+		return `${
+			crypto.randomBytes(10).toString('hex') +
+			Buffer.from(new Date().toString()).toString('base64').slice(0, 8)
+		}`;
+	}
 }
-
-/* eslint-enable @typescript-eslint/indent */

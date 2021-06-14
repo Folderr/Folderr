@@ -11,7 +11,7 @@
     "build": "tsc --skipLibCheck",
     "startpm2": "pm2 start --name folderr build/src/index.js",
     "lint": "xo src/ scripts/",
-    "lintfix": "eslint --ext .ts --fix src scripts",
+    "lintfix": "xo --fix src/ scripts/",
     "test": "xo && NODE_ENV=test node build/src/index.js"
   },
   "xo": {
@@ -25,15 +25,25 @@
     "rules": {
       "indent": "off",
       "@typescript-eslint/indent": [
-        "error",
+        "off",
         "tab",
         {
           "FunctionDeclaration": {
             "body": 1
           }
         }
-      ]
-    }
+      ],
+      "max-len": [
+        "error",
+        {
+          "code": 100,
+          "comments": 100,
+          "ignoreUrls": true
+        }
+      ],
+      "no-underscore-dangle": "error"
+    },
+    "prettier": true
   },
   "engines": {
     "node": ">=12 <=14"
@@ -86,6 +96,7 @@
     "@typescript-eslint/parser": "^4.16.1",
     "eslint-plugin-optimize-regex": "^1.2.0",
     "eslint-plugin-radar": "^0.2.1",
+    "prettier": "2.3.1",
     "xo": "^0.38.2"
   }
 }

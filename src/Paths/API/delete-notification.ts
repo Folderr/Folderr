@@ -65,7 +65,9 @@ class DelNotify extends Path {
 			});
 		}
 
-		const notify = notifs.find(notification => notification.ID === request.params.id);
+		const notify = notifs.find(
+			(notification) => notification.ID === request.params.id
+		);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
 			return response.status(this.codes.notFound).json({
@@ -94,11 +96,16 @@ class DelNotify extends Path {
 			limit *= setLimit;
 		}
 
-		if (notify?.title === 'Warn' && (Date.now() - notify.created.getTime()) < limit) {
+		if (
+			notify?.title === 'Warn' &&
+			Date.now() - notify.created.getTime() < limit
+		) {
 			const time = new Date(Date.now() + limit).getTime() - Date.now();
 			const formattedTime = moment
 				.duration(time)
-				.format('M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]');
+				.format(
+					'M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]'
+				);
 			return response.status(this.codes.forbidden).json({
 				code: this.codes.forbidden,
 				message: `Notification cannot be deleted for ${formattedTime}`

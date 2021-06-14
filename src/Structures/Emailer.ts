@@ -31,16 +31,16 @@ import * as constants from './constants/index';
  * @author VoidNulll
  *
  */
-export default class Emailer { /* eslint-disable @typescript-eslint/indent */
+export default class Emailer {
 	public active: boolean;
 
-    #core: Core;
+	#core: Core;
 
-    private readonly mailer?: Mail;
+	private readonly mailer?: Mail;
 
-    private readonly email?: string;
+	private readonly email?: string;
 
-    constructor(
+	constructor(
 		core: Core,
 		email?: string,
 		options?: {
@@ -59,20 +59,17 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 			this.mailer = nodemailer.createTransport(options);
 			this.email = email;
 		}
-    }
+	}
 
-    validateEmail(email: string): boolean {
+	validateEmail(email: string): boolean {
 		return this.#core.regexs.email.test(email);
-    }
+	}
 
-    async verifyEmail(
+	async verifyEmail(
 		email: string,
 		verifyLink: string,
 		username: string
-	): Promise<
-		null |
-		SentMessageInfo
-	> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -84,17 +81,14 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		}
 
 		return null;
-    }
+	}
 
-    async forgotPasswordEmail(
+	async forgotPasswordEmail(
 		email: string,
 		forgotLink: string,
 		username: string,
 		instanceLink: string
-	): Promise<
-		null |
-		SentMessageInfo
-	> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -110,17 +104,14 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		}
 
 		return null;
-    }
+	}
 
-    async warnEmail(
+	async warnEmail(
 		email: string,
 		reason: string,
 		username: string,
 		instanceLink: string
-	): Promise<
-		null |
-		SentMessageInfo
-	> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -136,17 +127,14 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		}
 
 		return null;
-    }
+	}
 
-    async banEmail(
+	async banEmail(
 		email: string,
 		reason: string,
 		username: string,
 		instanceLink: string
-	): Promise<
-		null |
-		SentMessageInfo
-		> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -162,16 +150,13 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		}
 
 		return null;
-    }
+	}
 
-    async changeEmail(
+	async changeEmail(
 		email: string,
 		confirmLink: string,
 		username: string
-	): Promise<
-		null |
-		SentMessageInfo
-	> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -186,14 +171,22 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		}
 
 		return null;
-    }
+	}
 
-    async takedown({email, username, id, type}: {
-		email: string;
-		username: string;
-		id: string;
-		type: string;
-	}, instanceLink: string): Promise<null | SentMessageInfo> {
+	async takedown(
+		{
+			email,
+			username,
+			id,
+			type
+		}: {
+			email: string;
+			username: string;
+			id: string;
+			type: string;
+		},
+		instanceLink: string
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -210,7 +203,5 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		}
 
 		return null;
-    }
+	}
 }
-
-/* eslint-enable @typescript-eslint/indent */

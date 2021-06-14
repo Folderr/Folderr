@@ -40,7 +40,9 @@ class VerifyAccount extends Path {
 
 	async execute(request: Request, response: Response): Promise<Response> {
 		// Handle authorization
-		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -56,7 +58,10 @@ class VerifyAccount extends Path {
 		}
 
 		// Look for the user
-		const user = await this.Utils.findVerifying(request.body.token, request.body.userid);
+		const user = await this.Utils.findVerifying(
+			request.body.token,
+			request.body.userid
+		);
 		if (!user) {
 			return response.status(this.codes.notAccepted).json({
 				code: this.Utils.FoldCodes.dbNotFound,
@@ -69,9 +74,13 @@ class VerifyAccount extends Path {
 		await this.core.db.verifyUser(userID);
 
 		// Alert the console and the admin that the user was verified
-		// eslint-disable-next-line max-len
-		this.core.logger.info(`User account ${username} (${userID}) granted by administrator ${auth.username} (${auth.userID})`);
-		return response.status(this.codes.created).json({code: this.codes.ok, message: 'OK'});
+		this.core.logger.info(
+			// eslint-disable-next-line max-len
+			`User account ${username} (${userID}) granted by administrator ${auth.username} (${auth.userID})`
+		);
+		return response
+			.status(this.codes.created)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 }
 

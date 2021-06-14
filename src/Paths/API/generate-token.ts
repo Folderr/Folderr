@@ -50,17 +50,29 @@ class GenToken extends Path {
 
 		const tokens = await this.core.db.findTokens(auth.userID, {web: false});
 
-		if (tokens.length > 10 && !(request.query &&
-			!request.query.override &&
-			request.query.override !== 'true'
-		)) {
-			return response.status(this.codes.forbidden).json({ // This is string
-				code: this.Utils.FoldCodes.tokenSizeLimit, // eslint-disable-next-line max-len
-				message: 'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.'
+		if (
+			tokens.length > 10 &&
+			!(
+				request.query &&
+				!request.query.override &&
+				request.query.override !== 'true'
+			)
+		) {
+			return response.status(this.codes.forbidden).json({
+				// This is string
+				code: this.Utils.FoldCodes.tokenSizeLimit,
+				/* eslint-disable max-len */
+				message:
+					'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.'
+				/* eslint-enable max-len */
 			});
 		}
 
-		if (tokens.length >= 10 && (request.query?.override && request.query.override === 'true')) {
+		if (
+			tokens.length >= 10 &&
+			request.query?.override &&
+			request.query.override === 'true'
+		) {
 			const tkns = tokens.sort(
 				(a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created)
 			);
@@ -68,7 +80,9 @@ class GenToken extends Path {
 		}
 
 		const token = await this.Utils.authorization.genKey(auth.userID);
-		return response.status(this.codes.created).json({code: this.codes.ok, message: token});
+		return response
+			.status(this.codes.created)
+			.json({code: this.codes.ok, message: token});
 	}
 }
 

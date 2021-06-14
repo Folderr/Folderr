@@ -20,8 +20,8 @@
  */
 
 /**
-  * @fileoverview Handle the database file deletion queue
-  */
+ * @fileoverview Handle the database file deletion queue
+ */
 
 import DBQueue from './Structures/Utilities/db-queue';
 

@@ -37,8 +37,6 @@ interface TokenReturn {
 	hash: string;
 }
 
-/* eslint-disable @typescript-eslint/indent */
-
 /**
  * @param {Folderr} core The Core of the project
  *
@@ -53,65 +51,65 @@ class Utils {
 
 	public FoldCodes: FoldCodesI;
 
-    #core: Core;
+	#core: Core;
 
-    /**
-     * @constructor
-     *
-     * @prop {number} saltRounds The rounds to salt with
-     * @prop {number} byteSize The amount of random bytes to generate
-     * @prop {Core} core The Folderr client
-     */
-    constructor(core: Core, jwtConfig: KeyConfig['jwtConfig']) {
+	/**
+	 * @constructor
+	 *
+	 * @prop {number} saltRounds The rounds to salt with
+	 * @prop {number} byteSize The amount of random bytes to generate
+	 * @prop {Core} core The Folderr client
+	 */
+	constructor(core: Core, jwtConfig: KeyConfig['jwtConfig']) {
 		this.saltRounds = 10;
 		this.byteSize = 48;
 		this.#core = core;
 		this.authorization = new Authorization(jwtConfig, core);
 		this.FoldCodes = FoldCodes;
-    }
+	}
 
-    /**
-     * @desc Make Utils look pretty when inspected
-     *
-     * @returns {string}
-     */
-    toString(): string {
+	/**
+	 * @desc Make Utils look pretty when inspected
+	 *
+	 * @returns {string}
+	 */
+	toString(): string {
 		return '[Core Utils]';
-    }
+	}
 
-    /**
-     * @desc Returns a random number between min (inclusive) and max (exclusive)
-     *
-     * @generator
-     *
-     * @returns {number}
-     */
-    genRandomNum(): number {
-		return Math.random() * (9);
-    }
+	/**
+	 * @desc Returns a random number between min (inclusive) and max (exclusive)
+	 *
+	 * @generator
+	 *
+	 * @returns {number}
+	 */
+	genRandomNum(): number {
+		return Math.random() * 9;
+	}
 
-    /**
-     * @desc Wait for a certain time
-     * - Async/wait only
-     * @async
-     *
-     * @param {Number} ms The milliseconds to sleep for
-     * @returns {Promise<void>}
-     * @author KhaaZ
-     */
-    // Taken from https://github.com/Khaazz/AxonCore/blob/d597089b80615fdd5ceab8f0a1b1d83f70fc5187/src/Utility/Utils.js#L355
-    async sleep(ms: number): Promise<void> {
+	/**
+	 * @desc Wait for a certain time
+	 * - Async/wait only
+	 * @async
+	 *
+	 * @param {Number} ms The milliseconds to sleep for
+	 * @returns {Promise<void>}
+	 * @author KhaaZ
+	 */
+	// Taken from https://github.com/Khaazz/AxonCore/blob/d597089b80615fdd5ceab8f0a1b1d83f70fc5187/src/Utility/Utils.js#L355
+	async sleep(ms: number): Promise<void> {
 		await sleep(ms);
 		return Promise.resolve();
-    }
+	}
 
-    /**
-     * @desc Generate a user ID
-     * @generator
-     *
-     * @returns {Promise<string>}
-     */
-    async genUID(): Promise<string> {
+	/**
+	 * @desc Generate a user ID
+	 * @generator
+	 *
+	 * @returns {Promise<string>}
+	 */
+	async genUID(): Promise<string> {
 		// Minimum and max id length
 		const max = 22;
 		const min = 18;
@@ -125,34 +123,34 @@ class Utils {
 		const minChar = 1;
 		// Generate the user ID
 		for (let i = 0; i < number; i++) {
-			uID += String(Math.floor(Math.random() * (maxChar - minChar + wut)) + minChar);
+			uID += String(
+				Math.floor(Math.random() * (maxChar - minChar + wut)) + minChar
+			);
 		}
 
 		return Promise.resolve(uID);
-    }
+	}
 
-    /**
-     * @desc Generate a ID
-     * @generator
-     *
-     * @param {object[]} things The things to avoid generating a duplicate ID for
-     *
-     * @returns {Promise<string>}
-     */
-    async genID(): Promise<string> {
+	/**
+	 * @desc Generate a ID
+	 * @generator
+	 *
+	 * @param {object[]} things The things to avoid generating a duplicate ID for
+	 *
+	 * @returns {Promise<string>}
+	 */
+	async genID(): Promise<string> {
 		// Generate a random ID
 		const bytesToGen = 10;
 		const min = 10;
 		const max = 7;
-		const id = crypto.randomBytes(bytesToGen)
+		const id = crypto
+			.randomBytes(bytesToGen)
 			.toString('base64')
 			.replace(/[+/=\\]/g, '')
 			.slice(min, max);
 		let toReturn = true;
-		const [
-			Upload,
-			Link
-		] = await Promise.all([
+		const [Upload, Link] = await Promise.all([
 			this.#core.db.findFile({ID: id}, 'ID'),
 			this.#core.db.findLink({ID: id}, 'ID')
 		]);
@@ -165,16 +163,16 @@ class Utils {
 		}
 
 		return id;
-    }
+	}
 
-    /**
-     * @desc Hash a password
-     * @async
-     *
-     * @param {string} password The password to hash
-     * @returns {string}
-     */
-    async hashPass(password: string): Promise<string> {
+	/**
+	 * @desc Hash a password
+	 * @async
+	 *
+	 * @param {string} password The password to hash
+	 * @returns {string}
+	 */
+	async hashPass(password: string): Promise<string> {
 		// Minimum and max password lengths
 		const minPass = 8;
 		const maxPass = 32;
@@ -200,17 +198,17 @@ class Utils {
 
 		// Hash and return
 		return bcrypt.hash(password, this.saltRounds);
-    }
+	}
 
-    /**
-     * @desc Generate a notification ID
-     * @generator
-     * @async
-     *
-     * @param {Object[]} notifs The notifications IDs to ignore
-     * @returns {Promise<string|Promise<*>>}
-     */
-    async genNotifyID(): Promise<string> {
+	/**
+	 * @desc Generate a notification ID
+	 * @generator
+	 * @async
+	 *
+	 * @param {Object[]} notifs The notifications IDs to ignore
+	 * @returns {Promise<string|Promise<*>>}
+	 */
+	async genNotifyID(): Promise<string> {
 		// Gen the ID, and dont let the ID equal a already made notify id
 		const ID: string = await this.genUID();
 		const notify = await this.#core.db.findAdminNotify({ID});
@@ -221,41 +219,48 @@ class Utils {
 
 		// Return the ID
 		return ID;
-    }
+	}
 
-    /**
-     * @desc Generate a validation token
-     * @generator
-     * @async
-     *
-     * @returns {Promise<{hash: string, token: string}>}
-     */
-    async genValidationToken(): Promise<TokenReturn> {
+	/**
+	 * @desc Generate a validation token
+	 * @generator
+	 * @async
+	 *
+	 * @returns {Promise<{hash: string, token: string}>}
+	 */
+	async genValidationToken(): Promise<TokenReturn> {
 		// Generate random bytes, gen more random bytes
 		// Oh and get a base64 date in milliseconds
 		const r: string = crypto.randomBytes(this.byteSize).toString();
-		const random: string = crypto.randomBytes(this.byteSize).toString('base64')
+		const random: string = crypto
+			.randomBytes(this.byteSize)
+			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
-		const uID = Buffer.from(r).toString('base64')
+		const uID = Buffer.from(r)
+			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
-		const date = Buffer.from(new Date().getUTCMilliseconds().toString()).toString('base64')
+		const date = Buffer.from(new Date().getUTCMilliseconds().toString())
+			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
 		// Combine, hash, and return the hashed and unhashed token
 		const token = `${uID}.${random}.${date}`;
 		const hash = await bcrypt.hash(token, this.saltRounds);
 		return {token, hash};
-    }
+	}
 
-    /**
-     * @desc Authenticate a user using password and username
-     * @async
-     *
-     * @param {Request} req The express request.
-     * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
-     *
-     * @returns {Promise<boolean>}
-     */
-    async authPassword(request: Request, fn?: (arg0: UI) => boolean): Promise<UI|false> {
+	/**
+	 * @desc Authenticate a user using password and username
+	 * @async
+	 *
+	 * @param {Request} req The express request.
+	 * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
+	 *
+	 * @returns {Promise<boolean>}
+	 */
+	async authPassword(
+		request: Request,
+		fn?: (arg0: UI) => boolean
+	): Promise<UI | false> {
 		// Make sure all of the auth stuff is there
 		if (!request.headers.password && !request.headers.username) {
 			return false;
@@ -266,12 +271,17 @@ class Utils {
 		}
 
 		// Make sure the auth is not an array. Arrays are bad for auth
-		if (Array.isArray(request.headers.password) || Array.isArray(request.headers.username)) {
+		if (
+			Array.isArray(request.headers.password) ||
+			Array.isArray(request.headers.username)
+		) {
 			return false;
 		}
 		// Find user on username, and if no user auth failed
 
-		const user = await this.#core.db.findUser({username: request.headers.username});
+		const user = await this.#core.db.findUser({
+			username: request.headers.username
+		});
 		if (!user) {
 			return false;
 		}
@@ -292,18 +302,21 @@ class Utils {
 		user.email = this.decrypt(user.email);
 		// Return the user
 		return user;
-    }
+	}
 
-    /**
-     * @desc Authenticate a user using password and username
-     * @async
-     *
-     * @param {Request} req The express request.
-     * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
-     *
-     * @returns {Promise<boolean>}
-     */
-    async authPasswordBody(request: Request, fn?: (arg0: UI) => boolean): Promise<UI|false> {
+	/**
+	 * @desc Authenticate a user using password and username
+	 * @async
+	 *
+	 * @param {Request} req The express request.
+	 * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
+	 *
+	 * @returns {Promise<boolean>}
+	 */
+	async authPasswordBody(
+		request: Request,
+		fn?: (arg0: UI) => boolean
+	): Promise<UI | false> {
 		// Make sure all of the auth stuff is there
 		if (!request.body.password && !request.body.username) {
 			return false;
@@ -314,12 +327,17 @@ class Utils {
 		}
 
 		// Make sure the auth is not an array. Arrays are bad for auth
-		if (Array.isArray(request.body.password) || Array.isArray(request.body.username)) {
+		if (
+			Array.isArray(request.body.password) ||
+			Array.isArray(request.body.username)
+		) {
 			return false;
 		}
 
 		// Find user on username, and if no user auth failed
-		const user = await this.#core.db.findUser({username: request.body.username});
+		const user = await this.#core.db.findUser({
+			username: request.body.username
+		});
 		if (!user) {
 			return false;
 		}
@@ -340,15 +358,15 @@ class Utils {
 		user.email = this.decrypt(user.email);
 		// Return the user
 		return user;
-    }
+	}
 
-    /**
-     * @desc Determines if the user allows insecuce requests
-     * @param req ExpressJS request
-     *
-     * @returns {boolean}
-     */
-    verifyInsecureCookies(request: Request): boolean {
+	/**
+	 * @desc Determines if the user allows insecuce requests
+	 * @param req ExpressJS request
+	 *
+	 * @returns {boolean}
+	 */
+	verifyInsecureCookies(request: Request): boolean {
 		if (!request.cookies) {
 			return false;
 		}
@@ -362,18 +380,22 @@ class Utils {
 		}
 
 		return true;
-    }
+	}
 
-    /**
-     * @desc Find and return a verifying user from the schema if any
-     * @async
-     *
-     * @param {String} validationToken The validation token to search for
-     * @param {String} userID The user IDs to look for
-     * @returns {Promise<boolean>}
-     */
-    async findVerifying(validationToken: string, userID: string): Promise<PendingMember|false> {
-		const user: PendingMember | undefined | null = await this.#core.db.findVerify({userID});
+	/**
+	 * @desc Find and return a verifying user from the schema if any
+	 * @async
+	 *
+	 * @param {String} validationToken The validation token to search for
+	 * @param {String} userID The user IDs to look for
+	 * @returns {Promise<boolean>}
+	 */
+	async findVerifying(
+		validationToken: string,
+		userID: string
+	): Promise<PendingMember | false> {
+		const user: PendingMember | undefined | null =
+			await this.#core.db.findVerify({userID});
 		if (!user) {
 			return false;
 		}
@@ -383,12 +405,13 @@ class Utils {
 		}
 
 		return user;
-    }
+	}
 
-    async testMirrorURL(url: string): Promise<boolean> {
+	async testMirrorURL(url: string): Promise<boolean> {
 		try {
 			const test = await this.#core.superagent.get(`${url}/api`);
-			if (test?.text &&
+			if (
+				test?.text &&
 				JSON.parse(test?.text)?.message?.res === 'Pong! Mirror Operational!'
 			) {
 				return true;
@@ -398,9 +421,9 @@ class Utils {
 		} catch {
 			return false;
 		}
-    }
+	}
 
-    async determineHomeURL(request: Request): Promise<string> {
+	async determineHomeURL(request: Request): Promise<string> {
 		const protocol = `${request.protocol || 'http'}://`;
 		let host = request.get('host') ?? request.get('Host');
 		if (!host) {
@@ -408,7 +431,9 @@ class Utils {
 		}
 
 		try {
-			const test = await this.#core.superagent.get(`${this.#core.config.url}/api`);
+			const test = await this.#core.superagent.get(
+				`${this.#core.config.url}/api`
+			);
 			if (test?.text && JSON.parse(test?.text)?.message?.message === 'Pong!') {
 				return this.#core.config.url;
 			}
@@ -417,19 +442,17 @@ class Utils {
 		} catch {
 			return `${protocol}${host}`;
 		}
-    }
+	}
 
-    // Fake encrypt & decrypt methods
-    // :)
-    encrypt(data: string): string {
+	// Fake encrypt & decrypt methods
+	// :)
+	encrypt(data: string): string {
 		return Buffer.from(data, 'utf8').toString('hex');
-    }
+	}
 
-    decrypt(data: string): string {
+	decrypt(data: string): string {
 		return Buffer.from(data, 'hex').toString('utf8');
-    }
+	}
 }
-
-/* eslint-enable @typescript-eslint/indent */
 
 export default Utils;

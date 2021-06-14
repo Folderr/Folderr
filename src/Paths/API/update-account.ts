@@ -52,7 +52,8 @@ class UpdateAcc extends Path {
 		const update: {
 			password?: string;
 			username?: string;
-			pendingEmail?: string; pendingEmailToken?: string;
+			pendingEmail?: string;
+			pendingEmailToken?: string;
 		} = {};
 		if (
 			request.body.password &&
@@ -67,7 +68,10 @@ class UpdateAcc extends Path {
 			}
 		}
 
-		const newUsername = await this.handleUsername(auth.username, request.body.username);
+		const newUsername = await this.handleUsername(
+			auth.username,
+			request.body.username
+		);
 
 		if (newUsername && typeof newUsername === 'string') {
 			update.username = newUsername;
@@ -75,7 +79,11 @@ class UpdateAcc extends Path {
 			return response.status(newUsername.httpCode).json(newUsername.message);
 		}
 
-		const emailUpdated = await this.handleEmailUpdate(request, auth.email, auth.username);
+		const emailUpdated = await this.handleEmailUpdate(
+			request,
+			auth.email,
+			auth.username
+		);
 		if (emailUpdated && !emailUpdated.accepted) {
 			return response.status(emailUpdated.httpCode).json(emailUpdated.message);
 		}
@@ -99,7 +107,9 @@ class UpdateAcc extends Path {
 				});
 			}
 
-			this.core.logger.error(`Database failed to update user - ${error.message}`);
+			this.core.logger.error(
+				`Database failed to update user - ${error.message}`
+			);
 			return response.status(this.codes.internalErr).json({
 				code: this.Utils.FoldCodes.dbUnkownError,
 				message: 'An unknown error encountered while updating your account'
@@ -107,25 +117,29 @@ class UpdateAcc extends Path {
 		}
 
 		// Return the output
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 
-	private async handlePassword(password: string): Promise<{
-		httpCode: number;
-		message: {
-			message: string;
-			code: number;
-		};
-	}
-	|
-	string> {
+	private async handlePassword(password: string): Promise<
+		| {
+				httpCode: number;
+				message: {
+					message: string;
+					code: number;
+				};
+		  }
+		| string
+	> {
 		try {
 			const psw = await this.Utils.hashPass(password);
 			return psw;
 		} catch (error: unknown) {
 			if (!(error instanceof Error)) {
 				// If not a real error well, we don't care about it then
-				if (process.env.DEBUG) { // We'll still log it if the project is in debug mode
+				if (process.env.DEBUG) {
+					// We'll still log it if the project is in debug mode
 					this.core.logger.debug(error);
 				}
 
@@ -133,7 +147,8 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.internalErr,
 					message: {
 						code: this.Utils.FoldCodes.unkownError,
-						message: 'An unknown error occured with the handling of the password!'
+						message:
+							'An unknown error occured with the handling of the password!'
 					}
 				};
 			}
@@ -179,26 +194,34 @@ class UpdateAcc extends Path {
 		}
 	}
 
-	private async handleEmailUpdate(request: Request, preEmail: string, username: string): Promise<{
-		accepted: true;
-		pendingEmail: string;
-		pendingEmailToken: string;
-	}
-	|
-	{
-		accepted: false;
-		httpCode: number;
-		message: {
-			code: number;
-			message: string;
-		};
-	}
-	| undefined> {
+	private async handleEmailUpdate(
+		request: Request,
+		preEmail: string,
+		username: string
+	): Promise<
+		| {
+				accepted: true;
+				pendingEmail: string;
+				pendingEmailToken: string;
+		  }
+		| {
+				accepted: false;
+				httpCode: number;
+				message: {
+					code: number;
+					message: string;
+				};
+		  }
+		| undefined
+	> {
 		if (!request.body.email) {
 			return undefined;
 		}
 
-		if (request.body.email && !this.core.emailer.validateEmail(request.body.email)) {
+		if (
+			request.body.email &&
+			!this.core.emailer.validateEmail(request.body.email)
+		) {
 			return {
 				httpCode: this.codes.badReq,
 				message: {
@@ -213,7 +236,8 @@ class UpdateAcc extends Path {
 			request.body.email &&
 			this.core.emailer.validateEmail(request.body.email) &&
 			preEmail === request.body.email
-		) { // Case email is present, valid, and same as email
+		) {
+			// Case email is present, valid, and same as email
 			return {
 				httpCode: this.codes.notAccepted,
 				message: {
@@ -248,8 +272,8 @@ class UpdateAcc extends Path {
 		}
 
 		const encrypted = this.Utils.encrypt(request.body.email);
-		const user = await this.core.db.findUsers(
-			{
+		const user =
+			(await this.core.db.findUsers({
 				$or: [
 					{
 						email: encrypted
@@ -258,8 +282,7 @@ class UpdateAcc extends Path {
 						pendingEmail: encrypted
 					}
 				]
-			}
-		) || await this.core.db.findVerifies({email: encrypted});
+			})) || (await this.core.db.findVerifies({email: encrypted}));
 		if (user) {
 			return {
 				httpCode: this.codes.used,
@@ -287,17 +310,20 @@ class UpdateAcc extends Path {
 		};
 	}
 
-	private async handleUsername(preUsername: string, username?: string): Promise<{
-		httpCode: number;
-		message: {
-			code: number;
-			message: string;
-		};
-	}
-	|
-	string
-	|
-	undefined> {
+	private async handleUsername(
+		preUsername: string,
+		username?: string
+	): Promise<
+		| {
+				httpCode: number;
+				message: {
+					code: number;
+					message: string;
+				};
+		  }
+		| string
+		| undefined
+	> {
 		if (username && username !== preUsername) {
 			const maxUsername = 12;
 			const minUsername = 3;
@@ -313,18 +339,21 @@ class UpdateAcc extends Path {
 				};
 			}
 
-			if (badMatch) { // If username does not matdch regex pattern error
+			if (badMatch) {
+				// If username does not matdch regex pattern error
 				return {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.illegalUsername,
-						message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
+						message:
+							constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
 					}
 				};
 			}
 
-			const user = await this.core.db.findUser({username}) ??
-				await this.core.db.findVerify({username});
+			const user =
+				(await this.core.db.findUser({username})) ??
+				(await this.core.db.findVerify({username}));
 			if (user) {
 				return {
 					httpCode: this.codes.used,
@@ -341,19 +370,20 @@ class UpdateAcc extends Path {
 		return undefined;
 	}
 
-	private async isValid(request: Request): Promise<{
-		httpCode: number;
-		failed: boolean;
-		message: {
-			code: number;
-			message: string;
-		};
-	}
-	|
-	{
-		failed: false;
-		user: User;
-	}> {
+	private async isValid(request: Request): Promise<
+		| {
+				httpCode: number;
+				failed: boolean;
+				message: {
+					code: number;
+					message: string;
+				};
+		  }
+		| {
+				failed: false;
+				user: User;
+		  }
+	> {
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
 			return {
@@ -383,7 +413,11 @@ class UpdateAcc extends Path {
 			};
 		}
 
-		if (request.body.email && auth.pendingEmail && auth.pendingEmail.length > 0) {
+		if (
+			request.body.email &&
+			auth.pendingEmail &&
+			auth.pendingEmail.length > 0
+		) {
 			return {
 				httpCode: this.codes.forbidden,
 				message: {

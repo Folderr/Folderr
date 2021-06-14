@@ -36,8 +36,14 @@ class Login extends Path {
 		this.type = 'post';
 	}
 
-	async execute(request: Request, response: Response): Promise<Response|void> {
-		if (!request.body || (request.body && (!request.body.username || !request.body.password))) {
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
+		if (
+			!request.body ||
+			(request.body && (!request.body.username || !request.body.password))
+		) {
 			if (request.body && (request.body.username || request.body.password)) {
 				return response.status(this.codes.badReq).json({
 					code: this.codes.badReq,
@@ -61,7 +67,7 @@ class Login extends Path {
 
 		// Set the cookie to expire in a weeks time
 		const week = 604800000;
-		const endTime = new Date(Date.now() + (week * 2));
+		const endTime = new Date(Date.now() + week * 2);
 		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.userID);
 		response.cookie('token', jwt, {
 			expires: endTime,

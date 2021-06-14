@@ -61,21 +61,21 @@ class Path {
 	private fatalErrors: number;
 
 	/**
-     *
-     * @param {Core} core The core of the project
-     *
-     * @prop {String} label The label for this path to be called
-     * @prop {String} path The path that this path will fall under in the website/api
-     * @prop {String} type=get The HTTP method this request will use
-     * @prop {Boolean} enabled=true Whether or not to enable this endpoint..
-     * @prop {Boolean} lean=false Whether or not to ignore fatal (uncaught) errors in the long run
-     *
-     * @prop {Object} codes The http status codes Folderr uses
-     * @prop {Object} Utils The Folderr utilities
-     *
-     * @prop {Object} eHandler The error handler for this path.
-     * @prop {Number} _fatalErrors=0 Private. The amount of fatal errors this path has encountered.
-     */
+	 *
+	 * @param {Core} core The core of the project
+	 *
+	 * @prop {String} label The label for this path to be called
+	 * @prop {String} path The path that this path will fall under in the website/api
+	 * @prop {String} type=get The HTTP method this request will use
+	 * @prop {Boolean} enabled=true Whether or not to enable this endpoint..
+	 * @prop {Boolean} lean=false Whether or not to ignore fatal (uncaught) errors in the long run
+	 *
+	 * @prop {Object} codes The http status codes Folderr uses
+	 * @prop {Object} Utils The Folderr utilities
+	 *
+	 * @prop {Object} eHandler The error handler for this path.
+	 * @prop {Number} _fatalErrors=0 Private. The amount of fatal errors this path has encountered.
+	 */
 	constructor(core: Core) {
 		this.label = 'label'; // Label for the path.
 		this.path = ''; // The path to server for
@@ -94,75 +94,86 @@ class Path {
 	}
 
 	/**
-     * Just toString the path, lol.
-     * @returns {string}
-     */
+	 * Just toString the path, lol.
+	 * @returns {string}
+	 */
 	toString(): string {
 		return `[Path ${typeof this.path === 'string' ? this.path : this.path[0]}]`;
 	}
 
 	/**
-     * @desc Actual endpoint execution
-     * @async
-     * @abstract
-     *
-     * @param {Object} request The request object
-     * @param {Object} response Some object used for sending data back
-     */
+	 * @desc Actual endpoint execution
+	 * @async
+	 * @abstract
+	 *
+	 * @param {Object} request The request object
+	 * @param {Object} response Some object used for sending data back
+	 */
 	async execute(request: any, response: any): Promise<express.Response | void> {
 		throw new Error('Not implemented!');
 	}
 
 	async checkAuth(request: Request | express.Request): Promise<User | void> {
-		if (request.headers.authorization && typeof request.headers.authorization === 'string') {
-			return this.Utils.authorization.verifyAccount(request.headers.authorization);
+		if (
+			request.headers.authorization &&
+			typeof request.headers.authorization === 'string'
+		) {
+			return this.Utils.authorization.verifyAccount(
+				request.headers.authorization
+			);
 		}
 
 		if (request.cookies?.token && typeof request.cookies.token === 'string') {
-			return this.Utils.authorization.verifyAccount(request.cookies.token, {web: true});
+			return this.Utils.authorization.verifyAccount(request.cookies.token, {
+				web: true
+			});
 		}
 	}
 
-	async checkAuthAdmin(request: Request | express.Request): Promise<User | void> {
-		if (request.headers.authorization && typeof request.headers.authorization === 'string') {
+	async checkAuthAdmin(
+		request: Request | express.Request
+	): Promise<User | void> {
+		if (
+			request.headers.authorization &&
+			typeof request.headers.authorization === 'string'
+		) {
 			return this.Utils.authorization.verifyAccount(
 				request.headers.authorization,
 				{
-					fn: user => Boolean(user.admin)
+					fn: (user) => Boolean(user.admin)
 				}
 			);
 		}
 
 		if (request.cookies?.token && typeof request.cookies.token === 'string') {
-			return this.Utils.authorization.verifyAccount(
-				request.cookies.token,
-				{
-					fn: user => Boolean(user.admin),
-					web: true
-				}
-			);
+			return this.Utils.authorization.verifyAccount(request.cookies.token, {
+				fn: (user) => Boolean(user.admin),
+				web: true
+			});
 		}
 	}
 
-	generatePageQuery(request: Request, owner: string):
-	{
-		httpCode: number;
-		json: Record<string, string|number>;
-		errored: boolean;
-	}
-	|
-	{
-		query: {
-			$gt?: {created: Date};
-			$lt?: {created: Date};
-			owner: string;
-		};
-		options: {
-			sort?: Record<string, unknown>;
-			limit?: number;
-		};
-		errored: boolean;
-	} {
+	generatePageQuery(
+		request: Request,
+		owner: string
+	):
+		| {
+				httpCode: number;
+				json: Record<string, string | number>;
+				errored: boolean;
+		  }
+		| {
+				query: {
+					$gt?: {created: Date};
+					$lt?: {created: Date};
+					owner: string;
+				};
+				options: {
+					sort?: Record<string, unknown>;
+					limit?: number;
+				};
+				errored: boolean;
+		  } {
 		const query: {
 			$gt?: {created: Date};
 			$lt?: {created: Date};
@@ -235,23 +246,23 @@ class Path {
 	}
 
 	/**
-     * Handle rate limits, unhandled errors, execute actual endpoint
-     *
-     * @param {object} req The request object
-     * @param {object} response Some object used for sending data back
-     * @returns {express.Response|void}
-     * @private
-     */
-	async internal_execute(request: any, response: express.Response): Promise<
-	express.Response |
-	void
-	> {
+	 * Handle rate limits, unhandled errors, execute actual endpoint
+	 *
+	 * @param {object} req The request object
+	 * @param {object} response Some object used for sending data back
+	 * @returns {express.Response|void}
+	 * @private
+	 */
+	async internal_execute(
+		request: any,
+		response: express.Response
+	): Promise<express.Response | void> {
 		// If path is not enabled, and it is not lean... end the endpoint here
 		if (this.locked && !this.lean) {
 			if (!request.path.match('/api')) {
-				response.status(this.codes.locked).sendFile(
-					join(__dirname, '../Frontend/locked.html')
-				);
+				response
+					.status(this.codes.locked)
+					.sendFile(join(__dirname, '../Frontend/locked.html'));
 				return;
 			}
 
@@ -284,21 +295,26 @@ class Path {
 	}
 
 	/**
-     * @desc Handle uncaught errors.
-     *
-     * @param {Object<Error>} err The error that occurred
-     * @param {Object<express.Response>} response Express response that is with the error
-     * @param {Object} [options]
-     * @param {Boolean} [options.noIncrease] Whether or not to increase the fatal errors
-     * @param {Boolean} [options.noResponse] Whether or not to send a response to the res.
-     *
-     * @returns {Object<express.Response>|Boolean}
-     * @protected
-    */
-	protected handleError(error: Error, response: express.Response, uuid?: string, options?: {
-		noIncrease: boolean;
-		noResponse: boolean;
-	}): express.Response|void {
+	 * @desc Handle uncaught errors.
+	 *
+	 * @param {Object<Error>} err The error that occurred
+	 * @param {Object<express.Response>} response Express response that is with the error
+	 * @param {Object} [options]
+	 * @param {Boolean} [options.noIncrease] Whether or not to increase the fatal errors
+	 * @param {Boolean} [options.noResponse] Whether or not to send a response to the res.
+	 *
+	 * @returns {Object<express.Response>|Boolean}
+	 * @protected
+	 */
+	protected handleError(
+		error: Error,
+		response: express.Response,
+		uuid?: string,
+		options?: {
+			noIncrease: boolean;
+			noResponse: boolean;
+		}
+	): express.Response | void {
 		const ops = options ?? {noIncrease: false, noResponse: false};
 		let severity;
 		const error_formatted = error.message;
@@ -313,11 +329,15 @@ class Path {
 
 		// Parse error and log the error
 		const handled = this.eHandler.handlePathError(error, severity);
-		const formattedMessage = `[PATH ${this.label}] ${handled.message}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file.slice(1).replace(/\)$/, '')}\n  Severity: ${handled.severity ?? 'undefined'}`;
+		const formattedMessage = `[PATH ${this.label}] ${
+			handled.message
+		}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file
+			.slice(1)
+			.replace(/\)$/, '')}\n  Severity: ${handled.severity ?? 'undefined'}`;
 		this.core.logger.log('fatal', formattedMessage);
-		const out = error.stack ?
-			error.stack.replace(/\n/g, '<br>') :
-			formattedMessage.replace(/\n/g, '<br>');
+		const out = error.stack
+			? error.stack.replace(/\n/g, '<br>')
+			: formattedMessage.replace(/\n/g, '<br>');
 		if (ops.noResponse) {
 			if (uuid) {
 				this.core.removeRequestID(uuid);

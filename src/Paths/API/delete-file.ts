@@ -37,7 +37,10 @@ class DeleteFile extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
@@ -53,7 +56,10 @@ class DeleteFile extends Path {
 			});
 		}
 
-		const File = await this.core.db.findFile({owner: auth.userID, ID: request.params.id});
+		const File = await this.core.db.findFile({
+			owner: auth.userID,
+			ID: request.params.id
+		});
 		if (!File) {
 			return response.status(this.codes.notFound).json({
 				code: this.Utils.FoldCodes.dbNotFound,
@@ -62,7 +68,10 @@ class DeleteFile extends Path {
 		}
 
 		await this.core.db.purgeFile({ID: File.ID, owner: auth.userID});
-		response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'}).end();
+		response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: 'OK'})
+			.end();
 		if (existsSync(File.path)) {
 			await fs.unlink(File.path);
 		}

@@ -36,8 +36,13 @@ class Users extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
-		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -49,7 +54,7 @@ class Users extends Path {
 		if (generated.errored) {
 			const genType = generated as unknown as {
 				httpCode: number;
-				json: Record<string, string|number>;
+				json: Record<string, string | number>;
 				errored: boolean;
 			};
 			return response.status(genType.httpCode).json(genType.json);
@@ -86,9 +91,10 @@ class Users extends Path {
 			created: number;
 		}> = users.map((user: User) => {
 			return {
-				title: !user.admin && !user.first ?
-					'' :
-					(user.admin && 'admin') || (user.first && 'first'),
+				title:
+					!user.admin && !user.first
+						? ''
+						: (user.admin && 'admin') || (user.first && 'first'),
 				username: user.username,
 				files: user.files,
 				links: user.links,
@@ -97,7 +103,9 @@ class Users extends Path {
 				created: Math.round(user.created.getTime() / 1000)
 			};
 		});
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: array});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: array});
 	}
 }
 

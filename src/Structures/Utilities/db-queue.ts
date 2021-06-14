@@ -44,7 +44,7 @@ export default class DBQueue extends EventEmitter {
 		this.onGoing = true;
 		this.config = Configurer.verifyFetch().db;
 		this.db = new NativeDB();
-		this.db.init(this.config.url).catch(error => {
+		this.db.init(this.config.url).catch((error) => {
 			wlogger.error('CANNOT RUN DBQueue - Database Error');
 			if (error instanceof Error && process.env.DEBUG) {
 				wlogger.debug(error.message);
@@ -70,16 +70,22 @@ export default class DBQueue extends EventEmitter {
 
 	async removeFiles(files: Upload[]): Promise<void> {
 		for (const file of files) {
-			try { // Await is needed for this loops functioning
+			try {
+				// Await is needed for this loops functioning
 				// eslint-disable-next-line no-await-in-loop
 				await this.db.purgeFile({ID: file.ID});
-				files = files.filter(fil => fil.ID !== file.ID);
+				files = files.filter((fil) => fil.ID !== file.ID);
 			} catch (error: unknown) {
-				if (error instanceof Error) { // eslint-disable-next-line max-len
-					wlogger.error(`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`);
+				if (error instanceof Error) {
+					wlogger.error(
+						// eslint-disable-next-line max-len
+						`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`
+					);
 				}
 
-				wlogger.error(`Database ran into an error while deleting file "${file.path}".`);
+				wlogger.error(
+					`Database ran into an error while deleting file "${file.path}".`
+				);
 			}
 		}
 	}
@@ -94,7 +100,10 @@ export default class DBQueue extends EventEmitter {
 		for (const value of this.queue.values()) {
 			// Await is needed here, also eslint, yes this is checked
 			/* eslint-disable no-await-in-loop */
-			const files = await this.db.findFiles({owner: value}, {selector: 'ID, path'});
+			const files = await this.db.findFiles(
+				{owner: value},
+				{selector: 'ID, path'}
+			);
 			if (files.length > 0) {
 				await this.removeFiles(files); /* eslint-enable no-await-in-loop */
 				this.queue.delete(value);

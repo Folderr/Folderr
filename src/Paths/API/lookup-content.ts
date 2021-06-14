@@ -35,7 +35,9 @@ class Lookup extends Path {
 	}
 
 	async execute(request: Request, response: Response): Promise<Response> {
-		const auth = await this.Utils.authPassword(request, (user: User) => Boolean(user.admin));
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
@@ -56,9 +58,10 @@ class Lookup extends Path {
 		}
 
 		try {
-			const out = request.params.type === 'file' ?
-				await this.core.db.findFile({ID: request.params.id}) :
-				await this.core.db.findLink({ID: request.params.id});
+			const out =
+				request.params.type === 'file'
+					? await this.core.db.findFile({ID: request.params.id})
+					: await this.core.db.findLink({ID: request.params.id});
 			if (!out) {
 				return response.status(this.codes.noContent).json({
 					code: this.Utils.FoldCodes.dbNotFound,
@@ -66,11 +69,15 @@ class Lookup extends Path {
 				});
 			}
 
-			return response.status(this.codes.ok).json({code: this.codes.ok, message: out});
+			return response
+				.status(this.codes.ok)
+				.json({code: this.codes.ok, message: out});
 		} catch (error: unknown) {
 			return response.status(this.codes.internalErr).json({
 				code: this.Utils.FoldCodes.dbError,
-				message: `An error occurred!\n${(error as Error).message || error as string}`
+				message: `An error occurred!\n${
+					(error as Error).message || (error as string)
+				}`
 			});
 		}
 	}

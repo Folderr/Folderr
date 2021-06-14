@@ -34,10 +34,15 @@ class DeleteToken extends Path {
 		this.type = 'delete';
 	}
 
-	async execute(request: Request, response: Response): Promise<Response | void> {
-		const auth = request.cookies?.token ?
-			await this.Utils.authorization.verifyAccount(request.cookies.token, {web: true}) :
-			await this.Utils.authPassword(request);
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
+		const auth = request.cookies?.token
+			? await this.Utils.authorization.verifyAccount(request.cookies.token, {
+					web: true
+			  })
+			: await this.Utils.authPassword(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
 				message: 'Authorization failed',
@@ -53,7 +58,9 @@ class DeleteToken extends Path {
 		}
 
 		const web = Boolean(request.query?.web) || false;
-		const del = await this.core.db.purgeToken(request.params.id, auth.userID, {web});
+		const del = await this.core.db.purgeToken(request.params.id, auth.userID, {
+			web
+		});
 		if (!del) {
 			return response.status(this.codes.notAccepted).json({
 				code: this.codes.badReq,

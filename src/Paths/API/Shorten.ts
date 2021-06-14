@@ -62,7 +62,8 @@ class Shorten extends Path {
 		try {
 			await this.core.superagent.get(request.body.url);
 			// eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
-		} catch (error: any) { // Force any
+		} catch (error: any) {
+			// Force any
 			if (error.code === 'ENOTFOUND') {
 				return response.status(this.codes.notFound).json({
 					code: this.Utils.FoldCodes.shortUrlNotFound,
@@ -77,12 +78,18 @@ class Shorten extends Path {
 			this.core.db.updateUser({userID: auth.userID}, {$inc: {links: 1}})
 		]);
 
-		return response.status(this.codes.ok).send(`${request.headers?.responseURL &&
-			typeof request.headers.responseURL === 'string' &&
-			auth.cURLs.includes(request.headers.responseURL) &&
-			await this.Utils.testMirrorURL(request.headers.responseURL) ?
-			request.headers.responseURL :
-			await this.Utils.determineHomeURL(request)}/l/${ID}`);
+		return response
+			.status(this.codes.ok)
+			.send(
+				`${
+					request.headers?.responseURL &&
+					typeof request.headers.responseURL === 'string' &&
+					auth.cURLs.includes(request.headers.responseURL) &&
+					(await this.Utils.testMirrorURL(request.headers.responseURL))
+						? request.headers.responseURL
+						: await this.Utils.determineHomeURL(request)
+				}/l/${ID}`
+			);
 	}
 }
 

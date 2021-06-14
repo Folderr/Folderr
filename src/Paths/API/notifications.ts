@@ -75,7 +75,9 @@ class Notifs extends Path {
 		}
 
 		// Return whatever notifications there are
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: notifs});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: notifs});
 	}
 }
 

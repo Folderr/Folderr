@@ -72,8 +72,12 @@ class DelANotify extends Path {
 
 		// Remove the admin notification and tell the admin it was removed
 		await this.core.db.purgeAdminNotify({ID: request.params.id});
-		wlogger.info(`[SYSTEM] Admin notification ${notify.ID} removed by ${auth.username}!`);
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: 'OK'});
+		wlogger.info(
+			`[SYSTEM] Admin notification ${notify.ID} removed by ${auth.username}!`
+		);
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: 'OK'});
 	}
 }
 

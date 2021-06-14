@@ -34,13 +34,16 @@ class Signup extends Path {
 	}
 
 	/**
-     * @desc Displays the signup page for signed out users.
-     */
-	async execute(request: Request, response: Response): Promise<Response|void> {
+	 * @desc Displays the signup page for signed out users.
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		if (!request.secure && !this.Utils.verifyInsecureCookies(request)) {
-			response.status(this.codes.notAccepted).sendFile(
-				join(__dirname, '../Frontend/insecure.html')
-			);
+			response
+				.status(this.codes.notAccepted)
+				.sendFile(join(__dirname, '../Frontend/insecure.html'));
 			return;
 		}
 
@@ -50,9 +53,9 @@ class Signup extends Path {
 		}
 
 		if (!this.core.config.signups) {
-			response.status(this.codes.notFound).sendFile(
-				join(__dirname, '../Frontend/closed.html')
-			);
+			response
+				.status(this.codes.notFound)
+				.sendFile(join(__dirname, '../Frontend/closed.html'));
 			return;
 		}
 

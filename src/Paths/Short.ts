@@ -34,27 +34,35 @@ class Short extends Path {
 	}
 
 	/**
-     * @desc Sends a user to a shortened link.
-     */
-	async execute(request: Request, response: Response): Promise<Response|void> {
+	 * @desc Sends a user to a shortened link.
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).send('[ERROR] Missing short ID.');
+			return response
+				.status(this.codes.badReq)
+				.send('[ERROR] Missing short ID.');
 		}
 
-		const short = await this.core.db.findLink({ID: request.params.id}, 'link owner');
+		const short = await this.core.db.findLink(
+			{ID: request.params.id},
+			'link owner'
+		);
 		if (!short) {
-			response.status(this.codes.notFound).sendFile(
-				join(__dirname, '../Frontend/notfound.html')
-			);
+			response
+				.status(this.codes.notFound)
+				.sendFile(join(__dirname, '../Frontend/notfound.html'));
 			return;
 		}
 
 		const owner = await this.core.db.findUser({userID: short.owner});
 		if (!owner) {
 			this.core.addDeleter(short.owner);
-			response.status(this.codes.notFound).sendFile(
-				join(__dirname, '../Frontend/notfound.html')
-			);
+			response
+				.status(this.codes.notFound)
+				.sendFile(join(__dirname, '../Frontend/notfound.html'));
 			return;
 		}
 

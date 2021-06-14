@@ -40,9 +40,12 @@ class ShareXConfigurator extends Path {
 	}
 
 	/**
-     * @desc Generate a ShareX configuration
-     */
-	async execute(request: Request, response: Response): Promise<Response | void> {
+	 * @desc Generate a ShareX configuration
+	 */
+	async execute(
+		request: Request,
+		response: Response
+	): Promise<Response | void> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({
@@ -58,7 +61,9 @@ class ShareXConfigurator extends Path {
 			});
 		}
 
-		const compare = await this.Utils.authorization.verifyAccount(request.body.token);
+		const compare = await this.Utils.authorization.verifyAccount(
+			request.body.token
+		);
 		if (!compare) {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.notAccepted,
@@ -71,17 +76,25 @@ class ShareXConfigurator extends Path {
 		const config = this.configurator.generateFiles(url, request.body.token);
 		if (request.query && request.query.d === 'file') {
 			response.type('text/plain; charset=binary');
-			response.set('Content-Disposition', 'attachment; filename=Folderr-File-Config.sxcu');
+			response.set(
+				'Content-Disposition',
+				'attachment; filename=Folderr-File-Config.sxcu'
+			);
 			return response.status(this.codes.ok).send(config[0]);
 		}
 
 		if (request.query?.d && request.query.d === 'link') {
 			response.type('text/plain; charset=binary');
-			response.set('Content-Disposition', 'attachment; filename=Folderr-Link-Config.sxcu');
+			response.set(
+				'Content-Disposition',
+				'attachment; filename=Folderr-Link-Config.sxcu'
+			);
 			return response.status(this.codes.ok).send(config[1]);
 		}
 
-		return response.status(this.codes.ok).json({code: this.codes.ok, message: config});
+		return response
+			.status(this.codes.ok)
+			.json({code: this.codes.ok, message: config});
 	}
 }
 

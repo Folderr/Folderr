@@ -55,7 +55,10 @@ class DeleteLink extends Path {
 			});
 		}
 
-		const short = await this.core.db.purgeLink({ID: request.params.id, owner: auth.userID});
+		const short = await this.core.db.purgeLink({
+			ID: request.params.id,
+			owner: auth.userID
+		});
 		if (!short) {
 			return response.status(this.codes.notFound).send({
 				code: this.Utils.FoldCodes.dbNotFound,
@@ -63,7 +66,9 @@ class DeleteLink extends Path {
 			});
 		}
 
-		return response.status(this.codes.ok).send({code: this.codes.ok, message: 'OK'});
+		return response
+			.status(this.codes.ok)
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 
