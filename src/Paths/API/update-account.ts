@@ -25,6 +25,7 @@ import {Response} from 'express';
 import wlogger from '../../Structures/winston-logger';
 import {Request} from '../../Structures/Interfaces/express-extended';
 import {User} from '../../Structures/Database/db-class';
+import * as constants from '../../Structures/constants/index';
 
 /**
  * @classdesc Updating the authorized users account
@@ -142,7 +143,7 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.passwordSize,
-						message: 'Password must be 8 characters or more long, and be only contain alphanumeric characters as well as `.`, and `&`'
+						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS
 					}
 				};
 			}
@@ -152,7 +153,7 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.illegalPassword,
-						message: 'Password is too long, password must be under 32 characters of length'
+						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED
 					}
 				};
 			}
@@ -307,7 +308,7 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.usernameSizeLimit,
-						message: 'Username must be between 3 and 12 characters!'
+						message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH
 					}
 				};
 			}
@@ -317,7 +318,7 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.illegalUsername,
-						message: 'Username may only contain lowercase letters, numbers, and an underscore.'
+						message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
 					}
 				};
 			}

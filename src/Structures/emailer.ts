@@ -22,6 +22,7 @@
 import nodemailer, {SentMessageInfo} from 'nodemailer';
 import Core from './core';
 import Mail from 'nodemailer/lib/mailer';
+import * as constants from './constants/index';
 
 /**
  *
@@ -76,11 +77,8 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: 'Folderr Account Verification',
-				text: `Hello ${username},\n` +
-					`Your Foldderr verification link for instance ${verifyLink.split('/verify')[0]} is ${verifyLink}\n` +
-					'The link will expire in 48 hours.\n' +
-					`Did you not request an account? Click this link to deny the account request: ${verifyLink.replace('verify', 'deny')}.`,
+				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.VERIFY,
+				text: constants.TEMPLATES.EMAILER_TEXTS.verify(username, verifyLink),
 				priority: 'low'
 			});
 		}
@@ -101,11 +99,12 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: 'Your Folderr account has had a password reset request',
-				text: `Hello ${username},\n` +
-					`Please click the link below to reset your ${instanceLink} password.\n` +
-					'If you didn\'t request a password reset, ignore this email and make sure your account is still secure.\n' +
-					`Your password reset link is ${forgotLink}`,
+				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.FORGOT_PASSWARD,
+				text: constants.TEMPLATES.EMAILER_TEXTS.forgot_password(
+					username,
+					instanceLink,
+					forgotLink
+				),
 				priority: 'high'
 			});
 		}
@@ -117,7 +116,7 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		email: string,
 		reason: string,
 		username: string,
-		instanceURL: string
+		instanceLink: string
 	): Promise<
 		null |
 		SentMessageInfo
@@ -126,10 +125,12 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: 'Folderr Account Warning',
-				text: `Hello ${username},\n` +
-					`You have been warned on Folderr instance ${instanceURL}\n` +
-					`Reason: ${reason}`,
+				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.WARN,
+				text: constants.TEMPLATES.EMAILER_TEXTS.warn(
+					username,
+					instanceLink,
+					reason
+				),
 				priority: 'high'
 			});
 		}
@@ -141,7 +142,7 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		email: string,
 		reason: string,
 		username: string,
-		instanceURL: string
+		instanceLink: string
 	): Promise<
 		null |
 		SentMessageInfo
@@ -150,10 +151,12 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: 'Folderr Account Banned',
-				text: `Hello ${username},\n` +
-					`You have been banned on Folderr instance ${instanceURL}\n` +
-					`Reason: ${reason}`,
+				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.BAN,
+				text: constants.TEMPLATES.EMAILER_TEXTS.ban(
+					username,
+					instanceLink,
+					reason
+				),
 				priority: 'high'
 			});
 		}
@@ -173,10 +176,11 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: 'Email Change Confirmation',
-				text: `Hello ${username},\n` +
-					`Here is a link to confirm your email change ${confirmLink}\n` +
-					'If you did not request an email change, please ignore this email.',
+				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.EMAIL_CHANGE,
+				text: constants.TEMPLATES.EMAILER_TEXTS.email_change(
+					username,
+					confirmLink
+				),
 				priority: 'low'
 			});
 		}
@@ -189,14 +193,18 @@ export default class Emailer { /* eslint-disable @typescript-eslint/indent */
 		username: string;
 		id: string;
 		type: string;
-	}, instanceURL: string): Promise<null | SentMessageInfo> {
+	}, instanceLink: string): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: 'Content Takedown',
-				text: `Hello ${username},\n` +
-					`Your content (type: ${type}) with ID ${id} was taken down by service administrators for Folderr instance ${instanceURL}`,
+				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.TAKEDOWN,
+				text: constants.TEMPLATES.EMAILER_TEXTS.takedown(
+					username,
+					type,
+					id,
+					instanceLink
+				),
 				priority: 'low'
 			});
 		}

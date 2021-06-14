@@ -28,6 +28,7 @@ import {Request} from 'express';
 import Core from '../core';
 import Authorization from './authorization';
 import {KeyConfig} from '../../handlers/config-handler';
+import * as constants from '../constants/index';
 
 const sleep = promisify(setTimeout);
 
@@ -182,19 +183,19 @@ class Utils {
 		const match: boolean = this.#core.regexs.password.test(password);
 		if (password.length < minPass || match) {
 			throw new Error( // eslint disable-next-line max-len
-				'[PSW1] Password must be 8 characters or more long, and can only contain alphanumeric characters as well as `.`, and `&`'
+				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`
 			);
 		}
 
 		// If the password is too long
 		if (password.length > maxPass) {
 			throw new Error(
-				'[PSW2] Password is too long, password must be under 32 characters long'
+				`[PSW2] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED}`
 			);
 		}
 
 		if (password.includes('\0')) {
-			throw new Error('[PSW3] NUL character detected! Invalid password!');
+			throw new Error(`[PSW3] ${constants.ENUMS.RESPONSES.PASSWORD.NO_NUL}`);
 		}
 
 		// Hash and return

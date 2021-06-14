@@ -34,6 +34,7 @@ import mongoose from 'mongoose';
 import * as Schemas from '../../Schemas/index';
 import {existsSync, promises as fs} from 'fs';
 import wlogger from '../winston-logger';
+import * as constants from '../constants/index';
 
 /**
  * @classdesc Handle all MongoDB operations.
@@ -225,7 +226,7 @@ export default class MongooseDB extends DBClass {
 	): Promise<{account: User; files: Upload[]; links: Link[]} | undefined> {
 		if (!queries || queries.length < 2 || queries.length > 2) {
 			throw new Error(
-				`MongooseDB > Input > findFullUser - Expected 2 queries in array but got ${queries ? queries.length : 'none'}`
+				constants.TEMPLATES.MONGOOSE.expected_queries(2, queries?.length)
 			);
 		}
 

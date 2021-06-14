@@ -23,6 +23,7 @@ import Path from '../../Structures/path';
 import Core from '../../Structures/core';
 import {Response, Request} from 'express';
 import wlogger from '../../Structures/winston-logger';
+import * as constants from '../../Structures/constants/index';
 
 /**
  * @classdesc Allows users to signup
@@ -249,7 +250,7 @@ class Signup extends Path {
 				httpCode: this.codes.badReq,
 				response: {
 					code: this.Utils.FoldCodes.usernameSizeLimit,
-					message: 'Username must be between 3 and 12 characters!'
+					message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH
 				}
 			};
 		}
@@ -260,7 +261,7 @@ class Signup extends Path {
 				httpCode: this.codes.badReq,
 				response: {
 					code: this.Utils.FoldCodes.illegalUsername,
-					message: 'Username may only contain lowercase letters, numbers, and an underscore.'
+					message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
 				}
 			};
 		}
@@ -307,7 +308,7 @@ class Signup extends Path {
 				httpCode: this.codes.badReq,
 				response: {
 					code: this.Utils.FoldCodes.passwordSize,
-					message: 'Password must be 8-32 long, contain 1 uppercase & lowercase letter, & 1 digit. Passwords allow for special characters.'
+					message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS
 				}
 			};
 		}
