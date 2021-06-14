@@ -30,13 +30,18 @@ const rl = readline.createInterface({
 	terminal: true
 });
 
-async function _password(): Promise<string> {
-	const q = 'What would you like your password to be?\nYour password must be 8-32 characters long,\nInclude 1 uppercase & lowercase letter,\nInclude 1 number,\nYour password may have these special characters: #?!@$%^&*-_[]\nInput: ';
+async function fetch_password(): Promise<string> {
+	const q = 'What would you like your password to be?' +
+	'\nYour password must be 8-32 characters long,' +
+	'\nInclude 1 uppercase & lowercase letter,' +
+	'\nInclude 1 number,' +
+	'\nYour password may have these special characters: #?!@$%^&*-_[]' +
+	'\nInput: ';
 	return new Promise<string>(resolve => {
 		rl.question(q, (answer: string) => {
 			if (!answer) {
 				rl.write('I require a password!');
-				resolve(_password());
+				resolve(fetch_password());
 				return;
 			}
 
@@ -47,7 +52,7 @@ async function _password(): Promise<string> {
 
 			if (!core.regexs.password.test(answer)) {
 				rl.write('Invalid password! Try again!');
-				resolve(_password());
+				resolve(fetch_password());
 				return;
 			}
 
@@ -56,12 +61,12 @@ async function _password(): Promise<string> {
 	});
 }
 
-async function _email(): Promise<string> {
+async function fetch_email(): Promise<string> {
 	return new Promise<string>(resolve => {
 		rl.question('What is your email?\nInput: ', (answer: string) => {
 			if (!answer) {
 				rl.write('I need an email!');
-				resolve(_email());
+				resolve(fetch_email());
 				return;
 			}
 
@@ -72,7 +77,7 @@ async function _email(): Promise<string> {
 
 			if (!core.emailer.validateEmail(answer)) {
 				rl.write('Invalid Email!');
-				resolve(_email());
+				resolve(fetch_email());
 				return;
 			}
 
@@ -81,13 +86,13 @@ async function _email(): Promise<string> {
 	});
 }
 
-async function _username(): Promise<string> {
-	return new Promise<string>(resolve => {
+async function fetch_username(): Promise<string> {
+	return new Promise<string>(resolve => { // eslint-disable-next-line max-len
 		const q = 'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\nInput: ';
 		rl.question(q, (answer: string) => {
 			if (!answer) {
 				rl.write('Give me a username!\n');
-				resolve(_username());
+				resolve(fetch_username());
 				return;
 			}
 
@@ -98,7 +103,7 @@ async function _username(): Promise<string> {
 
 			if (!core.regexs.username.test(answer)) {
 				rl.write('Invalid username! Retry!\n');
-				resolve(_username());
+				resolve(fetch_username());
 				return;
 			}
 
@@ -116,13 +121,14 @@ async function _username(): Promise<string> {
 		process.exit(1); // This is a cli app, thanks.
 	}
 
-	rl.write('We have to initiate the first account (yours) as admin.\nEnter "q" or "quit" at any time to exit.\n');
+	rl.write('We have to initiate the first account (yours) as admin.' +
+	'\nEnter "q" or "quit" at any time to exit.\n');
 
 	await core.Utils.sleep(1000); // Sleep for a second
 
-	const name: string = await _username();
-	let password: string = await _password();
-	const email = core.Utils.encrypt(await _email());
+	const name: string = await fetch_username();
+	let password: string = await fetch_password();
+	const email = core.Utils.encrypt(await fetch_email());
 	const uID: string = await core.Utils.genUID();
 	rl.close();
 
@@ -130,6 +136,9 @@ async function _username(): Promise<string> {
 	password = await core.Utils.hashPass(password);
 	await core.Utils.sleep(1000);
 	await core.db.makeOwner(name, password, uID, email);
-	console.log(`Account created successfully! See your details below...\n\nAccount name: ${name}\nAccount password: ${passBase}\nAccount ID: ${uID}`);// eslint-disable-next-line unicorn/no-process-exit
+	console.log('Account created successfully! See your details below...' +
+	`\n\nAccount name: ${name}` +
+	`\nAccount password: ${passBase}` +
+	`\nAccount ID: ${uID}`);// eslint-disable-next-line unicorn/no-process-exit
 	process.exit(0); // This is a cli app, thanks.
 })();
