@@ -58,11 +58,11 @@ class Images extends Path {
 		}
 
 		const image = await this.core.db.findFile(
-			{ID: parts[0], type: 'image'},
+			{id: parts[0], type: 'image'},
 			'type path owner'
 		);
 		if (image) {
-			const owner = await this.core.db.findUser({userID: image.owner});
+			const owner = await this.core.db.findUser({id: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
 				response

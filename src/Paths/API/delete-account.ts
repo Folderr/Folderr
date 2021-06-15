@@ -101,7 +101,7 @@ class DelAccount extends Path {
 			}
 
 			// Find the user, and if not return a not found
-			const mem = await this.core.db.findUser({uID: request.query.uid});
+			const mem = await this.core.db.findUser({id: request.query.uid});
 			if (!mem) {
 				return response.status(this.codes.notFound).json({
 					code: this.Utils.FoldCodes.dbNotFound,
@@ -127,7 +127,7 @@ class DelAccount extends Path {
 			// Delete the account
 			out = await this.deleteAccount(auth, request.query.uid);
 			this.core.logger.info(
-				`Account ${mem.userID} deleted by administrator (${auth.username} - ${auth.userID})`
+				`Account ${mem.id} deleted by administrator (${auth.username} - ${auth.id})`
 			);
 			response.status(out.code).json(out.mess).end();
 			this.core.addDeleter(request.query.uid);
@@ -143,11 +143,11 @@ class DelAccount extends Path {
 		}
 
 		// Delete the users account
-		out = await this.deleteAccount(auth, auth.userID);
-		this.core.logger.info(`Account ${auth.userID} deleted`);
+		out = await this.deleteAccount(auth, auth.id);
+		this.core.logger.info(`Account ${auth.id} deleted`);
 
 		response.status(out.code).json(out.mess).end();
-		this.core.addDeleter(auth.userID);
+		this.core.addDeleter(auth.id);
 	}
 }
 

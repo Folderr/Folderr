@@ -64,7 +64,7 @@ class AddAdmin extends Path {
 
 		const user = await this.core.db.findAndUpdateUser(
 			{
-				uID: request.params.id,
+				id: request.params.id,
 				$nor: [{admin: false}, {first: true}]
 			},
 			{admin: true},
@@ -84,8 +84,8 @@ class AddAdmin extends Path {
 			});
 		}
 
-		const responsible = `${auth.username} (${auth.userID})`;
-		const userFormatted = `${user.username} (${user.userID})`;
+		const responsible = `${auth.username} (${auth.id})`;
+		const userFormatted = `${user.username} (${user.id})`;
 
 		user.admin = true;
 		this.core.logger.info(

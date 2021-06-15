@@ -71,7 +71,7 @@ class MirrorAdd extends Path {
 				.get(`${request.body.url as string}/api/verify`)
 				.send({
 					url: u,
-					owner: auth.userID,
+					owner: auth.id,
 					token: out.key
 				});
 		} catch (error: unknown) {
@@ -128,7 +128,7 @@ class MirrorAdd extends Path {
 
 		await this.core.db.updateUser(
 			{
-				userID: auth.userID
+				id: auth.id
 			},
 			{
 				$addToSet: {

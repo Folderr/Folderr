@@ -47,7 +47,7 @@ class Short extends Path {
 		}
 
 		const short = await this.core.db.findLink(
-			{ID: request.params.id},
+			{id: request.params.id},
 			'link owner'
 		);
 		if (!short) {
@@ -57,7 +57,7 @@ class Short extends Path {
 			return;
 		}
 
-		const owner = await this.core.db.findUser({userID: short.owner});
+		const owner = await this.core.db.findUser({id: short.owner});
 		if (!owner) {
 			this.core.addDeleter(short.owner);
 			response

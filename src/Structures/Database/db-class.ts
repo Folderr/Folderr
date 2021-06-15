@@ -25,7 +25,7 @@ export interface Folderr {
 }
 
 export interface Notification {
-	ID: string;
+	id: string;
 	title: string;
 	notify: string;
 	created: Date;
@@ -33,7 +33,7 @@ export interface Notification {
 
 export interface User {
 	username: string;
-	userID: string;
+	id: string;
 	password: string;
 	first?: boolean;
 	admin?: boolean;
@@ -50,12 +50,12 @@ export interface User {
 export interface Link {
 	link: string;
 	owner: string;
-	ID: string;
+	id: string;
 	created: Date;
 }
 
 export interface PendingMember {
-	userID: string;
+	id: string;
 	password: string;
 	username: string;
 	validationToken: string;
@@ -71,7 +71,7 @@ export interface TokenDB {
 }
 
 export interface Upload {
-	ID: string;
+	id: string;
 	owner: string;
 	format: string;
 	path: string;
@@ -120,7 +120,7 @@ export class DBClass {
 	async makeOwner(
 		username: string,
 		password: string,
-		userID: string,
+		id: string,
 		email: string
 	): Promise<User | void> {
 		throw new Error(
@@ -185,7 +185,7 @@ export class DBClass {
 	async makeUser(
 		userInfo: {
 			username: string;
-			userID: string;
+			id: string;
 			password: string;
 			email: string;
 		},
@@ -199,7 +199,7 @@ export class DBClass {
 	}
 
 	async purgeUser(
-		userID: string
+		id: string
 	): Promise<{account: boolean; links: boolean} | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method purgeUser is not implemented!'
@@ -221,7 +221,7 @@ export class DBClass {
 	}
 
 	async verifyUser(
-		userID: string,
+		id: string,
 		options?: {admin: boolean}
 	): Promise<User | undefined> {
 		throw new Error(
@@ -229,19 +229,19 @@ export class DBClass {
 		);
 	}
 
-	async verifySelf(userID: string): Promise<User | undefined> {
+	async verifySelf(id: string): Promise<User | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method verifySelf is not implemented!'
 		);
 	}
 
-	async denyUser(userID: string): Promise<boolean> {
+	async denyUser(id: string): Promise<boolean> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method denyUser is not implemented!'
 		);
 	}
 
-	async denySelf(userID: string): Promise<boolean> {
+	async denySelf(id: string): Promise<boolean> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method verifySelf is not implemented!'
 		);
@@ -250,7 +250,7 @@ export class DBClass {
 	async makeVerify(
 		userInfo: {
 			username: string;
-			userID: string;
+			id: string;
 			password: string;
 			email: string;
 		},
@@ -374,7 +374,7 @@ export class DBClass {
 
 	async findToken(
 		tokenID: string,
-		userID: string,
+		id: string,
 		options?: {
 			web?: boolean;
 		}
@@ -385,7 +385,7 @@ export class DBClass {
 	}
 
 	async findTokens(
-		userID: string,
+		id: string,
 		options?: {web: boolean}
 	): Promise<TokenDB[]> {
 		throw new Error(

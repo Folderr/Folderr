@@ -68,7 +68,7 @@ class Login extends Path {
 		// Set the cookie to expire in a weeks time
 		const week = 604800000;
 		const endTime = new Date(Date.now() + week * 2);
-		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.userID);
+		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
 		response.cookie('token', jwt, {
 			expires: endTime,
 			secure: false,

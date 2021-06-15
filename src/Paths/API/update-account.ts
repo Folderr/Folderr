@@ -94,7 +94,7 @@ class UpdateAcc extends Path {
 		}
 
 		try {
-			await this.core.db.updateUser({uID: auth.userID}, update);
+			await this.core.db.updateUser({id: auth.id}, update);
 		} catch (error: unknown) {
 			if (!(error instanceof Error)) {
 				if (process.env.DEBUG) {

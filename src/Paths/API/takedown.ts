@@ -45,7 +45,7 @@ class Takedown extends Path {
 			message: string;
 		};
 	}> {
-		const del = await this.core.db.findAndDeleteFile({ID: id});
+		const del = await this.core.db.findAndDeleteFile({id});
 		if (!del) {
 			return {
 				httpCode: this.codes.notAccepted,
@@ -56,11 +56,11 @@ class Takedown extends Path {
 			};
 		}
 
-		await this.core.db.updateUser({userID: del.owner}, {$inc: {files: -1}});
+		await this.core.db.updateUser({id: del.owner}, {$inc: {files: -1}});
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
-				{userID: del.owner},
-				'userID username email'
+				{id: del.owner},
+				'id username email'
 			);
 			if (!user) {
 				return {
@@ -95,7 +95,7 @@ class Takedown extends Path {
 			message: string;
 		};
 	}> {
-		const del = await this.core.db.findAndDeleteLink({ID: id});
+		const del = await this.core.db.findAndDeleteLink({id});
 		if (!del) {
 			return {
 				httpCode: this.codes.notAccepted,
@@ -106,11 +106,11 @@ class Takedown extends Path {
 			};
 		}
 
-		await this.core.db.updateUser({userID: del.owner}, {$inc: {links: -1}});
+		await this.core.db.updateUser({id: del.owner}, {$inc: {links: -1}});
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
-				{userID: del.owner},
-				'userID username email'
+				{id: del.owner},
+				'id username email'
 			);
 			if (!user) {
 				return {

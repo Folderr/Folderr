@@ -69,14 +69,14 @@ export default class Authorization {
 				return;
 			}
 
-			const verify = await this.#core.db.findToken(result.jti, result.userID, {
+			const verify = await this.#core.db.findToken(result.jti, result.id, {
 				web
 			});
 			if (!verify) {
 				return;
 			}
 
-			return result.userID;
+			return result.id;
 		} catch {}
 	}
 
@@ -96,12 +96,12 @@ export default class Authorization {
 		}
 
 		try {
-			const userID = await this.verify(token, options?.web);
-			if (!userID) {
+			const id = await this.verify(token, options?.web);
+			if (!id) {
 				return;
 			}
 
-			const user = await this.#core.db.findUser({userID});
+			const user = await this.#core.db.findUser({id});
 			if (!user) {
 				return;
 			}
@@ -128,7 +128,7 @@ export default class Authorization {
 
 			const verifyDB = await this.#core.db.purgeToken(
 				result.jti,
-				result.userID,
+				result.id,
 				{web}
 			);
 			if (!verifyDB) {
@@ -154,7 +154,7 @@ export default class Authorization {
 	async genKeyWeb(userID: string): Promise<string> {
 		const id = this.genID();
 		await this.#core.db.makeToken(id, userID, {web: true});
-		return `Bearer: ${jwt.sign({userID}, this.#privKey, {
+		return `Bearer: ${jwt.sign({id: userID}, this.#privKey, {
 			expiresIn: '14d',
 			issuer: 'folderr',
 			jwtid: id
@@ -164,7 +164,7 @@ export default class Authorization {
 	async genKey(userID: string): Promise<string> {
 		const id = this.genID();
 		await this.#core.db.makeToken(id, userID, {web: false});
-		return jwt.sign({userID}, this.#privKey, {issuer: 'folderr', jwtid: id});
+		return jwt.sign({id: userID}, this.#privKey, {issuer: 'folderr', jwtid: id});
 	}
 
 	async genMirrorKey(

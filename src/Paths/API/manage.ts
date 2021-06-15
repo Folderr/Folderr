@@ -71,7 +71,7 @@ class Manage extends Path {
 				message: 'OK'
 			});
 			this.core.logger.info(
-				`System shutdown initiated remotely by owner (${auth.username} - ${auth.userID})`
+				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`
 			);
 			this.core.shutdownServer();
 		} else if (request.query.type === 'update') {

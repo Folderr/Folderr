@@ -48,7 +48,7 @@ class Files extends Path {
 			});
 		}
 
-		const generated = this.generatePageQuery(request, auth.userID);
+		const generated = this.generatePageQuery(request, auth.id);
 		if (generated.errored) {
 			const genType = generated as unknown as {
 				httpCode: number;
@@ -90,10 +90,10 @@ class Files extends Path {
 			const split = image.path.split('.');
 			const type = split[split.length - 1];
 			return {
-				ID: image.ID,
+				id: image.id,
 				type: image.type,
 				created: Math.round(image.created.getTime() / 1000),
-				link: `${url}/${image.type ? image.type[0] : 'i'}/${image.ID}.${type}`
+				link: `${url}/${image.type ? image.type[0] : 'i'}/${image.id}.${type}`
 			};
 		});
 		return response

@@ -50,7 +50,7 @@ class Users extends Path {
 			});
 		}
 
-		const generated = this.generatePageQuery(request, auth.userID);
+		const generated = this.generatePageQuery(request, auth.id);
 		if (generated.errored) {
 			const genType = generated as unknown as {
 				httpCode: number;
@@ -86,8 +86,7 @@ class Users extends Path {
 			username: string;
 			files: number;
 			links: number;
-			email: string;
-			userID: string;
+			id: string;
 			created: number;
 		}> = users.map((user: User) => {
 			return {
@@ -98,8 +97,7 @@ class Users extends Path {
 				username: user.username,
 				files: user.files,
 				links: user.links,
-				email: user.email,
-				userID: user.userID,
+				id: user.id,
 				created: Math.round(user.created.getTime() / 1000)
 			};
 		});

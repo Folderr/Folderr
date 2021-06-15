@@ -53,7 +53,7 @@ class Deny extends Path {
 			});
 		}
 
-		await this.core.db.denySelf(verify.userID);
+		await this.core.db.denySelf(verify.id);
 		return response
 			.status(this.codes.created)
 			.json({code: this.codes.ok, message: 'OK'});

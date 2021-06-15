@@ -70,13 +70,13 @@ class VerifyAccount extends Path {
 		}
 
 		// Remove the user from verifying schema and add them to the actual user base
-		const {username, userID} = user;
-		await this.core.db.verifyUser(userID);
+		const {username, id} = user;
+		await this.core.db.verifyUser(id);
 
 		// Alert the console and the admin that the user was verified
 		this.core.logger.info(
 			// eslint-disable-next-line max-len
-			`User account ${username} (${userID}) granted by administrator ${auth.username} (${auth.userID})`
+			`User account ${username} (${id}) granted by administrator ${auth.username} (${auth.id})`
 		);
 		return response
 			.status(this.codes.created)

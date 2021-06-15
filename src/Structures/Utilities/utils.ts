@@ -151,8 +151,8 @@ class Utils {
 			.slice(min, max);
 		let toReturn = true;
 		const [Upload, Link] = await Promise.all([
-			this.#core.db.findFile({ID: id}, 'ID'),
-			this.#core.db.findLink({ID: id}, 'ID')
+			this.#core.db.findFile({id}, 'id'),
+			this.#core.db.findLink({id}, 'id')
 		]);
 		if (Upload || Link) {
 			toReturn = false;
@@ -210,15 +210,15 @@ class Utils {
 	 */
 	async genNotifyID(): Promise<string> {
 		// Gen the ID, and dont let the ID equal a already made notify id
-		const ID: string = await this.genUID();
-		const notify = await this.#core.db.findAdminNotify({ID});
+		const id: string = await this.genUID();
+		const notify = await this.#core.db.findAdminNotify({id});
 		if (notify) {
 			// Retry if notify exists
 			return this.genNotifyID();
 		}
 
 		// Return the ID
-		return ID;
+		return id;
 	}
 
 	/**
@@ -395,7 +395,7 @@ class Utils {
 		userID: string
 	): Promise<PendingMember | false> {
 		const user: PendingMember | undefined | null =
-			await this.#core.db.findVerify({userID});
+			await this.#core.db.findVerify({id: userID});
 		if (!user) {
 			return false;
 		}

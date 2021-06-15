@@ -56,8 +56,8 @@ class DeleteLink extends Path {
 		}
 
 		const short = await this.core.db.purgeLink({
-			ID: request.params.id,
-			owner: auth.userID
+			id: request.params.id,
+			owner: auth.id
 		});
 		if (!short) {
 			return response.status(this.codes.notFound).send({

@@ -70,7 +70,7 @@ class WarnUser extends Path {
 			return;
 		}
 
-		const user = await this.core.db.findUser({userID: request.params.id});
+		const user = await this.core.db.findUser({id: request.params.id});
 		if (!user) {
 			response
 				.status(this.codes.notAccepted)
@@ -85,11 +85,11 @@ class WarnUser extends Path {
 		const email = this.Utils.decrypt(user.email);
 		const id = await this.Utils.genNotifyID();
 		const updated = await this.core.db.updateUser(
-			{userID: request.params.id},
+			{id: request.params.id},
 			{
 				$addToSet: {
 					notifs: {
-						ID: id,
+						id: id,
 						title: 'Warn',
 						notify: `You were warned for: ${request.body.reason as string}`
 					}

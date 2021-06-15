@@ -23,7 +23,7 @@
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
 import {Response} from 'express';
-import {Notification} from '../../Schemas/user';
+import {Notification} from '../../Structures/Database/db-class';
 import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
@@ -66,7 +66,7 @@ class Notifs extends Path {
 			const anotifs = await this.core.db.findAdminNotifies({});
 			notifs = anotifs.map((notification: Notification) => {
 				return {
-					ID: notification.ID,
+					id: notification.id,
 					title: notification.title,
 					notify: notification.notify.replace(/\n/g, ','),
 					created: notification.created

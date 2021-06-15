@@ -74,8 +74,8 @@ class Shorten extends Path {
 
 		const ID = await this.Utils.genID();
 		await Promise.all([
-			this.core.db.makeLink(ID, auth.userID, request.body.url),
-			this.core.db.updateUser({userID: auth.userID}, {$inc: {links: 1}})
+			this.core.db.makeLink(ID, auth.id, request.body.url),
+			this.core.db.updateUser({id: auth.id}, {$inc: {links: 1}})
 		]);
 
 		return response

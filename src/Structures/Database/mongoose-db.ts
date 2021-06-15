@@ -177,7 +177,7 @@ export default class MongooseDB extends DBClass {
 	async makeOwner(
 		username: string,
 		password: string,
-		userID: string,
+		id: string,
 		email: string
 	): Promise<User | void> {
 		const ownr = await this.findUser({first: true}, 'first');
@@ -189,7 +189,7 @@ export default class MongooseDB extends DBClass {
 			first: true,
 			admin: true,
 			username,
-			userID,
+			id: id,
 			email,
 			password
 		});
@@ -291,7 +291,7 @@ export default class MongooseDB extends DBClass {
 	async makeUser(
 		userInfo: {
 			username: string;
-			userID: string;
+			id: string;
 			password: string;
 			email: string;
 		},
@@ -309,7 +309,7 @@ export default class MongooseDB extends DBClass {
 
 		const user = new this.#Schemas.User({
 			username: userInfo.username,
-			userID: userInfo.userID,
+			id: userInfo.id,
 			password: userInfo.password,
 			admin: options?.admin,
 			email: userInfo.email
@@ -318,10 +318,10 @@ export default class MongooseDB extends DBClass {
 		return user;
 	}
 
-	async purgeUser(userID: string): Promise<{account: boolean; links: boolean}> {
+	async purgeUser(id: string): Promise<{account: boolean; links: boolean}> {
 		const [account, links] = await Promise.all([
-			this.#Schemas.User.deleteOne({userID}).exec(),
-			this.#Schemas.Link.deleteMany({owner: userID}).exec()
+			this.#Schemas.User.deleteOne({id: id}).exec(),
+			this.#Schemas.Link.deleteMany({owner: id}).exec()
 		]);
 
 		return {
@@ -342,17 +342,17 @@ export default class MongooseDB extends DBClass {
 	}
 
 	async verifyUser(
-		userID: string,
+		id: string,
 		options?: {admin?: boolean}
 	): Promise<User | undefined> {
-		const verify = await this.#Schemas.PendingMember.findOneAndDelete({userID})
+		const verify = await this.#Schemas.PendingMember.findOneAndDelete({id: id})
 			.lean()
 			.exec();
 		if (!verify) {
 			return undefined;
 		}
 
-		const reg = new RegExp(userID);
+		const reg = new RegExp(id);
 		await this.#Schemas.AdminNotification.deleteOne({notify: reg})
 			.lean()
 			.exec();
@@ -360,7 +360,7 @@ export default class MongooseDB extends DBClass {
 		return this.makeUser(
 			{
 				username: verify.username,
-				userID: verify.userID,
+				id: verify.id,
 				password: verify.password,
 				email: verify.email
 			},
@@ -368,8 +368,8 @@ export default class MongooseDB extends DBClass {
 		);
 	}
 
-	async verifySelf(userID: string): Promise<User | undefined> {
-		const verify = await this.#Schemas.PendingMember.findOneAndDelete({userID})
+	async verifySelf(id: string): Promise<User | undefined> {
+		const verify = await this.#Schemas.PendingMember.findOneAndDelete({id: id})
 			.lean()
 			.exec();
 		if (!verify) {
@@ -378,25 +378,25 @@ export default class MongooseDB extends DBClass {
 
 		return this.makeUser({
 			username: verify.username,
-			userID: verify.userID,
+			id: verify.id,
 			password: verify.password,
 			email: verify.email
 		});
 	}
 
-	async denyUser(userID: string): Promise<boolean> {
-		const reg = new RegExp(userID);
+	async denyUser(id: string): Promise<boolean> {
+		const reg = new RegExp(id);
 		await this.#Schemas.AdminNotification.deleteOne({notify: reg})
 			.lean()
 			.exec();
-		const del = await this.#Schemas.PendingMember.deleteOne({userID})
+		const del = await this.#Schemas.PendingMember.deleteOne({id: id})
 			.lean()
 			.exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 
-	async denySelf(userID: string): Promise<boolean> {
-		const del = await this.#Schemas.PendingMember.deleteOne({userID})
+	async denySelf(id: string): Promise<boolean> {
+		const del = await this.#Schemas.PendingMember.deleteOne({id: id})
 			.lean()
 			.exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
@@ -405,14 +405,14 @@ export default class MongooseDB extends DBClass {
 	async makeVerify(
 		userInfo: {
 			username: string;
-			userID: string;
+			id: string;
 			password: string;
 			email: string;
 		},
 		validationToken: string
 	): Promise<PendingMember> {
 		const verify = new this.#Schemas.PendingMember({
-			userID: userInfo.userID,
+			id: userInfo.id,
 			username: userInfo.username,
 			password: userInfo.password,
 			validationToken,
@@ -477,7 +477,7 @@ export default class MongooseDB extends DBClass {
 		path: string,
 		type: string
 	): Promise<Upload> {
-		const file = new this.#Schemas.Upload({ID: id, owner, path, type});
+		const file = new this.#Schemas.Upload({id, owner, path, type});
 		await file.save();
 		return file;
 	}
@@ -556,7 +556,7 @@ export default class MongooseDB extends DBClass {
 	}
 
 	async makeLink(id: string, owner: string, link: string): Promise<Link> {
-		const link1 = new this.#Schemas.Link({ID: id, owner, link});
+		const link1 = new this.#Schemas.Link({id, owner, link});
 		await link1.save();
 		return link1;
 	}
@@ -638,7 +638,7 @@ export default class MongooseDB extends DBClass {
 		notify: string,
 		title: string
 	): Promise<Notification> {
-		const notif = new this.#Schemas.AdminNotification({ID: id, notify, title});
+		const notif = new this.#Schemas.AdminNotification({id: id, notify, title});
 		await notif.save();
 		return notif;
 	}

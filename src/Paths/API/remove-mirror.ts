@@ -61,7 +61,7 @@ class MirrorRemove extends Path {
 		}
 
 		await this.core.db.updateUser(
-			{userID: auth.userID},
+			{id: auth.id},
 			{
 				$pullAll: {
 					cURLs: request.body.mirror

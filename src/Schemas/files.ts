@@ -22,14 +22,14 @@
 import {Schema, model, Model, Document} from 'mongoose';
 
 const File: Schema = new Schema({
-	ID: {type: String, required: true, index: true},
+	id: {type: String, required: true, index: true},
 	owner: {type: String, required: true},
 	path: {type: String, required: true},
 	type: {type: String, required: true},
 	created: {type: Date, default: new Date()}
 });
 export interface UploadI extends Document {
-	ID: string;
+	id: string;
 	owner: string;
 	format: string;
 	path: string;

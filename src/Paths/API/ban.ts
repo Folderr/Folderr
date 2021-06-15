@@ -59,7 +59,7 @@ class Ban extends Path {
 			});
 		}
 
-		const user = await this.core.db.findUser({userID: request.params.id});
+		const user = await this.core.db.findUser({id: request.params.id});
 		if (!user) {
 			return response.status(this.codes.badReq).json({
 				code: this.Utils.FoldCodes.dbNotFound,
@@ -80,7 +80,7 @@ class Ban extends Path {
 
 		const ban = await this.core.db.addFolderrBan(email);
 		if (ban) {
-			await this.core.db.purgeUser(user.userID);
+			await this.core.db.purgeUser(user.id);
 			response
 				.status(this.codes.ok)
 				.json({
@@ -98,7 +98,7 @@ class Ban extends Path {
 				.end();
 		}
 
-		this.core.addDeleter(user.userID);
+		this.core.addDeleter(user.id);
 	}
 }
 

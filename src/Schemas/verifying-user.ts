@@ -22,7 +22,7 @@
 import {Schema, model, Model, Document} from 'mongoose';
 
 const User: Schema = new Schema({
-	userID: {type: String, required: true, index: true},
+	id: {type: String, required: true, index: true},
 	password: {type: String, required: true},
 	username: {type: String, required: true},
 	validationToken: {type: String, required: true},
@@ -31,7 +31,7 @@ const User: Schema = new Schema({
 });
 
 export interface VUser extends Document {
-	userID: string;
+	id: string;
 	password: string;
 	username: string;
 	validationToken: string;

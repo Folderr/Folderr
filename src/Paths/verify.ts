@@ -56,14 +56,14 @@ class Verify extends Path {
 		const expiresAfter = 172800000; // 48H in MS
 		const timeSinceCreation = Date.now() - Number(verify.created);
 		if (timeSinceCreation >= expiresAfter) {
-			await this.core.db.denySelf(verify.userID);
+			await this.core.db.denySelf(verify.id);
 			return response.status(this.codes.notAccepted).json({
 				code: this.Utils.FoldCodes.userDenied,
 				message: 'Validation time expired.'
 			});
 		}
 
-		await this.core.db.verifySelf(verify.userID);
+		await this.core.db.verifySelf(verify.id);
 
 		this.core.logger.info('User account verified by self');
 		return response

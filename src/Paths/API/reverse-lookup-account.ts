@@ -59,8 +59,8 @@ class LookupAccount extends Path {
 
 		const out =
 			request.params.type === 'file'
-				? await this.core.db.findFile({ID: request.params.id})
-				: await this.core.db.findLink({ID: request.params.id});
+				? await this.core.db.findFile({id: request.params.id})
+				: await this.core.db.findLink({id: request.params.id});
 		if (!out) {
 			const formattedType = request.params.type === 'file' ? 'File' : 'Link';
 			console.log(formattedType);
@@ -71,8 +71,8 @@ class LookupAccount extends Path {
 		}
 
 		const user = await this.core.db.findUser(
-			{userID: out.owner},
-			'userID username email created'
+			{id: out.owner},
+			'id username email created'
 		);
 		if (!user) {
 			return response.status(this.codes.ok).json({
@@ -81,13 +81,11 @@ class LookupAccount extends Path {
 			});
 		}
 
-		user.email = this.Utils.decrypt(user.email);
 		return response.status(this.codes.ok).json({
 			code: this.codes.ok,
 			message: {
-				email: user.email,
 				username: user.username,
-				userID: user.userID,
+				id: user.id,
 				created: Number(user.created)
 			}
 		});

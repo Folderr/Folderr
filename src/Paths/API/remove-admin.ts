@@ -67,7 +67,7 @@ class RemoveAdmin extends Path {
 
 		const user = await this.core.db.findAndUpdateUser(
 			{
-				userID: request.params.id,
+				id: request.params.id,
 				$nor: [{admin: false}, {first: true}]
 			},
 			{admin: false},
@@ -87,8 +87,8 @@ class RemoveAdmin extends Path {
 			});
 		}
 
-		const responsible = `${auth.username} (${auth.userID})`;
-		const formerAdmin = `${user.username} (${user.userID})`;
+		const responsible = `${auth.username} (${auth.id})`;
+		const formerAdmin = `${user.username} (${user.id})`;
 		this.core.logger.info(
 			`Administator removed for ${formerAdmin} by ${responsible}`
 		);
