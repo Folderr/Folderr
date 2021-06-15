@@ -1,6 +1,9 @@
-/* eslint-disable max-classes-per-file */
-import { RateLimiterCluster, RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
-import { Request, Response } from 'express';
+import {
+	RateLimiterCluster,
+	RateLimiterMemory,
+	RateLimiterRes
+} from 'rate-limiter-flexible';
+import {Request, Response} from 'express';
 
 const tooMany = 429;
 
@@ -8,56 +11,90 @@ const tooMany = 429;
  * @fileoverview All of the ratelimiter middleware for express
  */
 
-export class LimiterBase {
-    readonly #ratelimiter!: RateLimiterCluster | RateLimiterMemory
+export abstract class LimiterBase {
+	readonly #ratelimiter!: RateLimiterCluster | RateLimiterMemory;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    consumer(req: Request, res: Response, next: () => any): void {
-        throw Error('Not implemented!');
-    }
+	async consumer(
+		request: Request,
+		response: Response,
+		next: () => any
+	): Promise<void> {
+		throw new Error('Not implemented!');
+	}
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    userConsumer(req: Request, res: Response, next: () => any): void {
-        throw Error('Not implemented!');
-    }
+	async userConsumer(
+		request: Request,
+		ressponse: Response,
+		next: () => any
+	): Promise<void> {
+		throw new Error('Not implemented!');
+	}
 }
 
 export class MemoryLimiter extends LimiterBase {
-    readonly #ratelimiter: RateLimiterMemory;
+	readonly #ratelimiter: RateLimiterMemory;
 
-    constructor() {
-        super();
-        this.#ratelimiter = new RateLimiterMemory( {
-            points: 10,
-            duration: 4,
-        } );
-    }
+	constructor() {
+		super();
+		this.#ratelimiter = new RateLimiterMemory({
+			points: 10,
+			duration: 4
+		});
+	}
 
-    consumer(req: Request, res: Response, next: () => any): void {
-        this.#ratelimiter.consume(req.ip, 2)
-            .then( (ratelimiterRes: RateLimiterRes) => {
-                res.set('X-Ratelimit-Remaining', `${ratelimiterRes.remainingPoints}`);
-                next();
-            } )
-            .catch( (ratelimiterRes: RateLimiterRes) => {
-                res.set( {
-                    'Retry-After': ratelimiterRes.msBeforeNext / 1000,
-                    'X-Ratelimit-Remaining': ratelimiterRes.remainingPoints,
-                } ).status(tooMany).send( { code: tooMany, message: 'Too many requests!' } );
-            } );
-    }
+	async consumer(
+		request: Request,
+		response: Response,
+		next: () => any
+	): Promise<void> {
+		try {
+			const ratelimiterResponse = await this.#ratelimiter.consume(
+				request.ip,
+				2
+			);
+			response.set(
+				'X-Ratelimit-Remaining',
+				`${ratelimiterResponse.remainingPoints}`
+			);
+			next();
+		} catch (error: unknown) {
+			if (error instanceof RateLimiterRes) {
+				response
+					.set({
+						'Retry-After': error.msBeforeNext / 1000,
+						'X-Ratelimit-Remaining': error.remainingPoints
+					})
+					.status(tooMany)
+					.send({code: tooMany, message: 'Too many requests!'});
+			}
+		}
+	}
 
-    userConsumer(req: Request, res: Response, next: () => any): void {
-        this.#ratelimiter.consume(req.ip, 1)
-            .then( (ratelimiterRes: RateLimiterRes) => {
-                res.set('X-Ratelimit-Remaining', `${ratelimiterRes.remainingPoints}`);
-                next();
-            } )
-            .catch( (ratelimiterRes: RateLimiterRes) => {
-                res.set( {
-                    'Retry-After': ratelimiterRes.msBeforeNext / 1000,
-                    'X-Ratelimit-Remaining': ratelimiterRes.remainingPoints,
-                } ).status(tooMany).send( { code: tooMany, message: 'Too many requests!' } );
-            } );
-    }
+	async userConsumer(
+		request: Request,
+		response: Response,
+		next: () => any
+	): Promise<void> {
+		try {
+			const ratelimiterResponse = await this.#ratelimiter.consume(
+				request.ip,
+				1
+			);
+			response.set(
+				'X-Ratelimit-Remaining',
+				`${ratelimiterResponse.remainingPoints}`
+			);
+			next();
+		} catch (error: unknown) {
+			if (error instanceof RateLimiterRes) {
+				response
+					.set({
+						'Retry-After': error.msBeforeNext / 1000,
+						'X-Ratelimit-Remaining': error.remainingPoints
+					})
+					.status(tooMany)
+					.send({code: tooMany, message: 'Too many requests!'});
+			}
+		}
+	}
 }

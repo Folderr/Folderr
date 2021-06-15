@@ -4,14 +4,42 @@
   "description": "A secure open source host for images, and shortened urls..",
   "main": "src/index.js",
   "scripts": {
-    "start": "node build/src/index.js",
-    "first": "tsc && build/scripts/initFirst.js",
-    "update": "echo \"updating\" && git pull && npm install && tsc && echo \"Update Success\"",
     "build": "tsc --skipLibCheck",
-    "startpm2": "pm2 start --name folderr build/src/index.js",
-    "lint": "eslint --ext .ts src scripts",
-    "lintfix": "eslint --ext .ts --fix src scripts",
-    "test": "NODE_ENV=test node -r esm src/index.js"
+    "first": "npm run build && dist/scripts/init-first.js",
+    "start": "NODE_ENV=production node dist/src/index.js",
+    "startpm2": "pm2 start --name folderr dist/src/index.js",
+
+    "start:dev": "NODE_ENV=dev DEBUG=true node dist/src/index.js",
+    "test": "xo && NODE_ENV=test node dist/src/index.js",
+    "prepare": "husky install",
+    "lint": "xo src/ scripts/",
+    "lintfix": "xo --fix src/ scripts/"
+  },
+  "xo": {
+    "plugins": [
+      "optimize-regex",
+      "radar"
+    ],
+    "extensions": [
+      ".ts"
+    ],
+    "rules": {
+      "indent": "off",
+      "@typescript-eslint/indent": "off",
+      "max-len": [
+        "error",
+        {
+          "code": 100,
+          "comments": 100,
+          "ignoreUrls": true
+        }
+      ],
+      "no-underscore-dangle": "error"
+    },
+    "prettier": true
+  },
+  "engines": {
+    "node": ">=12 <=14"
   },
   "repository": {
     "type": "git",
@@ -52,13 +80,22 @@
     "rate-limiter-flexible": "^2.2.1",
     "spdy": "^4.0.2",
     "superagent": "^6.1.0",
-    "typescript": "^4.2.2",
+    "typescript": "^4.2.4",
+    "uuid-random": "^1.3.2",
     "winston": "^3.3.3"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
-    "eslint": "^7.21.0",
-    "@axonteam/eslint-config": "^2.1.1"
+    "eslint-plugin-optimize-regex": "^1.2.0",
+    "eslint-plugin-radar": "^0.2.1",
+    "husky": "^6.0.0",
+    "lint-staged": "^11.0.0",
+    "prettier": "2.3.1",
+    "xo": "^0.38.2"
+  },
+  "lint-staged": {
+    "*.ts": "xo --fix",
+    "*.{md,yaml}": "prettier --write"
   }
 }
