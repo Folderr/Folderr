@@ -1,14 +1,14 @@
-port: 8888
-url: "http://localhost:8888"
-signups: 0
+port: 8888 # Required, port the instance will listen on
+url: "http://localhost:8888" # Required, url for the instance
+signups: 0 # Required, state of signups
 # apiOnly: false # Optional, turns off the frontend if set to true.
-# trustProxies: false #Optional, only set this to true when behind a proxy server you trust.
-jwtConfig: # this is required
-  privKeyPath # Non-optional, Add the private key path here
-  pubKeyPath # Non-optional, Add the public key path here
-  # algorithm: "RS256" # optional
+# trustProxies: false # Optional, only set this to true when behind a proxy server you trust.
+jwtConfig: # this is required. Helps with authorization
+  privKeyPath: example # Required, Add the private key path here
+  pubKeyPath: example # Required, Add the public key path here
+  # algorithm: "RS256" # Optional
 # httpsCertOptions: # optional
-  # key: # Add https private key here
-  # cert: # Add https cert here
-  # ca: # No idea, def optional
-  # requestCert: # No idea, def optional
+#  - key: # Add https private key here
+#  - cert: # Add https cert here
+#  - ca: # Unknown use. Optional.
+#  - requestCert: # Request the certificate from the end user. Not recommended to use

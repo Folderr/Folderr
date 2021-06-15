@@ -1,0 +1,13 @@
+# Ignore package lock files
+package-lock.json
+
+# Ignore node modules
+node_modules/
+
+# Ignore core files
+build/
+dist/
+scripts/*.js
+Files/*
+logs/*.log
+configs/

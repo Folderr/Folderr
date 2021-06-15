@@ -1,4 +1,4 @@
 url: "mongodb://localhost/folderrDB"
-# dbName: folderrDB # optional, not implemented
-# protocol: mongodb # optional, not implemented
-# extraConfig # optional, not implemented.
+# dbName: folderrDB # Optional, not implemented
+# protocol: mongodb # Optional, not implemented
+# extraConfig # Optional, not implemented.

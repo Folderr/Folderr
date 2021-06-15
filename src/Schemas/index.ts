@@ -19,10 +19,16 @@
  *
  */
 
-export { default as VerifyingUser, VUser as PendingMember } from './VerifyingUser';
-export { default as User, UserI } from './User';
-export { default as Short, Link } from './Link';
-export { default as JwtToken, JwtTokenI as Token } from './JwtTokens';
-export { default as File, UploadI as Upload } from './File';
-export { default as AdminNotifications, Notification as AdminNotificationI } from './Admin_Notifs';
-export { default as Folderr, FolderrDB } from './Folderr';
+export {
+	default as VerifyingUser,
+	VUser as PendingMember
+} from './verifying-user';
+export {default as User, UserI} from './user';
+export {default as Short, Link} from './link';
+export {default as JwtToken, JwtTokenI as Token} from './jwt-token';
+export {default as File, UploadI as Upload} from './files';
+export {
+	default as AdminNotifications,
+	Notification as AdminNotificationI
+} from './admin-notifs';
+export {default as Folderr, FolderrDB} from './folderr';
