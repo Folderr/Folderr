@@ -49,7 +49,7 @@ class Tokens extends Path {
 			});
 		}
 
-		const tokens = await this.core.db.findTokens(auth.userID);
+		const tokens = await this.core.db.findTokens(auth.id);
 		return response.status(this.codes.ok).json({
 			code: this.codes.ok,
 			message: tokens

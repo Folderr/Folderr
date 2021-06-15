@@ -48,7 +48,7 @@ class GenToken extends Path {
 			});
 		}
 
-		const tokens = await this.core.db.findTokens(auth.userID, {web: false});
+		const tokens = await this.core.db.findTokens(auth.id, {web: false});
 
 		if (
 			tokens.length > 10 &&
@@ -79,7 +79,7 @@ class GenToken extends Path {
 			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {web: false});
 		}
 
-		const token = await this.Utils.authorization.genKey(auth.userID);
+		const token = await this.Utils.authorization.genKey(auth.id);
 		return response
 			.status(this.codes.created)
 			.json({code: this.codes.ok, message: token});

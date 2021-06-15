@@ -54,9 +54,9 @@ class Videos extends Path {
 			return response.status(this.codes.internalErr).send('500 Internal Error');
 		}
 
-		const image = await this.core.db.findFile({ID: parts[0]});
+		const image = await this.core.db.findFile({id: parts[0]});
 		if (image) {
-			const owner = await this.core.db.findUser({userID: image.owner});
+			const owner = await this.core.db.findUser({id: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
 				response

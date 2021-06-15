@@ -57,8 +57,8 @@ export default class DBQueue extends EventEmitter {
 		this.queue = new Set();
 	}
 
-	add(userID: string): boolean {
-		this.queue.add(userID);
+	add(id: string): boolean {
+		this.queue.add(id);
 		if (!this.onGoing) {
 			this.onGoing = true;
 			this.emit('start');
@@ -73,8 +73,8 @@ export default class DBQueue extends EventEmitter {
 			try {
 				// Await is needed for this loops functioning
 				// eslint-disable-next-line no-await-in-loop
-				await this.db.purgeFile({ID: file.ID});
-				files = files.filter((fil) => fil.ID !== file.ID);
+				await this.db.purgeFile({id: file.id});
+				files = files.filter((fil) => fil.id !== file.id);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					wlogger.error(
@@ -102,7 +102,7 @@ export default class DBQueue extends EventEmitter {
 			/* eslint-disable no-await-in-loop */
 			const files = await this.db.findFiles(
 				{owner: value},
-				{selector: 'ID, path'}
+				{selector: 'id, path'}
 			);
 			if (files.length > 0) {
 				await this.removeFiles(files); /* eslint-enable no-await-in-loop */

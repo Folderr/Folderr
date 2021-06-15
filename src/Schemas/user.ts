@@ -20,9 +20,10 @@
  */
 
 import {Schema, model, Model, Document} from 'mongoose';
+import { Notification } from '../Structures/Database/db-class';
 
 const User: Schema = new Schema({
-	userID: {type: String, required: true, index: true},
+	id: {type: String, required: true, index: true},
 	password: {type: String, required: true},
 	first: {type: Boolean, default: false},
 	username: {type: String, required: true},
@@ -30,7 +31,7 @@ const User: Schema = new Schema({
 	notifs: {
 		type: [
 			{
-				ID: {type: String},
+				id: {type: String},
 				title: {type: String},
 				notify: {type: String},
 				created: {type: Date, default: new Date()}
@@ -48,15 +49,8 @@ const User: Schema = new Schema({
 	created: {type: Date, default: new Date()}
 });
 
-export interface Notification {
-	ID: string;
-	title: string;
-	notify: string;
-	created: Date;
-}
-
 export interface UserI extends Document {
-	userID: string;
+	id: string;
 	password: string;
 	first?: boolean;
 	username: string;

@@ -60,8 +60,8 @@ class Lookup extends Path {
 		try {
 			const out =
 				request.params.type === 'file'
-					? await this.core.db.findFile({ID: request.params.id})
-					: await this.core.db.findLink({ID: request.params.id});
+					? await this.core.db.findFile({id: request.params.id})
+					: await this.core.db.findLink({id: request.params.id});
 			if (!out) {
 				return response.status(this.codes.noContent).json({
 					code: this.Utils.FoldCodes.dbNotFound,

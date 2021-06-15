@@ -66,7 +66,7 @@ class DelNotify extends Path {
 		}
 
 		const notify = notifs.find(
-			(notification) => notification.ID === request.params.id
+			(notification) => notification.id === request.params.id
 		);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
@@ -114,11 +114,11 @@ class DelNotify extends Path {
 
 		// Remove the notification, update the users account, and return success
 		await this.core.db.updateUser(
-			{uID: auth.userID},
+			{id: auth.id},
 			{
 				$pull: {
 					notifs: {
-						ID: request.params.id
+						id: request.params.id
 					}
 				}
 			}

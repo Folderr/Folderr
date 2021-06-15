@@ -96,8 +96,8 @@ class Image extends Path {
 		ext = ext[ext.length - 1];
 
 		await Promise.all([
-			this.core.db.makeFile(name, auth.userID, file.path, type),
-			this.core.db.updateUser({userID: auth.userID}, {$inc: {files: 1}})
+			this.core.db.makeFile(name, auth.id, file.path, type),
+			this.core.db.updateUser({id: auth.id}, {$inc: {files: 1}})
 		]);
 		return response
 			.status(this.codes.ok)

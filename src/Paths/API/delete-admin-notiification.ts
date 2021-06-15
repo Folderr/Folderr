@@ -54,7 +54,7 @@ class DelANotify extends Path {
 		}
 
 		// Find the notification or try to
-		const notify = await this.core.db.findAdminNotify({ID: request.params.id});
+		const notify = await this.core.db.findAdminNotify({id: request.params.id});
 		if (!notify) {
 			return response.status(this.codes.notFound).json({
 				code: this.Utils.FoldCodes.dbNotFound,
@@ -71,9 +71,9 @@ class DelANotify extends Path {
 		}
 
 		// Remove the admin notification and tell the admin it was removed
-		await this.core.db.purgeAdminNotify({ID: request.params.id});
+		await this.core.db.purgeAdminNotify({id: request.params.id});
 		wlogger.info(
-			`[SYSTEM] Admin notification ${notify.ID} removed by ${auth.username}!`
+			`[SYSTEM] Admin notification ${notify.id} removed by ${auth.username}!`
 		);
 		return response
 			.status(this.codes.ok)

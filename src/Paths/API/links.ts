@@ -46,7 +46,7 @@ class Links extends Path {
 			});
 		}
 
-		const generated = this.generatePageQuery(request, auth.userID);
+		const generated = this.generatePageQuery(request, auth.id);
 		if (generated.errored) {
 			const genType = generated as unknown as {
 				httpCode: number;
@@ -86,10 +86,10 @@ class Links extends Path {
 		url = url.replace(/\/$/g, '');
 		const aShorts = shorts.map((short: Link) => {
 			return {
-				ID: short.ID,
+				id: short.id,
 				points_to: short.link,
 				created: Math.round(short.created.getTime() / 1000),
-				link: `${url}/${short.ID}`
+				link: `${url}/${short.id}`
 			};
 		});
 

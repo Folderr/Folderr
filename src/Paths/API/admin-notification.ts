@@ -56,7 +56,7 @@ class AdminNotification extends Path {
 		}
 
 		// Find notification. If not found, return a not found status code
-		const notify = await this.core.db.findAdminNotify({ID: request.params.id});
+		const notify = await this.core.db.findAdminNotify({id: request.params.id});
 		if (!notify) {
 			return response.status(this.codes.noContent).json({
 				code: this.Utils.FoldCodes.dbNotFound,

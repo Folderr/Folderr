@@ -57,8 +57,8 @@ class DeleteFile extends Path {
 		}
 
 		const File = await this.core.db.findFile({
-			owner: auth.userID,
-			ID: request.params.id
+			owner: auth.id,
+			id: request.params.id
 		});
 		if (!File) {
 			return response.status(this.codes.notFound).json({
@@ -67,7 +67,7 @@ class DeleteFile extends Path {
 			});
 		}
 
-		await this.core.db.purgeFile({ID: File.ID, owner: auth.userID});
+		await this.core.db.purgeFile({id: File.id, owner: auth.id});
 		response
 			.status(this.codes.ok)
 			.json({code: this.codes.ok, message: 'OK'})

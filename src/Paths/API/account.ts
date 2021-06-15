@@ -56,7 +56,7 @@ class Account extends Path {
 		// Return a nice version of this users account.
 		const acc: {
 			username: string;
-			userID: string;
+			id: string;
 			admin: boolean;
 			owner: boolean;
 			files: number;
@@ -68,7 +68,7 @@ class Account extends Path {
 			created: number;
 		} = {
 			username: auth.username,
-			userID: auth.userID,
+			id: auth.id,
 			admin: Boolean(auth.admin),
 			owner: Boolean(auth.first),
 			files: auth.files,

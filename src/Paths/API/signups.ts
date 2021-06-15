@@ -40,7 +40,7 @@ class Signup extends Path {
 	async genUID(): Promise<string> {
 		// Generate an ID, and do not allow a users id to be reused
 		const uID = await this.Utils.genUID();
-		const user = await this.core.db.findUser({uID});
+		const user = await this.core.db.findUser({id: uID});
 		if (user) {
 			// If the user was found, retry
 			return this.genUID();
@@ -51,11 +51,10 @@ class Signup extends Path {
 	}
 
 	// NoEmail means there is no email server set up
-	// userInfo: { username: string; userID: string; password: string; email: string }
 	async noEmail(
 		userInfo: {
 			username: string;
-			userID: string;
+			id: string;
 			password: string;
 			email: string;
 		},
@@ -74,7 +73,7 @@ class Signup extends Path {
 				this.core.db.makeAdminNotify(
 					notifyID,
 					`Username: ${userInfo.username}\n` +
-						`User ID: ${userInfo.userID}\n` +
+						`User ID: ${userInfo.id}\n` +
 						`Validation Token: ${validationToken.token}`,
 					'New user signup!'
 				)
@@ -98,7 +97,7 @@ class Signup extends Path {
 
 		// Notify the console, and the user that the admins have been notified.
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.userID})signed up to Folderr`
+			`New user (${userInfo.username} - ${userInfo.id})signed up to Folderr`
 		);
 		return {
 			httpCode: this.codes.created,
@@ -109,7 +108,7 @@ class Signup extends Path {
 	async email(
 		userInfo: {
 			username: string;
-			userID: string;
+			id: string;
 			password: string;
 			email: string;
 		},
@@ -134,7 +133,7 @@ class Signup extends Path {
 		try {
 			await this.core.emailer.verifyEmail(
 				this.Utils.decrypt(userInfo.email),
-				`${url}/verify/${userInfo.userID}/${validationToken.token}`,
+				`${url}/verify/${userInfo.id}/${validationToken.token}`,
 				userInfo.username
 			);
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
@@ -156,7 +155,7 @@ class Signup extends Path {
 		}
 
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.userID}) signed up to Folderr`
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
 		);
 		return {
 			httpCode: this.codes.created,
@@ -233,7 +232,7 @@ class Signup extends Path {
 				? await this.email(
 						{
 							username,
-							userID: uID,
+							id: uID,
 							password: pswd,
 							email
 						},
@@ -244,7 +243,7 @@ class Signup extends Path {
 				: await this.noEmail(
 						{
 							username,
-							userID: uID,
+							id: uID,
 							password: pswd,
 							email
 						},
@@ -259,7 +258,7 @@ class Signup extends Path {
 		username: string,
 		password: string
 	): Promise<
-		| {
+		{
 				httpCode: number;
 				response: {
 					code: number;

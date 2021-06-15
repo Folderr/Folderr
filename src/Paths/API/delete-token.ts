@@ -58,7 +58,7 @@ class DeleteToken extends Path {
 		}
 
 		const web = Boolean(request.query?.web) || false;
-		const del = await this.core.db.purgeToken(request.params.id, auth.userID, {
+		const del = await this.core.db.purgeToken(request.params.id, auth.id, {
 			web
 		});
 		if (!del) {

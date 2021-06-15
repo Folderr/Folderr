@@ -74,10 +74,10 @@ class DenyAccount extends Path {
 		}
 
 		// Deny the account & delete notification
-		await this.core.db.denyUser(user.userID);
+		await this.core.db.denyUser(user.id);
 		// Log that the account was denied by admin x, and tell the admin the account was denied
 		this.core.logger.info(
-			`User account denied by administrator (${user.username} - ${user.userID})`
+			`User account denied by administrator (${user.username} - ${user.id})`
 		);
 		return response
 			.status(this.codes.ok)
