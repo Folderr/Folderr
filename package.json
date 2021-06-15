@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=production node dist/src/index.js",
     "start:dev": "NODE_ENV=dev DEBUG=true node dist/src/index.js",
-    "first": "tsc && build/scripts/init-first.js",
+    "first": "tsc && dist/scripts/init-first.js",
     "update": "echo \"updating\" && git pull && npm install && tsc && echo \"Update Success\"",
     "build": "tsc --skipLibCheck",
     "startpm2": "pm2 start --name folderr dist/src/index.js",
@@ -95,8 +95,7 @@
     "xo": "^0.38.2"
   },
   "lint-staged": {
-    "src/*.ts": "xo",
-    "scripts/*.ts": "xo",
+    "*.ts": "xo --fix",
     "*.{md,yaml}": "prettier --write"
   }
 }
