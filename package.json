@@ -6,8 +6,8 @@
   "scripts": {
     "start": "NODE_ENV=production node dist/src/index.js",
     "start:dev": "NODE_ENV=dev DEBUG=true node dist/src/index.js",
-    "first": "tsc && dist/scripts/init-first.js",
-    "update": "echo \"updating\" && git pull && npm install && tsc && echo \"Update Success\"",
+    "first": "npm run build && dist/scripts/init-first.js",
+    "update": "echo \"updating\" && git pull && npm install && npm run build && echo \"Update Success\"",
     "build": "tsc --skipLibCheck",
     "startpm2": "pm2 start --name folderr dist/src/index.js",
     "lint": "xo src/ scripts/",
