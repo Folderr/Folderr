@@ -23,10 +23,12 @@ import {Schema, model, Document} from 'mongoose';
 
 export interface FolderrDB extends Document {
 	bans: string[];
+	publicKeyJWT: Buffer;
 }
 
 const Folderr: Schema = new Schema({
-	bans: {type: Array, default: [], required: false}
+	bans: {type: Array, default: [], required: false},
+	publicKeyJWT: {type: Buffer, required: true}
 });
 
 export default model<FolderrDB>('folderr', Folderr);

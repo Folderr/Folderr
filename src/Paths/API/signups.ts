@@ -132,7 +132,7 @@ class Signup extends Path {
 
 		try {
 			await this.core.emailer.verifyEmail(
-				this.Utils.decrypt(userInfo.email),
+				userInfo.email,
 				`${url}/verify/${userInfo.id}/${validationToken.token}`,
 				userInfo.username
 			);
@@ -190,7 +190,7 @@ class Signup extends Path {
 		}
 
 		// Fetch the username and password from the body
-		const {username, password} = request.body;
+		const {username, password, email} = request.body;
 		const isValid = await this.checkUserInput(
 			request.body.email,
 			username,
@@ -221,9 +221,8 @@ class Signup extends Path {
 		}
 
 		// Generate the user ID and validation token.
-		const uID = await this.genUID();
+		const id = await this.genUID();
 		const validationToken = await this.Utils.genValidationToken();
-		const email = this.Utils.encrypt(request.body.email);
 		// Add the user to the VerifyingUser database and save
 
 		// Find admin notifications, and generate an ID
@@ -232,7 +231,7 @@ class Signup extends Path {
 				? await this.email(
 						{
 							username,
-							id: uID,
+							id,
 							password: pswd,
 							email
 						},
@@ -243,7 +242,7 @@ class Signup extends Path {
 				: await this.noEmail(
 						{
 							username,
-							id: uID,
+							id,
 							password: pswd,
 							email
 						},
@@ -258,7 +257,7 @@ class Signup extends Path {
 		username: string,
 		password: string
 	): Promise<
-		{
+		| {
 				httpCode: number;
 				response: {
 					code: number;

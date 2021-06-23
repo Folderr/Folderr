@@ -78,13 +78,13 @@ export default class Core {
 
 	constructor() {
 		const limiter = new MemoryLimiter();
-		this.db = new DB();
-		this.app = express(); // Time to abuse Node
-		this.app.use(express.json());
+		this.db = new DB(); // Time to abuse Node. :)
+		this.app = express(); // @ts-expect-error
+		this.app.use(express.json()); // @ts-expect-error
 		this.app.use(helmet());
-		this.app.use(cookieParser());
+		this.app.use(cookieParser()); // @ts-expect-error
 		this.app.use(express.urlencoded({extended: false}));
-		this.app.use(express.static(join(__dirname, '../Frontend')));
+		// This.app.use(express.static(join(__dirname, '../Frontend')));
 		this.app.use('/assets', express.static(join(__dirname, '../assets')));
 		this.app.use('/', express.static(join(__dirname, '../otherFiles')));
 		this.app.use(limiter.consumer.bind(limiter));
@@ -96,7 +96,7 @@ export default class Core {
 		this.#emailConfig = configs.email;
 
 		this.regexs = new Regexs();
-		this.Utils = new Utils(this, this.#keys.jwtConfig);
+		this.Utils = new Utils(this);
 		this.emailer = new Emailer(
 			this,
 			this.#emailConfig?.sendingEmail,
@@ -120,6 +120,10 @@ export default class Core {
 
 	addDeleter(userID: string): void {
 		this.#deleter.send({message: 'add', data: userID});
+	}
+
+	async initAuthorization() {
+		await this.Utils.authorization.init();
 	}
 
 	initServer(): http.Server {

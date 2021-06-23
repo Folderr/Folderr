@@ -91,9 +91,9 @@ class Users extends Path {
 		}> = users.map((user: User) => {
 			return {
 				title:
-					!user.admin && !user.first
+					!user.admin && !user.owner
 						? ''
-						: (user.admin && 'admin') || (user.first && 'first'),
+						: (user.admin && 'admin') || (user.owner && 'first'),
 				username: user.username,
 				files: user.files,
 				links: user.links,

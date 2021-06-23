@@ -55,11 +55,6 @@ export interface ServerConfig {
 	url: string;
 	trustProxies?: boolean;
 	apiOnly?: boolean;
-	jwtConfig: {
-		privKeyPath: string;
-		algorithm?: string;
-		pubKeyPath: string;
-	};
 	httpsCertOptions?: {
 		key?: string;
 		cert?: string;
@@ -92,11 +87,6 @@ export interface CoreConfig {
 }
 
 export interface KeyConfig {
-	jwtConfig: {
-		privKeyPath: string;
-		algorithm?: string;
-		pubKeyPath: string;
-	};
 	httpsCertOptions?: {
 		key?: string;
 		cert?: string;
@@ -164,7 +154,7 @@ const ConfigHandler = {
 		};
 	},
 
-	verifyFetch(): {
+	verifyFetch(noExitEmit?: boolean): {
 		core: CoreConfig;
 		email: ActEmailConfig;
 		key: KeyConfig;
@@ -187,11 +177,6 @@ const ConfigHandler = {
 		}
 
 		const keyConfig: KeyConfig = {
-			jwtConfig: {
-				privKeyPath: files.server.jwtConfig.privKeyPath,
-				algorithm: files.server.jwtConfig.algorithm,
-				pubKeyPath: files.server.jwtConfig.pubKeyPath
-			},
 			httpsCertOptions: {
 				key: files.server.httpsCertOptions?.key,
 				cert: files.server.httpsCertOptions?.cert,
@@ -235,7 +220,15 @@ const ConfigHandler = {
 		}
 
 		// Check validity, exit process if invalid.
-		this.postCheck(coreConfig, keyConfig, emailConfig);
+		const postCheck = this.postCheck(
+			coreConfig,
+			keyConfig,
+			emailConfig,
+			!noExitEmit
+		);
+		if (typeof postCheck === 'string') {
+			throw new TypeError(postCheck);
+		}
 
 		return {key: keyConfig, email: emailConfig, core: coreConfig, db: dbConfig};
 	},
@@ -249,13 +242,6 @@ const ConfigHandler = {
 			server: [] as string[],
 			db: [] as string[]
 		};
-		if (
-			!files.server.jwtConfig ||
-			!files.server.jwtConfig.privKeyPath ||
-			!files.server.jwtConfig.pubKeyPath
-		) {
-			missingConfigs.server.push('server/auth_config - See documentation');
-		}
 
 		if (!files.server.port || typeof files.server.port !== 'number') {
 			missingConfigs.server.push('server/port - Must be a number');
@@ -278,15 +264,20 @@ const ConfigHandler = {
 
 		if (missingConfigs.server.length > 0 || missingConfigs.db.length > 0) {
 			console.log('[CONFIG] Missing/Invalid Required Options:');
+			let error = '[CONFIG] Missing/Invalid Required Options:';
 			if (missingConfigs.server.length > 0) {
 				console.log(missingConfigs.server.join('\n'));
+				error += `\n${missingConfigs.server.join('\n')}`;
 			}
 
 			if (missingConfigs.db.length > 0) {
 				console.log(missingConfigs.db.join('\n'));
+				error += `\n${missingConfigs.db.join('\n')}`;
 			}
 
-			throw new Error('[CONFIG] Missing/Invalid Required Options');
+			error += 'Potential fix: run "npm run configure --invalid-or-missing"';
+
+			throw new Error('[CONFIG] Missing/Invalid Required Options:');
 		}
 
 		return true;
@@ -294,14 +285,6 @@ const ConfigHandler = {
 
 	keyCheck(keyConfig: KeyConfig): string[] {
 		const missingFiles = [];
-		if (!existsSync(keyConfig.jwtConfig.privKeyPath)) {
-			missingFiles.push('auth/private key path');
-		}
-
-		if (!existsSync(keyConfig.jwtConfig.pubKeyPath)) {
-			missingFiles.push('jwtConfig/public key path');
-		}
-
 		if (
 			keyConfig.httpsCertOptions?.key &&
 			!existsSync(keyConfig.httpsCertOptions?.key)
@@ -322,8 +305,9 @@ const ConfigHandler = {
 	postCheck(
 		coreConfig: CoreConfig,
 		keyConfig: KeyConfig,
-		emailConfig: ActEmailConfig
-	): true | void {
+		emailConfig: ActEmailConfig,
+		exitEmit?: boolean
+	): true | string | void {
 		const missingFiles = this.keyCheck(keyConfig);
 
 		// Validate ports
@@ -365,20 +349,33 @@ const ConfigHandler = {
 				error += `\n${failedSignups}`;
 			}
 
+			let potentialFix =
+				'Potential fix: Try running "npm run configure --invalid"';
+
 			if (missingFiles.length > 0) {
 				error +=
-					'\nThe following files were not found but in the config:\n' +
+					'\nThe following key files were not found:\n' +
 					missingFiles.join('\n');
+				potentialFix +=
+					' and generating the specified keys' +
+					'(See key generation documentation for detail)';
 			}
 
-			console.log(error);
-			wlogger.error(error);
-			const ms = 500;
-			setTimeout(() => {
-				// This is the one time im going to tell unicorn to can it
-				// eslint-disable-next-line unicorn/no-process-exit
-				process.exit(1);
-			}, ms);
+			error += `\n${potentialFix}"`;
+
+			if (exitEmit) {
+				console.log(error);
+				wlogger.error(error);
+				const ms = 500;
+				setTimeout(() => {
+					// This is the one time im going to tell unicorn to can it
+					// eslint-disable-next-line unicorn/no-process-exit
+					process.exit(1);
+				}, ms);
+			} else {
+				return error;
+			}
+
 			return true;
 		}
 	}

@@ -116,7 +116,7 @@ async function fetch_username(): Promise<string> {
 
 (async function (): Promise<void> {
 	await core.initDB();
-	const user = await core.db.findUser({first: true}, 'first');
+	const user = await core.db.findUser({owner: true}, 'first');
 	if (user) {
 		rl.write('First user already initiated!\n');
 		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
@@ -132,7 +132,7 @@ async function fetch_username(): Promise<string> {
 
 	const name: string = await fetch_username();
 	let password: string = await fetch_password();
-	const email = core.Utils.encrypt(await fetch_email());
+	const email = await fetch_email();
 	const uID: string = await core.Utils.genUID();
 	rl.close();
 

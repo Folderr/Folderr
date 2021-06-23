@@ -27,10 +27,10 @@ import {promisify} from 'util';
 import {Request} from 'express';
 import Core from '../core';
 import Authorization from './authorization';
-import {KeyConfig} from '../../handlers/config-handler';
 import * as constants from '../constants/index';
 
 const sleep = promisify(setTimeout);
+const generateKeyPair = promisify(crypto.generateKeyPair);
 
 interface TokenReturn {
 	token: string;
@@ -60,11 +60,11 @@ class Utils {
 	 * @prop {number} byteSize The amount of random bytes to generate
 	 * @prop {Core} core The Folderr client
 	 */
-	constructor(core: Core, jwtConfig: KeyConfig['jwtConfig']) {
+	constructor(core: Core) {
 		this.saltRounds = 10;
 		this.byteSize = 48;
 		this.#core = core;
-		this.authorization = new Authorization(jwtConfig, core);
+		this.authorization = new Authorization(core);
 		this.FoldCodes = FoldCodes;
 	}
 
@@ -101,6 +101,57 @@ class Utils {
 	async sleep(ms: number): Promise<void> {
 		await sleep(ms);
 		return Promise.resolve();
+	}
+
+	/**
+	 * Generates a ed25519 private & public key pair
+	 * @param {string} [passphrase] The passphrase for the private key
+	 */
+	async genKeyPair(
+		passphrase?: string
+	): Promise<crypto.KeyPairKeyObjectResult> {
+		const privateKeyEncoding: {
+			format: string;
+			cipher?: string;
+			passphrase?: string;
+			type: string;
+		} = {format: 'pem', type: 'pkcs8'};
+		if (passphrase) {
+			privateKeyEncoding.cipher = 'aes256';
+			privateKeyEncoding.passphrase = passphrase;
+		}
+
+		return generateKeyPair('ed25519', {
+			publicKeyEncoding: {
+				format: 'pem',
+				type: 'spki'
+			},
+			privateKeyEncoding
+		});
+	}
+
+	verifyKeyMatch(keys: {
+		private: Buffer | string;
+		public: Buffer | string;
+	}): boolean {
+		const testdata = Buffer.from('I am a test!');
+		let decrypted;
+		try {
+			const encrypted = crypto.publicEncrypt(keys.public, testdata);
+			decrypted = crypto.privateDecrypt(keys.private, encrypted);
+		} catch {
+			return false;
+		}
+
+		if (!decrypted) {
+			return false;
+		}
+
+		if (decrypted.toString() === testdata.toString()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -299,63 +350,6 @@ class Utils {
 			}
 		}
 
-		user.email = this.decrypt(user.email);
-		// Return the user
-		return user;
-	}
-
-	/**
-	 * @desc Authenticate a user using password and username
-	 * @async
-	 *
-	 * @param {Request} req The express request.
-	 * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
-	 *
-	 * @returns {Promise<boolean>}
-	 */
-	async authPasswordBody(
-		request: Request,
-		fn?: (arg0: UI) => boolean
-	): Promise<UI | false> {
-		// Make sure all of the auth stuff is there
-		if (!request.body.password && !request.body.username) {
-			return false;
-		}
-
-		if (!request.body.password || !request.body.username) {
-			return false;
-		}
-
-		// Make sure the auth is not an array. Arrays are bad for auth
-		if (
-			Array.isArray(request.body.password) ||
-			Array.isArray(request.body.username)
-		) {
-			return false;
-		}
-
-		// Find user on username, and if no user auth failed
-		const user = await this.#core.db.findUser({
-			username: request.body.username
-		});
-		if (!user) {
-			return false;
-		}
-
-		// Compare actual password and inputted password. If they do not match, fail
-		if (!bcrypt.compareSync(request.body.password, user.password)) {
-			return false;
-		}
-
-		// If the custom function exists
-		if (fn) {
-			const funcOut = fn(user); // Run the custom function (boolean output)
-			if (!funcOut || !(typeof funcOut === 'boolean')) {
-				return false;
-			}
-		}
-
-		user.email = this.decrypt(user.email);
 		// Return the user
 		return user;
 	}
@@ -442,16 +436,6 @@ class Utils {
 		} catch {
 			return `${protocol}${host}`;
 		}
-	}
-
-	// Fake encrypt & decrypt methods
-	// :)
-	encrypt(data: string): string {
-		return Buffer.from(data, 'utf8').toString('hex');
-	}
-
-	decrypt(data: string): string {
-		return Buffer.from(data, 'hex').toString('utf8');
 	}
 }
 

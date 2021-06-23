@@ -70,7 +70,7 @@ class Account extends Path {
 			username: auth.username,
 			id: auth.id,
 			admin: Boolean(auth.admin),
-			owner: Boolean(auth.first),
+			owner: Boolean(auth.owner),
 			files: auth.files,
 			links: auth.links,
 			email: auth.email,

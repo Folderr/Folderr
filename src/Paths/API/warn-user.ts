@@ -82,14 +82,13 @@ class WarnUser extends Path {
 			return;
 		}
 
-		const email = this.Utils.decrypt(user.email);
 		const id = await this.Utils.genNotifyID();
 		const updated = await this.core.db.updateUser(
 			{id: request.params.id},
 			{
 				$addToSet: {
 					notifs: {
-						id: id,
+						id,
 						title: 'Warn',
 						notify: `You were warned for: ${request.body.reason as string}`
 					}
@@ -110,7 +109,7 @@ class WarnUser extends Path {
 		if (this.core.emailer.active) {
 			const url = await this.Utils.determineHomeURL(request);
 			await this.core.emailer.warnEmail(
-				email,
+				user.email,
 				request.body.reason,
 				user.username,
 				url
