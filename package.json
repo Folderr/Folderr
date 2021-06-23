@@ -5,7 +5,6 @@
   "main": "src/index.js",
   "scripts": {
     "build": "tsc --skipLibCheck",
-    "first": "node dist/scripts/init-first.js",
     "start": "NODE_ENV=production node dist/src/index.js",
     "setup": "node dist/scripts/setup.js",
     "start:dev": "NODE_ENV=dev DEBUG=true node dist/src/index.js",
