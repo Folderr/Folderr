@@ -4,6 +4,31 @@ This is an experimental version of Folderr V2
 
 This is not final product, use at your own risk.
 
+## Getting started
+
+This is a real quick getting started for the development versions of folderr.
+
+Pre-requesites: NodeJS 14 or 16 (LTS versions), Python 3.7 (or later), node-gyp, git, a mongodb server/database and typescript
+
+To install typescript once you have nodejs & npm installed do `npm install --global typescript`. If you're on Linux do the same command prefixed by sudo.
+
+1. Clone the repo
+2. Follow the below
+
+```sh
+cd <your-cloned-folderr-instance>
+npm install
+# If you are going to develop with folderr you can run "npm install -D" instead
+npm run build
+npm run configure
+npm run setup
+```
+
+You can run `npm run start` now to start Folderr or you can use pm2 with `pm2 start --env production --name Folderr dist/src/index.js`
+
+For debug mode run `DEBUG=true npm run start` or `pm2 start --env {"NODE_ENV": "production", "DEBUG": true} --name Folderr dist/src/index.js`
+For development you should run `npm run start:dev` or `pm2 start --env {"NODE_ENV": "development", "DEBUG": true} --name Folderr dist/src/index.js`
+
 # License
 
 Folderr is licensed under AGPL Version 3.
