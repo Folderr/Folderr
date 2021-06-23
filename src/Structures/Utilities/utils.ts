@@ -21,6 +21,7 @@
 
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import uuid from 'uuid';
 import {User as UI, PendingMember} from '../Database/db-class';
 import {FoldCodesI, FoldCodes} from './fold-codes';
 import {promisify} from 'util';
@@ -180,6 +181,27 @@ class Utils {
 		}
 
 		return Promise.resolve(uID);
+	}
+
+	/**
+	 * @param {String} [version] The version of uuid to generate
+	 *
+	 * Generate a ID using uuid
+	 */
+	genV4UUID(): string {
+		return uuid.v4();
+	}
+
+	validateUUID(id: string, version: 4 | 5) {
+		if (version === 5 && uuid.version(id) === 5 && uuid.validate(id)) {
+			return true;
+		}
+
+		if (version === 4 && uuid.version(id) === 4 && uuid.validate(id)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

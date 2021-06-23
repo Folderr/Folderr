@@ -39,7 +39,7 @@ class Signup extends Path {
 
 	async genUID(): Promise<string> {
 		// Generate an ID, and do not allow a users id to be reused
-		const uID = await this.Utils.genUID();
+		const uID = this.Utils.genV4UUID();
 		const user = await this.core.db.findUser({id: uID});
 		if (user) {
 			// If the user was found, retry

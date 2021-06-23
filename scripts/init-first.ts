@@ -116,15 +116,15 @@ async function fetch_username(): Promise<string> {
 
 (async function (): Promise<void> {
 	await core.initDB();
-	const user = await core.db.findUser({owner: true}, 'first');
+	const user = await core.db.findUser({owner: true}, 'owner');
 	if (user) {
-		rl.write('First user already initiated!\n');
+		rl.write('Owner already initiated!\n');
 		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 		process.exit(1); // This is a cli app, thanks.
 	}
 
 	rl.write(
-		'We have to initiate the first account (yours) as admin.' +
+		'We have to initiate the first account (yours) as owner.' +
 			'\nEnter "q" or "quit" at any time to exit.\n'
 	);
 

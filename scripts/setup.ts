@@ -27,12 +27,144 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 	const options = new Set(['homedir', 'internal']);
 	return new Promise<string>((resolve) => {
 		rl.question(redo ? redoQuestion : question, (answer) => {
-			if (!options.has(answer)) {
+			if (!answer) {
+				resolve(getKeyLocation(true));
+			} else if (['quit', 'q'].includes(answer)) {
+				rl.write('Exiting setup by user decision.');
+				rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+				process.exit();
+			} else if (!options.has(answer)) {
 				resolve(getKeyLocation(true));
 			} else if (answer === 'homedir') {
 				resolve(keyDirOption);
-			} else {
+			} else if (answer === 'internal') {
 				resolve('internal');
+			} else {
+				resolve(getKeyLocation(true));
+			}
+		});
+	});
+}
+
+async function askUsername(core: Core): Promise<string> {
+	return new Promise<string>((resolve) => {
+		const q = // eslint-disable-next-line max-len
+			'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\nInput: ';
+		rl.question(q, (answer: string) => {
+			if (!answer) {
+				rl.write('Give me a username!\n');
+				resolve(askUsername(core));
+				return;
+			}
+
+			if (answer === 'q' || answer === 'quit') {
+				rl.write('Quitting...'); // eslint-disable-next-line unicorn/no-process-exit
+				process.exit(); // This is a cli app, thanks.
+			}
+
+			if (!core.regexs.username.test(answer)) {
+				rl.write('Invalid username! Retry!\n');
+				resolve(askUsername(core));
+				return;
+			}
+
+			resolve(answer);
+		});
+	});
+}
+
+async function askPassword(core: Core, confirm?: boolean): Promise<string> {
+	let q =
+		'What would you like your password to be?' +
+		'\nYour password must be 8-32 characters long,' +
+		'\nInclude 1 uppercase & lowercase letter,' +
+		'\nInclude 1 number,' +
+		'\nYour password may have these special characters: #?!@$%^&*-_[]' +
+		'\n> ';
+	if (confirm) {
+		q = 'Re-enter your password';
+	}
+
+	return new Promise<string>((resolve) => {
+		rl.question(q, (answer: string) => {
+			if (!answer) {
+				rl.write('I require a password!');
+				resolve(askPassword(core, confirm));
+				return;
+			}
+
+			if (answer === 'q' || answer === 'quit') {
+				rl.write('Quitting...'); // eslint-disable-next-line unicorn/no-process-exit
+				process.exit(); // This is a cli app, thanks.
+			}
+
+			if (!core.regexs.password.test(answer)) {
+				rl.write('Invalid password! Try again!');
+				resolve(askPassword(core, confirm));
+				return;
+			}
+
+			resolve(answer);
+		});
+	});
+}
+
+async function askEmail(core: Core): Promise<string> {
+	return new Promise<string>((resolve) => {
+		rl.question('What is your email?\n> ', (answer: string) => {
+			if (!answer) {
+				rl.write('I need an email!');
+				resolve(askEmail(core));
+				return;
+			}
+
+			if (answer === 'q' || answer === 'quit') {
+				rl.write('Quitting...'); // eslint-disable-next-line unicorn/no-process-exit
+				process.exit(); // This is a cli app, thanks.
+			}
+
+			if (!core.emailer.validateEmail(answer)) {
+				rl.write('Invalid Email!');
+				resolve(askEmail(core));
+				return;
+			}
+
+			resolve(answer);
+		});
+	});
+}
+
+async function confirmDetails(
+	username: string,
+	email: string,
+	password: string,
+	redo?: boolean
+): Promise<'yes' | 'no'> {
+	let question =
+		'Confirm this is the email, username, and password you want for this account:\n' +
+		`Username: ${username}\n` +
+		`Password: ${password}\n` +
+		`Email: ${email}\n` +
+		'Is this correct? (yes/no)\n' +
+		'> ';
+	if (redo) {
+		question = `That is not an option.\n${question}`;
+	}
+
+	return new Promise<'yes' | 'no'>((resolve) => {
+		rl.question(question, (answer) => {
+			if (!answer) {
+				rl.write("I need confirmation. Let's try this again.");
+				resolve(confirmDetails(username, email, password));
+			} else if (answer === 'q' || answer === 'quit') {
+				rl.write('Quitting...'); // eslint-disable-next-line unicorn/no-process-exit
+				process.exit();
+			} else if (['yes', 'y'].includes(answer)) {
+				resolve('yes');
+			} else if (['no', 'n'].includes(answer)) {
+				resolve('no');
+			} else {
+				resolve(confirmDetails(username, email, password, true));
 			}
 		});
 	});
@@ -42,6 +174,23 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 	rl.write(
 		'Welcome to the Folderr setup CLI!\nGive us a moment while we check setup status...'
 	);
+	if (
+		!(await fs.stat(join(process.cwd(), 'configs/server.yaml'))) ||
+		!(await fs.stat(join(process.cwd(), 'configs/db.yaml')))
+	) {
+		rl.write(
+			'Setup has determined you have not configured Folderr.' +
+				' Please configure with "npm run configure" before running this command' +
+				'\nIf you have configured Folderr,' +
+				' please ensure I have the correct permissions to ' +
+				'read, write, and execute the files.\n' +
+				'See the Folderr documentation about file permissions at ' +
+				'https://folderr.net/documentation/folderr/v2 for more details/guidance'
+		);
+		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+		process.exit();
+	}
+
 	try {
 		ConfigHandler.verifyFetch(true);
 	} catch (error: unknown) {
@@ -70,8 +219,10 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 		) {
 			rl.close();
 			const unknownError =
-				'An error occured during setup. Please create an issue at our github at' +
-				'https://github.com/Folderr/Folderr with the details below:\n' +
+				'An error occured during setup. ' +
+				'If you find there are no issues relating to this error, ' +
+				'please create an issue on our github at' +
+				'https://github.com/Folderr/Folderr/issues with the details below:\n' +
 				`Error message: "${error.message}"\nStack trace?:\n${
 					error.stack ?? 'None'
 				}` +
@@ -81,10 +232,35 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 		}
 	}
 
-	const owner = await core.db.findUser({owner: true});
+	const owner = await core.db.findUser({owner: true}, 'owner id');
+	rl.write("You're not setup, lets fix that.");
+	let username: string | undefined;
+	let password: string | undefined;
+	let email: string | undefined;
+
+	if (!owner) {
+		rl.write(
+			'This instance does not have an owner. The instance will not function without an owner.'
+		);
+		rl.write(
+			'Please configure an owner account via the guided prompts.\n' +
+				'We need a username, email, and password.'
+		);
+		username = await askUsername(core);
+		password = await askPassword(core);
+		email = await askEmail(core);
+		const confirm = await confirmDetails(username, email, password);
+		if (confirm === 'no') {
+			rl.write('To retry, re-run "npm run setup"');
+			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+			process.exit();
+		}
+	}
+
 	if (!keysConfigured) {
 		rl.write(
-			'It appears you have not configured your keys. please follow the prompts to do so.'
+			'It appears you have not configured your authorization keys.' +
+				' Please follow the prompts to do so.'
 		);
 		const location = await getKeyLocation();
 		const keys = await core.Utils.genKeyPair();
@@ -113,11 +289,16 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 		await core.db.createFolderr(actualPubKey);
 	}
 
-	if (!owner) {
-		rl.write(
-			'This instance does not have an owner. The instance will not function without an owner.'
+	if (username && email && password) {
+		const id = core.Utils.genV4UUID();
+		const hashedPassword = await core.Utils.hashPass(password);
+		await core.db.makeOwner(username, hashedPassword, id, email);
+		console.log(
+			'Owner account created successfully. Information below.\n' +
+				`User ID: ${id}\n` +
+				`Username: ${username}\n` +
+				`Email address: ${email}\n` +
+				`Password: ${password}`
 		);
-		rl.write('Please configure an owner via the guided prompts.');
-		rl.write('IMPL OWNER SETUP');
 	}
 })();
