@@ -11,3 +11,5 @@ scripts/*.js
 Files/*
 logs/*.log
 configs/
+
+internal/
