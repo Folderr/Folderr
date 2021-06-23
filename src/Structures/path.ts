@@ -26,7 +26,7 @@ import express from 'express';
 import {join} from 'path';
 import {Request} from './Interfaces/express-extended';
 import {User} from './Database/db-class';
-import uuid from 'uuid-random';
+import uuid from 'uuid';
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -281,7 +281,7 @@ class Path {
 
 		// Execute the endpoint and catch errors
 
-		const id = uuid();
+		const id = uuid.v1();
 		this.core.addRequestID(id);
 		try {
 			const inner_request = await this.execute(request, response);
