@@ -27,6 +27,7 @@ npm run setup
 You can run `npm run start` now to start Folderr or you can use pm2 with `pm2 start --env production --name Folderr dist/src/index.js`
 
 For debug mode run `DEBUG=true npm run start` or `pm2 start --env {"NODE_ENV": "production", "DEBUG": true} --name Folderr dist/src/index.js`
+
 For development you should run `npm run start:dev` or `pm2 start --env {"NODE_ENV": "development", "DEBUG": true} --name Folderr dist/src/index.js`
 
 # License
