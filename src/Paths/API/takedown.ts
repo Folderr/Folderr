@@ -69,11 +69,10 @@ class Takedown extends Path {
 				};
 			}
 
-			const email = this.Utils.decrypt(user.email);
 			const url = await this.Utils.determineHomeURL(request);
 			await this.core.emailer.takedown(
 				{
-					email,
+					email: user.email,
 					username: user.username,
 					id,
 					type: del.type
@@ -119,11 +118,10 @@ class Takedown extends Path {
 				};
 			}
 
-			const email = this.Utils.decrypt(user.email);
 			const url = await this.Utils.determineHomeURL(request);
 			await this.core.emailer.takedown(
 				{
-					email,
+					email: user.email,
 					username: user.username,
 					id,
 					type: 'Link'

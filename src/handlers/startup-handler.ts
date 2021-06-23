@@ -10,6 +10,8 @@ export async function startFolderr(): Promise<void> {
 		throw new Error('[FATAL] Paths could not initalize');
 	}
 
+	await core.initAuthorization();
+
 	try {
 		core.initServer();
 	} catch (error: unknown) {

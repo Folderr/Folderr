@@ -271,18 +271,17 @@ class UpdateAcc extends Path {
 			};
 		}
 
-		const encrypted = this.Utils.encrypt(request.body.email);
 		const user =
 			(await this.core.db.findUsers({
 				$or: [
 					{
-						email: encrypted
+						email: request.body.email
 					},
 					{
-						pendingEmail: encrypted
+						pendingEmail: request.body.email
 					}
 				]
-			})) || (await this.core.db.findVerifies({email: encrypted}));
+			})) || (await this.core.db.findVerifies({email: request.body.email}));
 		if (user) {
 			return {
 				httpCode: this.codes.used,
@@ -305,7 +304,7 @@ class UpdateAcc extends Path {
 		// Update
 		return {
 			accepted: true,
-			pendingEmail: encrypted,
+			pendingEmail: request.body.email,
 			pendingEmailToken: token.hash
 		};
 	}

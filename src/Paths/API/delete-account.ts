@@ -110,14 +110,14 @@ class DelAccount extends Path {
 			}
 
 			// Protect the owner and admins from unauthorized account deletions
-			if (mem.first) {
+			if (mem.owner) {
 				return response.status(this.codes.forbidden).json({
 					code: this.codes.forbidden,
 					message: 'You can not delete that account as they are the owner!'
 				});
 			}
 
-			if (mem.admin && !auth.first) {
+			if (mem.admin && !auth.owner) {
 				return response.status(this.codes.forbidden).json({
 					code: this.codes.forbidden,
 					message: 'You cannot delete another admins account!'
@@ -135,7 +135,7 @@ class DelAccount extends Path {
 		}
 
 		// Owner account may never be deleted
-		if (auth.first) {
+		if (auth.owner) {
 			return response.status(this.codes.forbidden).json({
 				message: 'You can not delete your account as you are the owner!',
 				code: this.codes.forbidden

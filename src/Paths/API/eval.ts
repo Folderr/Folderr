@@ -40,7 +40,7 @@ class Eval extends Path {
 
 	async execute(request: Request, response: Response): Promise<Response> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.first)
+			Boolean(user.owner)
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).json({

@@ -28,6 +28,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import Core from '../core';
 import {User} from '../Database/db-class';
+import AuthKeyHandler from '../../handlers/auth-key-handler';
 
 interface Keys {
 	privKeyPath: string;
@@ -39,7 +40,7 @@ interface Keys {
  * @classdesc Handle token authorization.
  */
 export default class Authorization {
-	#secret: Keys;
+	#keyHandler: AuthKeyHandler;
 
 	#privKey!: Buffer;
 
@@ -47,15 +48,19 @@ export default class Authorization {
 
 	#core: Core;
 
-	constructor(secret: Keys, core: Core) {
-		this.#secret = secret;
-		if (!this.#secret.algorithm) {
-			this.#secret.algorithm = 'RS256';
+	constructor(core: Core) {
+		this.#keyHandler = new AuthKeyHandler();
+		this.#core = core;
+	}
+
+	async init(): Promise<void> {
+		await this.#keyHandler.fetchKeys(this.#core.db);
+		if (!this.#keyHandler.publicKey || !this.#keyHandler.privateKey) {
+			throw new Error('The Key Handler could not find the keys!');
 		}
 
-		this.#pubKey = fs.readFileSync(this.#secret.pubKeyPath);
-		this.#privKey = fs.readFileSync(this.#secret.privKeyPath);
-		this.#core = core;
+		this.#pubKey = this.#keyHandler.publicKey;
+		this.#privKey = this.#keyHandler.privateKey;
 	}
 
 	public async verify(token: string, web?: boolean): Promise<string | void> {
@@ -110,7 +115,6 @@ export default class Authorization {
 				return;
 			}
 
-			user.email = this.#core.Utils.decrypt(user.email);
 			return user;
 		} catch {}
 	}
@@ -126,11 +130,9 @@ export default class Authorization {
 				return;
 			}
 
-			const verifyDB = await this.#core.db.purgeToken(
-				result.jti,
-				result.id,
-				{web}
-			);
+			const verifyDB = await this.#core.db.purgeToken(result.jti, result.id, {
+				web
+			});
 			if (!verifyDB) {
 				return;
 			}
@@ -164,7 +166,10 @@ export default class Authorization {
 	async genKey(userID: string): Promise<string> {
 		const id = this.genID();
 		await this.#core.db.makeToken(id, userID, {web: false});
-		return jwt.sign({id: userID}, this.#privKey, {issuer: 'folderr', jwtid: id});
+		return jwt.sign({id: userID}, this.#privKey, {
+			issuer: 'folderr',
+			jwtid: id
+		});
 	}
 
 	async genMirrorKey(

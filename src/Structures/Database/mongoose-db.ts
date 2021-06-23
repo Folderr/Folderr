@@ -159,17 +159,19 @@ export default class MongooseDB extends DBClass {
 		return add?.nModified > 0;
 	}
 
-	async fetchFolderr(query: Record<string, unknown>): Promise<Folderr> {
+	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
 		const fldr = await this.#Schemas.Folderr.findOne(query).lean().exec();
 		if (!fldr) {
-			return this.createFolderr();
+			throw new Error(
+				'Folderr DB entry not found, Folderr DB entry is required.'
+			);
 		}
 
 		return fldr;
 	}
 
-	async createFolderr(): Promise<Folderr> {
-		const fldr = new this.#Schemas.Folderr({bans: []});
+	async createFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
+		const fldr = new this.#Schemas.Folderr({bans: [], publicKeyJWT});
 		await fldr.save();
 		return fldr;
 	}
@@ -189,7 +191,7 @@ export default class MongooseDB extends DBClass {
 			first: true,
 			admin: true,
 			username,
-			id: id,
+			id,
 			email,
 			password
 		});
@@ -320,7 +322,7 @@ export default class MongooseDB extends DBClass {
 
 	async purgeUser(id: string): Promise<{account: boolean; links: boolean}> {
 		const [account, links] = await Promise.all([
-			this.#Schemas.User.deleteOne({id: id}).exec(),
+			this.#Schemas.User.deleteOne({id}).exec(),
 			this.#Schemas.Link.deleteMany({owner: id}).exec()
 		]);
 
@@ -345,7 +347,7 @@ export default class MongooseDB extends DBClass {
 		id: string,
 		options?: {admin?: boolean}
 	): Promise<User | undefined> {
-		const verify = await this.#Schemas.PendingMember.findOneAndDelete({id: id})
+		const verify = await this.#Schemas.PendingMember.findOneAndDelete({id})
 			.lean()
 			.exec();
 		if (!verify) {
@@ -369,7 +371,7 @@ export default class MongooseDB extends DBClass {
 	}
 
 	async verifySelf(id: string): Promise<User | undefined> {
-		const verify = await this.#Schemas.PendingMember.findOneAndDelete({id: id})
+		const verify = await this.#Schemas.PendingMember.findOneAndDelete({id})
 			.lean()
 			.exec();
 		if (!verify) {
@@ -389,16 +391,12 @@ export default class MongooseDB extends DBClass {
 		await this.#Schemas.AdminNotification.deleteOne({notify: reg})
 			.lean()
 			.exec();
-		const del = await this.#Schemas.PendingMember.deleteOne({id: id})
-			.lean()
-			.exec();
+		const del = await this.#Schemas.PendingMember.deleteOne({id}).lean().exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 
 	async denySelf(id: string): Promise<boolean> {
-		const del = await this.#Schemas.PendingMember.deleteOne({id: id})
-			.lean()
-			.exec();
+		const del = await this.#Schemas.PendingMember.deleteOne({id}).lean().exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 
@@ -638,7 +636,7 @@ export default class MongooseDB extends DBClass {
 		notify: string,
 		title: string
 	): Promise<Notification> {
-		const notif = new this.#Schemas.AdminNotification({id: id, notify, title});
+		const notif = new this.#Schemas.AdminNotification({id, notify, title});
 		await notif.save();
 		return notif;
 	}

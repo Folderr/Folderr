@@ -49,7 +49,7 @@ class Manage extends Path {
 		response: Response
 	): Promise<Response | void> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.first)
+			Boolean(user.owner)
 		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({

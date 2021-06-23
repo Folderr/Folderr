@@ -67,18 +67,17 @@ class Ban extends Path {
 			});
 		}
 
-		const email = this.Utils.decrypt(user.email);
 		if (this.core.emailer.active) {
 			const url = await this.Utils.determineHomeURL(request);
 			await this.core.emailer.banEmail(
-				email,
+				user.email,
 				request.body.reason,
 				user.username,
 				url
 			);
 		}
 
-		const ban = await this.core.db.addFolderrBan(email);
+		const ban = await this.core.db.addFolderrBan(user.email);
 		if (ban) {
 			await this.core.db.purgeUser(user.id);
 			response

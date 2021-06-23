@@ -22,6 +22,7 @@
 
 export interface Folderr {
 	bans: string[];
+	publicKeyJWT: Buffer;
 }
 
 export interface Notification {
@@ -35,7 +36,7 @@ export interface User {
 	username: string;
 	id: string;
 	password: string;
-	first?: boolean;
+	owner?: boolean;
 	admin?: boolean;
 	notifs: Notification[];
 	cURLs: string[];
@@ -93,7 +94,7 @@ export class DBClass {
 		throw new Error('DB > NOT IMPLEMENTED - Method init is not implemented!');
 	}
 
-	async createFolderr(): Promise<Folderr> {
+	async createFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method createFolderr is not implemented!'
 		);
@@ -105,7 +106,7 @@ export class DBClass {
 		);
 	}
 
-	async fetchFolderr(query: Record<string, unknown>): Promise<Folderr> {
+	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method fetchFolderr is not implemented!'
 		);
@@ -384,10 +385,7 @@ export class DBClass {
 		);
 	}
 
-	async findTokens(
-		id: string,
-		options?: {web: boolean}
-	): Promise<TokenDB[]> {
+	async findTokens(id: string, options?: {web: boolean}): Promise<TokenDB[]> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findTokens is not implemented!'
 		);

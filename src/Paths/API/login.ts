@@ -41,10 +41,14 @@ class Login extends Path {
 		response: Response
 	): Promise<Response | void> {
 		if (
-			!request.body ||
-			(request.body && (!request.body.username || !request.body.password))
+			!request.headers ||
+			(request.headers &&
+				(!request.headers.username || !request.headers.password))
 		) {
-			if (request.body && (request.body.username || request.body.password)) {
+			if (
+				request.headers &&
+				(request.headers.username || request.headers.password)
+			) {
 				return response.status(this.codes.badReq).json({
 					code: this.codes.badReq,
 					message: 'MISSING DETAIL(S)'
@@ -57,7 +61,7 @@ class Login extends Path {
 			});
 		}
 
-		const auth = await this.Utils.authPasswordBody(request);
+		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).json({
 				code: this.codes.unauth,
