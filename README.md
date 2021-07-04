@@ -17,8 +17,8 @@ Prerequisites:
 - [MongoDB](https://www.mongodb.com/) server/database
 - [typescript](https://www.typescriptlang.org/download) (npm module)
 
-1. Clone the repo
-2. Follow the below
+1. Clone the repo. Instructions [here](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository#cloning-a-repository)
+2. Follow the below (In a powershell/terminal/ssh session)
 
 ```sh
 cd <your-cloned-folderr-instance>
