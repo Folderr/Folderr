@@ -8,9 +8,14 @@ This is not final product, use at your own risk.
 
 This is a real quick getting started for the development versions of folderr.
 
-Pre-requesites: NodeJS 14 or 16 (LTS versions), Python 3.7 (or later), node-gyp, git, a mongodb server/database and typescript
+Prerequisites:
 
-To install typescript once you have nodejs & npm installed do `npm install --global typescript`. If you're on Linux do the same command prefixed by sudo.
+- [NodeJS](https://nodejs.org/en/) 14 or 16 (LTS versions)
+- [Python](https://www.python.org/downloads/) 3.6-3.9. Run `python --version` or `python3 --version` in the commandline/terminal/powershell to see if installed
+- [node-gyp](https://www.npmjs.com/package/node-gyp)
+- [Git](https://git-scm.com/downloads) command line. Typically pre-installed on Linux. To check if git is installed run `git --version` in the commandline/terminal/powershell
+- [MongoDB](https://www.mongodb.com/) server/database
+- [typescript](https://www.typescriptlang.org/download) (npm module)
 
 1. Clone the repo
 2. Follow the below
