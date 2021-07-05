@@ -21,7 +21,7 @@ export {default as APILinks} from './API/links';
 export {default as APIUploadFile} from './API/upload-file';
 export {default as APIFiles} from './API/files';
 export {default as APIDeleteImage} from './API/delete-file';
-export {default as APILogin} from './API/login';
+export {default as APILogin} from './API/authorize';
 export {default as APIUsers} from './API/users';
 export {default as APIInfo} from './API/private-info';
 export {default as APIOwnerManage} from './API/manage';

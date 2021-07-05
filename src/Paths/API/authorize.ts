@@ -29,8 +29,8 @@ import {Response, Request} from 'express';
 class Login extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Login';
-		this.path = '/api/login';
+		this.label = '[API] Authorize';
+		this.path = '/api/authorize';
 		this.secureOnly = false;
 
 		this.type = 'post';
@@ -45,19 +45,9 @@ class Login extends Path {
 			(request.headers &&
 				(!request.headers.username || !request.headers.password))
 		) {
-			if (
-				request.headers &&
-				(request.headers.username || request.headers.password)
-			) {
-				return response.status(this.codes.badReq).json({
-					code: this.codes.badReq,
-					message: 'MISSING DETAIL(S)'
-				});
-			}
-
 			return response.status(this.codes.badReq).json({
 				code: this.codes.badReq,
-				message: 'MISSING ALL DETAILS'
+				message: 'MISSING DETAIL(S)'
 			});
 		}
 
