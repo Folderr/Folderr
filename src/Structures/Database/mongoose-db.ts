@@ -19,6 +19,11 @@
  *
  */
 
+import {existsSync, promises as fs} from 'fs';
+import mongoose from 'mongoose';
+import * as Schemas from '../../Schemas/index';
+import wlogger from '../winston-logger';
+import * as constants from '../constants/index';
 import {
 	DBClass,
 	User,
@@ -29,11 +34,6 @@ import {
 	Notification,
 	Folderr
 } from './db-class';
-import mongoose from 'mongoose';
-import * as Schemas from '../../Schemas/index';
-import {existsSync, promises as fs} from 'fs';
-import wlogger from '../winston-logger';
-import * as constants from '../constants/index';
 
 /**
  * @classdesc Handle all MongoDB operations.
@@ -138,7 +138,7 @@ export default class MongooseDB extends DBClass {
 		});
 		/* eslint-enable unicorn/no-process-exit */
 		this.#internals.connection.once('open', async () => {
-			await this.fetchFolderr({});
+			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
 			wlogger.log('startup', '[SYSTEM - DB] Connected to MongoDB!');
 		});
 	}
@@ -249,10 +249,10 @@ export default class MongooseDB extends DBClass {
 
 		const [account, files, links] = await Promise.all([
 			this.findUser(queries[0], selector?.user),
-			selector?.file
+			selector?.file // eslint-disable-next-line unicorn/no-array-method-this-argument
 				? this.#Schemas.Upload.find(queries[1], selector.file).lean().exec()
 				: this.#Schemas.Upload.find(queries[1]).lean().exec(),
-			selector?.link
+			selector?.link // eslint-disable-next-line unicorn/no-array-method-this-argument
 				? this.#Schemas.Link.find(queries[1], selector.link).lean().exec()
 				: this.#Schemas.Link.find(queries[1]).lean().exec()
 		]);

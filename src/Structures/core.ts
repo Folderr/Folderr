@@ -1,4 +1,10 @@
 // Third party modules
+import {join} from 'path';
+import {platform} from 'os';
+import {EventEmitter} from 'events';
+import http from 'http';
+import {ChildProcess, fork} from 'child_process';
+import fs from 'fs';
 import express from 'express';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -6,20 +12,7 @@ import winston from 'winston';
 import superagent, {SuperAgent, SuperAgentRequest} from 'superagent';
 import spdy from 'spdy';
 // Node modules
-import {join} from 'path';
-import {platform} from 'os';
-import {EventEmitter} from 'events';
-import http from 'http';
-import {ChildProcess, fork} from 'child_process';
-import fs from 'fs';
 // Local files
-import DB from './Database/mongoose-db';
-import wlogger from './winston-logger';
-import Emailer from './emailer';
-import Regexs from './Utilities/reg-exps';
-import Utils from './Utilities/utils';
-import StatusCodes from './Utilities/status-codes';
-import {MemoryLimiter} from './Middleware/ratelimiter';
 import Configurer, {
 	CoreConfig,
 	DBConfig,
@@ -27,6 +20,13 @@ import Configurer, {
 	KeyConfig
 } from '../handlers/config-handler';
 import * as endpoints from '../Paths/index';
+import DB from './Database/mongoose-db';
+import wlogger from './winston-logger';
+import Emailer from './emailer';
+import Regexs from './Utilities/reg-exps';
+import Utils from './Utilities/utils';
+import StatusCodes from './Utilities/status-codes';
+import {MemoryLimiter} from './Middleware/ratelimiter';
 import Path from './path';
 
 const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
@@ -85,8 +85,8 @@ export default class Core {
 		this.app.use(cookieParser()); // @ts-expect-error
 		this.app.use(express.urlencoded({extended: false}));
 		// This.app.use(express.static(join(__dirname, '../Frontend')));
-		this.app.use('/assets', express.static(join(__dirname, '../assets')));
-		this.app.use('/', express.static(join(__dirname, '../otherFiles')));
+		this.app.use('/assets', express.static(join(process.cwd(), 'src/assets')));
+		this.app.use('/', express.static(join(process.cwd(), 'src/otherFiles')));
 		this.app.use(limiter.consumer.bind(limiter));
 
 		const configs = Configurer.verifyFetch();
@@ -105,7 +105,7 @@ export default class Core {
 		this.codes = StatusCodes;
 		this.logger = wlogger;
 		this.superagent = superagent;
-		this.#deleter = fork(join(__dirname, '../file-del-queue'), undefined, {
+		this.#deleter = fork(join(process.cwd(), 'src/file-del-queue'), undefined, {
 			silent: true
 		});
 
@@ -153,7 +153,8 @@ export default class Core {
 
 	async initDB(): Promise<void> {
 		wlogger.info('Init DB');
-		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/fldrrDB');
+		// Again, neglecting this potential error to handle elsewhere
+		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/folderr');
 	}
 
 	initPaths(): boolean {
@@ -184,14 +185,28 @@ export default class Core {
 					continue;
 				}
 
-				if (path.type === 'post') {
-					this.app.post(path.path, path.internal_execute.bind(path));
-				} else if (path.type === 'delete') {
-					this.app.delete(path.path, path.internal_execute.bind(path));
-				} else if (path.type === 'patch') {
-					this.app.patch(path.path, path.internal_execute.bind(path));
-				} else {
-					this.app.get(path.path, path.internal_execute.bind(path));
+				switch (path.type) {
+					case 'post': {
+						this.app.post(path.path, path.internal_execute.bind(path));
+
+						break;
+					}
+
+					case 'delete': {
+						this.app.delete(path.path, path.internal_execute.bind(path));
+
+						break;
+					}
+
+					case 'patch': {
+						this.app.patch(path.path, path.internal_execute.bind(path));
+
+						break;
+					}
+
+					default: {
+						this.app.get(path.path, path.internal_execute.bind(path));
+					}
 				}
 
 				// eslint, this is a string. Do not mark this as max-len.
