@@ -3,7 +3,23 @@ import Core from '../Structures/core';
 const core = new Core();
 
 export async function startFolderr(): Promise<void> {
-	await core.initDB();
+	try {
+		await core.initDB();
+	} catch (error: unknown) {
+		if (
+			error instanceof Error &&
+			error.message ===
+				'Folderr DB entry not found, Folderr DB entry is required.'
+		) {
+			core.logger.error(
+				'Folderr has deemed that you have not set up this instance!'
+			);
+			core.logger.notice('Folderr will exit as per protocol.');
+			// eslint-disable-next-line unicorn/no-process-exit
+			process.exit(0);
+		}
+	}
+
 	const paths = core.initPaths();
 	if (!paths) {
 		core.logger.error('[FATAL] Paths could not initalize');
