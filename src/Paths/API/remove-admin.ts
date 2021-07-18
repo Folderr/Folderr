@@ -19,10 +19,9 @@
  *
  */
 
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Remove an administrators admin status
@@ -35,15 +34,34 @@ class RemoveAdmin extends Path {
 		this.reqAuth = true;
 
 		this.type = 'delete';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Actually check auth, and make sure they are the owner
 		const auth = await this.Utils.authPassword(request, (user) =>
 			Boolean(user.owner)
 		);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: auth || 'Authorization failed.'
 			});
@@ -51,7 +69,7 @@ class RemoveAdmin extends Path {
 
 		// You need to supply the ID for the user via query
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Users ID is required!'
 			});
@@ -59,7 +77,7 @@ class RemoveAdmin extends Path {
 
 		const match = /^\d+$/.exec(request.params.id);
 		if (!match || match[0].length !== request.params.id.length) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'ID is not a valid Folderr ID!'
 			});
@@ -74,14 +92,14 @@ class RemoveAdmin extends Path {
 			'admin'
 		);
 		if (!user) {
-			return response.status(this.codes.notFound).json({
+			return response.status(this.codes.notFound).send({
 				message: 'User not found!',
 				code: this.Utils.FoldCodes.dbNotFound
 			});
 		}
 
 		if (user.admin) {
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				message: 'Update fail!',
 				code: this.Utils.FoldCodes.dbUnkownError
 			});
@@ -92,7 +110,7 @@ class RemoveAdmin extends Path {
 		this.core.logger.info(
 			`Administator removed for ${formerAdmin} by ${responsible}`
 		);
-		return response.status(this.codes.ok).json({
+		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
 			message: 'OK'
 		});

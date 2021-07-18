@@ -277,7 +277,7 @@ const ConfigHandler = {
 
 			error += 'Potential fix: run "npm run configure --invalid-or-missing"';
 
-			throw new Error('[CONFIG] Missing/Invalid Required Options:');
+			throw new Error(`[CONFIG] Missing/Invalid Required Options:\n${error}`);
 		}
 
 		return true;
@@ -311,7 +311,7 @@ const ConfigHandler = {
 		const missingFiles = this.keyCheck(keyConfig);
 
 		// Validate ports
-		const maxPort = 65535;
+		const maxPort = 65_535;
 		let failedPort;
 		let failedSignups;
 		if (!coreConfig.port || coreConfig.port > maxPort || coreConfig.port < 1) {

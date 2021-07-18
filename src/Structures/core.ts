@@ -1,17 +1,23 @@
-// Third party modules
+// Node modules
 import {join} from 'path';
 import {platform} from 'os';
 import {EventEmitter} from 'events';
 import http from 'http';
 import {ChildProcess, fork} from 'child_process';
 import fs from 'fs';
-import express from 'express';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
+
+// Fastify imports
+
+import fastify, {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
+import cookie from 'fastify-cookie';
+import helmet from 'fastify-helmet';
+import fastifyStatic from 'fastify-static';
+import ratelimit from 'fastify-rate-limit';
+// Other imports
+import spdy from 'spdy';
 import winston from 'winston';
 import superagent, {SuperAgent, SuperAgentRequest} from 'superagent';
-import spdy from 'spdy';
-// Node modules
+
 // Local files
 import Configurer, {
 	CoreConfig,
@@ -26,7 +32,6 @@ import Emailer from './emailer';
 import Regexs from './Utilities/reg-exps';
 import Utils from './Utilities/utils';
 import StatusCodes from './Utilities/status-codes';
-import {MemoryLimiter} from './Middleware/ratelimiter';
 import Path from './path';
 
 const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
@@ -42,13 +47,11 @@ ee.on('fail', (code) => {
 export default class Core {
 	public readonly db: DB;
 
-	public app: express.Application;
+	public app: FastifyInstance;
 
 	public readonly config: CoreConfig;
 
 	public readonly logger: winston.Logger;
-
-	public readonly server: http.Server;
 
 	public readonly emailer: Emailer;
 
@@ -77,23 +80,20 @@ export default class Core {
 	};
 
 	constructor() {
-		const limiter = new MemoryLimiter();
-		this.db = new DB(); // Time to abuse Node. :)
-		this.app = express(); // @ts-expect-error
-		this.app.use(express.json()); // @ts-expect-error
-		this.app.use(helmet());
-		this.app.use(cookieParser()); // @ts-expect-error
-		this.app.use(express.urlencoded({extended: false}));
-		// This.app.use(express.static(join(__dirname, '../Frontend')));
-		this.app.use('/assets', express.static(join(process.cwd(), 'src/assets')));
-		this.app.use('/', express.static(join(process.cwd(), 'src/otherFiles')));
-		this.app.use(limiter.consumer.bind(limiter));
-
+		// Init configs
 		const configs = Configurer.verifyFetch();
 		this.config = configs.core;
 		this.#keys = configs.key;
 		this.#dbConfig = configs.db;
 		this.#emailConfig = configs.email;
+
+		this.app = fastify({
+			trustProxy: this.config.trustProxies,
+			disableRequestLogging: true,
+			serverFactory: this.initServer
+		});
+
+		this.db = new DB(); // Time to abuse Node. :)
 
 		this.regexs = new Regexs();
 		this.Utils = new Utils(this);
@@ -109,13 +109,29 @@ export default class Core {
 			silent: true
 		});
 
-		this.server = this.initServer();
 		this.#requestIDs = new Set();
 		this.#internals = {
 			serverClosed: false,
 			deleterShutdown: false,
 			noRequests: true
 		};
+	}
+
+	async registerServerPlugins() {
+		await this.app.register(cookie);
+		await this.app.register(helmet);
+		await this.app.register(fastifyStatic, {
+			root: join(process.cwd(), 'build/otherFiles')
+		});
+		await this.app.register(fastifyStatic, {
+			root: join(process.cwd(), 'build/assets'),
+			prefix: '/assets'
+		});
+		// This.app.use(express.static(join(__dirname, '../Frontend')));
+		await this.app.register(ratelimit, {
+			max: 10,
+			timeWindow: '10s'
+		});
 	}
 
 	addDeleter(userID: string): void {
@@ -126,11 +142,7 @@ export default class Core {
 		await this.Utils.authorization.init();
 	}
 
-	initServer(): http.Server {
-		if (this.config.trustProxies) {
-			this.app.enable('trust proxy');
-		}
-
+	initServer(handler: FastifyServerFactoryHandler): http.Server {
 		if (this.#keys.httpsCertOptions?.key && this.#keys.httpsCertOptions?.cert) {
 			// IMPL http/2 server
 			const server = spdy.createServer(
@@ -141,20 +153,107 @@ export default class Core {
 						protocols: ['h2', 'http/1.1']
 					}
 				},
-				this.app
+				(request, response) => {
+					handler(request, response);
+				}
 			);
 			wlogger.log('prelisten', 'Initalized Server');
 			return server;
 		}
 
+		const server = http.createServer((request, response) => {
+			handler(request, response);
+		});
 		wlogger.log('prelisten', 'Initalized Server');
-		return http.createServer(this.app);
+		return server;
 	}
 
 	async initDB(): Promise<void> {
 		wlogger.info('Init DB');
 		// Again, neglecting this potential error to handle elsewhere
 		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/folderr');
+	}
+
+	internalInitPath(path: Path) {
+		switch (path.type) {
+			case 'post': {
+				if (Array.isArray(path.path)) {
+					for (const url of path.path) {
+						if (path.options) {
+							this.app.post(url, path.options, path.execute.bind(path));
+						}
+
+						this.app.post(url, path.execute.bind(path));
+					}
+				} else {
+					if (path.options) {
+						this.app.post(path.path, path.options, path.execute.bind(path));
+					}
+
+					this.app.post(path.path, path.execute.bind(path));
+				}
+
+				break;
+			}
+
+			case 'delete': {
+				if (Array.isArray(path.path)) {
+					for (const url of path.path) {
+						if (path.options) {
+							this.app.delete(url, path.options, path.execute.bind(path));
+						}
+
+						this.app.delete(url, path.execute.bind(path));
+					}
+				} else {
+					if (path.options) {
+						this.app.delete(path.path, path.options, path.execute.bind(path));
+					}
+
+					this.app.delete(path.path, path.execute.bind(path));
+				}
+
+				break;
+			}
+
+			case 'patch': {
+				if (Array.isArray(path.path)) {
+					for (const url of path.path) {
+						if (path.options) {
+							this.app.patch(url, path.options, path.execute.bind(path));
+						}
+
+						this.app.patch(url, path.execute.bind(path));
+					}
+				} else {
+					if (path.options) {
+						this.app.patch(path.path, path.options, path.execute.bind(path));
+					}
+
+					this.app.patch(path.path, path.execute.bind(path));
+				}
+
+				break;
+			}
+
+			default: {
+				if (Array.isArray(path.path)) {
+					for (const url of path.path) {
+						if (path.options) {
+							this.app.get(url, path.options, path.execute.bind(path));
+						}
+
+						this.app.get(url, path.execute.bind(path));
+					}
+				} else {
+					if (path.options) {
+						this.app.get(path.path, path.options, path.execute.bind(path));
+					}
+
+					this.app.get(path.path, path.execute.bind(path));
+				}
+			}
+		}
 	}
 
 	initPaths(): boolean {
@@ -185,29 +284,7 @@ export default class Core {
 					continue;
 				}
 
-				switch (path.type) {
-					case 'post': {
-						this.app.post(path.path, path.internal_execute.bind(path));
-
-						break;
-					}
-
-					case 'delete': {
-						this.app.delete(path.path, path.internal_execute.bind(path));
-
-						break;
-					}
-
-					case 'patch': {
-						this.app.patch(path.path, path.internal_execute.bind(path));
-
-						break;
-					}
-
-					default: {
-						this.app.get(path.path, path.internal_execute.bind(path));
-					}
-				}
+				this.internalInitPath(path);
 
 				// eslint, this is a string. Do not mark this as max-len.
 				wlogger.log(
@@ -246,9 +323,9 @@ export default class Core {
 		return true;
 	}
 
-	listen(): http.Server | boolean {
+	async listen(): Promise<string> {
 		this.checkPorts();
-		return this.server.listen(this.config.port);
+		return this.app.listen(this.config.port);
 	}
 
 	shutdownServer(): void {
@@ -256,13 +333,7 @@ export default class Core {
 		this.#deleter.on('exit', () => {
 			this.#internals.deleterShutdown = true;
 		});
-		this.server.close((error: Error | undefined) => {
-			if (error) {
-				this.logger.error('Failed to shutdown server');
-				this.#internals.serverClosed = error;
-				return;
-			}
-
+		this.app.close(() => {
 			this.#internals.serverClosed = true;
 		});
 		ee.once('noRequests', () => {

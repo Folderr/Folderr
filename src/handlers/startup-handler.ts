@@ -28,20 +28,10 @@ export async function startFolderr(): Promise<void> {
 
 	await core.initAuthorization();
 
-	try {
-		core.initServer();
-	} catch (error: unknown) {
-		core.logger.error('[FATAL] FAILED TO INITIALIZE WEB SERVER');
-		if (error instanceof Error) {
-			core.logger.error(error);
-			core.logger.debug(error.stack);
-		}
-
-		throw new Error('[FATAL] FAILED TO INITIALIZE WEB SERVER');
-	}
+	await core.registerServerPlugins();
 
 	try {
-		const listened = core.listen();
+		const listened = await core.listen();
 		if (listened) {
 			core.logger.log('ready', 'Service started and listening!');
 		} else {

@@ -19,10 +19,9 @@
  *
  */
 
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Allow the user to delete a shortened link
@@ -35,13 +34,32 @@ class DeleteLink extends Path {
 
 		this.type = 'delete';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});

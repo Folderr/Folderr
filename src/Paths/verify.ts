@@ -19,9 +19,9 @@
  *
  */
 
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Response, Request} from 'express';
 
 /**
  * @classdesc Allow users to verify themselves
@@ -32,11 +32,32 @@ class Verify extends Path {
 		this.label = 'Verify Self';
 		this.path = '/verify/:userid/:token';
 		this.enabled = this.core.emailer.active && this.core.config.signups === 2;
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						userid: {type: 'string'},
+						token: {type: 'string'}
+					},
+					required: ['userid', 'token']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
-		if (!request.params?.userid || !request.params?.token) {
-			return response.status(this.codes.badReq).json({
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				userid: string;
+				token: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
+		if (!request.params.userid || !request.params.token) {
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing requirements!'
 			});
@@ -47,17 +68,17 @@ class Verify extends Path {
 			request.params.userid
 		);
 		if (!verify) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'User not found!'
 			});
 		}
 
-		const expiresAfter = 172800000; // 48H in MS
+		const expiresAfter = 172_800_000; // 48H in MS
 		const timeSinceCreation = Date.now() - Number(verify.created);
 		if (timeSinceCreation >= expiresAfter) {
 			await this.core.db.denySelf(verify.id);
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.userDenied,
 				message: 'Validation time expired.'
 			});
@@ -68,7 +89,7 @@ class Verify extends Path {
 		this.core.logger.info('User account verified by self');
 		return response
 			.status(this.codes.created)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

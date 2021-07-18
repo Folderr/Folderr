@@ -19,7 +19,7 @@
  *
  */
 
-import {Response, Request} from 'express';
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
 import {User} from '../../Structures/Database/db-class';
@@ -32,14 +32,35 @@ class LookupAccount extends Path {
 		super(core);
 		this.label = '[API] Reverse Account Lookup';
 		this.path = '/api/admin/content/:type/:id/account';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'},
+						type: {type: 'string'}
+					},
+					required: ['id', 'type']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+				type: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed'
 			});
@@ -51,7 +72,7 @@ class LookupAccount extends Path {
 			!['file', 'link'].includes(request.params.type) ||
 			!/^[\dA-Za-z]+$/.test(request.params.id)
 		) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'
 			});
@@ -64,7 +85,7 @@ class LookupAccount extends Path {
 		if (!out) {
 			const formattedType = request.params.type === 'file' ? 'File' : 'Link';
 			console.log(formattedType);
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: `${formattedType} not found!`
 			});
@@ -75,13 +96,13 @@ class LookupAccount extends Path {
 			'id username email created'
 		);
 		if (!user) {
-			return response.status(this.codes.ok).json({
+			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
 				message: {}
 			});
 		}
 
-		return response.status(this.codes.ok).json({
+		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
 			message: {
 				username: user.username,

@@ -19,10 +19,9 @@
  *
  */
 
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc SHorten links endpoint
@@ -34,26 +33,45 @@ class Shorten extends Path {
 		this.path = '/api/link';
 		this.type = 'post';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						url: {type: 'string'}
+					},
+					required: ['url']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				url: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		if (!request.body || !request.body.url) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.shortUrlMissing,
 				message: 'BODY URL MISSING!'
 			});
 		}
 
 		if (typeof request.body.url !== 'string') {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.shortUrlInvalid,
 				message: 'URL MUST BE STRING'
 			});
@@ -63,13 +81,27 @@ class Shorten extends Path {
 			await this.core.superagent.get(request.body.url);
 			// eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
 		} catch (error: any) {
-			// Force any
-			if (error.code === 'ENOTFOUND') {
-				return response.status(this.codes.notFound).json({
+			/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+			if (
+				error.code &&
+				typeof error.code === 'string' &&
+				error.code === 'ENOTFOUND'
+			) {
+				/* eslint-enable @typescript-eslint/no-unsafe-member-access */
+				return response.status(this.codes.notFound).send({
 					code: this.Utils.FoldCodes.shortUrlNotFound,
 					message: 'URL not found!'
 				});
-			}
+			} /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
+			if (error.message && typeof error.message === 'string') {
+				this.core.logger.debug(error.message);
+			} /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+
+			return response.status(this.codes.notAccepted).send({
+				code: this.Utils.FoldCodes.unkownError,
+				message: 'Unknown error occured'
+			});
 		}
 
 		const ID = await this.Utils.genID();

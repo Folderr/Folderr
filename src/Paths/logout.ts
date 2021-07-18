@@ -18,10 +18,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+import {join} from 'path';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Response} from 'express';
-import {join} from 'path';
 
 class Logout extends Path {
 	constructor(core: Core) {
@@ -34,16 +34,15 @@ class Logout extends Path {
 	/**
 	 * @desc Logs you out or displays the deleted account page
 	 */
-	async execute(request: any, response: Response): Promise<Response | void> {
-		const dir = join(__dirname, '../Frontend/loggedout.html');
-		if (!request.uauth) {
-			response.redirect('/');
-			return;
+	async execute(request: FastifyRequest, response: FastifyReply) {
+		const dir = join(process.cwd(), './Frontend/loggedout.html');
+		if (!request.cookies.token) {
+			return response.redirect('/');
 		}
 
 		await this.Utils.authorization.revoke(request.cookies.token, true);
-		response.clearCookie('token', {sameSite: 'strict'});
-		response.sendFile(dir);
+		await response.clearCookie('token', {sameSite: 'strict'});
+		return response.sendFile(dir);
 	}
 }
 

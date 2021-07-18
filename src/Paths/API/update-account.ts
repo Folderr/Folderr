@@ -18,12 +18,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+import {compareSync} from 'bcrypt';
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {compareSync} from 'bcrypt';
-import {Response} from 'express';
 import wlogger from '../../Structures/winston-logger';
-import {Request} from '../../Structures/Interfaces/express-extended';
 import {User} from '../../Structures/Database/db-class';
 import * as constants from '../../Structures/constants/index';
 
@@ -38,13 +37,35 @@ class UpdateAcc extends Path {
 
 		this.type = 'patch';
 		this.reqAuth = true;
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						email: {type: 'string'},
+						password: {type: 'string'},
+						username: {type: 'string'}
+					},
+					required: ['email', 'password', 'username']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				username: string;
+				email: string;
+				password: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		// Check pass/username auth
 		const base = await this.isValid(request);
 		if (base.failed) {
-			return response.status(base.httpCode).json(base.message);
+			return response.status(base.httpCode).send(base.message);
 		}
 
 		const auth = (base as {failed: false; user: User}).user;
@@ -64,7 +85,7 @@ class UpdateAcc extends Path {
 			if (typeof passwd === 'string') {
 				update.password = passwd;
 			} else {
-				return response.status(passwd.httpCode).json(passwd.message);
+				return response.status(passwd.httpCode).send(passwd.message);
 			}
 		}
 
@@ -76,7 +97,7 @@ class UpdateAcc extends Path {
 		if (newUsername && typeof newUsername === 'string') {
 			update.username = newUsername;
 		} else if (typeof newUsername === 'object') {
-			return response.status(newUsername.httpCode).json(newUsername.message);
+			return response.status(newUsername.httpCode).send(newUsername.message);
 		}
 
 		const emailUpdated = await this.handleEmailUpdate(
@@ -85,7 +106,7 @@ class UpdateAcc extends Path {
 			auth.username
 		);
 		if (emailUpdated && !emailUpdated.accepted) {
-			return response.status(emailUpdated.httpCode).json(emailUpdated.message);
+			return response.status(emailUpdated.httpCode).send(emailUpdated.message);
 		}
 
 		if (emailUpdated?.accepted) {
@@ -101,7 +122,7 @@ class UpdateAcc extends Path {
 					this.core.logger.debug(error);
 				}
 
-				return response.status(this.codes.internalErr).json({
+				return response.status(this.codes.internalErr).send({
 					code: this.Utils.FoldCodes.unkownError,
 					message: 'An unknown error has occured!'
 				});
@@ -110,7 +131,7 @@ class UpdateAcc extends Path {
 			this.core.logger.error(
 				`Database failed to update user - ${error.message}`
 			);
-			return response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.dbUnkownError,
 				message: 'An unknown error encountered while updating your account'
 			});
@@ -119,7 +140,7 @@ class UpdateAcc extends Path {
 		// Return the output
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 
 	private async handlePassword(password: string): Promise<
@@ -195,7 +216,13 @@ class UpdateAcc extends Path {
 	}
 
 	private async handleEmailUpdate(
-		request: Request,
+		request: FastifyRequest<{
+			Body: {
+				username: string;
+				email: string;
+				password: string;
+			};
+		}>,
 		preEmail: string,
 		username: string
 	): Promise<
@@ -369,7 +396,15 @@ class UpdateAcc extends Path {
 		return undefined;
 	}
 
-	private async isValid(request: Request): Promise<
+	private async isValid(
+		request: FastifyRequest<{
+			Body: {
+				username: string;
+				email: string;
+				password: string;
+			};
+		}>
+	): Promise<
 		| {
 				httpCode: number;
 				failed: boolean;

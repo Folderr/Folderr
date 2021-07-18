@@ -19,9 +19,9 @@
  *
  */
 
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Response, Request} from 'express';
 
 /**
  * @classdesc Allow a user to deny the creation of their account
@@ -32,11 +32,32 @@ class Deny extends Path {
 		this.label = 'Deny Self';
 		this.path = '/deny/:userid/:token';
 		this.enabled = this.core.emailer.active && this.core.config.signups === 2;
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						userid: {type: 'string'},
+						token: {type: 'string'}
+					},
+					required: ['userid', 'token']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				userid: string;
+				token: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		if (!request.params?.userid || !request.params?.token) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing requirements!'
 			});
@@ -47,7 +68,7 @@ class Deny extends Path {
 			request.params.userid
 		);
 		if (!verify) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'User not found!'
 			});
@@ -56,7 +77,7 @@ class Deny extends Path {
 		await this.core.db.denySelf(verify.id);
 		return response
 			.status(this.codes.created)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

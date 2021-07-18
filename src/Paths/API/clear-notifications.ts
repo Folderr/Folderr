@@ -18,9 +18,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response, Request} from 'express';
 
 /**
  * @classdesc Clear the authorized users notifications
@@ -35,11 +36,14 @@ class ClearNotifs extends Path {
 		this.type = 'delete';
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -49,7 +53,7 @@ class ClearNotifs extends Path {
 		await this.core.db.updateUser({id: auth.id}, {notifs: []});
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

@@ -19,7 +19,7 @@
  *
  */
 
-import {Response, Request} from 'express';
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
 import {User} from '../../Structures/Database/db-class';
@@ -33,11 +33,29 @@ class Takedown extends Path {
 		this.label = '[API] Takedown Content';
 		this.type = 'delete';
 		this.path = '/api/admin/content/:type/:id';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						type: {type: 'string'},
+						id: {type: 'string'}
+					},
+					required: ['type', 'id']
+				}
+			}
+		};
 	}
 
 	async takedownFile(
 		id: string,
-		request: Request
+		request: FastifyRequest<{
+			Params: {
+				type: string;
+				id: string;
+			};
+		}>
 	): Promise<{
 		httpCode: number;
 		msg: {
@@ -86,7 +104,12 @@ class Takedown extends Path {
 
 	async takedownLink(
 		id: string,
-		request: Request
+		request: FastifyRequest<{
+			Params: {
+				type: string;
+				id: string;
+			};
+		}>
 	): Promise<{
 		httpCode: number;
 		msg: {
@@ -133,12 +156,20 @@ class Takedown extends Path {
 		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				type: string;
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed'
 			});
@@ -150,7 +181,7 @@ class Takedown extends Path {
 			!['file', 'link'].includes(request.params.type) ||
 			!/^[\dA-Za-z]+$/.test(request.params.id)
 		) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'
 			});
@@ -159,14 +190,14 @@ class Takedown extends Path {
 		try {
 			if (request.params.type === 'file') {
 				const out = await this.takedownFile(request.params.id, request);
-				return response.status(out.httpCode).json(out.msg);
+				return response.status(out.httpCode).send(out.msg);
 			}
 
 			const out = await this.takedownLink(request.params.id, request);
-			return response.status(out.httpCode).json(out.msg);
+			return response.status(out.httpCode).send(out.msg);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				return response.status(this.codes.internalErr).json({
+				return response.status(this.codes.internalErr).send({
 					code: this.Utils.FoldCodes.unkownError,
 					message: `An error occurred!\n${error.message}`
 				});
@@ -177,7 +208,7 @@ class Takedown extends Path {
 				`[PATH ${this.label}] Unknown fatal error!`
 			);
 
-			return response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.unkownError,
 				message: 'An unknown error occurred with this operation!'
 			});

@@ -19,12 +19,12 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Request, Response} from 'express';
-import formidable from 'formidable';
 import {join} from 'path';
 import {unlinkSync} from 'fs';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import formidable from 'formidable';
+import Core from '../../Structures/core';
+import Path from '../../Structures/path';
 
 /**
  * @classdesc Upload a file
@@ -38,13 +38,10 @@ class Image extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+	async execute(request: FastifyRequest, response: FastifyReply) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -55,31 +52,22 @@ class Image extends Path {
 		try {
 			file = await this.formidablePromise(request);
 		} catch (error: unknown) {
-			response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.fileParserError,
 				message: `Parser error!\n${(error as Error).message}`
 			});
-			throw new Error((error as Error).message);
 		}
 
 		if (!file) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.noFile,
 				message: 'Files not parsed/found!'
 			});
 		}
 
-		if (file.image) {
-			file = file.image;
-		}
-
-		if (file.file) {
-			file = file.file;
-		}
-
 		if (!file.type) {
 			unlinkSync(file.path);
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.fileMimeError,
 				message: 'Invalid file!'
 			});
@@ -92,8 +80,8 @@ class Image extends Path {
 			type = 'file';
 		}
 
-		let ext = file.path.split('.');
-		ext = ext[ext.length - 1];
+		const ext = file.path.split('.');
+		const fext = ext[ext.length - 1];
 
 		await Promise.all([
 			this.core.db.makeFile(name, auth.id, file.path, type),
@@ -108,13 +96,15 @@ class Image extends Path {
 					(await this.Utils.testMirrorURL(request.headers.responseURL!))
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${name}.${ext as string}`
+				}/${type[0]}/${name}.${fext}`
 			);
 	}
 
-	private async formidablePromise(request: Request): Promise<any> {
+	private async formidablePromise(
+		request: FastifyRequest
+	): Promise<formidable.File> {
 		return new Promise((resolve, reject): formidable.File | void => {
-			const path = join(__dirname, '../../../Files/');
+			const path = join(process.cwd(), './Files/');
 			const form = new formidable.IncomingForm({
 				uploadDir: path,
 				multiples: false,
@@ -122,14 +112,17 @@ class Image extends Path {
 				enabledPlugins: ['multipart']
 			});
 
-			form.parse(request, (error: Error, fields: any, files: any) => {
-				if (error) {
-					reject(error);
-					return;
-				}
+			form.parse(
+				request.raw,
+				(error: Error, fields: formidable.Fields, files: any) => {
+					if (error) {
+						reject(error);
+						return;
+					}
 
-				resolve(files);
-			});
+					resolve(files);
+				}
+			);
 		});
 	}
 }

@@ -19,11 +19,11 @@
  *
  */
 
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
 import {Upload} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {RequestGallery} from '../../../types/types/fastify-request-types';
 
 /**
  * @classdesc Send users their files
@@ -34,15 +34,31 @@ class Files extends Path {
 		this.label = '[API] Files';
 		this.path = '/api/files';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						gallery: {type: 'boolean'},
+						limit: {type: 'number'},
+						before: {type: 'object'},
+						after: {type: 'object'}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Querystring: RequestGallery;
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -55,7 +71,7 @@ class Files extends Path {
 				json: Record<string, string | number>;
 				errored: boolean;
 			};
-			return response.status(genType.httpCode).json(genType.json);
+			return response.status(genType.httpCode).send(genType.json);
 		}
 
 		const {query, options} = generated as unknown as {
@@ -75,7 +91,7 @@ class Files extends Path {
 		if (!images) {
 			return response
 				.status(this.codes.ok)
-				.json({code: this.codes.noContent, message: []});
+				.send({code: this.codes.noContent, message: []});
 		}
 
 		let url =
@@ -98,7 +114,7 @@ class Files extends Path {
 		});
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: files});
+			.send({code: this.codes.ok, message: files});
 	}
 }
 

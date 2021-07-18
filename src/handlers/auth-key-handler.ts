@@ -1,7 +1,7 @@
-import locations from '../../internal/locations.json';
 import {join} from 'path';
-import AbstractDB from '../Structures/Database/db-class';
 import fs from 'fs/promises';
+import locations from '../../internal/locations.json';
+import AbstractDB from '../Structures/Database/db-class';
 
 export default class AuthKeyHandler {
 	#publicKey?: Buffer;

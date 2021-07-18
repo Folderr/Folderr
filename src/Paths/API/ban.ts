@@ -19,10 +19,9 @@
  *
  */
 
-import {Response, Request} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {User} from '../../Structures/Database/db-class';
 
 /**
  * @classdesc Ban a user via ID
@@ -34,26 +33,52 @@ class Ban extends Path {
 
 		this.path = '/api/admin/ban/:id';
 		this.type = 'post';
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						reason: {type: 'string'}
+					},
+					required: ['reason']
+				},
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Body: {
+				reason: string;
+			};
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		if (
-			!request.params?.id ||
-			!request.body?.reason ||
-			!/^\d+$/.test(request.params.id)
+			!request.params.id ||
+			!/^\d+$/.test(request.params.id) ||
+			!request.body.reason
 		) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing requirements'
 			});
@@ -61,43 +86,36 @@ class Ban extends Path {
 
 		const user = await this.core.db.findUser({id: request.params.id});
 		if (!user) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'User not found!'
 			});
 		}
 
-		if (this.core.emailer.active) {
-			const url = await this.Utils.determineHomeURL(request);
-			await this.core.emailer.banEmail(
-				user.email,
-				request.body.reason,
-				user.username,
-				url
-			);
-		}
-
 		const ban = await this.core.db.addFolderrBan(user.email);
 		if (ban) {
+			if (this.core.emailer.active) {
+				const url = await this.Utils.determineHomeURL(request);
+				await this.core.emailer.banEmail(
+					user.email,
+					request.body.reason,
+					user.username,
+					url
+				);
+			}
+
+			this.core.addDeleter(user.id);
 			await this.core.db.purgeUser(user.id);
-			response
-				.status(this.codes.ok)
-				.json({
-					code: this.codes.ok,
-					message: 'OK'
-				})
-				.end();
-		} else {
-			response
-				.status(this.codes.notAccepted)
-				.json({
-					code: this.codes.notAccepted,
-					message: 'BAN FAILED'
-				})
-				.end();
+			return response.status(this.codes.ok).send({
+				code: this.codes.ok,
+				message: 'OK'
+			});
 		}
 
-		this.core.addDeleter(user.id);
+		return response.status(this.codes.notAccepted).send({
+			code: this.codes.notAccepted,
+			message: 'BAN FAILED'
+		});
 	}
 }
 

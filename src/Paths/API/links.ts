@@ -19,11 +19,11 @@
  *
  */
 
-import {Response} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
 import {Link} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {RequestGallery} from '../../../types/types/fastify-request-types';
 
 /**
  * @classdesc Allow a user to access their links
@@ -36,11 +36,16 @@ class Links extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Querystring: RequestGallery;
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -53,7 +58,7 @@ class Links extends Path {
 				json: Record<string, string | number>;
 				errored: boolean;
 			};
-			return response.status(genType.httpCode).json(genType.json);
+			return response.status(genType.httpCode).send(genType.json);
 		}
 
 		const {query, options} = generated as unknown as {
@@ -73,7 +78,7 @@ class Links extends Path {
 		if (!shorts || shorts.length === 0) {
 			return response
 				.status(this.codes.ok)
-				.json({code: this.codes.ok, message: []});
+				.send({code: this.codes.ok, message: []});
 		}
 
 		let url =
@@ -84,18 +89,16 @@ class Links extends Path {
 				? request.headers.responseURL
 				: await this.Utils.determineHomeURL(request);
 		url = url.replace(/\/$/g, '');
-		const aShorts = shorts.map((short: Link) => {
-			return {
-				id: short.id,
-				points_to: short.link,
-				created: Math.round(short.created.getTime() / 1000),
-				link: `${url}/${short.id}`
-			};
-		});
+		const aShorts = shorts.map((short: Link) => ({
+			id: short.id,
+			points_to: short.link,
+			created: Math.round(short.created.getTime() / 1000),
+			link: `${url}/${short.id}`
+		}));
 
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: aShorts});
+			.send({code: this.codes.ok, message: aShorts});
 	}
 }
 

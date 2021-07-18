@@ -18,10 +18,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Admin can deny a users account
@@ -34,28 +34,49 @@ class DenyAccount extends Path {
 		this.path = '/api/admin/verify';
 		this.type = 'delete';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						token: {type: 'string'},
+						userid: {type: 'string'}
+					},
+					required: ['token', 'userid']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				userid: string;
+				token: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth by id/token
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		// Verify body
-		if (!request.body.token && !request.body.uid) {
-			return response.status(this.codes.badReq).json({
+		if (!request.body.token && !request.body.userid) {
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'BODY MISSING!'
 			});
 		}
 
-		if (!request.body.token || !request.body.uid) {
-			return response.status(this.codes.badReq).json({
+		if (!request.body.token || !request.body.userid) {
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'BODY INCOMPLETE!'
 			});
@@ -64,10 +85,10 @@ class DenyAccount extends Path {
 		// Search for the user, and if not found send in an error
 		const user = await this.Utils.findVerifying(
 			request.body.token,
-			request.body.uid
+			request.body.userid
 		);
 		if (!user) {
-			return response.status(this.codes.notFound).json({
+			return response.status(this.codes.notFound).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'User not found!'
 			});
@@ -81,7 +102,7 @@ class DenyAccount extends Path {
 		);
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

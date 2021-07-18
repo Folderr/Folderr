@@ -18,12 +18,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Request, Response} from 'express';
-import pkg from '../../../package.json';
+
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import Path from '../../Structures/path';
+import Core from '../../Structures/core';
+import pkg from '../../../package.json';
 
 // @ts-expect-error
 momentDurationFormatSetup(moment);
@@ -43,9 +44,9 @@ class Pong extends Path {
 	 * @desc PONG! Just a simple response, no auth needed
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const out: {
 			message: {
 				version: string;
@@ -63,7 +64,7 @@ class Pong extends Path {
 			},
 			code: this.codes.ok
 		};
-		return Promise.resolve(response.status(this.codes.ok).json(out));
+		return Promise.resolve(response.status(this.codes.ok).send(out));
 	}
 }
 

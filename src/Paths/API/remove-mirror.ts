@@ -19,10 +19,9 @@
  *
  */
 
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classsdesc Allows users to remove a mirror
@@ -34,27 +33,46 @@ class MirrorRemove extends Path {
 		this.path = '/api/account/mirror';
 
 		this.type = 'delete';
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						mirror: {type: 'string'}
+					},
+					required: ['mirror']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				mirror: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		if (!request.body || !request.body.mirror) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'No mirror given to remove!'
 			});
 		}
 
 		if (auth.cURLs.length === 0 || !auth.cURLs.includes(request.body.mirror)) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				message: 'Mirror not linked!',
 				code: this.Utils.FoldCodes.dbNotFound
 			});
@@ -68,7 +86,7 @@ class MirrorRemove extends Path {
 				}
 			}
 		);
-		return response.status(this.codes.ok).json({
+		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
 			message: 'OK'
 		});

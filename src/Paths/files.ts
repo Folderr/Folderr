@@ -19,11 +19,11 @@
  *
  */
 
+import {join} from 'path';
+import mime from 'mime-types';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Request, Response} from 'express';
-import mime from 'mime-types';
-import {join} from 'path';
 
 /**
  * @classdesc Allow files to be accessed over the web
@@ -33,15 +33,31 @@ class Files extends Path {
 		super(core);
 		this.label = 'Files ID';
 		this.path = ['/file/:id', '/f/:id'];
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				}
+			}
+		};
 	}
 
 	/**
 	 * @desc Display an image to the user, or the 404 page if image doesn't exist.
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
 			return response
 				.status(this.codes.badReq)
@@ -65,18 +81,16 @@ class Files extends Path {
 			const owner = await this.core.db.findUser({id: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				response
+				return response
 					.status(this.codes.notFound)
-					.sendFile(join(__dirname, '../Frontend/notfound.html'));
-				return;
+					.sendFile(join(process.cwd(), './Frontend/notfound.html'));
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'file')) {
-			response
+			return response
 				.status(this.codes.notFound)
-				.sendFile(join(__dirname, '../Frontend/notfound.html'));
-			return;
+				.sendFile(join(process.cwd(), './Frontend/notfound.html'));
 		}
 
 		let content = mime.contentType(image.path);
@@ -94,10 +108,10 @@ class Files extends Path {
 				content = `text/${array[array.length - 1].toLowerCase()}`;
 			}
 
-			response.setHeader('Content-Type', content);
+			await response.header('Content-Type', content);
 		}
 
-		response.sendFile(image.path);
+		return response.sendFile(image.path);
 	}
 }
 

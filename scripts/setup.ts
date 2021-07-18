@@ -1,8 +1,8 @@
-import readline from 'readline';
-import Core from '../src/Structures/core';
 import fs from 'fs/promises';
 import os from 'os';
 import {join} from 'path';
+import readline from 'readline';
+import Core from '../src/Structures/core';
 import locations from '../internal/locations.json';
 import ConfigHandler from '../src/handlers/config-handler';
 

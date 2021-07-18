@@ -19,7 +19,7 @@
  *
  */
 
-import {Response, Request} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
 import {User} from '../../Structures/Database/db-class';
@@ -32,14 +32,35 @@ class Lookup extends Path {
 		super(core);
 		this.label = '[API] Lookup Content';
 		this.path = '/api/admin/content/:type/:id';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						type: {type: 'string'},
+						id: {type: 'string'}
+					},
+					required: ['id', 'type']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+				type: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed'
 			});
@@ -51,7 +72,7 @@ class Lookup extends Path {
 			!['file', 'link'].includes(request.params.type) ||
 			!/^[A-Za-z\d]+$/.test(request.params.id)
 		) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'
 			});
@@ -63,7 +84,7 @@ class Lookup extends Path {
 					? await this.core.db.findFile({id: request.params.id})
 					: await this.core.db.findLink({id: request.params.id});
 			if (!out) {
-				return response.status(this.codes.noContent).json({
+				return response.status(this.codes.noContent).send({
 					code: this.Utils.FoldCodes.dbNotFound,
 					message: {}
 				});
@@ -71,9 +92,9 @@ class Lookup extends Path {
 
 			return response
 				.status(this.codes.ok)
-				.json({code: this.codes.ok, message: out});
+				.send({code: this.codes.ok, message: out});
 		} catch (error: unknown) {
-			return response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.dbError,
 				message: `An error occurred!\n${
 					(error as Error).message || (error as string)

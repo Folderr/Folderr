@@ -18,9 +18,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response, Request} from 'express';
 
 /**
  * @classdesc Make a user an administrator
@@ -33,14 +34,33 @@ class AddAdmin extends Path {
 		this.reqAuth = true;
 
 		this.type = 'post';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user) =>
 			Boolean(user.owner)
 		);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -48,7 +68,7 @@ class AddAdmin extends Path {
 
 		// You need to use the query to supply the users ID
 		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Users ID is required!'
 			});
@@ -56,7 +76,7 @@ class AddAdmin extends Path {
 
 		const match = /^\d+$/.exec(request.params.id);
 		if (!match || match[0].length !== request.params.id.length) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'ID is not a valid Folderr ID!'
 			});
@@ -71,14 +91,14 @@ class AddAdmin extends Path {
 			'admin'
 		);
 		if (!user) {
-			return response.status(this.codes.notFound).json({
+			return response.status(this.codes.notFound).send({
 				message: 'User not found!',
 				code: this.Utils.FoldCodes.dbNotFound
 			});
 		}
 
 		if (!user.admin) {
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				message: 'Update fail!',
 				code: this.Utils.FoldCodes.dbUnkownError
 			});
@@ -93,7 +113,7 @@ class AddAdmin extends Path {
 		);
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

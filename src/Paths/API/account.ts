@@ -19,11 +19,10 @@
  *
  */
 
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
 import {Notification} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc View the authorized users account
@@ -38,7 +37,10 @@ class Account extends Path {
 		this.type = 'get';
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = request.cookies?.token
 			? await this.Utils.authorization.verifyAccount(
@@ -81,7 +83,7 @@ class Account extends Path {
 		};
 		return response
 			.status(this.codes.ok)
-			.json({message: acc, code: this.codes.ok});
+			.send({message: acc, code: this.codes.ok});
 	}
 }
 

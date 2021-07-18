@@ -19,11 +19,10 @@
  *
  */
 
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
 import {User} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 interface DelReturns {
 	code: number;
@@ -41,6 +40,17 @@ class DelAccount extends Path {
 		this.reqAuth = true;
 
 		this.type = 'delete';
+
+		this.options = {
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						userid: {type: 'string'}
+					}
+				}
+			}
+		};
 	}
 
 	/**
@@ -77,13 +87,17 @@ class DelAccount extends Path {
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Querystring: {
+				userid?: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -91,19 +105,19 @@ class DelAccount extends Path {
 
 		let out;
 		// If you are an admin you can delete someones account by ID
-		if (request.query?.uid && typeof request.query.uid === 'string') {
+		if (request.query?.userid && typeof request.query.userid === 'string') {
 			// If they are not an admin, they arent authorized
 			if (!auth.admin) {
-				return response.status(this.codes.unauth).json({
+				return response.status(this.codes.unauth).send({
 					code: this.codes.unauth,
 					message: 'Authorization failed.'
 				});
 			}
 
 			// Find the user, and if not return a not found
-			const mem = await this.core.db.findUser({id: request.query.uid});
+			const mem = await this.core.db.findUser({id: request.query.userid});
 			if (!mem) {
-				return response.status(this.codes.notFound).json({
+				return response.status(this.codes.notFound).send({
 					code: this.Utils.FoldCodes.dbNotFound,
 					message: 'User not found!'
 				});
@@ -111,32 +125,31 @@ class DelAccount extends Path {
 
 			// Protect the owner and admins from unauthorized account deletions
 			if (mem.owner) {
-				return response.status(this.codes.forbidden).json({
+				return response.status(this.codes.forbidden).send({
 					code: this.codes.forbidden,
 					message: 'You can not delete that account as they are the owner!'
 				});
 			}
 
 			if (mem.admin && !auth.owner) {
-				return response.status(this.codes.forbidden).json({
+				return response.status(this.codes.forbidden).send({
 					code: this.codes.forbidden,
 					message: 'You cannot delete another admins account!'
 				});
 			}
 
 			// Delete the account
-			out = await this.deleteAccount(auth, request.query.uid);
+			out = await this.deleteAccount(auth, request.query.userid);
 			this.core.logger.info(
 				`Account ${mem.id} deleted by administrator (${auth.username} - ${auth.id})`
 			);
-			response.status(out.code).json(out.mess).end();
-			this.core.addDeleter(request.query.uid);
-			return;
+			this.core.addDeleter(request.query.userid);
+			return response.status(out.code).send(out.mess);
 		}
 
 		// Owner account may never be deleted
 		if (auth.owner) {
-			return response.status(this.codes.forbidden).json({
+			return response.status(this.codes.forbidden).send({
 				message: 'You can not delete your account as you are the owner!',
 				code: this.codes.forbidden
 			});
@@ -146,8 +159,8 @@ class DelAccount extends Path {
 		out = await this.deleteAccount(auth, auth.id);
 		this.core.logger.info(`Account ${auth.id} deleted`);
 
-		response.status(out.code).json(out.mess).end();
 		this.core.addDeleter(auth.id);
+		return response.status(out.code).send(out.mess);
 	}
 }
 

@@ -19,11 +19,10 @@
  *
  */
 
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
 import {User} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Administrators verify accounts via this endpoint
@@ -38,20 +37,28 @@ class VerifyAccount extends Path {
 		this.reqAuth = true;
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body?: {
+				token?: string;
+				userid?: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		// Handle authorization
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		if (!request.body || !request.body.token || !request.body.userid) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'BODY MISSING OR IMPARTIAL!'
 			});
@@ -63,7 +70,7 @@ class VerifyAccount extends Path {
 			request.body.userid
 		);
 		if (!user) {
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'User not found!'
 			});
@@ -80,7 +87,7 @@ class VerifyAccount extends Path {
 		);
 		return response
 			.status(this.codes.created)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

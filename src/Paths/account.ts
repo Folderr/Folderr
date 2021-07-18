@@ -19,11 +19,10 @@
  *
  */
 
+import {join} from 'path';
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Response} from 'express';
-import {Request} from '../Structures/Interfaces/express-extended';
-import {join} from 'path';
 
 class Account extends Path {
 	constructor(core: Core) {
@@ -37,23 +36,20 @@ class Account extends Path {
 	 * @desc Account page only shows if you are signed in.
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
-		if (!request.uauth) {
-			response.redirect('./');
-			return;
-		}
-
-		if (!request.secure && !this.Utils.verifyInsecureCookies(request)) {
-			response
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
+		if (
+			request.protocol !== 'https' &&
+			!this.Utils.verifyInsecureCookies(request)
+		) {
+			return response
 				.status(this.codes.notAccepted)
-				.sendFile(join(__dirname, '../Frontend/insecure_loggedIn.html'));
-			return;
+				.sendFile(join(process.cwd(), './Frontend/insecure_loggedIn.html'));
 		}
 
-		const dir = join(__dirname, '../Frontend/account.html');
-		response.sendFile(dir);
+		const dir = join(process.cwd(), './Frontend/account.html');
+		return response.sendFile(dir);
 	}
 }
 

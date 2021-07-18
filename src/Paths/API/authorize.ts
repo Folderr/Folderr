@@ -19,9 +19,9 @@
  *
  */
 
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response, Request} from 'express';
 
 /**
  * @classdesc Allow a user to login
@@ -37,15 +37,15 @@ class Login extends Path {
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		if (
 			!request.headers ||
 			(request.headers &&
 				(!request.headers.username || !request.headers.password))
 		) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'MISSING DETAIL(S)'
 			});
@@ -53,27 +53,28 @@ class Login extends Path {
 
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		// Set the cookie to expire in a weeks time
-		const week = 604800000;
+		const week = 604_800_000;
 		const endTime = new Date(Date.now() + week * 2);
 		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
-		response.cookie('token', jwt, {
-			expires: endTime,
-			secure: false,
-			httpOnly: true,
-			sameSite: 'strict'
-		});
-		// Set cookies
-		return response.status(this.codes.ok).json({
-			code: this.codes.ok,
-			message: 'OK'
-		});
+		return response
+			.cookie('token', jwt, {
+				expires: endTime,
+				secure: false,
+				httpOnly: true,
+				sameSite: 'strict'
+			})
+			.status(this.codes.ok)
+			.send({
+				code: this.codes.ok,
+				message: 'OK'
+			});
 	}
 }
 

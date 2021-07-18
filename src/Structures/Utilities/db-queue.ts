@@ -43,7 +43,7 @@ export default class DBQueue extends EventEmitter {
 		super();
 		this.onGoing = true;
 		this.config = Configurer.verifyFetch().db;
-		this.db = new NativeDB();
+		this.db = new NativeDB(); // eslint-disable-next-line promise/prefer-await-to-then
 		this.db.init(this.config.url).catch((error) => {
 			wlogger.error('CANNOT RUN DBQueue - Database Error');
 			if (error instanceof Error && process.env.DEBUG) {

@@ -19,14 +19,14 @@
  *
  */
 
+import {join} from 'path';
+import express from 'express';
+import {FastifyRequest, FastifyReply, RouteShorthandOptions} from 'fastify';
+import {RequestGallery} from '../../types/types/fastify-request-types';
 import codes, {Codes} from './Utilities/status-codes';
 import ErrorHandler from './error-handler';
 import Core from './core';
-import express from 'express';
-import {join} from 'path';
-import {Request} from './Interfaces/express-extended';
 import {User} from './Database/db-class';
-import uuid from 'uuid';
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -55,6 +55,8 @@ class Path {
 	public Utils: Core['Utils'];
 
 	public locked: boolean;
+
+	public options?: RouteShorthandOptions;
 
 	private readonly eHandler: ErrorHandler;
 
@@ -91,6 +93,7 @@ class Path {
 		this.eHandler = new ErrorHandler(this);
 		this.fatalErrors = 0;
 		this.locked = false;
+		this.options = this.getOptions();
 	}
 
 	/**
@@ -109,11 +112,15 @@ class Path {
 	 * @param {Object} request The request object
 	 * @param {Object} response Some object used for sending data back
 	 */
-	async execute(request: any, response: any): Promise<express.Response | void> {
+	async execute(
+		/* eslint-disable @typescript-eslint/no-unused-vars */
+		request: FastifyRequest,
+		response: FastifyReply /* eslint-enable @typescript-eslint/no-unused-vars */
+	): Promise<FastifyReply | void> {
 		throw new Error('Not implemented!');
 	}
 
-	async checkAuth(request: Request | express.Request): Promise<User | void> {
+	async checkAuth(request: FastifyRequest): Promise<User | void> {
 		if (
 			request.headers.authorization &&
 			typeof request.headers.authorization === 'string'
@@ -130,9 +137,7 @@ class Path {
 		}
 	}
 
-	async checkAuthAdmin(
-		request: Request | express.Request
-	): Promise<User | void> {
+	async checkAuthAdmin(request: FastifyRequest): Promise<User | void> {
 		if (
 			request.headers.authorization &&
 			typeof request.headers.authorization === 'string'
@@ -154,7 +159,9 @@ class Path {
 	}
 
 	generatePageQuery(
-		request: Request,
+		request: FastifyRequest<{
+			Querystring?: RequestGallery;
+		}>,
 		owner: string
 	):
 		| {
@@ -188,7 +195,7 @@ class Path {
 			middle: 15,
 			min: 10
 		};
-		let limit = request.query?.limit as string | number | undefined;
+		let limit = request.query?.limit;
 		if (typeof limit === 'string') {
 			try {
 				limit = Number(limit);
@@ -245,76 +252,62 @@ class Path {
 		return {query, options, errored: false};
 	}
 
-	/**
-	 * Handle rate limits, unhandled errors, execute actual endpoint
-	 *
-	 * @param {object} req The request object
-	 * @param {object} response Some object used for sending data back
-	 * @returns {express.Response|void}
-	 * @private
-	 */
-	async internal_execute(
-		request: any,
-		response: express.Response
+	async preHandler(
+		request: FastifyRequest,
+		response: FastifyReply,
+		done: () => void
 	): Promise<express.Response | void> {
 		// If path is not enabled, and it is not lean... end the endpoint here
 		if (this.locked && !this.lean) {
-			if (!request.path.match('/api')) {
-				response
+			if (!request.url.includes('/api')) {
+				return response
 					.status(this.codes.locked)
-					.sendFile(join(__dirname, '../Frontend/locked.html'));
-				return;
+					.sendFile(join(process.cwd(), '/Frontend/locked.html'));
 			}
 
-			return response.status(this.codes.locked).json({
+			return response.status(this.codes.locked).send({
 				code: this.Utils.FoldCodes.locked,
 				message: 'Endpoint locked!'
 			});
 		}
 
-		if (this.secureOnly && !request.secure) {
-			return response.status(this.codes.notAccepted).json({
+		if (this.secureOnly && request.protocol !== 'https') {
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.securityError,
 				message: 'Endpoint needs to be secure!'
 			});
 		}
 
-		// Execute the endpoint and catch errors
+		done();
+	}
 
-		const id = uuid.v1();
-		this.core.addRequestID(id);
-		try {
-			const inner_request = await this.execute(request, response);
-			this.core.removeRequestID(id);
-			return inner_request;
-		} catch (error: unknown) {
-			if (error instanceof Error) {
-				return this.handleError(error, response, id);
-			}
-		}
+	getOptions(): RouteShorthandOptions {
+		const options = this.options ?? {};
+		options.preHandler = this.preHandler;
+		return options;
 	}
 
 	/**
 	 * @desc Handle uncaught errors.
 	 *
 	 * @param {Object<Error>} err The error that occurred
-	 * @param {Object<express.Response>} response Express response that is with the error
+	 * @param {FastifyReply} response Express response that is with the error
 	 * @param {Object} [options]
 	 * @param {Boolean} [options.noIncrease] Whether or not to increase the fatal errors
 	 * @param {Boolean} [options.noResponse] Whether or not to send a response to the res.
 	 *
-	 * @returns {Object<express.Response>|Boolean}
+	 * @returns {FastifyReply|Boolean}
 	 * @protected
 	 */
 	protected handleError(
 		error: Error,
-		response: express.Response,
+		response: FastifyReply,
 		uuid?: string,
 		options?: {
 			noIncrease: boolean;
 			noResponse: boolean;
 		}
-	): express.Response | void {
+	): FastifyReply | void {
 		const ops = options ?? {noIncrease: false, noResponse: false};
 		let severity;
 		const error_formatted = error.message;
@@ -346,12 +339,11 @@ class Path {
 			return;
 		}
 
-		response.status(this.codes.internalErr).send(out);
 		if (uuid) {
 			this.core.removeRequestID(uuid);
 		}
 
-		throw new Error(error.message);
+		return response.status(this.codes.internalErr).send(out);
 	}
 
 	protected addFatalError(): void {

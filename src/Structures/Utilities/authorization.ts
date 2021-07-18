@@ -20,21 +20,14 @@
  */
 
 /**
- * @file Handles all token authorization in Folderr-X
+ * @file Handles all token authorization in Folderr
  */
 
-import jwt from 'jsonwebtoken';
-import fs from 'fs';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import Core from '../core';
 import {User} from '../Database/db-class';
 import AuthKeyHandler from '../../handlers/auth-key-handler';
-
-interface Keys {
-	privKeyPath: string;
-	algorithm?: string;
-	pubKeyPath: string;
-}
 
 /**
  * @classdesc Handle token authorization.
@@ -69,8 +62,8 @@ export default class Authorization {
 		}
 
 		try {
-			const result: any = jwt.verify(token, this.#pubKey, {issuer: 'folderr'});
-			if (!result) {
+			const result = jwt.verify(token, this.#pubKey, {issuer: 'folderr'});
+			if (!result || typeof result === 'string' || !result.jti) {
 				return;
 			}
 
@@ -81,7 +74,7 @@ export default class Authorization {
 				return;
 			}
 
-			return result.id;
+			return result.id as string;
 		} catch {}
 	}
 
@@ -125,8 +118,8 @@ export default class Authorization {
 		}
 
 		try {
-			const result: any = jwt.verify(token, this.#pubKey, {issuer: 'folderr'});
-			if (!result) {
+			const result = jwt.verify(token, this.#pubKey, {issuer: 'folderr'});
+			if (!result || typeof result === 'string' || !result.jti) {
 				return;
 			}
 
@@ -203,7 +196,7 @@ export default class Authorization {
 		url: string,
 		mirrorURL: string
 	): boolean {
-		const out: any = jwt.verify(message.token, this.#privKey, {
+		const out = jwt.verify(message.token, this.#privKey, {
 			issuer: 'folderr'
 		});
 		if (
@@ -212,7 +205,7 @@ export default class Authorization {
 			out.jti === id &&
 			out.url === url &&
 			out.mirrorURL === mirrorURL &&
-			message.res === 'Pong! Mirror Operational!'
+			message.res === 'Mirror Operational'
 		) {
 			return true;
 		}

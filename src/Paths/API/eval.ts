@@ -19,11 +19,10 @@
  *
  */
 
+import {inspect} from 'util';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../../Structures/path';
 import Core from '../../Structures/core';
-import {Response} from 'express';
-import {inspect} from 'util';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Allows owner to eval on the instance.
@@ -36,36 +35,58 @@ class Eval extends Path {
 		this.type = 'post';
 		this.reqAuth = true;
 		this.enabled = process.env.NODE_ENV === 'dev';
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						eval: {type: 'string'}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				eval: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user) =>
 			Boolean(user.owner)
 		);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		if (!request.body || !request.body.eval) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Eval code not provided.'
 			});
 		}
 
 		try {
-			// eslint-disable-next-line no-eval
-			let evaled = await eval(request.body.eval);
+			/* eslint-disable no-eval */
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			let evaled: string | Record<string, unknown> = await eval(
+				request.body.eval
+			);
+			/* eslint-enable no-eval */
 			evaled =
 				typeof evaled === 'object'
 					? (evaled = inspect(evaled, {depth: 0, showHidden: true}))
 					: (evaled = String(evaled));
 
 			if (!evaled || evaled.length === 0) {
-				return response.status(this.codes.noContent).json({
+				return response.status(this.codes.noContent).send({
 					code: this.codes.ok,
 					message: ''
 				});
@@ -73,25 +94,25 @@ class Eval extends Path {
 
 			const maxLength = 2000; // This limit makes sense.
 			if (evaled.length > maxLength) {
-				return response.status(this.codes.ok).json({
+				return response.status(this.codes.ok).send({
 					code: this.Utils.FoldCodes.evalSizeLimit,
 					message: 'Eval input too big'
 				});
 			}
 
-			return response.status(this.codes.ok).json({
+			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
 				message: evaled
 			});
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				return response.status(this.codes.badReq).json({
+				return response.status(this.codes.badReq).send({
 					code: this.Utils.FoldCodes.evalError,
 					message: `${error.message}`
 				});
 			}
 
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.evalError,
 				message: 'Unknown Eval Error. No error object returned.'
 			});

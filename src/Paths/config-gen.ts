@@ -19,11 +19,10 @@
  *
  */
 
+import {join} from 'path';
+import {FastifyRequest, FastifyReply} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
-import {Response} from 'express';
-import {Request} from '../Structures/Interfaces/express-extended';
-import {join} from 'path';
 
 class ConfigGen extends Path {
 	constructor(core: Core) {
@@ -39,21 +38,23 @@ class ConfigGen extends Path {
 	 * @desc ShareX Configuration Generator Frontend.
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
-		const dir = join(__dirname, '../Frontend/input_token.html');
-		if (!request.uauth) {
-			response.redirect('/');
-			return;
+		request: FastifyRequest<{
+			Querystring?: {
+				t?: 'string';
+			};
+		}>,
+		response: FastifyReply
+	) {
+		const dir = join(process.cwd(), '/Frontend/input_token.html');
+		if (!request.cookies.token) {
+			return response.redirect('/');
 		}
 
 		if (!request.query || !request.query.t) {
-			response.sendFile(dir);
-			return;
+			return response.sendFile(dir);
 		}
 
-		response.sendFile(join(__dirname, '../Frontend/genConfig.html'));
+		return response.sendFile(join(process.cwd(), '/Frontend/genConfig.html'));
 	}
 }
 

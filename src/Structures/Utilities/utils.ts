@@ -19,16 +19,58 @@
  *
  */
 
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import uuid from 'uuid';
-import {User as UI, PendingMember} from '../Database/db-class';
-import {FoldCodesI, FoldCodes} from './fold-codes';
 import {promisify} from 'util';
-import {Request} from 'express';
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import uuid from 'uuid';
+import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
+import {FastifyRequest} from 'fastify';
+import {User as UI, PendingMember} from '../Database/db-class';
 import Core from '../core';
-import Authorization from './authorization';
 import * as constants from '../constants/index';
+import {FoldCodesI, FoldCodes} from './fold-codes';
+import Authorization from './authorization';
+
+interface MirrorResponse {
+	message: {
+		res: string;
+	};
+}
+
+interface APIResponse {
+	message: {
+		message: string;
+	};
+}
+
+const ajv = new AJV();
+
+const msgschema: JTDSchemaType<MirrorResponse['message']> = {
+	properties: {
+		res: {type: 'string'}
+	}
+};
+
+const mirrorschema: JTDSchemaType<MirrorResponse> = {
+	properties: {
+		message: msgschema
+	}
+};
+
+const apimsg: JTDSchemaType<APIResponse['message']> = {
+	properties: {
+		message: {type: 'string'}
+	}
+};
+
+const apiresponse: JTDSchemaType<APIResponse> = {
+	properties: {
+		message: apimsg
+	}
+};
+
+const mirrorparse = ajv.compileParser(mirrorschema);
+const apiparse = ajv.compileParser(apiresponse);
 
 const sleep = promisify(setTimeout);
 const generateKeyPair = promisify(crypto.generateKeyPair);
@@ -331,7 +373,7 @@ class Utils {
 	 * @returns {Promise<boolean>}
 	 */
 	async authPassword(
-		request: Request,
+		request: FastifyRequest,
 		fn?: (arg0: UI) => boolean
 	): Promise<UI | false> {
 		// Make sure all of the auth stuff is there
@@ -382,7 +424,7 @@ class Utils {
 	 *
 	 * @returns {boolean}
 	 */
-	verifyInsecureCookies(request: Request): boolean {
+	verifyInsecureCookies(request: FastifyRequest): boolean {
 		if (!request.cookies) {
 			return false;
 		}
@@ -426,10 +468,11 @@ class Utils {
 	async testMirrorURL(url: string): Promise<boolean> {
 		try {
 			const test = await this.#core.superagent.get(`${url}/api`);
-			if (
-				test?.text &&
-				JSON.parse(test?.text)?.message?.res === 'Pong! Mirror Operational!'
-			) {
+			if (!test || !test.text) {
+				return false;
+			}
+
+			if (mirrorparse(test.text)?.message.res === 'Pong! Mirror Operational!') {
 				return true;
 			}
 
@@ -439,9 +482,9 @@ class Utils {
 		}
 	}
 
-	async determineHomeURL(request: Request): Promise<string> {
+	async determineHomeURL(request: FastifyRequest): Promise<string> {
 		const protocol = `${request.protocol || 'http'}://`;
-		let host = request.get('host') ?? request.get('Host');
+		let host = request.hostname;
 		if (!host) {
 			host = this.#core.config.url;
 		}
@@ -450,7 +493,11 @@ class Utils {
 			const test = await this.#core.superagent.get(
 				`${this.#core.config.url}/api`
 			);
-			if (test?.text && JSON.parse(test?.text)?.message?.message === 'Pong!') {
+			if (!test || !test.text) {
+				return `${protocol}${host}`;
+			}
+
+			if (apiparse(test.text)?.message.message === 'Pong!') {
 				return this.#core.config.url;
 			}
 
