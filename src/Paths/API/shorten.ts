@@ -63,20 +63,6 @@ class Shorten extends Path {
 			});
 		}
 
-		if (!request.body || !request.body.url) {
-			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.shortUrlMissing,
-				message: 'BODY URL MISSING!'
-			});
-		}
-
-		if (typeof request.body.url !== 'string') {
-			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.shortUrlInvalid,
-				message: 'URL MUST BE STRING'
-			});
-		}
-
 		try {
 			await this.core.superagent.get(request.body.url);
 			// eslint-disable-next-line @typescript-eslint/no-implicit-any-catch

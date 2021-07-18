@@ -67,21 +67,6 @@ class DenyAccount extends Path {
 			});
 		}
 
-		// Verify body
-		if (!request.body.token && !request.body.userid) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'BODY MISSING!'
-			});
-		}
-
-		if (!request.body.token || !request.body.userid) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'BODY INCOMPLETE!'
-			});
-		}
-
 		// Search for the user, and if not found send in an error
 		const user = await this.Utils.findVerifying(
 			request.body.token,

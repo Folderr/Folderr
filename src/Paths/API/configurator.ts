@@ -78,13 +78,6 @@ class ShareXConfigurator extends Path {
 			});
 		}
 
-		if (!request.body || !request.body.token) {
-			return response.status(this.codes.unauth).send({
-				code: this.codes.badReq,
-				message: 'Missing token in body!'
-			});
-		}
-
 		const compare = await this.Utils.authorization.verifyAccount(
 			request.body.token
 		);

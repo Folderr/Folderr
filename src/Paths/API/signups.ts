@@ -198,20 +198,6 @@ class Signup extends Path {
 			});
 		}
 
-		// Check all required body is there
-		if (
-			!request.body ||
-			(request.body &&
-				(!request.body.username ||
-					!request.body.password ||
-					!request.body.email))
-		) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'MISSING DETAIL(S)'
-			});
-		}
-
 		// Fetch the username and password from the body
 		const {username, password, email} = request.body;
 		const isValid = await this.checkUserInput(

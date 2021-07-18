@@ -33,15 +33,34 @@ class WarnUser extends Path {
 		this.label = '[API] Warn User';
 		this.path = '/api/admin/warn/:id';
 		this.type = 'post';
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						reason: {type: 'string'}
+					},
+					required: ['reason']
+				},
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				}
+			}
+		};
 	}
 
 	async execute(
 		request: FastifyRequest<{
-			Body?: {
-				reason?: string;
+			Body: {
+				reason: string;
 			};
-			Params?: {
-				id?: string;
+			Params: {
+				id: string;
 			};
 		}>,
 		response: FastifyReply
@@ -56,12 +75,7 @@ class WarnUser extends Path {
 			});
 		}
 
-		if (
-			!request.params?.id ||
-			!request.body?.reason ||
-			typeof request.body.reason !== 'string' ||
-			!/^\d+$/.test(request.params.id)
-		) {
+		if (!/^\d+$/.test(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Requirements missing or invalid!'

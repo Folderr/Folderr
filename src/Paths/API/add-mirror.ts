@@ -88,12 +88,7 @@ class MirrorAdd extends Path {
 			});
 		}
 
-		if (
-			!request.body ||
-			!request.body.url ||
-			typeof request.body.url !== 'string' ||
-			!/http(s)?:\/\//.test(request.body.url)
-		) {
+		if (!/http(s)?:\/\//.test(request.body.url)) {
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.mirrorInvalidUrl,
 				message: 'Invalid Mirror URL'

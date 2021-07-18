@@ -64,13 +64,6 @@ class MirrorRemove extends Path {
 			});
 		}
 
-		if (!request.body || !request.body.mirror) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'No mirror given to remove!'
-			});
-		}
-
 		if (auth.cURLs.length === 0 || !auth.cURLs.includes(request.body.mirror)) {
 			return response.status(this.codes.badReq).send({
 				message: 'Mirror not linked!',

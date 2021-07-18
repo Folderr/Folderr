@@ -26,6 +26,23 @@ import wlogger from '../../Structures/winston-logger';
 import {User} from '../../Structures/Database/db-class';
 import * as constants from '../../Structures/constants/index';
 
+type UpdateAccBody =
+	| {
+			email: string;
+			username?: string;
+			password?: string;
+	  }
+	| {
+			username: string;
+			email?: string;
+			password?: string;
+	  }
+	| {
+			password: string;
+			email?: string;
+			username?: string;
+	  };
+
 /**
  * @classdesc Updating the authorized users account
  */
@@ -46,7 +63,7 @@ class UpdateAcc extends Path {
 						password: {type: 'string'},
 						username: {type: 'string'}
 					},
-					required: ['email', 'password', 'username']
+					anyRequired: ['email', 'password', 'username']
 				}
 			}
 		};
@@ -54,11 +71,7 @@ class UpdateAcc extends Path {
 
 	async execute(
 		request: FastifyRequest<{
-			Body: {
-				username: string;
-				email: string;
-				password: string;
-			};
+			Body: UpdateAccBody;
 		}>,
 		response: FastifyReply
 	) {
@@ -217,11 +230,7 @@ class UpdateAcc extends Path {
 
 	private async handleEmailUpdate(
 		request: FastifyRequest<{
-			Body: {
-				username: string;
-				email: string;
-				password: string;
-			};
+			Body: UpdateAccBody;
 		}>,
 		preEmail: string,
 		username: string
@@ -398,11 +407,7 @@ class UpdateAcc extends Path {
 
 	private async isValid(
 		request: FastifyRequest<{
-			Body: {
-				username: string;
-				email: string;
-				password: string;
-			};
+			Body: UpdateAccBody;
 		}>
 	): Promise<
 		| {

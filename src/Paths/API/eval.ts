@@ -66,13 +66,6 @@ class Eval extends Path {
 			});
 		}
 
-		if (!request.body || !request.body.eval) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'Eval code not provided.'
-			});
-		}
-
 		try {
 			/* eslint-disable no-eval */
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

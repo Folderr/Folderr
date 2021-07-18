@@ -35,13 +35,26 @@ class VerifyAccount extends Path {
 		this.path = '/api/admin/verify';
 		this.type = 'post';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						token: {type: 'string'},
+						userid: {type: 'string'}
+					},
+					required: ['token', 'userid']
+				}
+			}
+		};
 	}
 
 	async execute(
 		request: FastifyRequest<{
-			Body?: {
-				token?: string;
-				userid?: string;
+			Body: {
+				token: string;
+				userid: string;
 			};
 		}>,
 		response: FastifyReply
@@ -54,13 +67,6 @@ class VerifyAccount extends Path {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
-			});
-		}
-
-		if (!request.body || !request.body.token || !request.body.userid) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'BODY MISSING OR IMPARTIAL!'
 			});
 		}
 

@@ -69,13 +69,6 @@ class Manage extends Path {
 			});
 		}
 
-		if (!request.query || !request.query.type) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'Missing manage type'
-			});
-		}
-
 		if (request.query.type === 'shutdown') {
 			this.core.logger.info(
 				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`

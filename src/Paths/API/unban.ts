@@ -65,10 +65,7 @@ class Unban extends Path {
 			});
 		}
 
-		if (
-			!request.body.email ||
-			this.core.emailer.validateEmail(request.body.email)
-		) {
+		if (this.core.emailer.validateEmail(request.body.email)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'

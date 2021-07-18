@@ -73,11 +73,7 @@ class Ban extends Path {
 			});
 		}
 
-		if (
-			!request.params.id ||
-			!/^\d+$/.test(request.params.id) ||
-			!request.body.reason
-		) {
+		if (!/^\d+$/.test(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing requirements'

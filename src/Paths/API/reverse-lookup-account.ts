@@ -67,8 +67,6 @@ class LookupAccount extends Path {
 		}
 
 		if (
-			!request.params?.type ||
-			!request.params?.id ||
 			!['file', 'link'].includes(request.params.type) ||
 			!/^[\dA-Za-z]+$/.test(request.params.id)
 		) {

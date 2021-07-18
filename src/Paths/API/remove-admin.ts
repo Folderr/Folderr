@@ -67,14 +67,6 @@ class RemoveAdmin extends Path {
 			});
 		}
 
-		// You need to supply the ID for the user via query
-		if (!request.params?.id) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'Users ID is required!'
-			});
-		}
-
 		const match = /^\d+$/.exec(request.params.id);
 		if (!match || match[0].length !== request.params.id.length) {
 			return response.status(this.codes.badReq).send({
