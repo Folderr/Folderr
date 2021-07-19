@@ -19,7 +19,6 @@
  *
  */
 
-import {join} from 'path';
 import mime from 'mime-types';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../Structures/path';
@@ -42,6 +41,11 @@ class Files extends Path {
 						id: {type: 'string'}
 					},
 					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'string'
+					}
 				}
 			}
 		};
@@ -59,9 +63,7 @@ class Files extends Path {
 		response: FastifyReply
 	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
-			return response
-				.status(this.codes.badReq)
-				.send('[ERROR] Missing file ID.');
+			return response.status(this.codes.badReq).send('Missing file ID');
 		}
 
 		if (!request.params.id.includes('.')) {
@@ -81,16 +83,12 @@ class Files extends Path {
 			const owner = await this.core.db.findUser({id: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				return response
-					.status(this.codes.notFound)
-					.sendFile(join(process.cwd(), './Frontend/notfound.html'));
+				return response.status(this.codes.notFound).send('404 Not Found');
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'file')) {
-			return response
-				.status(this.codes.notFound)
-				.sendFile(join(process.cwd(), './Frontend/notfound.html'));
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
 		let content = mime.contentType(image.path);

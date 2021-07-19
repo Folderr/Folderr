@@ -19,7 +19,6 @@
  *
  */
 
-import {join} from 'path';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import mime from 'mime-types';
 import Path from '../Structures/path';
@@ -42,6 +41,11 @@ class Videos extends Path {
 						id: {type: 'string'}
 					},
 					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'string'
+					}
 				}
 			}
 		};
@@ -59,9 +63,7 @@ class Videos extends Path {
 		response: FastifyReply
 	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
-			return response
-				.status(this.codes.badReq)
-				.send('[ERROR] Missing video ID.');
+			return response.status(this.codes.badReq).send('Missing video ID');
 		}
 
 		if (!/./.test(request.params.id)) {
@@ -78,16 +80,12 @@ class Videos extends Path {
 			const owner = await this.core.db.findUser({id: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				return response
-					.status(this.codes.notFound)
-					.sendFile(join(process.cwd(), './Frontend/notfound.html'));
+				return response.status(this.codes.notFound).send('404 Not Found');
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'video')) {
-			return response
-				.status(this.codes.notFound)
-				.sendFile(join(process.cwd(), './Frontend/notfound.html'));
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
 		let content = mime.contentType(image.path);

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import {join} from 'path';
+
 import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
@@ -40,6 +40,11 @@ class Short extends Path {
 						id: {type: 'string'}
 					},
 					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'string'
+					}
 				}
 			}
 		};
@@ -57,9 +62,7 @@ class Short extends Path {
 		response: FastifyReply
 	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
-			return response
-				.status(this.codes.badReq)
-				.send('[ERROR] Missing short ID.');
+			return response.status(this.codes.badReq).send('Missing short ID');
 		}
 
 		const short = await this.core.db.findLink(
@@ -67,17 +70,13 @@ class Short extends Path {
 			'link owner'
 		);
 		if (!short) {
-			return response
-				.status(this.codes.notFound)
-				.sendFile(join(process.cwd(), './Frontend/notfound.html'));
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
 		const owner = await this.core.db.findUser({id: short.owner});
 		if (!owner) {
 			this.core.addDeleter(short.owner);
-			return response
-				.status(this.codes.notFound)
-				.sendFile(join(process.cwd(), './Frontend/notfound.html'));
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
 		return response.redirect(short.link.trim());

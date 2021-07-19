@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import {join} from 'path';
+
 import {FastifyReply, FastifyRequest} from 'fastify';
 import Path from '../Structures/path';
 import Core from '../Structures/core';
@@ -27,7 +27,7 @@ class Logout extends Path {
 	constructor(core: Core) {
 		super(core);
 		this.label = 'logout';
-		this.path = '/logout';
+		this.path = '/api/logout';
 		this.enabled = !this.core.config.apiOnly;
 	}
 
@@ -35,14 +35,15 @@ class Logout extends Path {
 	 * @desc Logs you out or displays the deleted account page
 	 */
 	async execute(request: FastifyRequest, response: FastifyReply) {
-		const dir = join(process.cwd(), './Frontend/loggedout.html');
 		if (!request.cookies.token) {
 			return response.redirect('/');
 		}
 
 		await this.Utils.authorization.revoke(request.cookies.token, true);
 		await response.clearCookie('token', {sameSite: 'strict'});
-		return response.sendFile(dir);
+		return response
+			.status(this.codes.ok)
+			.send({message: 'Logged out', code: this.codes.ok});
 	}
 }
 

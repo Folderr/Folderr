@@ -42,6 +42,22 @@ class Verify extends Path {
 						token: {type: 'string'}
 					},
 					required: ['userid', 'token']
+				},
+				response: {
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};
