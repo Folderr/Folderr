@@ -42,6 +42,22 @@ class Unban extends Path {
 						email: {type: 'string'}
 					},
 					required: ['email']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};

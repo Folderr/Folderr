@@ -42,6 +42,22 @@ class Lookup extends Path {
 						id: {type: 'string'}
 					},
 					required: ['id', 'type']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'object'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};
@@ -67,8 +83,6 @@ class Lookup extends Path {
 		}
 
 		if (
-			!request.params?.type ||
-			!request.params?.id ||
 			!['file', 'link'].includes(request.params.type) ||
 			!/^[A-Za-z\d]+$/.test(request.params.id)
 		) {
@@ -84,7 +98,7 @@ class Lookup extends Path {
 					? await this.core.db.findFile({id: request.params.id})
 					: await this.core.db.findLink({id: request.params.id});
 			if (!out) {
-				return response.status(this.codes.noContent).send({
+				return response.status(this.codes.ok).send({
 					code: this.Utils.FoldCodes.dbNotFound,
 					message: {}
 				});

@@ -42,6 +42,22 @@ class MirrorRemove extends Path {
 						mirror: {type: 'string'}
 					},
 					required: ['mirror']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'object'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};

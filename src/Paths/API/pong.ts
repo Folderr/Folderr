@@ -38,6 +38,20 @@ class Pong extends Path {
 		this.label = '[API] Pong';
 		this.path = '/api/';
 		this.type = 'get';
+
+		this.options = {
+			schema: {
+				response: {
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'object'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	/**

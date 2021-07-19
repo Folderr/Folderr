@@ -34,6 +34,26 @@ class Login extends Path {
 		this.secureOnly = false;
 
 		this.type = 'post';
+		this.options = {
+			schema: {
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(

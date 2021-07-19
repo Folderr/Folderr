@@ -34,6 +34,26 @@ class ClearNotifs extends Path {
 		this.reqAuth = true;
 
 		this.type = 'delete';
+		this.options = {
+			schema: {
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(

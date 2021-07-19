@@ -46,6 +46,29 @@ class Signup extends Path {
 						password: {type: 'string'}
 					},
 					required: ['email', 'username', 'password']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					500: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					201: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};
@@ -77,7 +100,7 @@ class Signup extends Path {
 			token: string;
 		},
 		response: FastifyReply
-	): Promise<{httpCode: number; msg: {code: number; message: string}}> {
+	): Promise<{httpCode: 500 | 201; msg: {code: number; message: string}}> {
 		// Find admin notifications, and generate an ID
 		const notifyID = await this.Utils.genNotifyID();
 		// Make a new notification and save to database
@@ -133,7 +156,7 @@ class Signup extends Path {
 		request: FastifyRequest,
 		response: FastifyReply
 	): Promise<{
-		httpCode: number;
+		httpCode: 500 | 201;
 		msg: {
 			message: string;
 			code: number;

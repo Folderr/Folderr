@@ -35,6 +35,26 @@ class Account extends Path {
 		this.reqAuth = true;
 
 		this.type = 'get';
+
+		this.options = {
+			schema: {
+				response: {
+					200: {
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					401: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(

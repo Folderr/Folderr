@@ -165,7 +165,7 @@ class Path {
 		owner: string
 	):
 		| {
-				httpCode: number;
+				httpCode: 406;
 				json: Record<string, string | number>;
 				errored: boolean;
 		  }

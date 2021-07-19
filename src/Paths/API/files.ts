@@ -45,6 +45,22 @@ class Files extends Path {
 						before: {type: 'object'},
 						after: {type: 'object'}
 					}
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'array'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};
@@ -67,7 +83,7 @@ class Files extends Path {
 		const generated = this.generatePageQuery(request, auth.id);
 		if (generated.errored) {
 			const genType = generated as unknown as {
-				httpCode: number;
+				httpCode: 406;
 				json: Record<string, string | number>;
 				errored: boolean;
 			};

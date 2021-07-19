@@ -31,6 +31,27 @@ class Tokens extends Path {
 		super(core);
 		this.label = '[API] List Tokens';
 		this.path = '/api/account/tokens';
+
+		this.options = {
+			schema: {
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'array'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(request: FastifyRequest, response: FastifyReply) {

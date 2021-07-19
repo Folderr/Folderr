@@ -34,6 +34,36 @@ class Links extends Path {
 		this.label = '[API] Links';
 		this.path = '/api/links';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						gallery: {type: 'boolean'},
+						limit: {type: 'number'},
+						before: {type: 'object'},
+						after: {type: 'object'}
+					}
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'array'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(
@@ -54,7 +84,7 @@ class Links extends Path {
 		const generated = this.generatePageQuery(request, auth.id);
 		if (generated.errored) {
 			const genType = generated as unknown as {
-				httpCode: number;
+				httpCode: 406;
 				json: Record<string, string | number>;
 				errored: boolean;
 			};

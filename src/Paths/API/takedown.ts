@@ -43,6 +43,31 @@ class Takedown extends Path {
 						id: {type: 'string'}
 					},
 					required: ['type', 'id']
+				},
+				response: {
+					response: {
+						'4xx': {
+							type: 'object',
+							properties: {
+								message: {type: 'string'},
+								code: {type: 'number'}
+							}
+						},
+						500: {
+							type: 'object',
+							properties: {
+								message: {type: 'string'},
+								code: {type: 'number'}
+							}
+						},
+						200: {
+							type: 'object',
+							properties: {
+								message: {type: 'string'},
+								code: {type: 'number'}
+							}
+						}
+					}
 				}
 			}
 		};
@@ -57,7 +82,7 @@ class Takedown extends Path {
 			};
 		}>
 	): Promise<{
-		httpCode: number;
+		httpCode: 406 | 200;
 		msg: {
 			code: number;
 			message: string;
@@ -111,7 +136,7 @@ class Takedown extends Path {
 			};
 		}>
 	): Promise<{
-		httpCode: number;
+		httpCode: 406 | 200;
 		msg: {
 			code: number;
 			message: string;

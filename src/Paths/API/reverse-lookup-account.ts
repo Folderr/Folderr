@@ -42,6 +42,22 @@ class LookupAccount extends Path {
 						type: {type: 'string'}
 					},
 					required: ['id', 'type']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'object'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};
@@ -95,7 +111,7 @@ class LookupAccount extends Path {
 		);
 		if (!user) {
 			return response.status(this.codes.ok).send({
-				code: this.codes.ok,
+				code: this.Utils.FoldCodes.noUserFound,
 				message: {}
 			});
 		}

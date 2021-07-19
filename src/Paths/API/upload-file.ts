@@ -36,6 +36,30 @@ class Image extends Path {
 		this.path = '/api/file';
 		this.type = 'post';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					500: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'string'
+					}
+				}
+			}
+		};
 	}
 
 	async execute(request: FastifyRequest, response: FastifyReply) {

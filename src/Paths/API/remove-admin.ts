@@ -43,6 +43,22 @@ class RemoveAdmin extends Path {
 						id: {type: 'string'}
 					},
 					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'object'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};
@@ -60,10 +76,10 @@ class RemoveAdmin extends Path {
 		const auth = await this.Utils.authPassword(request, (user) =>
 			Boolean(user.owner)
 		);
-		if (!auth || typeof auth === 'string') {
+		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: auth || 'Authorization failed.'
+				message: 'Authorization failed.'
 			});
 		}
 

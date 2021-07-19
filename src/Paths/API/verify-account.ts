@@ -45,6 +45,22 @@ class VerifyAccount extends Path {
 						userid: {type: 'string'}
 					},
 					required: ['token', 'userid']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					201: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};

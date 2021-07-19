@@ -64,6 +64,29 @@ class UpdateAcc extends Path {
 						username: {type: 'string'}
 					},
 					anyRequired: ['email', 'password', 'username']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					'5xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					'2xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
 				}
 			}
 		};
@@ -158,7 +181,7 @@ class UpdateAcc extends Path {
 
 	private async handlePassword(password: string): Promise<
 		| {
-				httpCode: number;
+				httpCode: 400 | 403 | 500;
 				message: {
 					message: string;
 					code: number;
@@ -242,7 +265,7 @@ class UpdateAcc extends Path {
 		  }
 		| {
 				accepted: false;
-				httpCode: number;
+				httpCode: 226 | 400 | 403 | 406 | 501;
 				message: {
 					code: number;
 					message: string;
@@ -350,7 +373,7 @@ class UpdateAcc extends Path {
 		username?: string
 	): Promise<
 		| {
-				httpCode: number;
+				httpCode: 226 | 400;
 				message: {
 					code: number;
 					message: string;
@@ -411,7 +434,7 @@ class UpdateAcc extends Path {
 		}>
 	): Promise<
 		| {
-				httpCode: number;
+				httpCode: 400 | 401 | 403;
 				failed: boolean;
 				message: {
 					code: number;
