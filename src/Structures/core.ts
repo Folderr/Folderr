@@ -374,6 +374,7 @@ export default class Core {
 		const output = this.#requestIDs.delete(id);
 		if (this.#requestIDs.size === 0) {
 			this.#internals.noRequests = true;
+			ee.emit('noRequests');
 		}
 
 		return output;
