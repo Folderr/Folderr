@@ -60,7 +60,7 @@ class ShareXConfigurator extends Path {
 						}
 					},
 					200: {
-						type: ['string', 'object'],
+						type: 'object',
 						properties: {
 							message: {type: 'string'},
 							code: {type: 'number'}

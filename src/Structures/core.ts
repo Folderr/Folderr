@@ -127,7 +127,8 @@ export default class Core {
 		});
 		await this.app.register(fastifyStatic, {
 			root: join(process.cwd(), 'build/assets'),
-			prefix: '/assets'
+			prefix: '/assets',
+			decorateReply: false
 		});
 		// This.app.use(express.static(join(__dirname, '../Frontend')));
 		await this.app.register(ratelimit, {
@@ -195,6 +196,7 @@ export default class Core {
 					for (const url of path.path) {
 						if (path.options) {
 							this.app.post(url, path.options, path.execute.bind(path));
+							continue;
 						}
 
 						this.app.post(url, path.execute.bind(path));
@@ -202,6 +204,7 @@ export default class Core {
 				} else {
 					if (path.options) {
 						this.app.post(path.path, path.options, path.execute.bind(path));
+						break;
 					}
 
 					this.app.post(path.path, path.execute.bind(path));
@@ -215,6 +218,7 @@ export default class Core {
 					for (const url of path.path) {
 						if (path.options) {
 							this.app.delete(url, path.options, path.execute.bind(path));
+							continue;
 						}
 
 						this.app.delete(url, path.execute.bind(path));
@@ -222,6 +226,7 @@ export default class Core {
 				} else {
 					if (path.options) {
 						this.app.delete(path.path, path.options, path.execute.bind(path));
+						break;
 					}
 
 					this.app.delete(path.path, path.execute.bind(path));
@@ -235,6 +240,7 @@ export default class Core {
 					for (const url of path.path) {
 						if (path.options) {
 							this.app.patch(url, path.options, path.execute.bind(path));
+							continue;
 						}
 
 						this.app.patch(url, path.execute.bind(path));
@@ -242,6 +248,7 @@ export default class Core {
 				} else {
 					if (path.options) {
 						this.app.patch(path.path, path.options, path.execute.bind(path));
+						break;
 					}
 
 					this.app.patch(path.path, path.execute.bind(path));
@@ -255,6 +262,7 @@ export default class Core {
 					for (const url of path.path) {
 						if (path.options) {
 							this.app.get(url, path.options, path.execute.bind(path));
+							continue;
 						}
 
 						this.app.get(url, path.execute.bind(path));
@@ -262,6 +270,7 @@ export default class Core {
 				} else {
 					if (path.options) {
 						this.app.get(path.path, path.options, path.execute.bind(path));
+						break;
 					}
 
 					this.app.get(path.path, path.execute.bind(path));
