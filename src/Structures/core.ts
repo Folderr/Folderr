@@ -26,13 +26,15 @@ import Configurer, {
 	KeyConfig
 } from '../handlers/config-handler';
 import * as endpoints from '../Paths/index';
-import DB from './Database/mongoose-db';
-import wlogger from './winston-logger';
-import Emailer from './emailer';
-import Regexs from './Utilities/reg-exps';
-import Utils from './Utilities/utils';
-import StatusCodes from './Utilities/status-codes';
-import Path from './path';
+import {
+	Path,
+	Emailer,
+	Utils,
+	MongoDB,
+	wlogger,
+	Regexs,
+	codes as StatusCodes
+} from '../internals';
 
 const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -45,7 +47,7 @@ ee.on('fail', (code) => {
 });
 
 export default class Core {
-	public readonly db: DB;
+	public readonly db: MongoDB;
 
 	public app: FastifyInstance;
 
@@ -90,10 +92,10 @@ export default class Core {
 		this.app = fastify({
 			trustProxy: this.config.trustProxies,
 			disableRequestLogging: true,
-			serverFactory: this.initServer
+			serverFactory: this.initServer(this.#keys)
 		});
 
-		this.db = new DB(); // Time to abuse Node. :)
+		this.db = new MongoDB(); // Time to abuse Node. :)
 
 		this.regexs = new Regexs();
 		this.Utils = new Utils(this);
@@ -142,30 +144,42 @@ export default class Core {
 		await this.Utils.authorization.init();
 	}
 
-	initServer(handler: FastifyServerFactoryHandler): http.Server {
-		if (this.#keys.httpsCertOptions?.key && this.#keys.httpsCertOptions?.cert) {
-			// IMPL http/2 server
-			const server = spdy.createServer(
-				{
-					cert: fs.readFileSync(this.#keys.httpsCertOptions.cert),
-					key: fs.readFileSync(this.#keys.httpsCertOptions.key),
-					spdy: {
-						protocols: ['h2', 'http/1.1']
+	initServer(
+		keys: KeyConfig
+	): (handler: FastifyServerFactoryHandler) => http.Server {
+		return (handler: FastifyServerFactoryHandler) => {
+			if (keys.httpsCertOptions?.key && keys.httpsCertOptions?.cert) {
+				// IMPL http/2 server
+				const server = spdy.createServer(
+					{
+						cert: fs.readFileSync(keys.httpsCertOptions.cert),
+						key: fs.readFileSync(keys.httpsCertOptions.key),
+						spdy: {
+							protocols: ['h2', 'http/1.1']
+						}
+					},
+					(request, response) => {
+						handler(request, response);
 					}
-				},
-				(request, response) => {
-					handler(request, response);
+				);
+				wlogger.log('prelisten', 'Initalized Server');
+				if (process.env.DEBUG) {
+					wlogger.log('debug', 'Using SPDY server');
 				}
-			);
+
+				return server;
+			}
+
+			const server = http.createServer((request, response) => {
+				handler(request, response);
+			});
+			if (process.env.DEBUG) {
+				wlogger.log('debug', 'Using HTTP server');
+			}
+
 			wlogger.log('prelisten', 'Initalized Server');
 			return server;
-		}
-
-		const server = http.createServer((request, response) => {
-			handler(request, response);
-		});
-		wlogger.log('prelisten', 'Initalized Server');
-		return server;
+		};
 	}
 
 	async initDB(): Promise<void> {

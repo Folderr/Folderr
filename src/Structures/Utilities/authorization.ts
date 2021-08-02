@@ -25,7 +25,7 @@
 
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import Core from '../core';
+import {Core} from '../../internals';
 import {User} from '../Database/db-class';
 import AuthKeyHandler from '../../handlers/auth-key-handler';
 

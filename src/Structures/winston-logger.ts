@@ -37,9 +37,9 @@ const logger = winston.createLogger({
 		new winston.transports.File({filename: 'logs/all.log', level: 'startup'})
 	]
 });
-winston.exceptions.handle(
-	new winston.transports.File({filename: '../logs/exception.log'})
-);
+// Winston.exceptions.handle(
+// 	new winston.transports.File({filename: '../logs/exception.log'})
+// );
 if (process.env.NODE_ENV !== 'production') {
 	logger.add(
 		new winston.transports.Console({

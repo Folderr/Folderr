@@ -23,9 +23,7 @@ import {join} from 'path';
 import express from 'express';
 import {FastifyRequest, FastifyReply, RouteShorthandOptions} from 'fastify';
 import {RequestGallery} from '../../types/types/fastify-request-types';
-import codes, {Codes} from './Utilities/status-codes';
-import ErrorHandler from './error-handler';
-import Core from './core';
+import {ErrorHandler, Core, codes, Codes} from '../internals';
 import {User} from './Database/db-class';
 
 /**

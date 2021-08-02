@@ -20,8 +20,7 @@
  */
 
 import {FastifyRequest, FastifyReply} from 'fastify';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {Core, Path} from '../../internals';
 
 /**
  * @classsdesc Allows users to remove a mirror

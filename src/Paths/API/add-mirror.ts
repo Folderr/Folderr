@@ -21,8 +21,7 @@
 
 import {FastifyReply, FastifyRequest} from 'fastify';
 import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {Core, Path} from '../../internals';
 
 interface MirrorResponse {
 	message: {

@@ -20,9 +20,7 @@
  */
 import {compareSync} from 'bcrypt';
 import {FastifyRequest, FastifyReply} from 'fastify';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import wlogger from '../../Structures/winston-logger';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
 import * as constants from '../../Structures/constants/index';
 
@@ -240,7 +238,7 @@ class UpdateAcc extends Path {
 				};
 			}
 
-			wlogger.error(`[Update Account - Password] - ${error.message}`);
+			this.core.logger.error(`[Update Account - Password] - ${error.message}`);
 			return {
 				httpCode: this.codes.badReq,
 				message: {

@@ -20,8 +20,7 @@
  */
 
 import {FastifyRequest, FastifyReply} from 'fastify';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc Fetchs users tokens information (actual token not stored by Folderr)

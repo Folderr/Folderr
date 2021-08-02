@@ -22,8 +22,8 @@
 import {EventEmitter} from 'events';
 import Configurer, {DBConfig} from '../../handlers/config-handler';
 import DB, {Upload} from '../Database/db-class';
-import NativeDB from '../Database/mongoose-db';
-import wlogger from '../winston-logger';
+import MongoDB from '../Database/mongoose-db';
+import {wlogger} from '../../internals';
 
 /**
  * @classdesc Handles deleting files
@@ -43,7 +43,7 @@ export default class DBQueue extends EventEmitter {
 		super();
 		this.onGoing = true;
 		this.config = Configurer.verifyFetch().db;
-		this.db = new NativeDB(); // eslint-disable-next-line promise/prefer-await-to-then
+		this.db = new MongoDB(); // eslint-disable-next-line promise/prefer-await-to-then
 		this.db.init(this.config.url).catch((error) => {
 			wlogger.error('CANNOT RUN DBQueue - Database Error');
 			if (error instanceof Error && process.env.DEBUG) {

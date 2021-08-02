@@ -21,8 +21,7 @@
 
 import {join} from 'path';
 import {FastifyRequest, FastifyReply} from 'fastify';
-import Path from '../Structures/path';
-import Core from '../Structures/core';
+import {Core, Path} from '../internals';
 
 class Account extends Path {
 	constructor(core: Core) {

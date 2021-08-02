@@ -20,8 +20,7 @@
  */
 
 import {FastifyRequest, FastifyReply} from 'fastify';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {Core, Path} from '../../internals';
 import wlogger from '../../Structures/winston-logger';
 import * as constants from '../../Structures/constants/index';
 

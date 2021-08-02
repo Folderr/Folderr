@@ -21,7 +21,7 @@
 
 import nodemailer, {SentMessageInfo} from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
-import Core from './core';
+import {Core} from '../internals';
 import * as constants from './constants/index';
 
 /**

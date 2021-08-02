@@ -21,8 +21,7 @@
 
 import {FastifyReply, FastifyRequest} from 'fastify';
 import mime from 'mime-types';
-import Path from '../Structures/path';
-import Core from '../Structures/core';
+import {Core, Path} from '../internals';
 
 /**
  * @classdesc Allow users to access videos over the web

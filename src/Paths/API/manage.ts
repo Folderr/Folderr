@@ -22,8 +22,7 @@ import childProcess from 'child_process';
 import util from 'util';
 import {promises} from 'fs';
 import {FastifyReply, FastifyRequest} from 'fastify';
-import Core from '../../Structures/core';
-import Path from '../../Structures/path';
+import {Core, Path} from '../../internals';
 const exec = util.promisify(childProcess.exec);
 
 /**

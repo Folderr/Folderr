@@ -20,8 +20,7 @@
  */
 
 import {FastifyReply, FastifyRequest} from 'fastify';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc Allow the user to delete a token they have created

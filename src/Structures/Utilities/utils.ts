@@ -26,10 +26,9 @@ import uuid from 'uuid';
 import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
 import {FastifyRequest} from 'fastify';
 import {User as UI, PendingMember} from '../Database/db-class';
-import Core from '../core';
+import {Core, Authorization} from '../../internals';
 import * as constants from '../constants/index';
 import {FoldCodesI, FoldCodes} from './fold-codes';
-import Authorization from './authorization';
 
 interface MirrorResponse {
 	message: {

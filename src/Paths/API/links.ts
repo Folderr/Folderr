@@ -20,8 +20,7 @@
  */
 
 import {FastifyReply, FastifyRequest} from 'fastify';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {Core, Path} from '../../internals';
 import {Link} from '../../Structures/Database/db-class';
 import {RequestGallery} from '../../../types/types/fastify-request-types';
 

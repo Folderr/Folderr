@@ -6,8 +6,10 @@
   "scripts": {
     "build": "tsc --skipLibCheck",
     "start": "NODE_ENV=production node dist/src/index.js",
+    "start:win32": "$env:NODE_ENV='production' node dist/src/index.js",
     "setup": "node dist/scripts/setup.js",
-    "start:dev": "NODE_ENV=dev DEBUG=true node dist/src/index.js",
+    "start:dev": "NODE_ENV=dev DEBUG=true node dist/src/index.js --trace-warnings",
+    "start:dev:win32": "node dist/src/index.js --trace-warnings",
     "test": "xo && NODE_ENV=test node dist/src/index.js",
     "prepare": "husky install",
     "lint": "xo src/ scripts/",
@@ -33,8 +35,7 @@
         }
       ],
       "no-underscore-dangle": "error",
-      "unicorn/prefer-node-protocol": "off",
-      "import/no-cycle": "off"
+      "unicorn/prefer-node-protocol": "off"
     },
     "prettier": true
   },

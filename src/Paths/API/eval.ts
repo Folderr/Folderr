@@ -21,8 +21,7 @@
 
 import {inspect} from 'util';
 import {FastifyReply, FastifyRequest} from 'fastify';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc Allows owner to eval on the instance.

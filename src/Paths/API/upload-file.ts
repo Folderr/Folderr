@@ -23,8 +23,7 @@ import {join} from 'path';
 import {unlinkSync} from 'fs';
 import {FastifyRequest, FastifyReply} from 'fastify';
 import formidable from 'formidable';
-import Core from '../../Structures/core';
-import Path from '../../Structures/path';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc Upload a file
