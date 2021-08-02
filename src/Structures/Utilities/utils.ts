@@ -22,7 +22,7 @@
 import {promisify} from 'util';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import uuid from 'uuid';
+import * as uuid from 'uuid';
 import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
 import {FastifyRequest} from 'fastify';
 import {User as UI, PendingMember} from '../Database/db-class';
@@ -293,7 +293,7 @@ class Utils {
 		// If the password is not over min length
 		// If password does not match the regex completely
 		const match: boolean = this.#core.regexs.password.test(password);
-		if (password.length < minPass || match) {
+		if (password.length < minPass || !match) {
 			throw new Error( // eslint disable-next-line max-len
 				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`
 			);

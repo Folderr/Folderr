@@ -1,14 +1,41 @@
+/* eslint complexity: [1, {max: 24 }] */
 import fs from 'fs/promises';
 import os from 'os';
 import {join} from 'path';
 import readline from 'readline';
+import {Writable} from 'stream';
 import Core from '../src/Structures/core';
 import locations from '../internal/locations.json';
 import ConfigHandler from '../src/handlers/config-handler';
 
+class MuteStreamHandler {
+	public muted: boolean;
+
+	public stream: Writable;
+
+	constructor() {
+		this.muted = false;
+		this.stream = new Writable({
+			write: (chunk, encoding, callback) => {
+				if (!this.isMuted()) {
+					process.stdout.write(chunk, encoding);
+				}
+
+				callback();
+			}
+		});
+	}
+
+	isMuted(): boolean {
+		return this.muted;
+	}
+}
+
+const stream = new MuteStreamHandler();
+
 const rl = readline.createInterface({
 	input: process.stdin,
-	output: process.stdout,
+	output: stream.stream,
 	terminal: true
 });
 
@@ -18,11 +45,12 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 	const redoQuestion =
 		'That is not an option, please re-read the question and the options carefully';
 	const question =
-		'Would you like your private key to be held under your homedir or internally?\n' +
-		'The homedir is for running multiple of the same instance on the same machine' +
+		'Would you like your private key to be held under your home directory or internally?\n' +
+		'The home directory is for running multiple of the same instance on the same machine' +
+		'with the same user.' +
 		' Folderr does not recommend this.' +
 		'\nIf you choose to have multiple different instances, do not choose this option' +
-		`\nThe location it would be stored under for your homedir is ${keyDirOption}` +
+		`\nThe location it would be stored under for your home directory is "${keyDirOption}"` +
 		'\nYour options are: "homedir" or "internal"\n> ';
 	const options = new Set(['homedir', 'internal']);
 	return new Promise<string>((resolve) => {
@@ -49,7 +77,7 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 async function askUsername(core: Core): Promise<string> {
 	return new Promise<string>((resolve) => {
 		const q = // eslint-disable-next-line max-len
-			'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\nInput: ';
+			'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\n> ';
 		rl.question(q, (answer: string) => {
 			if (!answer) {
 				rl.write('Give me a username!\n');
@@ -82,30 +110,32 @@ async function askPassword(core: Core, confirm?: boolean): Promise<string> {
 		'\nYour password may have these special characters: #?!@$%^&*-_[]' +
 		'\n> ';
 	if (confirm) {
-		q = 'Re-enter your password';
+		q = 'Re-enter your password\n> ';
 	}
 
 	return new Promise<string>((resolve) => {
 		rl.question(q, (answer: string) => {
+			stream.muted = false;
 			if (!answer) {
-				rl.write('I require a password!');
+				console.log('I require a password!\n');
 				resolve(askPassword(core, confirm));
 				return;
 			}
 
 			if (answer === 'q' || answer === 'quit') {
-				rl.write('Quitting...'); // eslint-disable-next-line unicorn/no-process-exit
+				console.log('Quitting...'); // eslint-disable-next-line unicorn/no-process-exit
 				process.exit(); // This is a cli app, thanks.
 			}
 
 			if (!core.regexs.password.test(answer)) {
-				rl.write('Invalid password! Try again!');
+				console.log('Invalid password! Try again!\n');
 				resolve(askPassword(core, confirm));
 				return;
 			}
 
 			resolve(answer);
 		});
+		stream.muted = true;
 	});
 }
 
@@ -113,7 +143,7 @@ async function askEmail(core: Core): Promise<string> {
 	return new Promise<string>((resolve) => {
 		rl.question('What is your email?\n> ', (answer: string) => {
 			if (!answer) {
-				rl.write('I need an email!');
+				rl.write('I need an email!\n');
 				resolve(askEmail(core));
 				return;
 			}
@@ -124,7 +154,7 @@ async function askEmail(core: Core): Promise<string> {
 			}
 
 			if (!core.emailer.validateEmail(answer)) {
-				rl.write('Invalid Email!');
+				rl.write('Invalid Email!\n');
 				resolve(askEmail(core));
 				return;
 			}
@@ -141,7 +171,7 @@ async function confirmDetails(
 	redo?: boolean
 ): Promise<'yes' | 'no'> {
 	let question =
-		'Confirm this is the email, username, and password you want for this account:\n' +
+		'Confirm this is the email, username, and password you want for the owner account:\n' +
 		`Username: ${username}\n` +
 		`Password: ${password}\n` +
 		`Email: ${email}\n` +
@@ -237,18 +267,33 @@ async function confirmDetails(
 	let username: string | undefined;
 	let password: string | undefined;
 	let email: string | undefined;
+	await core.Utils.sleep(1000);
 
 	if (!owner) {
 		rl.write(
-			'This instance does not have an owner. The instance will not function without an owner.'
+			'\nThis instance does not have an owner.' +
+				' The instance will not function without an owner.'
 		);
-		rl.write(
-			'Please configure an owner account via the guided prompts.\n' +
-				'We need a username, email, and password.'
-		);
+		await core.Utils.sleep(1000);
+		const statement =
+			'\nPlease configure an owner account via the guided prompts.\n' +
+			'We need a username, email, and password.\n';
+		rl.write(statement);
+		await core.Utils.sleep(1000);
 		username = await askUsername(core);
 		password = await askPassword(core);
+		await core.Utils.sleep(1000);
+		rl.write('\n');
 		email = await askEmail(core);
+		const passwordConfirm = await askPassword(core, true);
+		if (passwordConfirm === password) {
+			rl.write('Details saved\n');
+		} else {
+			rl.write('Invalid password, closing setup. Retry with "npm run setup"');
+			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+			process.exit();
+		}
+
 		const confirm = await confirmDetails(username, email, password);
 		if (confirm === 'no') {
 			rl.write('To retry, re-run "npm run setup"');
@@ -260,24 +305,24 @@ async function confirmDetails(
 	if (!keysConfigured) {
 		rl.write(
 			'It appears you have not configured your authorization keys.' +
-				' Please follow the prompts to do so.'
+				' Please follow the prompts to do so.\n'
 		);
 		const location = await getKeyLocation();
 		const keys = await core.Utils.genKeyPair();
 		let actualLocation = location;
 		if (location === 'internal') {
-			actualLocation = join(process.cwd(), 'internals/keys');
+			actualLocation = join(process.cwd(), 'internal/keys');
 		}
 
 		const privateKey =
-			keys.privateKey instanceof Buffer
+			keys.privateKey instanceof Buffer || typeof keys.privateKey === 'string'
 				? keys.privateKey
 				: keys.privateKey.export({
 						format: 'pem',
 						type: 'pkcs8'
 				  });
 		const publicKey =
-			keys.publicKey instanceof Buffer
+			keys.publicKey instanceof Buffer || typeof keys.publicKey === 'string'
 				? keys.publicKey
 				: keys.privateKey.export({
 						format: 'pem',
@@ -285,7 +330,9 @@ async function confirmDetails(
 				  });
 		const actualPubKey =
 			typeof publicKey === 'string' ? Buffer.from(publicKey) : publicKey;
-		await fs.writeFile(join(actualLocation, 'privateJWT.pem'), privateKey);
+		const actualPrivateKey =
+			typeof privateKey === 'string' ? Buffer.from(privateKey) : privateKey;
+		await fs.writeFile(`${actualLocation}/privateJWT.pem`, actualPrivateKey);
 		await core.db.createFolderr(actualPubKey);
 	}
 
@@ -300,5 +347,7 @@ async function confirmDetails(
 				`Email address: ${email}\n` +
 				`Password: ${password}`
 		);
+		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+		process.exit();
 	}
 })();

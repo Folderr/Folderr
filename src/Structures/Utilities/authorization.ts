@@ -47,7 +47,17 @@ export default class Authorization {
 	}
 
 	async init(): Promise<void> {
-		await this.#keyHandler.fetchKeys(this.#core.db);
+		try {
+			await this.#keyHandler.fetchKeys(this.#core.db);
+		} catch (error: unknown) {
+			if (error instanceof Error && error.message === 'Unable to fetch keys') {
+				this.#core.logger.log('error', 'Keys not found. Exiting');
+				this.#core.shutdownServer();
+			}
+
+			return;
+		}
+
 		if (!this.#keyHandler.publicKey || !this.#keyHandler.privateKey) {
 			throw new Error('The Key Handler could not find the keys!');
 		}

@@ -343,10 +343,13 @@ export default class Core {
 	}
 
 	shutdownServer(): void {
-		this.#deleter.send({msg: 'stop'});
-		this.#deleter.on('exit', () => {
-			this.#internals.deleterShutdown = true;
-		});
+		if (this.#deleter?.connected && !this.#deleter.killed) {
+			this.#deleter.send({msg: 'stop'});
+			this.#deleter.on('exit', () => {
+				this.#internals.deleterShutdown = true;
+			});
+		}
+
 		this.app.close(() => {
 			this.#internals.serverClosed = true;
 		});
