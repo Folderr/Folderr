@@ -18,10 +18,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import {Request, Response} from 'express';
-import Path from '../Structures/path';
-import Core from '../Structures/core';
-import {join} from 'path';
+
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../internals';
 
 /**
  * @class Allow users to access shortened links
@@ -31,19 +30,38 @@ class Short extends Path {
 		super(core);
 		this.label = 'Link';
 		this.path = ['/link/:id', '/l/:id'];
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'string'
+					}
+				}
+			}
+		};
 	}
 
 	/**
 	 * @desc Sends a user to a shortened link.
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
-			return response
-				.status(this.codes.badReq)
-				.send('[ERROR] Missing short ID.');
+			return response.status(this.codes.badReq).send('Missing short ID');
 		}
 
 		const short = await this.core.db.findLink(
@@ -51,22 +69,16 @@ class Short extends Path {
 			'link owner'
 		);
 		if (!short) {
-			response
-				.status(this.codes.notFound)
-				.sendFile(join(__dirname, '../Frontend/notfound.html'));
-			return;
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
 		const owner = await this.core.db.findUser({id: short.owner});
 		if (!owner) {
 			this.core.addDeleter(short.owner);
-			response
-				.status(this.codes.notFound)
-				.sendFile(join(__dirname, '../Frontend/notfound.html'));
-			return;
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
-		response.redirect(short.link.trim());
+		return response.redirect(short.link.trim());
 	}
 }
 

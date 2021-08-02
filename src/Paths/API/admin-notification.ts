@@ -19,10 +19,8 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc View the admin notification
@@ -35,21 +33,55 @@ class AdminNotification extends Path {
 		this.reqAuth = true;
 
 		this.type = 'get';
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					'2xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
 		// Verify query
-		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({
+		if (!request.params.id) {
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Notification ID required!'
 			});
@@ -58,7 +90,7 @@ class AdminNotification extends Path {
 		// Find notification. If not found, return a not found status code
 		const notify = await this.core.db.findAdminNotify({id: request.params.id});
 		if (!notify) {
-			return response.status(this.codes.noContent).json({
+			return response.status(this.codes.noContent).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: []
 			});
@@ -67,7 +99,7 @@ class AdminNotification extends Path {
 		// Oh look a notification!
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: notify});
+			.send({code: this.codes.ok, message: notify});
 	}
 }
 

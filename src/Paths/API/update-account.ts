@@ -18,14 +18,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
 import {compareSync} from 'bcrypt';
-import {Response} from 'express';
-import wlogger from '../../Structures/winston-logger';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
 import * as constants from '../../Structures/constants/index';
+
+type UpdateAccBody =
+	| {
+			email: string;
+			username?: string;
+			password?: string;
+	  }
+	| {
+			username: string;
+			email?: string;
+			password?: string;
+	  }
+	| {
+			password: string;
+			email?: string;
+			username?: string;
+	  };
 
 /**
  * @classdesc Updating the authorized users account
@@ -38,13 +52,54 @@ class UpdateAcc extends Path {
 
 		this.type = 'patch';
 		this.reqAuth = true;
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						email: {type: 'string'},
+						password: {type: 'string'},
+						username: {type: 'string'}
+					},
+					anyRequired: ['email', 'password', 'username']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					'5xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					'2xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: UpdateAccBody;
+		}>,
+		response: FastifyReply
+	) {
 		// Check pass/username auth
 		const base = await this.isValid(request);
 		if (base.failed) {
-			return response.status(base.httpCode).json(base.message);
+			return response.status(base.httpCode).send(base.message);
 		}
 
 		const auth = (base as {failed: false; user: User}).user;
@@ -64,7 +119,7 @@ class UpdateAcc extends Path {
 			if (typeof passwd === 'string') {
 				update.password = passwd;
 			} else {
-				return response.status(passwd.httpCode).json(passwd.message);
+				return response.status(passwd.httpCode).send(passwd.message);
 			}
 		}
 
@@ -76,7 +131,7 @@ class UpdateAcc extends Path {
 		if (newUsername && typeof newUsername === 'string') {
 			update.username = newUsername;
 		} else if (typeof newUsername === 'object') {
-			return response.status(newUsername.httpCode).json(newUsername.message);
+			return response.status(newUsername.httpCode).send(newUsername.message);
 		}
 
 		const emailUpdated = await this.handleEmailUpdate(
@@ -85,7 +140,7 @@ class UpdateAcc extends Path {
 			auth.username
 		);
 		if (emailUpdated && !emailUpdated.accepted) {
-			return response.status(emailUpdated.httpCode).json(emailUpdated.message);
+			return response.status(emailUpdated.httpCode).send(emailUpdated.message);
 		}
 
 		if (emailUpdated?.accepted) {
@@ -101,7 +156,7 @@ class UpdateAcc extends Path {
 					this.core.logger.debug(error);
 				}
 
-				return response.status(this.codes.internalErr).json({
+				return response.status(this.codes.internalErr).send({
 					code: this.Utils.FoldCodes.unkownError,
 					message: 'An unknown error has occured!'
 				});
@@ -110,7 +165,7 @@ class UpdateAcc extends Path {
 			this.core.logger.error(
 				`Database failed to update user - ${error.message}`
 			);
-			return response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.dbUnkownError,
 				message: 'An unknown error encountered while updating your account'
 			});
@@ -119,12 +174,12 @@ class UpdateAcc extends Path {
 		// Return the output
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 
 	private async handlePassword(password: string): Promise<
 		| {
-				httpCode: number;
+				httpCode: 400 | 403 | 500;
 				message: {
 					message: string;
 					code: number;
@@ -183,7 +238,7 @@ class UpdateAcc extends Path {
 				};
 			}
 
-			wlogger.error(`[Update Account - Password] - ${error.message}`);
+			this.core.logger.error(`[Update Account - Password] - ${error.message}`);
 			return {
 				httpCode: this.codes.badReq,
 				message: {
@@ -195,7 +250,9 @@ class UpdateAcc extends Path {
 	}
 
 	private async handleEmailUpdate(
-		request: Request,
+		request: FastifyRequest<{
+			Body: UpdateAccBody;
+		}>,
 		preEmail: string,
 		username: string
 	): Promise<
@@ -206,7 +263,7 @@ class UpdateAcc extends Path {
 		  }
 		| {
 				accepted: false;
-				httpCode: number;
+				httpCode: 226 | 400 | 403 | 406 | 501;
 				message: {
 					code: number;
 					message: string;
@@ -314,7 +371,7 @@ class UpdateAcc extends Path {
 		username?: string
 	): Promise<
 		| {
-				httpCode: number;
+				httpCode: 226 | 400;
 				message: {
 					code: number;
 					message: string;
@@ -369,9 +426,13 @@ class UpdateAcc extends Path {
 		return undefined;
 	}
 
-	private async isValid(request: Request): Promise<
+	private async isValid(
+		request: FastifyRequest<{
+			Body: UpdateAccBody;
+		}>
+	): Promise<
 		| {
-				httpCode: number;
+				httpCode: 400 | 401 | 403;
 				failed: boolean;
 				message: {
 					code: number;

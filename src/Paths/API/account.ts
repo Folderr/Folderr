@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 import {Notification} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc View the authorized users account
@@ -36,9 +34,32 @@ class Account extends Path {
 		this.reqAuth = true;
 
 		this.type = 'get';
+
+		this.options = {
+			schema: {
+				response: {
+					200: {
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					401: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = request.cookies?.token
 			? await this.Utils.authorization.verifyAccount(
@@ -81,7 +102,7 @@ class Account extends Path {
 		};
 		return response
 			.status(this.codes.ok)
-			.json({message: acc, code: this.codes.ok});
+			.send({message: acc, code: this.codes.ok});
 	}
 }
 

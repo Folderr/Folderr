@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 import wlogger from '../../Structures/winston-logger';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Delete an admin notification.
@@ -36,9 +34,43 @@ class DelANotify extends Path {
 		this.reqAuth = true;
 
 		this.type = 'delete';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					}
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Authorize the user as admin, or throw error.
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth || typeof auth === 'string') {
@@ -47,7 +79,7 @@ class DelANotify extends Path {
 
 		// In case they forgot the ID for the notification
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing notification ID'
 			});
@@ -56,7 +88,7 @@ class DelANotify extends Path {
 		// Find the notification or try to
 		const notify = await this.core.db.findAdminNotify({id: request.params.id});
 		if (!notify) {
-			return response.status(this.codes.notFound).json({
+			return response.status(this.codes.notFound).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'Notification not found!'
 			});
@@ -64,7 +96,7 @@ class DelANotify extends Path {
 
 		// Signup notifications are invincible, at least to manually remove
 		if (notify.title === 'New user signup!') {
-			return response.status(this.codes.forbidden).json({
+			return response.status(this.codes.forbidden).send({
 				code: this.codes.forbidden,
 				message: 'Signup notifications cannot be removed!'
 			});
@@ -77,7 +109,7 @@ class DelANotify extends Path {
 		);
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

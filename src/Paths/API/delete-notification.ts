@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
 import moment from 'moment';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc User can delete a single notification
@@ -36,13 +34,55 @@ class DelNotify extends Path {
 
 		this.type = 'delete';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					500: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -50,7 +90,7 @@ class DelNotify extends Path {
 
 		// Check query
 		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing notification ID'
 			});
@@ -59,7 +99,7 @@ class DelNotify extends Path {
 		// Grab the users notifications, and find the one they are looking for
 		const {notifs} = auth;
 		if (!notifs) {
-			return response.status(this.codes.notFound).json({
+			return response.status(this.codes.notFound).send({
 				code: this.codes.notFound,
 				message: 'You have no notifications!'
 			});
@@ -70,7 +110,7 @@ class DelNotify extends Path {
 		);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
-			return response.status(this.codes.notFound).json({
+			return response.status(this.codes.notFound).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'Notification not found!'
 			});
@@ -87,7 +127,7 @@ class DelNotify extends Path {
 		let limit = 0;
 		for (const setLimit of Object.values(breakdown)) {
 			if (Number.isNaN(limit)) {
-				return response.status(this.codes.internalErr).json({
+				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
 					message: 'Internal Math Error'
 				});
@@ -106,7 +146,7 @@ class DelNotify extends Path {
 				.format(
 					'M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]'
 				);
-			return response.status(this.codes.forbidden).json({
+			return response.status(this.codes.forbidden).send({
 				code: this.codes.forbidden,
 				message: `Notification cannot be deleted for ${formattedTime}`
 			});
@@ -123,7 +163,7 @@ class DelNotify extends Path {
 				}
 			}
 		);
-		return response.status(this.codes.ok).json({
+		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
 			message: 'OK'
 		});

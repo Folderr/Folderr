@@ -19,9 +19,32 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response, Request} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
+import {Core, Path} from '../../internals';
+
+interface MirrorResponse {
+	message: {
+		res: string;
+		token: string;
+	};
+}
+
+const msgschema: JTDSchemaType<MirrorResponse['message']> = {
+	properties: {
+		res: {type: 'string'},
+		token: {type: 'string'}
+	}
+};
+
+const schema: JTDSchemaType<MirrorResponse> = {
+	properties: {
+		message: msgschema
+	}
+};
+
+const ajv = new AJV();
+const parse = ajv.compileParser(schema);
 
 /**
  * @classdesc Add a mirror
@@ -33,25 +56,62 @@ class MirrorAdd extends Path {
 		this.path = '/api/account/mirror';
 
 		this.type = 'post';
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						url: {type: 'string'}
+					},
+					required: ['url']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					'5xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				url: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
-		if (
-			!request.body ||
-			!request.body.url ||
-			typeof request.body.url !== 'string' ||
-			!/http(s)?:\/\//.test(request.body.url)
-		) {
-			return response.status(this.codes.badReq).json({
+		if (!/http(s)?:\/\//.test(request.body.url)) {
+			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.mirrorInvalidUrl,
 				message: 'Invalid Mirror URL'
 			});
@@ -68,7 +128,7 @@ class MirrorAdd extends Path {
 			);
 			id = out.id;
 			r = await this.core.superagent
-				.get(`${request.body.url as string}/api/verify`)
+				.get(`${request.body.url}/api/verify`)
 				.send({
 					url: u,
 					owner: auth.id,
@@ -76,7 +136,7 @@ class MirrorAdd extends Path {
 				});
 		} catch (error: unknown) {
 			if (!error || !(error instanceof Error)) {
-				return response.status(this.codes.internalErr).json({
+				return response.status(this.codes.internalErr).send({
 					code: this.Utils.FoldCodes.unkownError,
 					message: 'Unknown error occured'
 				});
@@ -88,28 +148,28 @@ class MirrorAdd extends Path {
 				error.message &&
 				/Not Found|\[FAIL]/.test(error.message)
 			) {
-				return response.status(this.codes.notAccepted).json({
+				return response.status(this.codes.notAccepted).send({
 					code: this.Utils.FoldCodes.mirrorReject,
 					message: 'Mirror failed Validation'
 				});
 			}
 
-			return response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.unkownError,
 				message: 'Something unknown happened.'
 			});
 		}
 
 		const out = r.text;
-		if (!out) {
-			return response.status(this.codes.notAccepted).json({
+		const parsed = parse(out);
+		if (!out || !parsed) {
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.mirrorReject,
 				message: 'Mirror failed Validation'
 			});
 		}
 
-		const nOut = JSON.parse(out);
-		const {message} = nOut;
+		const {message} = parsed;
 		const valid =
 			id && u
 				? this.Utils.authorization.verifyMirrorKey(
@@ -120,7 +180,7 @@ class MirrorAdd extends Path {
 				  )
 				: false;
 		if (!valid) {
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.mirrorReject,
 				message: 'Mirror failed Validation'
 			});
@@ -138,7 +198,7 @@ class MirrorAdd extends Path {
 		);
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

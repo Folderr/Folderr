@@ -19,9 +19,8 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response, Request} from 'express';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import wlogger from '../../Structures/winston-logger';
 import * as constants from '../../Structures/constants/index';
 
@@ -35,6 +34,43 @@ class Signup extends Path {
 
 		this.path = '/api/signup';
 		this.type = 'post';
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						email: {type: 'string'},
+						username: {type: 'string'},
+						password: {type: 'string'}
+					},
+					required: ['email', 'username', 'password']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					500: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					201: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async genUID(): Promise<string> {
@@ -62,8 +98,8 @@ class Signup extends Path {
 			hash: string;
 			token: string;
 		},
-		response: Response
-	): Promise<{httpCode: number; msg: {code: number; message: string}}> {
+		response: FastifyReply
+	): Promise<{httpCode: 500 | 201; msg: {code: number; message: string}}> {
 		// Find admin notifications, and generate an ID
 		const notifyID = await this.Utils.genNotifyID();
 		// Make a new notification and save to database
@@ -80,7 +116,7 @@ class Signup extends Path {
 			]);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				this.handleError(error, response, undefined, {
+				await this.handleError(error, response, undefined, {
 					noResponse: true,
 					noIncrease: false
 				});
@@ -97,7 +133,7 @@ class Signup extends Path {
 
 		// Notify the console, and the user that the admins have been notified.
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.id})signed up to Folderr`
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
 		);
 		return {
 			httpCode: this.codes.created,
@@ -116,10 +152,10 @@ class Signup extends Path {
 			hash: string;
 			token: string;
 		},
-		request: Request,
-		response: Response
+		request: FastifyRequest,
+		response: FastifyReply
 	): Promise<{
-		httpCode: number;
+		httpCode: 500 | 201;
 		msg: {
 			message: string;
 			code: number;
@@ -139,7 +175,7 @@ class Signup extends Path {
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				this.handleError(error, response, undefined, {
+				await this.handleError(error, response, undefined, {
 					noResponse: true,
 					noIncrease: false
 				});
@@ -166,26 +202,21 @@ class Signup extends Path {
 		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				email: string;
+				password: string;
+				username: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		// If signups are closed, state that and do not allow them through
 		if (!this.core.config.signups) {
-			return response.status(this.codes.locked).json({
+			return response.status(this.codes.locked).send({
 				code: this.codes.locked,
 				message: "Signup's are closed."
-			});
-		}
-
-		// Check all required body is there
-		if (
-			!request.body ||
-			(request.body &&
-				(!request.body.username ||
-					!request.body.password ||
-					!request.body.email))
-		) {
-			return response.status(this.codes.badReq).json({
-				code: this.codes.badReq,
-				message: 'MISSING DETAIL(S)'
 			});
 		}
 
@@ -197,7 +228,7 @@ class Signup extends Path {
 			password
 		);
 		if (typeof isValid !== 'boolean') {
-			return response.status(isValid.httpCode).json(isValid.response);
+			return response.status(isValid.httpCode).send(isValid.response);
 		}
 
 		// Hash the password and catch errors
@@ -208,13 +239,13 @@ class Signup extends Path {
 			// Errors shouldnt happen here, so notify the console.. Also notify the user
 			if (error instanceof Error) {
 				wlogger.error(`[SIGNUP -  Create password] - ${error.message}`);
-				return response.status(this.codes.internalErr).json({
+				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
 					message: `${error.message}`
 				});
 			}
 
-			return response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.codes.internalErr,
 				message: 'An unknown error occured!'
 			});
@@ -249,7 +280,7 @@ class Signup extends Path {
 						validationToken,
 						response
 				  );
-		return response.status(r.httpCode).json(r.msg);
+		return response.status(r.httpCode).send(r.msg);
 	}
 
 	private async checkUserInput(

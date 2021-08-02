@@ -32,15 +32,29 @@ let stopped = false;
 process.on('message', ({msg, data}) => {
 	if (msg === 'add' && !stopped) {
 		queuer.add(data);
-	} else if (msg === 'check') {
-		if (process.send) {
-			process.send({msg: {onGoing: queuer.onGoing, stopped}});
+	} else
+		switch (msg) {
+			case 'check': {
+				if (process.send) {
+					process.send({msg: {onGoing: queuer.onGoing, stopped}});
+				}
+
+				break;
+			}
+
+			case 'shutdown': {
+				queuer.once('stopped', () => {
+					process.exit(1);
+				});
+
+				break;
+			}
+
+			case 'stop': {
+				stopped = true;
+
+				break;
+			}
+			// No default
 		}
-	} else if (msg === 'shutdown') {
-		queuer.once('stopped', () => {
-			process.exit(1);
-		});
-	} else if (msg === 'stop') {
-		stopped = true;
-	}
 });

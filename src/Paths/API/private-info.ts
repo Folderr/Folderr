@@ -18,13 +18,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import Package from '../../../package.json';
 import childProcess from 'child_process';
 import util from 'util';
-import {Response} from 'express';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
+import Package from '../../../package.json';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -37,9 +35,33 @@ class Info extends Path {
 		this.label = '[API] Info';
 		this.path = '/api/info';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'object'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
@@ -48,27 +70,27 @@ class Info extends Path {
 			});
 		}
 
-		let branch: any = await exec('git branch');
-		branch = branch.stdout;
-		branch = branch.split('\n');
-		for (const b of branch) {
+		const branch = await exec('git branch');
+		let actbranch = branch.stdout;
+		const arraybranch = actbranch.split('\n');
+		for (const b of arraybranch) {
 			if (b.startsWith('*')) {
-				branch = b.slice(2);
+				actbranch = b.slice(2);
 				break;
 			}
 		}
 
-		let vers: any = await exec('git log -1 --oneline');
-		vers = vers.stdout;
+		const vers = await exec('git log -1 --oneline');
+		const version = vers.stdout;
 
 		const object = {
-			commit: vers,
+			commit: version,
 			branch,
 			version: Package.version
 		};
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: object});
+			.send({code: this.codes.ok, message: object});
 	}
 }
 

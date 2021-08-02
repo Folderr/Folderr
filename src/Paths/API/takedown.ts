@@ -19,9 +19,8 @@
  *
  */
 
-import {Response, Request} from 'express';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
 
 /**
@@ -33,13 +32,56 @@ class Takedown extends Path {
 		this.label = '[API] Takedown Content';
 		this.type = 'delete';
 		this.path = '/api/admin/content/:type/:id';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						type: {type: 'string'},
+						id: {type: 'string'}
+					},
+					required: ['type', 'id']
+				},
+				response: {
+					response: {
+						'4xx': {
+							type: 'object',
+							properties: {
+								message: {type: 'string'},
+								code: {type: 'number'}
+							}
+						},
+						500: {
+							type: 'object',
+							properties: {
+								message: {type: 'string'},
+								code: {type: 'number'}
+							}
+						},
+						200: {
+							type: 'object',
+							properties: {
+								message: {type: 'string'},
+								code: {type: 'number'}
+							}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async takedownFile(
 		id: string,
-		request: Request
+		request: FastifyRequest<{
+			Params: {
+				type: string;
+				id: string;
+			};
+		}>
 	): Promise<{
-		httpCode: number;
+		httpCode: 406 | 200;
 		msg: {
 			code: number;
 			message: string;
@@ -86,9 +128,14 @@ class Takedown extends Path {
 
 	async takedownLink(
 		id: string,
-		request: Request
+		request: FastifyRequest<{
+			Params: {
+				type: string;
+				id: string;
+			};
+		}>
 	): Promise<{
-		httpCode: number;
+		httpCode: 406 | 200;
 		msg: {
 			code: number;
 			message: string;
@@ -133,24 +180,30 @@ class Takedown extends Path {
 		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				type: string;
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed'
 			});
 		}
 
 		if (
-			!request.params?.type ||
-			!request.params?.id ||
 			!['file', 'link'].includes(request.params.type) ||
 			!/^[\dA-Za-z]+$/.test(request.params.id)
 		) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'
 			});
@@ -159,14 +212,14 @@ class Takedown extends Path {
 		try {
 			if (request.params.type === 'file') {
 				const out = await this.takedownFile(request.params.id, request);
-				return response.status(out.httpCode).json(out.msg);
+				return response.status(out.httpCode).send(out.msg);
 			}
 
 			const out = await this.takedownLink(request.params.id, request);
-			return response.status(out.httpCode).json(out.msg);
+			return response.status(out.httpCode).send(out.msg);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				return response.status(this.codes.internalErr).json({
+				return response.status(this.codes.internalErr).send({
 					code: this.Utils.FoldCodes.unkownError,
 					message: `An error occurred!\n${error.message}`
 				});
@@ -177,7 +230,7 @@ class Takedown extends Path {
 				`[PATH ${this.label}] Unknown fatal error!`
 			);
 
-			return response.status(this.codes.internalErr).json({
+			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.unkownError,
 				message: 'An unknown error occurred with this operation!'
 			});

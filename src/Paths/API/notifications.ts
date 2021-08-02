@@ -20,11 +20,9 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 import {Notification} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Shows all user notifications
@@ -37,13 +35,47 @@ class Notifs extends Path {
 
 		this.type = 'get';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						admin: {type: 'boolean'}
+					}
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'array'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Querystring: {
+				admin?: boolean;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth by token/id
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -53,10 +85,10 @@ class Notifs extends Path {
 		// eslint-disable-next-line prefer-destructuring
 		let notifs: Notification[] | undefined = auth.notifs;
 		// If the user wants to view admin notifications
-		if (request.query && request.query.admin === 'true') {
+		if (request.query && request.query.admin === true) {
 			// If they arent a admin, they do not get to see these notifications
 			if (!auth.admin) {
-				return response.status(this.codes.unauth).json({
+				return response.status(this.codes.unauth).send({
 					code: this.codes.unauth,
 					message: 'Authorization failed'
 				});
@@ -64,20 +96,18 @@ class Notifs extends Path {
 
 			// Get the notifications, and reset the notifications array
 			const anotifs = await this.core.db.findAdminNotifies({});
-			notifs = anotifs.map((notification: Notification) => {
-				return {
-					id: notification.id,
-					title: notification.title,
-					notify: notification.notify.replace(/\n/g, ','),
-					created: notification.created
-				};
-			});
+			notifs = anotifs.map((notification: Notification) => ({
+				id: notification.id,
+				title: notification.title,
+				notify: notification.notify.replace(/\n/g, ','),
+				created: notification.created
+			}));
 		}
 
 		// Return whatever notifications there are
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: notifs});
+			.send({code: this.codes.ok, message: notifs});
 	}
 }
 

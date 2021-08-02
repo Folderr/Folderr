@@ -19,9 +19,8 @@
  *
  */
 
-import {Response, Request} from 'express';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc Allow the user to delete a token they have created
@@ -32,26 +31,67 @@ class DeleteToken extends Path {
 		this.label = '[API] Delete Token';
 		this.path = '/api/account/token/:id';
 		this.type = 'delete';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				},
+				querystring: {
+					type: 'object',
+					properties: {
+						web: {type: 'boolean'}
+					}
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Querystring: {
+				web?: boolean;
+			};
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = request.cookies?.token
 			? await this.Utils.authorization.verifyAccount(request.cookies.token, {
 					web: true
 			  })
 			: await this.Utils.authPassword(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				message: 'Authorization failed',
 				code: this.codes.unauth
 			});
 		}
 
 		if (!request.params?.id || /^\d+$/.test(request.params.id)) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid token ID!'
 			});
@@ -62,13 +102,13 @@ class DeleteToken extends Path {
 			web
 		});
 		if (!del) {
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				code: this.codes.badReq,
 				message: 'Token not deleted/found!'
 			});
 		}
 
-		return response.status(this.codes.ok).json({
+		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
 			message: 'OK'
 		});

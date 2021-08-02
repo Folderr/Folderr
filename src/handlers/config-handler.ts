@@ -1,7 +1,7 @@
 import fs, {existsSync} from 'fs';
 import {join} from 'path';
 import yaml from 'js-yaml';
-import wlogger from '../Structures/winston-logger';
+import {wlogger} from '../internals';
 
 interface CertOptions {
 	key?: string | any;
@@ -165,12 +165,10 @@ const ConfigHandler = {
 			db: DBConfig;
 			email?: EmailConfig;
 		};
-		// This line can be remvoed when files ARE properly checked during start up.
-		// This file will need lots of reworking to properly check files.
-		process.emitWarning('The files are not properly checked during start up.');
 		try {
 			this.preCheck(files);
 		} catch (error: unknown) {
+			process.emitWarning('Unknown Error (config-handler:171)');
 			if (error instanceof Error) {
 				throw error;
 			}
@@ -276,8 +274,9 @@ const ConfigHandler = {
 			}
 
 			error += 'Potential fix: run "npm run configure --invalid-or-missing"';
+			process.emitWarning('Config Error (config-handler:277)');
 
-			throw new Error('[CONFIG] Missing/Invalid Required Options:');
+			throw new Error(`[CONFIG] Missing/Invalid Required Options:\n${error}`);
 		}
 
 		return true;
@@ -311,7 +310,7 @@ const ConfigHandler = {
 		const missingFiles = this.keyCheck(keyConfig);
 
 		// Validate ports
-		const maxPort = 65535;
+		const maxPort = 65_535;
 		let failedPort;
 		let failedSignups;
 		if (!coreConfig.port || coreConfig.port > maxPort || coreConfig.port < 1) {
@@ -364,6 +363,7 @@ const ConfigHandler = {
 			error += `\n${potentialFix}"`;
 
 			if (exitEmit) {
+				process.emitWarning('Config Error (config-handler:366)');
 				console.log(error);
 				wlogger.error(error);
 				const ms = 500;
@@ -373,6 +373,7 @@ const ConfigHandler = {
 					process.exit(1);
 				}, ms);
 			} else {
+				process.emitWarning('Config Error (config-handler:376)');
 				return error;
 			}
 

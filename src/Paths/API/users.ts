@@ -19,11 +19,10 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {RequestGallery} from '../../../types/types/fastify-request-types';
 
 /**
  * @classdesc Shows users to admins
@@ -34,17 +33,47 @@ class Users extends Path {
 		this.label = '[API] Users';
 		this.path = '/api/admin/users';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					500: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'array'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Querystring: RequestGallery;
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -57,7 +86,7 @@ class Users extends Path {
 				json: Record<string, string | number>;
 				errored: boolean;
 			};
-			return response.status(genType.httpCode).json(genType.json);
+			return response.status(genType.httpCode).send(genType.json);
 		}
 
 		const {query, options} = generated as unknown as {
@@ -75,7 +104,7 @@ class Users extends Path {
 
 		const users: User[] = await this.core.db.findUsers(query, options);
 		if (users.length === 0) {
-			return response.status(this.codes.ok).json({
+			return response.status(this.codes.ok).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: []
 			});
@@ -88,22 +117,20 @@ class Users extends Path {
 			links: number;
 			id: string;
 			created: number;
-		}> = users.map((user: User) => {
-			return {
-				title:
-					!user.admin && !user.owner
-						? ''
-						: (user.admin && 'admin') || (user.owner && 'first'),
-				username: user.username,
-				files: user.files,
-				links: user.links,
-				id: user.id,
-				created: Math.round(user.created.getTime() / 1000)
-			};
-		});
+		}> = users.map((user: User) => ({
+			title:
+				!user.admin && !user.owner
+					? ''
+					: (user.admin && 'admin') || (user.owner && 'first'),
+			username: user.username,
+			files: user.files,
+			links: user.links,
+			id: user.id,
+			created: Math.round(user.created.getTime() / 1000)
+		}));
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: array});
+			.send({code: this.codes.ok, message: array});
 	}
 }
 

@@ -23,7 +23,7 @@
  * @fileoverview HTTP status codes Folderr sends.
  */
 
-const codes = {
+const codes: Codes = {
 	ok: 200,
 	created: 201,
 	noContent: 204,
@@ -42,21 +42,21 @@ const codes = {
 };
 
 export interface Codes {
-	ok: number;
-	created: number;
-	noContent: number;
-	partialContent: number;
-	used: number;
-	badReq: number;
-	unauth: number;
-	forbidden: number;
-	notFound: number;
-	locked: number;
-	tooManyReq: number;
-	internalErr: number;
-	notAccepted: number;
-	accepted: number;
-	notImplemented: number;
+	ok: 200;
+	created: 201;
+	noContent: 204;
+	partialContent: 206;
+	used: 226;
+	badReq: 400;
+	unauth: 401;
+	forbidden: 403;
+	notFound: 404;
+	locked: 423;
+	tooManyReq: 429;
+	internalErr: 500;
+	notAccepted: 406;
+	accepted: 202;
+	notImplemented: 501;
 }
 
 export default codes;

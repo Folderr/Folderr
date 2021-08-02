@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../Structures/path';
-import Core from '../Structures/core';
-import {Response} from 'express';
 import {join} from 'path';
-import {Request} from '../Structures/Interfaces/express-extended';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../internals';
 
 class Signup extends Path {
 	constructor(core: Core) {
@@ -36,30 +34,27 @@ class Signup extends Path {
 	/**
 	 * @desc Displays the signup page for signed out users.
 	 */
-	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
-		if (!request.secure && !this.Utils.verifyInsecureCookies(request)) {
-			response
+	async execute(request: FastifyRequest, response: FastifyReply) {
+		if (
+			request.protocol !== 'https' &&
+			!this.Utils.verifyInsecureCookies(request)
+		) {
+			return response
 				.status(this.codes.notAccepted)
-				.sendFile(join(__dirname, '../Frontend/insecure.html'));
-			return;
+				.sendFile(join(process.cwd(), './Frontend/insecure.html'));
 		}
 
-		if (request.uauth) {
-			response.redirect('./');
-			return;
+		if (request.cookies.token) {
+			return response.redirect('./');
 		}
 
 		if (!this.core.config.signups) {
-			response
+			return response
 				.status(this.codes.notFound)
-				.sendFile(join(__dirname, '../Frontend/closed.html'));
-			return;
+				.sendFile(join(process.cwd(), './Frontend/closed.html'));
 		}
 
-		response.sendFile(join(__dirname, '../Frontend/signups.html'));
+		return response.sendFile(join(process.cwd(), './Frontend/signups.html'));
 	}
 }
 

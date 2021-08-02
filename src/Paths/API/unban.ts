@@ -19,9 +19,8 @@
  *
  */
 
-import {Response, Request} from 'express';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
 
 /**
@@ -34,27 +33,55 @@ class Unban extends Path {
 
 		this.path = '/api/admin/ban';
 		this.type = 'delete';
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						email: {type: 'string'}
+					},
+					required: ['email']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<void | Response> {
+		request: FastifyRequest<{
+			Body: {
+				email: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
-		if (
-			!request.body?.email ||
-			this.core.emailer.validateEmail(request.body.email)
-		) {
-			return response.status(this.codes.badReq).json({
+		if (this.core.emailer.validateEmail(request.body.email)) {
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'
 			});
@@ -62,19 +89,15 @@ class Unban extends Path {
 
 		const unban = await this.core.db.removeFolderrBan(request.body.email);
 		if (unban) {
-			response
+			return response
 				.status(this.codes.ok)
-				.json({code: this.codes.ok, message: 'OK'})
-				.end();
-		} else {
-			response
-				.status(this.codes.notAccepted)
-				.json({
-					code: this.codes.notAccepted,
-					message: 'UNBAN FAILED'
-				})
-				.end();
+				.send({code: this.codes.ok, message: 'OK'});
 		}
+
+		return response.status(this.codes.notAccepted).send({
+			code: this.codes.notAccepted,
+			message: 'UNBAN FAILED'
+		});
 	}
 }
 

@@ -1,7 +1,7 @@
-import locations from '../../internal/locations.json';
 import {join} from 'path';
-import AbstractDB from '../Structures/Database/db-class';
 import fs from 'fs/promises';
+import locations from '../../internal/locations.json';
+import AbstractDB from '../Structures/Database/db-class';
 
 export default class AuthKeyHandler {
 	#publicKey?: Buffer;
@@ -9,16 +9,21 @@ export default class AuthKeyHandler {
 	#location: string;
 
 	constructor() {
-		this.#location = join(process.cwd(), './internal/key/privateJWT.pem');
+		this.#location = join(process.cwd(), './internal/keys/privateJWT.pem');
 		if (locations.keys !== 'internal') {
 			this.#location = locations.keys;
 		}
 	}
 
 	async fetchKeys(db: AbstractDB): Promise<void> {
-		this.#privateKey = await fs.readFile(this.#location);
-		const folderr = await db.fetchFolderr();
-		this.#publicKey = folderr.publicKeyJWT;
+		try {
+			this.#privateKey = await fs.readFile(this.#location);
+			const folderr = await db.fetchFolderr();
+			this.#publicKey = folderr.publicKeyJWT;
+		} catch (error: unknown) {
+			console.log(error);
+			throw new Error('Unable to fetch keys');
+		}
 	}
 
 	get privateKey() {
