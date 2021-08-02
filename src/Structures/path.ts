@@ -20,7 +20,6 @@
  */
 
 import {join} from 'path';
-import express from 'express';
 import {FastifyRequest, FastifyReply, RouteShorthandOptions} from 'fastify';
 import {RequestGallery} from '../../types/types/fastify-request-types';
 import {ErrorHandler, Core, codes, Codes} from '../internals';
@@ -254,7 +253,7 @@ class Path {
 		request: FastifyRequest,
 		response: FastifyReply,
 		done: () => void
-	): Promise<express.Response | void> {
+	): Promise<FastifyReply | void> {
 		// If path is not enabled, and it is not lean... end the endpoint here
 		if (this.locked && !this.lean) {
 			if (!request.url.includes('/api')) {
