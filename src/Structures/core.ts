@@ -342,7 +342,10 @@ export default class Core {
 			);
 		}
 
-		wlogger.log('prelisten', 'Listen Port OK');
+		if (process.env.DEBUG) {
+			wlogger.log('debug', 'Listen Port OK');
+		}
+
 		return true;
 	}
 

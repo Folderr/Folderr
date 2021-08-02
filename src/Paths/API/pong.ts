@@ -44,7 +44,14 @@ class Pong extends Path {
 					200: {
 						type: 'object',
 						properties: {
-							message: {type: 'object'},
+							message: {
+								values: {
+									version: {type: 'string'},
+									node_version: {type: 'string'},
+									online_since: {type: 'number'},
+									message: {type: 'pong'}
+								}
+							},
 							code: {type: 'number'}
 						}
 					}
@@ -77,7 +84,7 @@ class Pong extends Path {
 			},
 			code: this.codes.ok
 		};
-		return Promise.resolve(response.status(this.codes.ok).send(out));
+		return response.status(this.codes.ok).send(out);
 	}
 }
 
