@@ -21,7 +21,7 @@
 
 import {promisify} from 'util';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import argon2 from 'argon2';
 import * as uuid from 'uuid';
 import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
 import {FastifyRequest} from 'fastify';
@@ -311,7 +311,7 @@ class Utils {
 		}
 
 		// Hash and return
-		return bcrypt.hash(password, this.saltRounds);
+		return argon2.hash(password, {timeCost: this.saltRounds});
 	}
 
 	/**
@@ -358,7 +358,7 @@ class Utils {
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
 		// Combine, hash, and return the hashed and unhashed token
 		const token = `${uID}.${random}.${date}`;
-		const hash = await bcrypt.hash(token, this.saltRounds);
+		const hash = await argon2.hash(token, {timeCost: this.saltRounds});
 		return {token, hash};
 	}
 
@@ -400,8 +400,7 @@ class Utils {
 			return false;
 		}
 
-		// Compare actual password and inputted password. If they do not match, fail
-		if (!bcrypt.compareSync(request.headers.password, user.password)) {
+		if (!(await argon2.verify(user.password, request.headers.password))) {
 			return false;
 		}
 
@@ -457,7 +456,7 @@ class Utils {
 			return false;
 		}
 
-		if (!bcrypt.compareSync(validationToken, user.validationToken)) {
+		if (!(await argon2.verify(user.validationToken, validationToken))) {
 			return false;
 		}
 

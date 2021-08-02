@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import {compareSync} from 'bcrypt';
+import argon2 from 'argon2';
 import {FastifyRequest, FastifyReply} from 'fastify';
 import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
@@ -113,7 +113,7 @@ class UpdateAcc extends Path {
 		if (
 			request.body.password &&
 			typeof request.body.password === 'string' &&
-			!compareSync(request.body.password, auth.password)
+			!(await argon2.verify(auth.password, request.body.password))
 		) {
 			const passwd = await this.handlePassword(request.body.password);
 			if (typeof passwd === 'string') {

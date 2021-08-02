@@ -53,9 +53,8 @@
   },
   "homepage": "https://github.com/Folderr/Folderr#readme",
   "dependencies": {
-    "@types/bcrypt": "^3.0.0",
     "ajv": "^8.6.2",
-    "bcrypt": "^5.0.1",
+    "argon2": "^0.28.2",
     "esm": "^3.2.25",
     "fastify": "^3.19.1",
     "fastify-cookie": "^5.3.1",
