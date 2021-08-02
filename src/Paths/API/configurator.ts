@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 import Configurator from '../../Structures/Utilities/sharex-configurator';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Generate a sharex configuration
@@ -37,27 +35,45 @@ class ShareXConfigurator extends Path {
 		this.path = '/api/sharex/config';
 		this.type = 'post';
 		this.configurator = new Configurator();
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						token: {type: 'string'}
+					},
+					required: ['token']
+				},
+				querystring: {
+					type: 'object',
+					properties: {
+						d: {type: 'string'}
+					}
+				}
+			}
+		};
 	}
 
 	/**
 	 * @desc Generate a ShareX configuration
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Body: {
+				token: string;
+			};
+			Querystring: {
+				d?: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
-			});
-		}
-
-		if (!request.body || !request.body.token) {
-			return response.status(this.codes.unauth).json({
-				code: this.codes.badReq,
-				message: 'Missing token in body!'
 			});
 		}
 
@@ -65,7 +81,7 @@ class ShareXConfigurator extends Path {
 			request.body.token
 		);
 		if (!compare) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.notAccepted,
 				message: 'Invalid Token!'
 			});
@@ -75,26 +91,30 @@ class ShareXConfigurator extends Path {
 
 		const config = this.configurator.generateFiles(url, request.body.token);
 		if (request.query && request.query.d === 'file') {
-			response.type('text/plain; charset=binary');
-			response.set(
-				'Content-Disposition',
-				'attachment; filename=Folderr-File-Config.sxcu'
-			);
-			return response.status(this.codes.ok).send(config[0]);
+			return response
+				.type('text/plain; charset=binary')
+				.header(
+					'Content-Disposition',
+					'attachment; filename=Folderr-Link-Config.sxcu'
+				)
+				.status(this.codes.ok)
+				.send(config[0]);
 		}
 
 		if (request.query?.d && request.query.d === 'link') {
-			response.type('text/plain; charset=binary');
-			response.set(
-				'Content-Disposition',
-				'attachment; filename=Folderr-Link-Config.sxcu'
-			);
-			return response.status(this.codes.ok).send(config[1]);
+			return response
+				.type('text/plain; charset=binary')
+				.header(
+					'Content-Disposition',
+					'attachment; filename=Folderr-Link-Config.sxcu'
+				)
+				.status(this.codes.ok)
+				.send(config[1]);
 		}
 
 		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: config});
+			.send({code: this.codes.ok, message: config});
 	}
 }
 

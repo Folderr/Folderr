@@ -20,8 +20,8 @@
  */
 
 import nodemailer, {SentMessageInfo} from 'nodemailer';
-import Core from './core';
 import Mail from 'nodemailer/lib/mailer';
+import {Core} from '../internals';
 import * as constants from './constants/index';
 
 /**

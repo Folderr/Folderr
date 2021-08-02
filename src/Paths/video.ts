@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../Structures/path';
-import Core from '../Structures/core';
-import {Response} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import mime from 'mime-types';
-import {join} from 'path';
+import {Core, Path} from '../internals';
 
 /**
  * @classdesc Allow users to access videos over the web
@@ -33,19 +31,41 @@ class Videos extends Path {
 		super(core);
 		this.label = 'Videos ID';
 		this.path = ['/videos/:id', '/v/:id'];
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'string'
+					}
+				}
+			}
+		};
 	}
 
 	/**
 	 * @desc Display an image to the user, or the 404 page if image doesn't exist.
 	 */
-	async execute(request: any, response: Response): Promise<Response | void> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
-			return response
-				.status(this.codes.badReq)
-				.send('[ERROR] Missing video ID.');
+			return response.status(this.codes.badReq).send('Missing video ID');
 		}
 
-		if (!request.params.id.match('.')) {
+		if (!/./.test(request.params.id)) {
 			return response.status(this.codes.badReq).send('Missing file extension!');
 		}
 
@@ -59,18 +79,12 @@ class Videos extends Path {
 			const owner = await this.core.db.findUser({id: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				response
-					.status(this.codes.notFound)
-					.sendFile(join(__dirname, '../Frontend/notfound.html'));
-				return;
+				return response.status(this.codes.notFound).send('404 Not Found');
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'video')) {
-			response
-				.status(this.codes.notFound)
-				.sendFile(join(__dirname, '../Frontend/notfound.html'));
-			return;
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
 		let content = mime.contentType(image.path);
@@ -87,9 +101,7 @@ class Videos extends Path {
 			content = `video/${array[array.length - 1].toLowerCase()}`;
 		}
 
-		response.setHeader('Content-Type', content);
-
-		response.sendFile(image.path);
+		return response.header('Content-Type', content).sendFile(image.path);
 	}
 }
 

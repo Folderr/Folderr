@@ -19,9 +19,8 @@
  *
  */
 
-import {Response, Request} from 'express';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
 
 /**
@@ -32,26 +31,61 @@ class LookupAccount extends Path {
 		super(core);
 		this.label = '[API] Reverse Account Lookup';
 		this.path = '/api/admin/content/:type/:id/account';
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'},
+						type: {type: 'string'}
+					},
+					required: ['id', 'type']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'object'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+				type: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed'
 			});
 		}
 
 		if (
-			!request.params?.type ||
-			!request.params?.id ||
 			!['file', 'link'].includes(request.params.type) ||
 			!/^[\dA-Za-z]+$/.test(request.params.id)
 		) {
-			return response.status(this.codes.badReq).json({
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing or invalid requirements'
 			});
@@ -64,7 +98,7 @@ class LookupAccount extends Path {
 		if (!out) {
 			const formattedType = request.params.type === 'file' ? 'File' : 'Link';
 			console.log(formattedType);
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: `${formattedType} not found!`
 			});
@@ -75,13 +109,13 @@ class LookupAccount extends Path {
 			'id username email created'
 		);
 		if (!user) {
-			return response.status(this.codes.ok).json({
-				code: this.codes.ok,
+			return response.status(this.codes.ok).send({
+				code: this.Utils.FoldCodes.noUserFound,
 				message: {}
 			});
 		}
 
-		return response.status(this.codes.ok).json({
+		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
 			message: {
 				username: user.username,

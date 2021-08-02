@@ -19,11 +19,9 @@
  *
  */
 
-import {Response} from 'express';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Warn a user
@@ -34,52 +32,77 @@ class WarnUser extends Path {
 		this.label = '[API] Warn User';
 		this.path = '/api/admin/warn/:id';
 		this.type = 'post';
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						reason: {type: 'string'}
+					},
+					required: ['reason']
+				},
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Body: {
+				reason: string;
+			};
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth) {
-			response
-				.status(this.codes.unauth)
-				.json({
-					code: this.codes.unauth,
-					message: 'Authorization failed.'
-				})
-				.end();
-			return;
+			return response.status(this.codes.unauth).send({
+				code: this.codes.unauth,
+				message: 'Authorization failed.'
+			});
 		}
 
-		if (
-			!request.params?.id ||
-			!request.body?.reason ||
-			typeof request.body.reason !== 'string' ||
-			!/^\d+$/.test(request.params.id)
-		) {
-			response
-				.status(this.codes.badReq)
-				.json({
-					code: this.codes.badReq,
-					message: 'Requirements missing or invalid!'
-				})
-				.end();
-			return;
+		if (!/^\d+$/.test(request.params.id)) {
+			return response.status(this.codes.badReq).send({
+				code: this.codes.badReq,
+				message: 'Requirements missing or invalid!'
+			});
 		}
 
 		const user = await this.core.db.findUser({id: request.params.id});
 		if (!user) {
-			response
-				.status(this.codes.notAccepted)
-				.json({
-					code: this.Utils.FoldCodes.dbNotFound,
-					message: 'User not found!'
-				})
-				.end();
-			return;
+			return response.status(this.codes.notAccepted).send({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: 'User not found!'
+			});
 		}
 
 		const id = await this.Utils.genNotifyID();
@@ -90,20 +113,16 @@ class WarnUser extends Path {
 					notifs: {
 						id,
 						title: 'Warn',
-						notify: `You were warned for: ${request.body.reason as string}`
+						notify: `You were warned for: ${request.body.reason}`
 					}
 				}
 			}
 		);
 		if (!updated) {
-			response
-				.status(this.codes.notAccepted)
-				.json({
-					code: this.Utils.FoldCodes.unkownError,
-					message: 'Warn failed'
-				})
-				.end();
-			return;
+			return response.status(this.codes.notAccepted).send({
+				code: this.Utils.FoldCodes.unkownError,
+				message: 'Warn failed'
+			});
 		}
 
 		if (this.core.emailer.active) {
@@ -116,7 +135,7 @@ class WarnUser extends Path {
 			);
 		}
 
-		return response.status(this.codes.ok).json({
+		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
 			message: 'OK'
 		});

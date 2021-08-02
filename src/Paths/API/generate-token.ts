@@ -19,11 +19,9 @@
  *
  */
 
-import {Response} from 'express';
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 import {TokenDB} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Allow a user to generate a token
@@ -36,13 +34,47 @@ class GenToken extends Path {
 
 		this.type = 'post';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						override: {type: 'boolean'}
+					}
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Querystring: {
+				override: boolean;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
@@ -50,29 +82,18 @@ class GenToken extends Path {
 
 		const tokens = await this.core.db.findTokens(auth.id, {web: false});
 
-		if (
-			tokens.length > 10 &&
-			!(
-				request.query &&
-				!request.query.override &&
-				request.query.override !== 'true'
-			)
-		) {
-			return response.status(this.codes.forbidden).json({
+		if (tokens.length > 10 && !(request.query && !request.query.override)) {
+			return response.status(this.codes.forbidden).send({
 				// This is string
 				code: this.Utils.FoldCodes.tokenSizeLimit,
 				/* eslint-disable max-len */
 				message:
-					'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url.'
+					'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url (This will delete the first one created).'
 				/* eslint-enable max-len */
 			});
 		}
 
-		if (
-			tokens.length >= 10 &&
-			request.query?.override &&
-			request.query.override === 'true'
-		) {
+		if (tokens.length >= 10 && request.query.override) {
 			const tkns = tokens.sort(
 				(a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created)
 			);
@@ -82,7 +103,7 @@ class GenToken extends Path {
 		const token = await this.Utils.authorization.genKey(auth.id);
 		return response
 			.status(this.codes.created)
-			.json({code: this.codes.ok, message: token});
+			.send({code: this.codes.ok, message: token});
 	}
 }
 

@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
+import {FastifyRequest, FastifyReply} from 'fastify';
+import {Core, Path} from '../../internals';
 import {User} from '../../Structures/Database/db-class';
-import {Request} from '../../Structures/Interfaces/express-extended';
 
 /**
  * @classdesc Administrators verify accounts via this endpoint
@@ -36,24 +34,54 @@ class VerifyAccount extends Path {
 		this.path = '/api/admin/verify';
 		this.type = 'post';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						token: {type: 'string'},
+						userid: {type: 'string'}
+					},
+					required: ['token', 'userid']
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					201: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
-	async execute(request: Request, response: Response): Promise<Response> {
+	async execute(
+		request: FastifyRequest<{
+			Body: {
+				token: string;
+				userid: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		// Handle authorization
 		const auth = await this.Utils.authPassword(request, (user: User) =>
 			Boolean(user.admin)
 		);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
-			});
-		}
-
-		if (!request.body || !request.body.token || !request.body.userid) {
-			return response.status(this.codes.badReq).json({
-				code: this.codes.badReq,
-				message: 'BODY MISSING OR IMPARTIAL!'
 			});
 		}
 
@@ -63,7 +91,7 @@ class VerifyAccount extends Path {
 			request.body.userid
 		);
 		if (!user) {
-			return response.status(this.codes.notAccepted).json({
+			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'User not found!'
 			});
@@ -80,7 +108,7 @@ class VerifyAccount extends Path {
 		);
 		return response
 			.status(this.codes.created)
-			.json({code: this.codes.ok, message: 'OK'});
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

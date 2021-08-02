@@ -20,6 +20,8 @@
  *
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 export interface Folderr {
 	bans: string[];
 	publicKeyJWT: Buffer;
@@ -460,5 +462,7 @@ export class DBClass {
 		);
 	}
 }
+
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export default DBClass;

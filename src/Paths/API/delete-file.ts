@@ -19,11 +19,8 @@
  *
  */
 
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response} from 'express';
-import {promises as fs, existsSync} from 'fs';
-import {Request} from '../../Structures/Interfaces/express-extended';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
 
 /**
  * @classdesc Have a user delete their file
@@ -35,22 +32,53 @@ class DeleteFile extends Path {
 		this.path = '/api/file/:id';
 		this.type = 'delete';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					}
+				},
+				response: {
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
-		if (!request.params?.id) {
-			return response.status(this.codes.badReq).json({
+		if (!request.params.id) {
+			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: 'Missing File ID!'
 			});
@@ -61,20 +89,16 @@ class DeleteFile extends Path {
 			id: request.params.id
 		});
 		if (!File) {
-			return response.status(this.codes.notFound).json({
+			return response.status(this.codes.notFound).send({
 				code: this.Utils.FoldCodes.dbNotFound,
 				message: 'File not found!'
 			});
 		}
 
 		await this.core.db.purgeFile({id: File.id, owner: auth.id});
-		response
+		return response
 			.status(this.codes.ok)
-			.json({code: this.codes.ok, message: 'OK'})
-			.end();
-		if (existsSync(File.path)) {
-			await fs.unlink(File.path);
-		}
+			.send({code: this.codes.ok, message: 'OK'});
 	}
 }
 

@@ -18,12 +18,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Request, Response} from 'express';
-import pkg from '../../../package.json';
+
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
+import pkg from '../../../package.json';
 
 // @ts-expect-error
 momentDurationFormatSetup(moment);
@@ -37,15 +37,36 @@ class Pong extends Path {
 		this.label = '[API] Pong';
 		this.path = '/api/';
 		this.type = 'get';
+
+		this.options = {
+			schema: {
+				response: {
+					200: {
+						type: 'object',
+						properties: {
+							message: {
+								values: {
+									version: {type: 'string'},
+									node_version: {type: 'string'},
+									online_since: {type: 'number'},
+									message: {type: 'pong'}
+								}
+							},
+							code: {type: 'number'}
+						}
+					}
+				}
+			}
+		};
 	}
 
 	/**
 	 * @desc PONG! Just a simple response, no auth needed
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply> {
 		const out: {
 			message: {
 				version: string;
@@ -63,7 +84,7 @@ class Pong extends Path {
 			},
 			code: this.codes.ok
 		};
-		return Promise.resolve(response.status(this.codes.ok).json(out));
+		return response.status(this.codes.ok).send(out);
 	}
 }
 

@@ -19,9 +19,8 @@
  *
  */
 
-import Path from '../Structures/path';
-import Core from '../Structures/core';
-import {Request, Response} from 'express';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../internals';
 
 class Proceed extends Path {
 	constructor(core: Core) {
@@ -37,24 +36,24 @@ class Proceed extends Path {
 	 * @desc Allows the user to make insecure requests, for 30 minutes.
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
-		const r = request.header('Referer');
+		request: FastifyRequest,
+		response: FastifyReply
+	): Promise<FastifyReply | void> {
+		const r = request.headers.referer;
 		if (!r) {
-			response.redirect('/');
-			return;
+			return response.redirect('/');
 		}
 
-		const mins = 1800000;
+		const mins = 1_800_000;
 		const endTime = new Date(Date.now() + mins);
-		response.cookie('i', 't', {
-			expires: endTime,
-			secure: false,
-			sameSite: 'strict',
-			httpOnly: true
-		});
-		response.redirect(`${r}`);
+		return response
+			.cookie('i', 't', {
+				expires: endTime,
+				secure: false,
+				sameSite: 'strict',
+				httpOnly: true
+			})
+			.redirect(`${r}`);
 	}
 }
 

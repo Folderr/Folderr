@@ -18,18 +18,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import Path from '../../Structures/path';
-import Core from '../../Structures/core';
-import {Response, Request} from 'express';
 import childProcess from 'child_process';
 import util from 'util';
-import {join} from 'path';
-const exec = util.promisify(childProcess.exec);
 import {promises} from 'fs';
-
-const sleep = async (ms: number): Promise<void> => {
-	setTimeout(async () => Promise.resolve(), ms);
-};
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../../internals';
+const exec = util.promisify(childProcess.exec);
 
 /**
  * @classdesc Allows the owner to manage the instance
@@ -42,46 +36,54 @@ class Manage extends Path {
 
 		this.type = 'post';
 		this.reqAuth = true;
+
+		this.options = {
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						type: {type: 'string'}
+					},
+					required: ['type']
+				}
+			}
+		};
 	}
 
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Querystring: {
+				type: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply | void> {
 		const auth = await this.Utils.authPassword(request, (user) =>
 			Boolean(user.owner)
 		);
 		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).json({
+			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
-		if (!request.query || !request.query.type) {
-			return response.status(this.codes.badReq).json({
-				code: this.codes.badReq,
-				message: 'Missing manage type'
-			});
-		}
-
 		if (request.query.type === 'shutdown') {
-			response.status(this.codes.ok).json({
-				code: this.codes.ok,
-				message: 'OK'
-			});
 			this.core.logger.info(
 				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`
 			);
 			this.core.shutdownServer();
-		} else if (request.query.type === 'update') {
-			response
-				.status(this.codes.accepted)
-				.json({
-					code: this.codes.ok,
-					message: 'Attempting update.'
-				})
-				.end();
+			return response.status(this.codes.ok).send({
+				code: this.codes.ok,
+				message: 'OK'
+			});
+		}
+
+		if (request.query.type === 'update') {
+			await response.status(this.codes.accepted).send({
+				code: this.codes.ok,
+				message: 'Attempting update.'
+			}); // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const oPackage: Record<string, string> = JSON.parse(
 				(await promises.readFile('./package.json')).toString()
 			);
@@ -89,7 +91,7 @@ class Manage extends Path {
 				await exec('npm run update'); // Eventually make file to handle this
 			} catch (error: unknown) {
 				if (error instanceof Error) {
-					this.handleError(error, response, undefined, {
+					return this.handleError(error, response, undefined, {
 						noIncrease: true,
 						noResponse: true
 					});
@@ -99,6 +101,7 @@ class Manage extends Path {
 			}
 
 			const f = await promises.readFile('./package.json');
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const af: Record<string, string> = JSON.parse(f.toString());
 			let v;
 			const vers = {
@@ -117,7 +120,7 @@ class Manage extends Path {
 			return Promise.resolve();
 		}
 
-		return response.status(this.codes.badReq).json({
+		return response.status(this.codes.badReq).send({
 			code: this.codes.badReq,
 			message: 'Not an option!'
 		});

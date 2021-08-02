@@ -19,11 +19,9 @@
  *
  */
 
-import Path from '../Structures/path';
-import Core from '../Structures/core';
-import {Request, Response} from 'express';
 import mime from 'mime-types';
-import {join} from 'path';
+import {FastifyReply, FastifyRequest} from 'fastify';
+import {Core, Path} from '../internals';
 
 /**
  * @classdesc Allow files to be accessed over the web
@@ -33,19 +31,38 @@ class Files extends Path {
 		super(core);
 		this.label = 'Files ID';
 		this.path = ['/file/:id', '/f/:id'];
+
+		this.options = {
+			schema: {
+				params: {
+					type: 'object',
+					properties: {
+						id: {type: 'string'}
+					},
+					required: ['id']
+				},
+				response: {
+					'4xx': {
+						type: 'string'
+					}
+				}
+			}
+		};
 	}
 
 	/**
 	 * @desc Display an image to the user, or the 404 page if image doesn't exist.
 	 */
 	async execute(
-		request: Request,
-		response: Response
-	): Promise<Response | void> {
+		request: FastifyRequest<{
+			Params: {
+				id: string;
+			};
+		}>,
+		response: FastifyReply
+	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
-			return response
-				.status(this.codes.badReq)
-				.send('[ERROR] Missing file ID.');
+			return response.status(this.codes.badReq).send('Missing file ID');
 		}
 
 		if (!request.params.id.includes('.')) {
@@ -65,18 +82,12 @@ class Files extends Path {
 			const owner = await this.core.db.findUser({id: image.owner});
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				response
-					.status(this.codes.notFound)
-					.sendFile(join(__dirname, '../Frontend/notfound.html'));
-				return;
+				return response.status(this.codes.notFound).send('404 Not Found');
 			}
 		}
 
 		if (!image || (image?.type && image.type !== 'file')) {
-			response
-				.status(this.codes.notFound)
-				.sendFile(join(__dirname, '../Frontend/notfound.html'));
-			return;
+			return response.status(this.codes.notFound).send('404 Not Found');
 		}
 
 		let content = mime.contentType(image.path);
@@ -94,10 +105,10 @@ class Files extends Path {
 				content = `text/${array[array.length - 1].toLowerCase()}`;
 			}
 
-			response.setHeader('Content-Type', content);
+			await response.header('Content-Type', content);
 		}
 
-		response.sendFile(image.path);
+		return response.sendFile(image.path);
 	}
 }
 
