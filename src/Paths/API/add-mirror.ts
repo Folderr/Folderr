@@ -127,13 +127,18 @@ class MirrorAdd extends Path {
 				request.body.url
 			);
 			id = out.id;
-			r = await this.core.superagent
-				.get(`${request.body.url}/api/verify`)
-				.send({
-					url: u,
-					owner: auth.id,
-					token: out.key
-				});
+			r = await this.core.got.post<MirrorResponse>(
+				`${request.body.url}/api/verify`,
+				{
+					responseType: 'json',
+					parseJson: parse,
+					json: {
+						url: u,
+						owner: auth.id,
+						token: out.key
+					}
+				}
+			);
 		} catch (error: unknown) {
 			if (!error || !(error instanceof Error)) {
 				return response.status(this.codes.internalErr).send({
@@ -160,16 +165,14 @@ class MirrorAdd extends Path {
 			});
 		}
 
-		const out = r.text;
-		const parsed = parse(out);
-		if (!out || !parsed) {
+		if (!r || !r.body) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.mirrorReject,
 				message: 'Mirror failed Validation'
 			});
 		}
 
-		const {message} = parsed;
+		const {message} = r.body;
 		const valid =
 			id && u
 				? this.Utils.authorization.verifyMirrorKey(

@@ -465,12 +465,15 @@ class Utils {
 
 	async testMirrorURL(url: string): Promise<boolean> {
 		try {
-			const test = await this.#core.superagent.get(`${url}/api`);
-			if (!test || !test.text) {
+			const test = await this.#core.got.get<MirrorResponse>(`${url}/api`, {
+				responseType: 'json',
+				parseJson: mirrorparse
+			});
+			if (!test || !test.body) {
 				return false;
 			}
 
-			if (mirrorparse(test.text)?.message.res === 'Pong! Mirror Operational!') {
+			if (test.body.message.res === 'Pong! Mirror Operational!') {
 				return true;
 			}
 
@@ -488,14 +491,18 @@ class Utils {
 		}
 
 		try {
-			const test = await this.#core.superagent.get(
-				`${this.#core.config.url}/api`
+			const test = await this.#core.got.get<APIResponse>(
+				`${this.#core.config.url}/api`,
+				{
+					responseType: 'json',
+					parseJson: apiparse
+				}
 			);
-			if (!test || !test.text) {
+			if (!test) {
 				return `${protocol}${host}`;
 			}
 
-			if (apiparse(test.text)?.message.message === 'Pong!') {
+			if (test.body.message.message === 'Pong!') {
 				return this.#core.config.url;
 			}
 
