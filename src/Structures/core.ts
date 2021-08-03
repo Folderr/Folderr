@@ -16,7 +16,7 @@ import ratelimit from 'fastify-rate-limit';
 // Other imports
 import spdy from 'spdy';
 import winston from 'winston';
-import superagent, {SuperAgent, SuperAgentRequest} from 'superagent';
+import got, {Got} from 'got';
 
 // Local files
 import Configurer, {
@@ -35,6 +35,7 @@ import {
 	Regexs,
 	codes as StatusCodes
 } from '../internals';
+import {version} from '../../package.json';
 
 const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -63,7 +64,7 @@ export default class Core {
 
 	public readonly Utils: Utils;
 
-	public readonly superagent: SuperAgent<SuperAgentRequest>;
+	public readonly got: Got;
 
 	#deleter: ChildProcess;
 
@@ -106,7 +107,12 @@ export default class Core {
 		);
 		this.codes = StatusCodes;
 		this.logger = wlogger;
-		this.superagent = superagent;
+		this.got = got.extend({
+			http2: true,
+			headers: {
+				'User-Agent': `Folderr/${version} (github.com/Folderr/Folderr)`
+			}
+		});
 		this.#deleter = fork(join(process.cwd(), 'src/file-del-queue'), undefined, {
 			silent: true
 		});

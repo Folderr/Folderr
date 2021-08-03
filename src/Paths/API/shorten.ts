@@ -75,7 +75,7 @@ class Shorten extends Path {
 		}
 
 		try {
-			await this.core.superagent.get(request.body.url);
+			await this.core.got.get(request.body.url);
 			// eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
 		} catch (error: any) {
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access */
