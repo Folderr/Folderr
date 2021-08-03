@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class DeleteFile extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Delete Image';
+		this.label = 'API Delete Image';
 		this.path = '/api/file/:id';
 		this.type = 'delete';
 		this.reqAuth = true;

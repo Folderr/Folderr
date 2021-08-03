@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class Tokens extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] List Tokens';
+		this.label = 'API List Tokens';
 		this.path = '/api/account/tokens';
 
 		this.options = {

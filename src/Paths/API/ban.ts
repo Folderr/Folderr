@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class Ban extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Ban';
+		this.label = 'API/Admin Ban';
 
 		this.path = '/api/admin/ban/:id';
 		this.type = 'post';

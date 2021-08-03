@@ -30,7 +30,7 @@ import {Notification} from '../../Structures/Database/db-class';
 class Notifs extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Notifications';
+		this.label = 'API/User Notifications';
 		this.path = '/api/notifications';
 
 		this.type = 'get';

@@ -29,7 +29,7 @@ import {User} from '../../Structures/Database/db-class';
 class WarnUser extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Warn User';
+		this.label = 'API/Admin Warn User';
 		this.path = '/api/admin/warn/:id';
 		this.type = 'post';
 

@@ -29,7 +29,7 @@ import {TokenDB} from '../../Structures/Database/db-class';
 class GenToken extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Generate Token';
+		this.label = 'API/User Generate API Token';
 		this.path = '/api/account/token';
 
 		this.type = 'post';

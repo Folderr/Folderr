@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class RemoveAdmin extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Remove Admin';
+		this.label = 'API/Management Remove Admin';
 		this.path = '/api/manage/admin/:id';
 		this.reqAuth = true;
 

@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class AdminNotification extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Notification';
+		this.label = 'API/Admin Notification';
 		this.path = '/api/admin/notification/:id';
 		this.reqAuth = true;
 

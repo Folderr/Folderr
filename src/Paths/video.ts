@@ -29,7 +29,7 @@ import {Core, Path} from '../internals';
 class Videos extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Videos ID';
+		this.label = 'Get video by id';
 		this.path = ['/videos/:id', '/v/:id'];
 
 		this.options = {

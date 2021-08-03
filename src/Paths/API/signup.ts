@@ -30,7 +30,7 @@ import * as constants from '../../Structures/constants/index';
 class Signup extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Signup';
+		this.label = 'API Signup';
 
 		this.path = '/api/signup';
 		this.type = 'post';

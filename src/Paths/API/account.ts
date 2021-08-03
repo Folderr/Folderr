@@ -29,7 +29,7 @@ import {Notification} from '../../Structures/Database/db-class';
 class Account extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] View Account';
+		this.label = 'API/User View Account';
 		this.path = '/api/account';
 		this.reqAuth = true;
 

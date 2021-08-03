@@ -29,7 +29,7 @@ import {Core, Path} from '../../internals';
 class Eval extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Eval';
+		this.label = 'API/Management Eval';
 		this.path = '/api/eval';
 		this.type = 'post';
 		this.reqAuth = true;

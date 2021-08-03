@@ -29,7 +29,7 @@ import {User} from '../../Structures/Database/db-class';
 class VerifyAccount extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Verify Account';
+		this.label = 'API/Admin Verify New Account';
 
 		this.path = '/api/admin/verify';
 		this.type = 'post';

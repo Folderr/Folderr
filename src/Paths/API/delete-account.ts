@@ -34,7 +34,7 @@ interface DelReturns {
 class DelAccount extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Delete account';
+		this.label = 'API/User Delete account';
 		this.path = '/api/account';
 		this.reqAuth = true;
 

@@ -25,7 +25,7 @@ import {Core, Path} from '../internals';
 class Logout extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'logout';
+		this.label = 'Logout';
 		this.path = '/api/logout';
 		this.enabled = !this.core.config.apiOnly;
 	}

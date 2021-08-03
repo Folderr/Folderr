@@ -30,7 +30,7 @@ import {RequestGallery} from '../../../types/types/fastify-request-types';
 class Links extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Links';
+		this.label = 'API/User Links';
 		this.path = '/api/links';
 		this.reqAuth = true;
 

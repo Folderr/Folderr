@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class ClearNotifs extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Clear Notifications';
+		this.label = 'API/User Clear Notifications';
 		this.path = '/api/notifications';
 		this.reqAuth = true;
 

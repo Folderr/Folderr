@@ -3,7 +3,7 @@ export {default as Short} from './short';
 export {default as Images} from './image';
 export {default as Videos} from './video';
 export {default as Files} from './files';
-export {default as APISignup} from './API/signups';
+export {default as APISignup} from './API/signup';
 export {default as APIPVerify} from './API/verify-account';
 export {default as APIDVerify} from './API/deny-account';
 export {default as APINotifs} from './API/notifications';

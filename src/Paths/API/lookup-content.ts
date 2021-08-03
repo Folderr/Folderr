@@ -29,7 +29,7 @@ import {User} from '../../Structures/Database/db-class';
 class Lookup extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Lookup Content';
+		this.label = 'API/Admin Lookup Content';
 		this.path = '/api/admin/content/:type/:id';
 
 		this.options = {

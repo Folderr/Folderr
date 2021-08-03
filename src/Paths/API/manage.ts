@@ -32,7 +32,7 @@ const exec = util.promisify(childProcess.exec);
 class Manage extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Manage';
+		this.label = 'API/Manage';
 		this.path = '/api/manage';
 
 		this.type = 'post';

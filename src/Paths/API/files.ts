@@ -30,7 +30,7 @@ import {RequestGallery} from '../../../types/types/fastify-request-types';
 class Files extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Files';
+		this.label = 'API/User Files';
 		this.path = '/api/files';
 		this.reqAuth = true;
 

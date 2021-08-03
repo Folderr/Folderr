@@ -52,7 +52,7 @@ const parse = ajv.compileParser(schema);
 class MirrorAdd extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Add Mirror';
+		this.label = 'API/User Add Mirror';
 		this.path = '/api/account/mirror';
 
 		this.type = 'post';

@@ -31,7 +31,7 @@ class ShareXConfigurator extends Path {
 
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Configurator';
+		this.label = 'API/Authorized Configurator';
 		this.path = '/api/sharex/config';
 		this.type = 'post';
 		this.configurator = new Configurator();

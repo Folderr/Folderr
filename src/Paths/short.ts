@@ -28,7 +28,7 @@ import {Core, Path} from '../internals';
 class Short extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Link';
+		this.label = 'Get link by id';
 		this.path = ['/link/:id', '/l/:id'];
 
 		this.options = {

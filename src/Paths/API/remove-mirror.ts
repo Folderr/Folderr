@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class MirrorRemove extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Mirror Remove';
+		this.label = 'API/User Mirror Remove';
 		this.path = '/api/account/mirror';
 
 		this.type = 'delete';
