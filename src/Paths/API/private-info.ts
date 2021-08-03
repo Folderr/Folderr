@@ -32,7 +32,7 @@ const exec = util.promisify(childProcess.exec);
 class Info extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Info';
+		this.label = 'API/Authorized Info';
 		this.path = '/api/info';
 		this.reqAuth = true;
 

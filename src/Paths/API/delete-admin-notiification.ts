@@ -29,7 +29,7 @@ import wlogger from '../../Structures/winston-logger';
 class DelANotify extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Delete notification';
+		this.label = 'API/Admin Delete notification';
 		this.path = '/api/admin/notification/:id';
 		this.reqAuth = true;
 

@@ -29,7 +29,7 @@ import {User} from '../../Structures/Database/db-class';
 class Takedown extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Takedown Content';
+		this.label = 'API/Admin Takedown Content';
 		this.type = 'delete';
 		this.path = '/api/admin/content/:type/:id';
 

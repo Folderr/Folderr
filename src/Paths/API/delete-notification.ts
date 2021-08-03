@@ -29,7 +29,7 @@ import {Core, Path} from '../../internals';
 class DelNotify extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Delete notification';
+		this.label = 'API/User Delete notification';
 		this.path = '/api/notification/:id';
 
 		this.type = 'delete';

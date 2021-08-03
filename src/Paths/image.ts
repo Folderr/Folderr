@@ -29,7 +29,7 @@ import {Core, Path} from '../internals';
 class Images extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Images ID';
+		this.label = 'Get image by id';
 		this.path = ['/image/:id', '/i/:id'];
 
 		this.options = {

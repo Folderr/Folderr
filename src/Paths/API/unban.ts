@@ -29,7 +29,7 @@ import {User} from '../../Structures/Database/db-class';
 class Unban extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Unban';
+		this.label = 'API/Admin Unban';
 
 		this.path = '/api/admin/ban';
 		this.type = 'delete';

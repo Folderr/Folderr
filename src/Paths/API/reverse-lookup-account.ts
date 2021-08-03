@@ -29,7 +29,7 @@ import {User} from '../../Structures/Database/db-class';
 class LookupAccount extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Reverse Account Lookup';
+		this.label = 'API/Admin Reverse Account Lookup';
 		this.path = '/api/admin/content/:type/:id/account';
 
 		this.options = {

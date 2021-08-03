@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class Shorten extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Shorten';
+		this.label = 'API Shorten Link';
 		this.path = '/api/link';
 		this.type = 'post';
 		this.reqAuth = true;

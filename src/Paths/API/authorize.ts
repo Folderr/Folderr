@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class Login extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Authorize';
+		this.label = 'API/User Authorize';
 		this.path = '/api/authorize';
 		this.secureOnly = false;
 

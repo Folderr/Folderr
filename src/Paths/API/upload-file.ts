@@ -31,7 +31,7 @@ import {Core, Path} from '../../internals';
 class Image extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Upload Image';
+		this.label = 'API Upload File';
 		this.path = '/api/file';
 		this.type = 'post';
 		this.reqAuth = true;

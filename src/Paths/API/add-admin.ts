@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class AddAdmin extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Add Admin';
+		this.label = 'API/Management Add Admin';
 		this.path = '/api/manage/admin/:id';
 		this.reqAuth = true;
 

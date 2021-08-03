@@ -34,7 +34,7 @@ momentDurationFormatSetup(moment);
 class Pong extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Pong';
+		this.label = 'API/Public Info';
 		this.path = '/api/';
 		this.type = 'get';
 

@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class DeleteToken extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Delete Token';
+		this.label = 'API/User Delete API Token';
 		this.path = '/api/account/token/:id';
 		this.type = 'delete';
 

@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class DenyAccount extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Deny Account';
+		this.label = 'API/Admin Deny Account';
 
 		this.path = '/api/admin/verify';
 		this.type = 'delete';

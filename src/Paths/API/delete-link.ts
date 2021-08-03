@@ -28,7 +28,7 @@ import {Core, Path} from '../../internals';
 class DeleteLink extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Delete Link';
+		this.label = 'API Delete Link';
 		this.path = '/api/link/:id';
 
 		this.type = 'delete';

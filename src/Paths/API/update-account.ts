@@ -47,7 +47,7 @@ type UpdateAccBody =
 class UpdateAcc extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = '[API] Update Account';
+		this.label = 'API/User Update Account';
 		this.path = '/api/account';
 
 		this.type = 'patch';
