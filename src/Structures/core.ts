@@ -13,6 +13,7 @@ import cookie from 'fastify-cookie';
 import helmet from 'fastify-helmet';
 import fastifyStatic from 'fastify-static';
 import ratelimit from 'fastify-rate-limit';
+import fastifyCors from 'fastify-cors';
 // Other imports
 import spdy from 'spdy';
 import winston from 'winston';
@@ -127,7 +128,10 @@ export default class Core {
 
 	async registerServerPlugins() {
 		await this.app.register(cookie);
-		await this.app.register(helmet);
+		if (process.env.NODE_ENV !== 'dev') {
+			await this.app.register(helmet);
+		}
+
 		await this.app.register(fastifyStatic, {
 			root: join(process.cwd(), 'build/otherFiles')
 		});
@@ -140,6 +144,30 @@ export default class Core {
 		await this.app.register(ratelimit, {
 			max: 10,
 			timeWindow: '10s'
+		});
+		let origin: RegExp | string = '*';
+		if (process.env.NODE_ENV === 'dev') {
+			origin = /localhost/;
+		}
+
+		await this.app.register(fastifyCors, {
+			origin
+		});
+
+		this.app.addHook('onRequest', (request, reply, done) => {
+			if (process.env.DEBUG) {
+				this.logger.debug(`URL: ${request.url}`);
+				this.logger.debug(`Is 404: ${request.is404.toString()}`);
+			}
+
+			done();
+		});
+		this.app.addHook('onResponse', (request, reply, done) => {
+			if (process.env.DEBUG) {
+				this.logger.debug(`Status: ${reply.raw.statusCode}`);
+			}
+
+			done();
 		});
 	}
 

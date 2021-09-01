@@ -25,7 +25,7 @@ import {Notification} from '../Structures/Database/db-class';
 const User: Schema = new Schema({
 	id: {type: String, required: true, index: true},
 	password: {type: String, required: true},
-	owner: {type: Boolean, default: false},
+	first: {type: Boolean, default: false},
 	username: {type: String, required: true},
 	admin: {type: Boolean, default: false},
 	notifs: {
@@ -52,7 +52,7 @@ const User: Schema = new Schema({
 export interface UserI extends Document {
 	id: string;
 	password: string;
-	owner?: boolean;
+	first?: boolean;
 	username: string;
 	admin?: boolean;
 	notifs: Notification[];
