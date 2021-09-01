@@ -21,6 +21,7 @@
 
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../../internals';
+import {User} from '../../../Structures/Database/db-class';
 
 /**
  * @classdesc Allow a user to login
@@ -35,65 +36,41 @@ class Login extends Path {
 		this.type = 'post';
 		this.options = {
 			schema: {
-				response: {
-					'4xx': {
-						type: 'object',
-						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					},
-					200: {
-						type: 'object',
-						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
+				headers: {
+					username: {type: 'string'},
+					password: {type: 'string'}
 				}
 			}
 		};
 	}
 
 	async execute(
-		request: FastifyRequest,
+		request: FastifyRequest<{
+			Headers: {
+				username: string;
+				password: string;
+			};
+		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
-		if (
-			!request.headers ||
-			(request.headers &&
-				(!request.headers.username || !request.headers.password))
-		) {
-			return response.status(this.codes.badReq).send({
-				code: this.codes.badReq,
-				message: 'MISSING DETAIL(S)'
-			});
+		let auth: false | User = false;
+
+		try {
+			auth = await this.Utils.authPassword(request);
+		} catch (error: unknown) {
+			this.core.logger.error(error);
 		}
 
-		const auth = await this.Utils.authPassword(request);
-		if (!auth || typeof auth === 'string') {
+		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
 			});
 		}
 
-		// Set the cookie to expire in a weeks time
-		const week = 604_800_000;
-		const endTime = new Date(Date.now() + week * 2);
+		// Folderr no longer uses cookies.
 		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
-		return response
-			.cookie('token', jwt, {
-				expires: endTime,
-				secure: false,
-				httpOnly: true,
-				sameSite: 'strict'
-			})
-			.status(this.codes.ok)
-			.send({
-				code: this.codes.ok,
-				message: 'OK'
-			});
+		return response.send({code: this.codes.ok, message: jwt});
 	}
 }
 

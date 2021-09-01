@@ -391,7 +391,6 @@ class Utils {
 		) {
 			return false;
 		}
-		// Find user on username, and if no user auth failed
 
 		const user = await this.#core.db.findUser({
 			username: request.headers.username
@@ -400,14 +399,15 @@ class Utils {
 			return false;
 		}
 
-		if (!(await argon2.verify(user.password, request.headers.password))) {
+		const verify = await argon2.verify(user.password, request.headers.password);
+		if (!verify) {
 			return false;
 		}
 
 		// If the custom function exists
 		if (fn) {
 			const funcOut = fn(user); // Run the custom function (boolean)
-			if (!funcOut || !(typeof funcOut === 'boolean')) {
+			if (!funcOut) {
 				return false;
 			}
 		}
