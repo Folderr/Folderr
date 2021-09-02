@@ -27,7 +27,7 @@ const User: Schema = new Schema({
 	username: {type: String, required: true},
 	validationToken: {type: String, required: true},
 	email: {type: String, required: true},
-	created: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()}
 });
 
 export interface VUser extends Document {
@@ -36,7 +36,7 @@ export interface VUser extends Document {
 	username: string;
 	validationToken: string;
 	email: string;
-	created: Date;
+	createdAt: Date;
 }
 
 const mod: Model<VUser> = model<VUser>('verifying_user', User);

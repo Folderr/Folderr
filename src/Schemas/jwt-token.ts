@@ -25,15 +25,19 @@ const JwtToken: Schema = new Schema({
 	id: {type: String, required: true, index: true},
 	userID: {type: String, required: true, index: true},
 	web: {type: Boolean, required: false, default: false},
-	created: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()},
+	expireAt: {type: Date}
 });
 
 export interface JwtTokenI extends Document {
 	id: string;
 	userID: string;
 	web?: boolean;
-	created: Date;
+	createdAt: Date;
+	expireAt?: Date;
 }
+
+JwtToken.index({expireAt: 1}, {expiresAfterSeconds: 0});
 
 const mod: Model<JwtTokenI> = model<JwtTokenI>('jwttoken', JwtToken);
 export default mod;

@@ -25,14 +25,14 @@ export interface Link extends Document {
 	link: string;
 	owner: string;
 	id: string;
-	created: Date;
+	createdAt: Date;
 }
 
 const ShortSchema: Schema<Link> = new Schema({
 	link: {type: String, required: true},
 	owner: {type: String, required: true},
 	id: {type: String, required: true, index: true},
-	created: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()}
 });
 
 const ShortModel: Model<Link> = model('short', ShortSchema);

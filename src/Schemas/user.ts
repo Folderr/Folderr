@@ -46,7 +46,7 @@ const User: Schema = new Schema({
 	email: {type: String, required: true, index: true},
 	pendingEmail: {type: String},
 	pendingEmailToken: {type: String},
-	created: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()}
 });
 
 export interface UserI extends Document {
@@ -59,7 +59,7 @@ export interface UserI extends Document {
 	cURLs: string[];
 	files: number;
 	links: number;
-	created: Date;
+	createdAt: Date;
 	email: string;
 	pendingEmail?: string;
 	pendingEmailToken?: string;

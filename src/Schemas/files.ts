@@ -26,7 +26,7 @@ const File: Schema = new Schema({
 	owner: {type: String, required: true},
 	path: {type: String, required: true},
 	type: {type: String, required: true},
-	created: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()}
 });
 export interface UploadI extends Document {
 	id: string;
@@ -34,7 +34,7 @@ export interface UploadI extends Document {
 	format: string;
 	path: string;
 	type: string;
-	created: Date;
+	createdAt: Date;
 }
 
 const mod: Model<UploadI> = model<UploadI>('file', File);
