@@ -67,7 +67,7 @@ export default class Authorization {
 	}
 
 	public async verify(token: string, web?: boolean): Promise<string | void> {
-		if (web) {
+		if (web || token.startsWith('Bearer: ')) {
 			token = token.slice(8);
 		}
 
@@ -123,6 +123,10 @@ export default class Authorization {
 	}
 
 	public async revoke(token: string, web?: boolean): Promise<boolean | void> {
+		if (token.startsWith('Bearer: ')) {
+			web = true;
+		}
+
 		if (web) {
 			token = token.slice(8);
 		}
@@ -144,9 +148,12 @@ export default class Authorization {
 		} catch {}
 	}
 
-	public async revokeAll(userID: string): Promise<boolean | void> {
+	public async revokeAll(
+		userID: string,
+		web?: boolean
+	): Promise<boolean | void> {
 		try {
-			const del = await this.#core.db.purgeTokens(userID);
+			const del = await this.#core.db.purgeTokens(userID, web);
 			if (!del || del === 0) {
 				return;
 			}

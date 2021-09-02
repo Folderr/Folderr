@@ -31,7 +31,7 @@ export interface Notification {
 	id: string;
 	title: string;
 	notify: string;
-	created: Date;
+	createdAt: Date;
 }
 
 export interface User {
@@ -45,7 +45,7 @@ export interface User {
 	files: number;
 	links: number;
 	email: string;
-	created: Date;
+	createdAt: Date;
 	pendingEmail?: string;
 	pendingEmailToken?: string;
 }
@@ -54,7 +54,7 @@ export interface Link {
 	link: string;
 	owner: string;
 	id: string;
-	created: Date;
+	createdAt: Date;
 }
 
 export interface PendingMember {
@@ -63,14 +63,15 @@ export interface PendingMember {
 	username: string;
 	validationToken: string;
 	email: string;
-	created: Date;
+	createdAt: Date;
 }
 
 export interface TokenDB {
 	id: string;
 	userID: string;
 	web?: boolean;
-	created: Date;
+	createdAt: Date;
+	expireAt?: Date;
 }
 
 export interface Upload {
@@ -79,7 +80,7 @@ export interface Upload {
 	format: string;
 	path: string;
 	type: string;
-	created: Date;
+	createdAt: Date;
 }
 
 /**

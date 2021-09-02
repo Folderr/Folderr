@@ -126,12 +126,6 @@ class Path {
 				request.headers.authorization
 			);
 		}
-
-		if (request.cookies?.token && typeof request.cookies.token === 'string') {
-			return this.Utils.authorization.verifyAccount(request.cookies.token, {
-				web: true
-			});
-		}
 	}
 
 	async checkAuthAdmin(request: FastifyRequest): Promise<User | void> {
@@ -145,13 +139,6 @@ class Path {
 					fn: (user) => Boolean(user.admin)
 				}
 			);
-		}
-
-		if (request.cookies?.token && typeof request.cookies.token === 'string') {
-			return this.Utils.authorization.verifyAccount(request.cookies.token, {
-				fn: (user) => Boolean(user.admin),
-				web: true
-			});
 		}
 	}
 

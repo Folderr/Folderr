@@ -602,7 +602,8 @@ export default class MongooseDB extends DBClass {
 		const tken = new this.#Schemas.Token({
 			id: tokenID,
 			userID,
-			web: options?.web ?? false
+			web: options?.web ?? false,
+			expireAt: options?.web ? 60 * 60 * 24 * 14 : undefined
 		});
 		await tken.save();
 		return tken;
