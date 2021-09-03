@@ -213,6 +213,14 @@ export default class Core {
 			}
 
 			wlogger.log('prelisten', 'Initalized Server');
+			if (process.env.NODE_ENV === 'production') {
+				wlogger.log(
+					'fatal',
+					'HTTPS and/or HTTP/2 required in production. Shuting down'
+				);
+				this.shutdownServer();
+			}
+
 			return server;
 		};
 	}
