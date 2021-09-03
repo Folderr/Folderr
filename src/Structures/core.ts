@@ -140,7 +140,6 @@ export default class Core {
 			prefix: '/assets',
 			decorateReply: false
 		});
-		// This.app.use(express.static(join(__dirname, '../Frontend')));
 		await this.app.register(ratelimit, {
 			max: 10,
 			timeWindow: '10s'
@@ -151,7 +150,8 @@ export default class Core {
 		}
 
 		await this.app.register(fastifyCors, {
-			origin
+			origin,
+			credentials: true
 		});
 
 		this.app.addHook('onRequest', (request, reply, done) => {

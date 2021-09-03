@@ -27,7 +27,7 @@ import {User} from '../../../Structures/Database/db-class';
  * @classdesc Allow a user to login
  */
 class Login extends Path {
-	#sameSite: 'none' | 'strict';
+	#sameSite: undefined | 'strict';
 
 	#secure: boolean;
 
@@ -51,7 +51,7 @@ class Login extends Path {
 		this.#secure = true;
 		if (process.env.NODE_ENV === 'dev') {
 			this.#secure = false;
-			this.#sameSite = 'none';
+			this.#sameSite = undefined;
 		}
 	}
 
