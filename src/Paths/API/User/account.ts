@@ -86,7 +86,7 @@ class Account extends Path {
 			email: string;
 			pendingEmail?: string;
 			notifications: Notification[];
-			created: number;
+			createdAt: number;
 		} = {
 			username: auth.username,
 			id: auth.id,
@@ -98,7 +98,7 @@ class Account extends Path {
 			pendingEmail: auth.pendingEmail,
 			notifications: auth.notifs,
 			customUrls: auth.cURLs,
-			created: Math.round(auth.created.getTime() / 1000)
+			createdAt: Math.round(auth.createdAt.getTime() / 1000)
 		};
 		return response
 			.status(this.codes.ok)
