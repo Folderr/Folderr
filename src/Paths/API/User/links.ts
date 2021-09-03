@@ -121,7 +121,7 @@ class Links extends Path {
 		const aShorts = shorts.map((short: Link) => ({
 			id: short.id,
 			points_to: short.link,
-			created: Math.round(short.created.getTime() / 1000),
+			created: Math.round(short.createdAt.getTime() / 1000),
 			link: `${url}/${short.id}`
 		}));
 

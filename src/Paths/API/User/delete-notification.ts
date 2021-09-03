@@ -138,7 +138,7 @@ class DelNotify extends Path {
 
 		if (
 			notify?.title === 'Warn' &&
-			Date.now() - notify.created.getTime() < limit
+			Date.now() - notify.createdAt.getTime() < limit
 		) {
 			const time = new Date(Date.now() + limit).getTime() - Date.now();
 			const formattedTime = moment
