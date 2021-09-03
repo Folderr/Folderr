@@ -120,7 +120,7 @@ class LookupAccount extends Path {
 			message: {
 				username: user.username,
 				id: user.id,
-				created: Number(user.created)
+				created: Number(user.createdAt)
 			}
 		});
 	}

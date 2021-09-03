@@ -100,7 +100,7 @@ class Notifs extends Path {
 				id: notification.id,
 				title: notification.title,
 				notify: notification.notify.replace(/\n/g, ','),
-				created: notification.created
+				createdAt: notification.createdAt
 			}));
 		}
 

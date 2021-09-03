@@ -95,7 +95,7 @@ class GenToken extends Path {
 
 		if (tokens.length >= 10 && request.query.override) {
 			const tkns = tokens.sort(
-				(a: TokenDB, b: TokenDB) => Number(a.created) - Number(b.created)
+				(a: TokenDB, b: TokenDB) => Number(a.createdAt) - Number(b.createdAt)
 			);
 			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {web: false});
 		}

@@ -126,7 +126,7 @@ class Users extends Path {
 			files: user.files,
 			links: user.links,
 			id: user.id,
-			created: Math.round(user.created.getTime() / 1000)
+			created: Math.round(user.createdAt.getTime() / 1000)
 		}));
 		return response
 			.status(this.codes.ok)

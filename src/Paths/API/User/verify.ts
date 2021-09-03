@@ -90,7 +90,7 @@ class Verify extends Path {
 		}
 
 		const expiresAfter = 172_800_000; // 48H in MS
-		const timeSinceCreation = Date.now() - Number(verify.created);
+		const timeSinceCreation = Date.now() - Number(verify.createdAt);
 		if (timeSinceCreation >= expiresAfter) {
 			await this.core.db.denySelf(verify.id);
 			return response.status(this.codes.notAccepted).send({

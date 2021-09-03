@@ -72,7 +72,7 @@ class Tokens extends Path {
 			message: tokens
 				.filter((token) => !token.web)
 				.map((token) => ({
-					created: Math.round(token.created.getTime() / 1000),
+					created: Math.round(token.createdAt.getTime() / 1000),
 					id: token.id,
 					for_user: token.userID
 				}))

@@ -123,7 +123,7 @@ class Files extends Path {
 			return {
 				id: image.id,
 				type: image.type,
-				created: Math.round(image.created.getTime() / 1000),
+				created: Math.round(image.createdAt.getTime() / 1000),
 				link: `${url}/${image.type ? image.type[0] : 'i'}/${image.id}.${type}`
 			};
 		});
