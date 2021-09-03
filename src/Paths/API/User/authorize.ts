@@ -27,6 +27,10 @@ import {User} from '../../../Structures/Database/db-class';
  * @classdesc Allow a user to login
  */
 class Login extends Path {
+	#sameSite: 'none' | 'strict';
+
+	#secure: boolean;
+
 	constructor(core: Core) {
 		super(core);
 		this.label = 'API/User Authorize';
@@ -42,6 +46,13 @@ class Login extends Path {
 				}
 			}
 		};
+
+		this.#sameSite = 'strict';
+		this.#secure = true;
+		if (process.env.NODE_ENV === 'dev') {
+			this.#secure = false;
+			this.#sameSite = 'none';
+		}
 	}
 
 	async execute(
@@ -68,9 +79,21 @@ class Login extends Path {
 			});
 		}
 
-		// Folderr no longer uses cookies.
+		// Set the cookie
 		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
-		return response.send({code: this.codes.ok, message: jwt});
+		const endTime = new Date(Date.now() + 60 * 60 * 24 * 7 * 2);
+		return response
+			.cookie('token', jwt, {
+				expires: endTime,
+				secure: this.#secure,
+				httpOnly: true,
+				sameSite: this.#sameSite
+			})
+			.status(this.codes.ok)
+			.send({
+				code: this.codes.ok,
+				message: 'OK'
+			});
 	}
 }
 

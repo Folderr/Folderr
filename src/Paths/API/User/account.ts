@@ -61,12 +61,7 @@ class Account extends Path {
 		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
-		const auth = request.cookies?.token
-			? await this.Utils.authorization.verifyAccount(
-					request.cookies.token as string | string[] | undefined,
-					{web: true}
-			  )
-			: await this.Utils.authPassword(request);
+		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
