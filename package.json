@@ -85,6 +85,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@types/connect": "^3.4.35",
     "@types/formidable": "^1.2.3",
     "@types/js-yaml": "^4.0.2",
     "@types/jsonwebtoken": "^8.5.4",
