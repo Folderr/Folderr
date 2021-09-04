@@ -20,15 +20,17 @@ export async function startFolderr(): Promise<void> {
 		}
 	}
 
+	await core.initAuthorization();
+
+	await core.registerServerPlugins();
+
 	const paths = core.initPaths();
 	if (!paths) {
 		core.logger.error('[FATAL] Paths could not initalize');
 		throw new Error('[FATAL] Paths could not initalize');
 	}
 
-	await core.initAuthorization();
-
-	await core.registerServerPlugins();
+	await core.initFrontend();
 
 	try {
 		const listened = await core.listen();

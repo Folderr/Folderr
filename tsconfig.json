@@ -59,8 +59,11 @@
     /* Experimental Options */
     // "experimentalDecorators": true        /* Enables experimental support for ES7 decorators. */
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
-    "lib": ["ESNext", "DOM"]
+    "lib": ["ESNext", "DOM"],
+    "types": [
+      "vite/client"
+    ]
   },
-  "include": ["src/backend", "scripts/", "src/types"],
+  "include": ["src/backend", "scripts/", "src/types", "src/frontend/src/shims-vue.d.ts", "vuex.d.ts"],
   "exclude": ["node_modules", "src/frontend"]
 }
