@@ -6,6 +6,8 @@ import Index from './pages/Index.vue';
 import Login from './pages/login.vue';
 import NotFound from './pages/404.vue';
 
+export const paths = ['/', 'login'];
+
 const routes = [
 	{
 		path: '/',

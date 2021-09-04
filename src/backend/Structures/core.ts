@@ -139,7 +139,7 @@ export default class Core {
 		}
 
 		await this.app.register(ratelimit, {
-			max: 10,
+			max: 100,
 			timeWindow: '10s'
 		});
 		let origin: RegExp | string = '*';
@@ -384,8 +384,13 @@ export default class Core {
 				middlewareMode: 'html'
 			}
 		});
-		this.app.use(server.middlewares);
-		return 'development';
+		this.app.use((request, response, next) => {
+			if (request.url?.startsWith('/api')) {
+				next();
+			} else {
+				server.middlewares(request, response, next);
+			}
+		});
 	}
 
 	checkPorts(): boolean {
