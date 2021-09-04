@@ -139,34 +139,27 @@ export default class Core {
 		}
 
 		await this.app.register(ratelimit, {
-			max: 100,
+			max: process.env.NODE_ENV === 'dev' ? 100 : 20,
 			timeWindow: '10s'
 		});
-		let origin: RegExp | string = '*';
-		if (process.env.NODE_ENV === 'dev') {
-			origin = /localhost/;
-		}
 
 		await this.app.register(fastifyCors, {
-			origin,
-			credentials: true
+			origin: '*'
 		});
 
-		this.app.addHook('onRequest', (request, reply, done) => {
-			if (process.env.DEBUG) {
+		if (process.env.DEBUG) {
+			this.app.addHook('onRequest', (request, reply, done) => {
 				this.logger.debug(`URL: ${request.url}`);
 				this.logger.debug(`Is 404: ${request.is404.toString()}`);
-			}
 
-			done();
-		});
-		this.app.addHook('onResponse', (request, reply, done) => {
-			if (process.env.DEBUG) {
+				done();
+			});
+			this.app.addHook('onResponse', (request, reply, done) => {
 				this.logger.debug(`Status: ${reply.raw.statusCode}`);
-			}
 
-			done();
-		});
+				done();
+			});
+		}
 	}
 
 	addDeleter(userID: string): void {
@@ -367,8 +360,7 @@ export default class Core {
 	async initFrontend() {
 		if (process.env.NODE_ENV === 'production') {
 			await this.app.register(fastifyStatic, {
-				root: 'dist/src/frontend',
-				decorateReply: false
+				root: 'dist/src/frontend'
 			});
 			return 'production';
 		}
@@ -382,7 +374,8 @@ export default class Core {
 		const server = await createViteServer({
 			server: {
 				middlewareMode: 'html'
-			}
+			},
+			logLevel: 'silent'
 		});
 		this.app.use((request, response, next) => {
 			if (request.url?.startsWith('/api')) {
@@ -391,6 +384,7 @@ export default class Core {
 				server.middlewares(request, response, next);
 			}
 		});
+		return 'development';
 	}
 
 	checkPorts(): boolean {
