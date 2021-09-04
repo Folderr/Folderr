@@ -23,7 +23,7 @@ import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../../internals';
-import pkg from '../../../../package.json';
+import pkg from '../../../../../package.json';
 
 // @ts-expect-error
 momentDurationFormatSetup(moment);

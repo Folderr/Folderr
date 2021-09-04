@@ -19,32 +19,34 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../../internals';
-import {User} from '../../../Structures/Database/db-class';
-import {RequestGallery} from '../../../../types/types/fastify-request-types';
+import {Link} from '../../../Structures/Database/db-class';
+import {RequestGallery} from '../../../../types/fastify-request-types';
 
 /**
- * @classdesc Shows users to admins
+ * @classdesc Allow a user to access their links
  */
-class Users extends Path {
+class Links extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin View Users';
-		this.path = '/api/admin/users';
+		this.label = 'API/User Links';
+		this.path = '/api/links';
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						gallery: {type: 'boolean'},
+						limit: {type: 'number'},
+						before: {type: 'object'},
+						after: {type: 'object'}
+					}
+				},
 				response: {
 					'4xx': {
-						type: 'object',
-						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					},
-					500: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
@@ -68,11 +70,10 @@ class Users extends Path {
 			Querystring: RequestGallery;
 		}>,
 		response: FastifyReply
-	) {
-		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
-		);
-		if (!auth || typeof auth === 'string') {
+	): Promise<FastifyReply> {
+		// Check auth
+		const auth = await this.checkAuth(request);
+		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
@@ -82,7 +83,7 @@ class Users extends Path {
 		const generated = this.generatePageQuery(request, auth.id);
 		if (generated.errored) {
 			const genType = generated as unknown as {
-				httpCode: number;
+				httpCode: 406;
 				json: Record<string, string | number>;
 				errored: boolean;
 			};
@@ -102,36 +103,32 @@ class Users extends Path {
 			errored: boolean;
 		};
 
-		const users: User[] = await this.core.db.findUsers(query, options);
-		if (users.length === 0) {
-			return response.status(this.codes.ok).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: []
-			});
+		const shorts: Link[] = await this.core.db.findLinks(query, options);
+		if (!shorts || shorts.length === 0) {
+			return response
+				.status(this.codes.ok)
+				.send({code: this.codes.ok, message: []});
 		}
 
-		const array: Array<{
-			title?: string | boolean;
-			username: string;
-			files: number;
-			links: number;
-			id: string;
-			created: number;
-		}> = users.map((user: User) => ({
-			title:
-				!user.admin && !user.owner
-					? ''
-					: (user.admin && 'admin') || (user.owner && 'first'),
-			username: user.username,
-			files: user.files,
-			links: user.links,
-			id: user.id,
-			created: Math.round(user.createdAt.getTime() / 1000)
+		let url =
+			request.headers?.responseURL &&
+			typeof request.headers.responseURL === 'string' &&
+			auth.cURLs.includes(request.headers.responseURL) &&
+			(await this.Utils.testMirrorURL(request.headers.responseURL))
+				? request.headers.responseURL
+				: await this.Utils.determineHomeURL(request);
+		url = url.replace(/\/$/g, '');
+		const aShorts = shorts.map((short: Link) => ({
+			id: short.id,
+			points_to: short.link,
+			created: Math.round(short.createdAt.getTime() / 1000),
+			link: `${url}/${short.id}`
 		}));
+
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: array});
+			.send({code: this.codes.ok, message: aShorts});
 	}
 }
 
-export default Users;
+export default Links;

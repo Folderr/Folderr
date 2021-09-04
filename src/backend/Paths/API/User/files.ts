@@ -21,17 +21,17 @@
 
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../../internals';
-import {Link} from '../../../Structures/Database/db-class';
-import {RequestGallery} from '../../../../types/types/fastify-request-types';
+import {Upload} from '../../../Structures/Database/db-class';
+import {RequestGallery} from '../../../../types/fastify-request-types';
 
 /**
- * @classdesc Allow a user to access their links
+ * @classdesc Send users their files
  */
-class Links extends Path {
+class Files extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Links';
-		this.path = '/api/links';
+		this.label = 'API/User Files';
+		this.path = '/api/files';
 		this.reqAuth = true;
 
 		this.options = {
@@ -71,9 +71,8 @@ class Links extends Path {
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
-		// Check auth
 		const auth = await this.checkAuth(request);
-		if (!auth) {
+		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
 				message: 'Authorization failed.'
@@ -103,11 +102,11 @@ class Links extends Path {
 			errored: boolean;
 		};
 
-		const shorts: Link[] = await this.core.db.findLinks(query, options);
-		if (!shorts || shorts.length === 0) {
+		const images: Upload[] = await this.core.db.findFiles(query, options);
+		if (!images) {
 			return response
 				.status(this.codes.ok)
-				.send({code: this.codes.ok, message: []});
+				.send({code: this.codes.noContent, message: []});
 		}
 
 		let url =
@@ -118,17 +117,20 @@ class Links extends Path {
 				? request.headers.responseURL
 				: await this.Utils.determineHomeURL(request);
 		url = url.replace(/\/$/g, '');
-		const aShorts = shorts.map((short: Link) => ({
-			id: short.id,
-			points_to: short.link,
-			created: Math.round(short.createdAt.getTime() / 1000),
-			link: `${url}/${short.id}`
-		}));
-
+		const files = images.map((image: Upload) => {
+			const split = image.path.split('.');
+			const type = split[split.length - 1];
+			return {
+				id: image.id,
+				type: image.type,
+				created: Math.round(image.createdAt.getTime() / 1000),
+				link: `${url}/${image.type ? image.type[0] : 'i'}/${image.id}.${type}`
+			};
+		});
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: aShorts});
+			.send({code: this.codes.ok, message: files});
 	}
 }
 
-export default Links;
+export default Files;
