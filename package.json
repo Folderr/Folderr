@@ -9,8 +9,8 @@
     "start": "NODE_ENV=production node dist/src/backend/index.js",
     "start:plain": "node dist/src/backend/index.js",
     "setup": "node dist/scripts/setup.js",
-    "dev": "NODE_ENV=dev DEBUG=true node dist/src/backend/index.js --trace-warnings",
-    "dev:plain": "node dist/src/backend/index.js --trace-warnings",
+    "dev": "NODE_ENV=dev DEBUG=true ts-node-dev src/backend/index.ts --trace-warnings",
+    "dev:plain": "ts-node-dev src/backend/index.ts --trace-warnings",
     "test": "xo && NODE_ENV=test node dist/src/backend/index.js",
     "test:plain": "xo && node dist/src/backend/index.js",
     "prepare": "husky install",
@@ -107,6 +107,7 @@
     "postcss": "^8.3.6",
     "prettier": "2.3.1",
     "tailwindcss": "^2.2.9",
+    "ts-node-dev": "^1.1.8",
     "vite": "^2.5.3",
     "vue-tsc": "^0.3.0",
     "xo": "^0.42.0"
