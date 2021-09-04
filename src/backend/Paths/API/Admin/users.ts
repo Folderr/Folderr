@@ -19,34 +19,32 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
+import {FastifyRequest, FastifyReply} from 'fastify';
 import {Core, Path} from '../../../internals';
-import {Upload} from '../../../Structures/Database/db-class';
-import {RequestGallery} from '../../../../types/types/fastify-request-types';
+import {User} from '../../../Structures/Database/db-class';
+import {RequestGallery} from '../../../../types/fastify-request-types';
 
 /**
- * @classdesc Send users their files
+ * @classdesc Shows users to admins
  */
-class Files extends Path {
+class Users extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Files';
-		this.path = '/api/files';
+		this.label = 'API/Admin View Users';
+		this.path = '/api/admin/users';
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
-				querystring: {
-					type: 'object',
-					properties: {
-						gallery: {type: 'boolean'},
-						limit: {type: 'number'},
-						before: {type: 'object'},
-						after: {type: 'object'}
-					}
-				},
 				response: {
 					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'}
+						}
+					},
+					500: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
@@ -70,8 +68,10 @@ class Files extends Path {
 			Querystring: RequestGallery;
 		}>,
 		response: FastifyReply
-	): Promise<FastifyReply> {
-		const auth = await this.checkAuth(request);
+	) {
+		const auth = await this.Utils.authPassword(request, (user: User) =>
+			Boolean(user.admin)
+		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
@@ -82,7 +82,7 @@ class Files extends Path {
 		const generated = this.generatePageQuery(request, auth.id);
 		if (generated.errored) {
 			const genType = generated as unknown as {
-				httpCode: 406;
+				httpCode: number;
 				json: Record<string, string | number>;
 				errored: boolean;
 			};
@@ -102,35 +102,36 @@ class Files extends Path {
 			errored: boolean;
 		};
 
-		const images: Upload[] = await this.core.db.findFiles(query, options);
-		if (!images) {
-			return response
-				.status(this.codes.ok)
-				.send({code: this.codes.noContent, message: []});
+		const users: User[] = await this.core.db.findUsers(query, options);
+		if (users.length === 0) {
+			return response.status(this.codes.ok).send({
+				code: this.Utils.FoldCodes.dbNotFound,
+				message: []
+			});
 		}
 
-		let url =
-			request.headers?.responseURL &&
-			typeof request.headers.responseURL === 'string' &&
-			auth.cURLs.includes(request.headers.responseURL) &&
-			(await this.Utils.testMirrorURL(request.headers.responseURL))
-				? request.headers.responseURL
-				: await this.Utils.determineHomeURL(request);
-		url = url.replace(/\/$/g, '');
-		const files = images.map((image: Upload) => {
-			const split = image.path.split('.');
-			const type = split[split.length - 1];
-			return {
-				id: image.id,
-				type: image.type,
-				created: Math.round(image.createdAt.getTime() / 1000),
-				link: `${url}/${image.type ? image.type[0] : 'i'}/${image.id}.${type}`
-			};
-		});
+		const array: Array<{
+			title?: string | boolean;
+			username: string;
+			files: number;
+			links: number;
+			id: string;
+			created: number;
+		}> = users.map((user: User) => ({
+			title:
+				!user.admin && !user.owner
+					? ''
+					: (user.admin && 'admin') || (user.owner && 'first'),
+			username: user.username,
+			files: user.files,
+			links: user.links,
+			id: user.id,
+			created: Math.round(user.createdAt.getTime() / 1000)
+		}));
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: files});
+			.send({code: this.codes.ok, message: array});
 	}
 }
 
-export default Files;
+export default Users;

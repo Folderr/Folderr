@@ -4,7 +4,7 @@
   "description": "A secure open source host for images, and shortened urls..",
   "main": "src/index.js",
   "scripts": {
-    "build": "tsc --skipLibCheck",
+    "build": "tsc --skipLibCheck && vue-tsc --noEmit -p src/frontend && vite build",
     "build:watch": "tsc --skipLibCheck -w",
     "start": "NODE_ENV=production node dist/src/index.js",
     "start:plain": "node dist/src/index.js",
@@ -14,8 +14,8 @@
     "test": "xo && NODE_ENV=test node dist/src/index.js",
     "test:plain": "xo && node dist/src/index.js",
     "prepare": "husky install",
-    "lint": "xo src/ scripts/",
-    "lint:fix": "xo --fix src/ scripts/"
+    "lint": "xo src/ scripts/ vite.config.ts",
+    "lint:fix": "xo --fix src/ scripts/ vite.config.ts"
   },
   "xo": {
     "plugins": [
@@ -78,6 +78,9 @@
     "spdy": "^4.0.2",
     "typescript": "^4.3.2",
     "uuid": "^8.3.2",
+    "vue": "^3.2.8",
+    "vue-router": "^4.0.11",
+    "vuex": "^4.0.2",
     "winston": "^3.3.3"
   },
   "devDependencies": {
@@ -92,11 +95,18 @@
     "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.28.2",
     "@typescript-eslint/parser": "^4.16.1",
+    "@vitejs/plugin-vue": "^1.6.0",
+    "@vue/compiler-sfc": "^3.2.8",
+    "autoprefixer": "^10.3.4",
     "eslint-plugin-optimize-regex": "^1.2.0",
     "eslint-plugin-radar": "^0.2.1",
     "husky": "^6.0.0",
     "lint-staged": "^11.0.0",
+    "postcss": "^8.3.6",
     "prettier": "2.3.1",
+    "tailwindcss": "^2.2.9",
+    "vite": "^2.5.3",
+    "vue-tsc": "^0.3.0",
     "xo": "^0.42.0"
   },
   "lint-staged": {

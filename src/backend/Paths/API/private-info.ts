@@ -22,7 +22,7 @@ import childProcess from 'child_process';
 import util from 'util';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../internals';
-import Package from '../../../package.json';
+import Package from '../../../../package.json';
 
 const exec = util.promisify(childProcess.exec);
 

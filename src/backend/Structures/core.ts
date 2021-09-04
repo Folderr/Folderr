@@ -36,7 +36,7 @@ import {
 	Regexs,
 	codes as StatusCodes
 } from '../internals';
-import {version} from '../../package.json';
+import {version} from '../../../package.json';
 
 const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
 

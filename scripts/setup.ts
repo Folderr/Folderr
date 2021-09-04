@@ -4,9 +4,9 @@ import os from 'os';
 import {join} from 'path';
 import readline from 'readline';
 import {Writable} from 'stream';
-import Core from '../src/Structures/core';
+import Core from '../src/backend/Structures/core';
 import locations from '../internal/locations.json';
-import ConfigHandler from '../src/handlers/config-handler';
+import ConfigHandler from '../src/backend/handlers/config-handler';
 
 class MuteStreamHandler {
 	public muted: boolean;

@@ -21,7 +21,7 @@
 
 import {join} from 'path';
 import {FastifyRequest, FastifyReply, RouteShorthandOptions} from 'fastify';
-import {RequestGallery} from '../../types/types/fastify-request-types';
+import {RequestGallery} from '../../types/fastify-request-types';
 import {ErrorHandler, Core, codes, Codes} from '../internals';
 import {User} from './Database/db-class';
 

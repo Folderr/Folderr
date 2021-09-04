@@ -1,6 +1,6 @@
 import {join} from 'path';
 import fs from 'fs/promises';
-import locations from '../../internal/locations.json';
+import locations from '../../../internal/locations.json';
 import AbstractDB from '../Structures/Database/db-class';
 
 export default class AuthKeyHandler {
