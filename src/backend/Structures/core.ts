@@ -14,6 +14,12 @@ import helmet from 'fastify-helmet';
 import fastifyStatic from 'fastify-static';
 import ratelimit from 'fastify-rate-limit';
 import fastifyCors from 'fastify-cors';
+
+// Frontend stuff
+
+import {createServer as createViteServer} from 'vite';
+import middie from 'middie';
+
 // Other imports
 import spdy from 'spdy';
 import winston from 'winston';
@@ -132,14 +138,6 @@ export default class Core {
 			await this.app.register(helmet);
 		}
 
-		await this.app.register(fastifyStatic, {
-			root: join(process.cwd(), 'build/otherFiles')
-		});
-		await this.app.register(fastifyStatic, {
-			root: join(process.cwd(), 'build/assets'),
-			prefix: '/assets',
-			decorateReply: false
-		});
 		await this.app.register(ratelimit, {
 			max: 10,
 			timeWindow: '10s'
@@ -364,6 +362,30 @@ export default class Core {
 
 		wlogger.log('startup', `Initalized ${pathCount} paths`);
 		return true;
+	}
+
+	async initFrontend() {
+		if (process.env.NODE_ENV === 'production') {
+			await this.app.register(fastifyStatic, {
+				root: 'dist/src/frontend',
+				decorateReply: false
+			});
+			return 'production';
+		}
+
+		if (process.env.DEBUG) {
+			this.logger.debug('Using Development Vite server for frontend');
+		}
+
+		await this.app.register(middie);
+		await this.app.after();
+		const server = await createViteServer({
+			server: {
+				middlewareMode: 'html'
+			}
+		});
+		this.app.use(server.middlewares);
+		return 'development';
 	}
 
 	checkPorts(): boolean {

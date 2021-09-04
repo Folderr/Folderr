@@ -20,6 +20,8 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { useRouter } from 'vue-router';
+
 export default defineComponent({
   name: 'Signup',
   data () {
@@ -47,9 +49,8 @@ export default defineComponent({
         return;
       }
       this.loading = true;
-      const base = import.meta.env.VITE_API_URL;
       try {
-        const response = await fetch(`${base}/authorize`, {
+        const response = await fetch(`/api/authorize`, {
           method: 'POST',
           headers: {
             username: this.username,
