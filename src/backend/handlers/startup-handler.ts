@@ -30,6 +30,8 @@ export async function startFolderr(): Promise<void> {
 		throw new Error('[FATAL] Paths could not initalize');
 	}
 
+	await core.registerAPIs();
+
 	await core.initFrontend();
 
 	try {

@@ -55,7 +55,8 @@ export default defineComponent({
           headers: {
             username: this.username,
             password: this.password,
-          }
+          },
+          credentials: 'same-origin'
         });
         if (response.status === 400) {
           this.loading = false;
@@ -75,8 +76,6 @@ export default defineComponent({
         }
         const out = await response.json();
         if (out.code === 200) {
-          localStorage.setItem('token', out.message);
-          this.$store.commit('user/setToken', out.message);
           this.$router.push('/account');
         }
       } catch (e) {

@@ -33,6 +33,7 @@ import Configurer, {
 	KeyConfig
 } from '../handlers/config-handler';
 import * as endpoints from '../Paths/index';
+import * as APIs from '../Paths/API/index';
 import {
 	Path,
 	Emailer,
@@ -206,10 +207,13 @@ export default class Core {
 			wlogger.log('prelisten', 'Initalized Server');
 			if (process.env.NODE_ENV === 'production') {
 				wlogger.log(
-					'fatal',
+					'error',
 					'HTTPS and/or HTTP/2 required in production. Shuting down'
 				);
 				this.shutdownServer();
+				throw new Error(
+					'HTTPS and/or HTTP/2 required in production. Shuting down'
+				);
 			}
 
 			return server;
@@ -222,25 +226,70 @@ export default class Core {
 		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/folderr');
 	}
 
-	internalInitPath(path: Path) {
+	async registerAPIs() {
+		for (const api of Object.values<{
+			version: string;
+			prefix: string;
+			endpoints: Record<string, typeof Path>;
+		}>(APIs)) {
+			const {version} = api;
+			let count = 0;
+
+			void this.app.register(
+				(instance, options, done) => {
+					for (const EndpointType of Object.values(api.endpoints)) {
+						const endpoint = new EndpointType(this);
+						// eslint-disable-next-line prefer-destructuring
+						const label = endpoint.label;
+						if (
+							!endpoint.enabled ||
+							(endpoint.label.startsWith('DEBUG') && !process.env.DEBUG)
+						) {
+							continue;
+						}
+
+						this.internalInitPath(endpoint, instance);
+
+						const method = endpoint.type.toUpperCase();
+
+						this.logger.log(
+							'startup',
+							`API Path ${label} v${version} initialized with method ${method}!`
+						);
+						count++;
+					}
+
+					this.logger.info(`${count} API v${version} initialized paths`);
+
+					done();
+				},
+				{
+					prefix: api.prefix
+				}
+			);
+		}
+	}
+
+	internalInitPath(path: Path, instance = this.app) {
+		const app = instance;
 		switch (path.type) {
 			case 'post': {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {
 						if (path.options) {
-							this.app.post(url, path.options, path.execute.bind(path));
+							app.post(url, path.options, path.execute.bind(path));
 							continue;
 						}
 
-						this.app.post(url, path.execute.bind(path));
+						app.post(url, path.execute.bind(path));
 					}
 				} else {
 					if (path.options) {
-						this.app.post(path.path, path.options, path.execute.bind(path));
+						app.post(path.path, path.options, path.execute.bind(path));
 						break;
 					}
 
-					this.app.post(path.path, path.execute.bind(path));
+					app.post(path.path, path.execute.bind(path));
 				}
 
 				break;
@@ -250,19 +299,19 @@ export default class Core {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {
 						if (path.options) {
-							this.app.delete(url, path.options, path.execute.bind(path));
+							app.delete(url, path.options, path.execute.bind(path));
 							continue;
 						}
 
-						this.app.delete(url, path.execute.bind(path));
+						app.delete(url, path.execute.bind(path));
 					}
 				} else {
 					if (path.options) {
-						this.app.delete(path.path, path.options, path.execute.bind(path));
+						app.delete(path.path, path.options, path.execute.bind(path));
 						break;
 					}
 
-					this.app.delete(path.path, path.execute.bind(path));
+					app.delete(path.path, path.execute.bind(path));
 				}
 
 				break;
@@ -272,19 +321,19 @@ export default class Core {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {
 						if (path.options) {
-							this.app.patch(url, path.options, path.execute.bind(path));
+							app.patch(url, path.options, path.execute.bind(path));
 							continue;
 						}
 
-						this.app.patch(url, path.execute.bind(path));
+						app.patch(url, path.execute.bind(path));
 					}
 				} else {
 					if (path.options) {
-						this.app.patch(path.path, path.options, path.execute.bind(path));
+						app.patch(path.path, path.options, path.execute.bind(path));
 						break;
 					}
 
-					this.app.patch(path.path, path.execute.bind(path));
+					app.patch(path.path, path.execute.bind(path));
 				}
 
 				break;
@@ -294,19 +343,19 @@ export default class Core {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {
 						if (path.options) {
-							this.app.get(url, path.options, path.execute.bind(path));
+							app.get(url, path.options, path.execute.bind(path));
 							continue;
 						}
 
-						this.app.get(url, path.execute.bind(path));
+						app.get(url, path.execute.bind(path));
 					}
 				} else {
 					if (path.options) {
-						this.app.get(path.path, path.options, path.execute.bind(path));
+						app.get(path.path, path.options, path.execute.bind(path));
 						break;
 					}
 
-					this.app.get(path.path, path.execute.bind(path));
+					app.get(path.path, path.execute.bind(path));
 				}
 			}
 		}
@@ -316,7 +365,7 @@ export default class Core {
 		let pathCount = 0;
 		for (const endpoint in endpoints) {
 			// This works TS, trust me.
-			if (endpoint.startsWith('debug') && !process.env.DEBUG) {
+			if (endpoint.toLowerCase().startsWith('debug') && !process.env.DEBUG) {
 				continue;
 			}
 
@@ -360,9 +409,26 @@ export default class Core {
 	async initFrontend() {
 		if (process.env.NODE_ENV === 'production') {
 			await this.app.register(fastifyStatic, {
-				root: 'dist/src/frontend'
+				root: join(process.cwd(), 'dist/src/frontend')
 			});
-			return 'production';
+			if (process.env.DEBUG) {
+				this.logger.debug('Using production build for frontend');
+			}
+
+			this.app.setNotFoundHandler((request, reply) => {
+				if (request.url.startsWith('/api')) {
+					return reply.status(404).send({
+						code: '404',
+						message: `${request.method}: ${request.url} Not Found`
+					});
+				}
+
+				if (!this.config.apiOnly) {
+					return reply.sendFile('index.html');
+				}
+			});
+
+			return;
 		}
 
 		if (process.env.DEBUG) {
@@ -382,6 +448,18 @@ export default class Core {
 				next();
 			} else {
 				server.middlewares(request, response, next);
+			}
+		});
+		this.app.setNotFoundHandler((request, reply) => {
+			if (request.url.startsWith('/api')) {
+				return reply.status(404).send({
+					code: '404',
+					message: `${request.method}: ${request.url} Not Found`
+				});
+			}
+
+			if (!this.config.apiOnly) {
+				return reply.sendFile('index.html');
 			}
 		});
 		return 'development';
@@ -425,12 +503,21 @@ export default class Core {
 			});
 		}
 
-		this.app.close(() => {
-			this.#internals.serverClosed = true;
-		});
+		try {
+			if (!this.app || !this.app.close) {
+				this.#internals.serverClosed = true;
+			} else {
+				this.app.close(() => {
+					this.#internals.serverClosed = true;
+				});
+			}
+		} catch (error: unknown) {
+			wlogger.error(error);
+		}
+
 		ee.once('noRequests', () => {
 			try {
-				this.logger.close();
+				wlogger.close();
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					console.log(`Logger shutdown error:\n${error.message}`);

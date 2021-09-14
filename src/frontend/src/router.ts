@@ -1,5 +1,7 @@
 import {createRouter, createWebHistory} from 'vue-router';
 
+import * as userGuards from './nav-gaurds/user-nav-guard';
+
 // Pages
 
 import Index from './pages/Index.vue';
@@ -13,10 +15,11 @@ const routes = [
 	},
 	{
 		path: '/login',
-		component: Login
+		component: Login,
+		beforeEnter: userGuards.authGuard
 	},
 	{
-		path: '/404',
+		path: '/:pathMatch(.*)*',
 		component: NotFound
 	}
 ];
