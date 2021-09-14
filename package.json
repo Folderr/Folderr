@@ -4,8 +4,9 @@
   "description": "A secure open source host for images, and shortened urls..",
   "main": "src/index.js",
   "scripts": {
-    "build": "tsc --skipLibCheck && vue-tsc --noEmit -p src/frontend && vite build",
-    "build:watch": "tsc --skipLibCheck -w",
+    "build": "build:backend && build:frontend",
+    "build:frontend": "vue-tsc --noEmit -p src/frontend && vite build",
+    "build:backend": "tsc --skipLibCheck",
     "start": "NODE_ENV=production node dist/src/backend/index.js",
     "start:plain": "node dist/src/backend/index.js",
     "setup": "node dist/scripts/setup.js",
