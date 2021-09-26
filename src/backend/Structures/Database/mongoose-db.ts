@@ -171,6 +171,14 @@ export default class MongooseDB extends DBClass {
 	}
 
 	async createFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
+		const fldrr = await this.#Schemas.Folderr.findOne({});
+		if (fldrr) {
+			fldrr.publicKeyJWT = publicKeyJWT;
+			await fldrr.save();
+
+			return fldrr;
+		}
+
 		const fldr = new this.#Schemas.Folderr({bans: [], publicKeyJWT});
 		await fldr.save();
 		return fldr;
@@ -182,13 +190,13 @@ export default class MongooseDB extends DBClass {
 		id: string,
 		email: string
 	): Promise<User | void> {
-		const ownr = await this.findUser({first: true}, 'first');
+		const ownr = await this.findUser({owner: true}, 'owner');
 		if (ownr) {
 			throw new Error('DB > FORBIDDEN - Owner already created!');
 		}
 
 		const user = new this.#Schemas.User({
-			first: true,
+			owner: true,
 			admin: true,
 			username,
 			id,

@@ -151,19 +151,20 @@ class Utils {
 	 */
 	async genKeyPair(
 		passphrase?: string
-	): Promise<crypto.KeyPairKeyObjectResult> {
+	): Promise<{privateKey: string; publicKey: string}> {
 		const privateKeyEncoding: {
-			format: string;
+			format: 'pem';
 			cipher?: string;
 			passphrase?: string;
-			type: string;
+			type: 'pkcs8';
 		} = {format: 'pem', type: 'pkcs8'};
 		if (passphrase) {
 			privateKeyEncoding.cipher = 'aes256';
 			privateKeyEncoding.passphrase = passphrase;
 		}
 
-		return generateKeyPair('ed25519', {
+		return generateKeyPair('rsa', {
+			modulusLength: 512,
 			publicKeyEncoding: {
 				format: 'pem',
 				type: 'spki'
