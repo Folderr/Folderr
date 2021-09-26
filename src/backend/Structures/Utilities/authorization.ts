@@ -72,7 +72,10 @@ export default class Authorization {
 		}
 
 		try {
-			const result = jwt.verify(token, this.#pubKey, {issuer: 'folderr'});
+			const result = jwt.verify(token, this.#pubKey, {
+				issuer: 'folderr',
+				algorithms: ['RS512']
+			});
 			if (!result || typeof result === 'string' || !result.jti) {
 				return;
 			}
@@ -85,7 +88,14 @@ export default class Authorization {
 			}
 
 			return result.id as string;
-		} catch {}
+		} catch (error: unknown) {
+			if (
+				error instanceof Error &&
+				error.message !== 'JsonWebTokenError: invalid signature'
+			) {
+				console.log(error);
+			}
+		}
 	}
 
 	public async verifyAccount(
@@ -132,7 +142,10 @@ export default class Authorization {
 		}
 
 		try {
-			const result = jwt.verify(token, this.#pubKey, {issuer: 'folderr'});
+			const result = jwt.verify(token, this.#pubKey, {
+				issuer: 'folderr',
+				algorithms: ['RS512']
+			});
 			if (!result || typeof result === 'string' || !result.jti) {
 				return;
 			}
@@ -169,7 +182,8 @@ export default class Authorization {
 		return `Bearer: ${jwt.sign({id: userID}, this.#privKey, {
 			expiresIn: '14d',
 			issuer: 'folderr',
-			jwtid: id
+			jwtid: id,
+			algorithm: 'RS512'
 		})}`;
 	}
 
@@ -178,7 +192,8 @@ export default class Authorization {
 		await this.#core.db.makeToken(id, userID, {web: false});
 		return jwt.sign({id: userID}, this.#privKey, {
 			issuer: 'folderr',
-			jwtid: id
+			jwtid: id,
+			algorithm: 'RS512'
 		});
 	}
 
@@ -197,7 +212,8 @@ export default class Authorization {
 				{
 					issuer: 'folderr',
 					jwtid: id,
-					expiresIn: '1h'
+					expiresIn: '1h',
+					algorithm: 'RS512'
 				}
 			),
 			id

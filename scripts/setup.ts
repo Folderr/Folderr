@@ -236,7 +236,7 @@ async function confirmDetails(
 	await core.initDB();
 	try {
 		const folderr = await core.db.fetchFolderr();
-		if (folderr) {
+		if (folderr && keysConfigured) {
 			rl.write('Folderr appears to have been setup previously. Exiting');
 			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 			process.exit();
@@ -314,26 +314,22 @@ async function confirmDetails(
 			actualLocation = join(process.cwd(), 'internal/keys');
 		}
 
-		const privateKey =
-			keys.privateKey instanceof Buffer || typeof keys.privateKey === 'string'
-				? keys.privateKey
-				: keys.privateKey.export({
-						format: 'pem',
-						type: 'pkcs8'
-				  });
-		const publicKey =
-			keys.publicKey instanceof Buffer || typeof keys.publicKey === 'string'
-				? keys.publicKey
-				: keys.privateKey.export({
-						format: 'pem',
-						type: 'spki'
-				  });
-		const actualPubKey =
-			typeof publicKey === 'string' ? Buffer.from(publicKey) : publicKey;
-		const actualPrivateKey =
-			typeof privateKey === 'string' ? Buffer.from(privateKey) : privateKey;
+		const actualPubKey = Buffer.from(keys.publicKey);
+		const actualPrivateKey = Buffer.from(keys.privateKey);
+		const newLocations = locations;
+		newLocations.keyConfigured = true;
+		await fs.writeFile(
+			join(process.cwd(), '/internal/locations.json'),
+			JSON.stringify(newLocations, null, 4)
+		);
 		await fs.writeFile(`${actualLocation}/privateJWT.pem`, actualPrivateKey);
 		await core.db.createFolderr(actualPubKey);
+		console.log('Authorization keys created\n');
+		if (!username && !email && !password) {
+			rl.close();
+			// eslint-disable-next-line unicorn/no-process-exit
+			process.exit();
+		}
 	}
 
 	if (username && email && password) {

@@ -85,8 +85,8 @@ class Account extends Path {
 		} = {
 			username: auth.username,
 			id: auth.id,
-			admin: Boolean(auth.admin),
-			owner: Boolean(auth.owner),
+			admin: auth.admin ?? false,
+			owner: auth.owner ?? false,
 			files: auth.files,
 			links: auth.links,
 			email: auth.email,

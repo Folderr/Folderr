@@ -19,7 +19,7 @@ export default class AuthKeyHandler {
 		try {
 			this.#privateKey = await fs.readFile(this.#location);
 			const folderr = await db.fetchFolderr();
-			this.#publicKey = folderr.publicKeyJWT;
+			this.#publicKey = Buffer.from(folderr.publicKeyJWT.buffer);
 		} catch (error: unknown) {
 			console.log(error);
 			throw new Error('Unable to fetch keys');
