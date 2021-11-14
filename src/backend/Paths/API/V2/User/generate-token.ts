@@ -37,6 +37,12 @@ class GenToken extends Path {
 
 		this.options = {
 			schema: {
+				body: {
+					description: {
+						type: 'string',
+						maxLength: 50
+					}
+				},
 				querystring: {
 					type: 'object',
 					properties: {
@@ -68,11 +74,14 @@ class GenToken extends Path {
 			Querystring: {
 				override: boolean;
 			};
+			Body: {
+				description?: string;
+			};
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check auth
-		const auth = await this.Utils.authPassword(request);
+		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
@@ -81,8 +90,9 @@ class GenToken extends Path {
 		}
 
 		const tokens = await this.core.db.findTokens(auth.id, {web: false});
+		this.core.logger.debug(tokens.length >= 10 && !request.query.override);
 
-		if (tokens.length > 10 && !(request.query && !request.query.override)) {
+		if (tokens.length > 10 && !request.query.override) {
 			return response.status(this.codes.forbidden).send({
 				// This is string
 				code: this.Utils.FoldCodes.tokenSizeLimit,
@@ -100,7 +110,10 @@ class GenToken extends Path {
 			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {web: false});
 		}
 
-		const token = await this.Utils.authorization.genKey(auth.id);
+		const token = await this.Utils.authorization.genKey(
+			auth.id,
+			request.body.description
+		);
 		return response
 			.status(this.codes.created)
 			.send({code: this.codes.ok, message: token});

@@ -72,6 +72,7 @@ export interface TokenDB {
 	web?: boolean;
 	createdAt: Date;
 	expireAt?: Date;
+	description?: string;
 }
 
 export interface Upload {

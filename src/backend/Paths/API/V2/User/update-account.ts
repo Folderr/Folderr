@@ -179,7 +179,7 @@ class UpdateAcc extends Path {
 
 	private async handlePassword(password: string): Promise<
 		| {
-				httpCode: 400 | 403 | 500;
+				httpCode: 400 | 500;
 				message: {
 					message: string;
 					code: number;
@@ -230,7 +230,7 @@ class UpdateAcc extends Path {
 
 			if (error.message.startsWith('[PSW3]')) {
 				return {
-					httpCode: this.codes.forbidden,
+					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.illegalPassword,
 						message: 'NUL character not allowed in password!'
@@ -384,7 +384,6 @@ class UpdateAcc extends Path {
 			const maxUsername = 12;
 			const minUsername = 3;
 			// If username does not match length criteria error
-			const badMatch = this.core.regexs.username.test(username);
 			if (username.length > maxUsername || username.length < minUsername) {
 				return {
 					httpCode: this.codes.badReq,
@@ -395,7 +394,9 @@ class UpdateAcc extends Path {
 				};
 			}
 
-			if (badMatch) {
+			const goodMatch = this.core.regexs.username.test(username);
+
+			if (!goodMatch) {
 				// If username does not matdch regex pattern error
 				return {
 					httpCode: this.codes.badReq,
@@ -444,7 +445,7 @@ class UpdateAcc extends Path {
 				user: User;
 		  }
 	> {
-		const auth = await this.Utils.authPassword(request);
+		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return {
 				httpCode: this.codes.unauth,
@@ -452,16 +453,14 @@ class UpdateAcc extends Path {
 					code: this.codes.unauth,
 					message: 'Authorization failed.'
 				},
-				failed: false
+				failed: true
 			};
 		}
 
 		// Check the query and new_key are correct
 		if (
 			!request.body ||
-			!request.body.username ||
-			!request.body.password ||
-			!request.body.email
+			(!request.body.username && !request.body.password && !request.body.email)
 		) {
 			return {
 				httpCode: this.codes.badReq,
@@ -469,7 +468,7 @@ class UpdateAcc extends Path {
 					code: this.codes.badReq,
 					message: 'BODY REQUIRES ONE OF PASSWORD, USERNAME, OR EMAIL!'
 				},
-				failed: false
+				failed: true
 			};
 		}
 
@@ -484,7 +483,7 @@ class UpdateAcc extends Path {
 					code: this.codes.forbidden,
 					message: 'EMAIL UPDATE IN PROGRESS'
 				},
-				failed: false
+				failed: true
 			};
 		}
 

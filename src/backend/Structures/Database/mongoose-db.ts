@@ -605,13 +605,15 @@ export default class MongooseDB extends DBClass {
 		userID: string,
 		options?: {
 			web?: boolean;
+			description?: string;
 		}
 	): Promise<TokenDB | undefined> {
 		const tken = new this.#Schemas.Token({
 			id: tokenID,
 			userID,
 			web: options?.web ?? false,
-			expireAt: options?.web ? 60 * 60 * 24 * 14 : undefined
+			expireAt: options?.web ? 60 * 60 * 24 * 14 : undefined,
+			description: options?.description
 		});
 		await tken.save();
 		return tken;

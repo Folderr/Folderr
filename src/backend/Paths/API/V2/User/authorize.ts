@@ -81,10 +81,11 @@ class Login extends Path {
 
 		// Set the cookie
 		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
-		const endTime = new Date(Date.now() + 60 * 60 * 24 * 7 * 2);
+		const date = new Date();
+		date.setDate(date.getDate() + 2 * 7);
 		return response
 			.cookie('token', jwt, {
-				expires: endTime,
+				expires: date,
 				secure: this.#secure,
 				httpOnly: true,
 				sameSite: this.#sameSite

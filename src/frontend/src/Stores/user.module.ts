@@ -11,6 +11,7 @@ export interface UserStore {
 		notify: string;
 		createdAt: Date;
 	}>;
+	owner?: boolean;
 }
 
 const usermod: Module<UserStore, unknown> = {
@@ -20,11 +21,17 @@ const usermod: Module<UserStore, unknown> = {
 		username: undefined,
 		email: undefined,
 		createdAt: undefined,
-		notifications: []
+		notifications: [],
+		owner: false
 	}),
 	mutations: {
 		setUserinfo(state: UserStore, info: UserStore) {
-			state = info;
+			state.userID = info.userID;
+			state.createdAt = info.createdAt;
+			state.email = info.email;
+			state.notifications = info.notifications;
+			state.owner = info.owner;
+			state.username = info.username;
 		},
 		updateEmail(state: UserStore, email: string) {
 			state.email = email;
@@ -35,6 +42,7 @@ const usermod: Module<UserStore, unknown> = {
 			state.email = undefined;
 			state.createdAt = undefined;
 			state.notifications = [];
+			state.owner = false;
 		}
 	}
 };

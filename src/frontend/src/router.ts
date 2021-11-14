@@ -7,15 +7,22 @@ import * as userGuards from './nav-gaurds/user-nav-guard';
 import Index from './pages/Index.vue';
 import Login from './pages/login.vue';
 import NotFound from './pages/404.vue';
+import Account from './pages/Account.vue';
 
 const routes = [
 	{
 		path: '/',
-		component: Index
+		component: Index,
+		beforeEnter: userGuards.authGuard
 	},
 	{
 		path: '/login',
 		component: Login,
+		beforeEnter: userGuards.authGuard
+	},
+	{
+		path: '/account',
+		component: Account,
 		beforeEnter: userGuards.authGuard
 	},
 	{

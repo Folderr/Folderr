@@ -25,7 +25,7 @@
 
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import {Core} from '../../internals';
+import {Core, wlogger} from '../../internals';
 import {User} from '../Database/db-class';
 import AuthKeyHandler from '../../handlers/auth-key-handler';
 
@@ -132,7 +132,10 @@ export default class Authorization {
 		} catch {}
 	}
 
-	public async revoke(token: string, web?: boolean): Promise<boolean | void> {
+	public async revoke(
+		token: string,
+		web?: boolean
+	): Promise<boolean | void | 404> {
 		if (token.startsWith('Bearer: ')) {
 			web = true;
 		}
@@ -154,7 +157,7 @@ export default class Authorization {
 				web
 			});
 			if (!verifyDB) {
-				return;
+				return 404;
 			}
 
 			return true;
@@ -173,7 +176,13 @@ export default class Authorization {
 
 			this.#core.logger.verbose(`[DB] Deleted ${del} Authorization Tokens`);
 			return true;
-		} catch {}
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				wlogger.debug(`Authorization/Revoke All Error: ${error.message}`);
+			} else if (typeof error === 'string') {
+				wlogger.debug(`Authorization/Revoke All Error: ${error}`);
+			}
+		}
 	}
 
 	async genKeyWeb(userID: string): Promise<string> {
@@ -187,9 +196,9 @@ export default class Authorization {
 		})}`;
 	}
 
-	async genKey(userID: string): Promise<string> {
+	async genKey(userID: string, description?: string): Promise<string> {
 		const id = this.genID();
-		await this.#core.db.makeToken(id, userID, {web: false});
+		await this.#core.db.makeToken(id, userID, {web: false, description});
 		return jwt.sign({id: userID}, this.#privKey, {
 			issuer: 'folderr',
 			jwtid: id,

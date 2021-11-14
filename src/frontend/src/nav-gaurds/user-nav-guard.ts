@@ -1,4 +1,5 @@
 import {RouteLocationNormalized} from 'vue-router';
+import * as api from '../wrappers/api';
 
 export async function authGuard(
 	to: RouteLocationNormalized
@@ -8,12 +9,12 @@ export async function authGuard(
 	}
 
 	try {
-		const response = await fetch('/api/account');
-		if (response.status !== 200) {
+		const response = await api.fetchUser();
+		if (response.error && !['/login', '/'].includes(to.path)) {
 			return '/404';
 		}
 
-		if (to.path === '/login' || to.path === '/') {
+		if ((to.path === '/login' || to.path === '/') && !response.error) {
 			return '/account';
 		}
 

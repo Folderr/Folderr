@@ -3,6 +3,11 @@ import store from './store';
 import router from './router';
 import Navbar from './components/Inner-Components/Navbar.vue';
 import Footer from './components/Inner-Components/Footer.vue';
+import NavbarAuthenticated from './components/Inner-Components/Navbar-Authenticated.vue';
+
+// Modals
+
+import FlexibleModal from './components/Inner-Components/Modals/Flexible.vue';
 
 import App from './App.vue';
 
@@ -12,6 +17,10 @@ const app = createApp(App);
 
 app.component('Navbar', Navbar);
 app.component('Footer', Footer);
+app.component('NavbarAuthenticated', NavbarAuthenticated);
+
+// Initalize Modals
+app.component('FlexibleModal', FlexibleModal);
 
 app.use(store);
 app.use(router);

@@ -160,6 +160,14 @@ export default class Core {
 
 				done();
 			});
+			this.app.addHook('preValidation', (request, reply, done) => {
+				this.logger.debug('Validation:');
+				console.log(request.body);
+				this.logger.debug(
+					`Content-Type: ${request.headers['content-type'] ?? 'N/A'}`
+				);
+				done();
+			});
 		}
 	}
 
@@ -462,6 +470,12 @@ export default class Core {
 				return reply.sendFile('index.html');
 			}
 		});
+
+		this.app.addContentTypeParser(
+			'text/json',
+			{parseAs: 'string'},
+			this.app.getDefaultJsonParser('ignore', 'ignore')
+		);
 		return 'development';
 	}
 
