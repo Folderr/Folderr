@@ -13,23 +13,26 @@
             <p v-if="password.length" class="text-secondary-text mr-28">Password</p>
             <input v-model="password" placeholder="Password" type="password" required class="mb-8 bg-bg text-brand p-4 border-brand border-b-2 placeholder-secondary-text">
             <br>
-            <button v-on:click="login()" class="text-white bg-bg border-2 p-4 border-brand rounded-lg px-16">Login</button>
+            <button v-on:click="login()" class="text-brand bg-brand bg-opacity-5 border-2 p-4 border-brand rounded-lg px-16">Login</button>
+            <br>
+            <p class="text-brand mt-4 underline"><a href="/signup">No account? Make one.</a></p>
         </div>
         <Footer />
     </div>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { useRouter } from 'vue-router';
+import * as api from '../wrappers/api';
 
 export default defineComponent({
-  name: 'Signup',
+  name: 'Login',
   data () {
       return {
           username: '',
           password: '',
           error: '',
           loading: false,
+          signups: false,
       }
   },
   methods: {
@@ -49,41 +52,17 @@ export default defineComponent({
         return;
       }
       this.loading = true;
-      try {
-        const response = await fetch(`/api/authorize`, {
-          method: 'POST',
-          headers: {
-            username: this.username,
-            password: this.password,
-          },
-          credentials: 'same-origin'
-        });
-        if (response.status === 400) {
-          this.loading = false;
-          this.error = `Error: Bad Request`;
-          console.log(`DEBUG: ${await response.json()}`);
-          return;
+      const output = await api.login(this.username, this.password);
+      if (output.error) {
+        if (typeof output.error === 'string') {
+            this.error = output.error;
         }
-        if (response.status === 401) {
-          this.loading = false;
-          this.error = `Authorization Failed`;
-          return;
-        }
-        if (/5[0-9]{2}/.test(response.status.toString())) {
-          this.loading = false;
-          this.error = `Internal Server Error`;
-          return;
-        }
-        const out = await response.json();
-        if (out.code === 200) {
-          this.$router.push('/account');
-        }
-      } catch (e) {
-          this.loading = false;
-          this.error = `An unkown error occured`;
-          if (e.message !== 'Failed to fetch') {
-            console.log(`DEBUG Error: ${e}`);
-          }
+
+        this.loading = false;
+        return;
+      }
+      if (output.success) {
+        this.$router.push('/account')
       }
     }
   }

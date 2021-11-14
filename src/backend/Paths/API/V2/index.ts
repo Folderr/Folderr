@@ -30,6 +30,9 @@ import DenySelf from './User/deny-self';
 import Tokens from './User/tokens';
 import DeleteToken from './User/delete-token';
 
+// User Flexible Authorization endpoints
+import Logout from './User/logout';
+
 // Admin Authorization locked endpoints for administration & moderation features
 import Ban from './Admin/ban';
 import Unban from './Admin/unban';
@@ -89,5 +92,6 @@ export const endpoints = {
 	OwnerManage,
 	Eval,
 	AddAdmin,
-	DelAdmin
+	DelAdmin,
+	Logout
 };

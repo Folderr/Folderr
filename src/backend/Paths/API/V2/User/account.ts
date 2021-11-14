@@ -21,7 +21,7 @@
 
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../../../internals';
-import {Notification} from '../../../../Structures/Database/db-class';
+import {AccountReturn} from '../../../../../types/user';
 
 /**
  * @classdesc View the authorized users account
@@ -38,12 +38,6 @@ class Account extends Path {
 		this.options = {
 			schema: {
 				response: {
-					200: {
-						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					},
 					401: {
 						type: 'object',
 						properties: {
@@ -70,19 +64,7 @@ class Account extends Path {
 		}
 
 		// Return a nice version of this users account.
-		const acc: {
-			username: string;
-			id: string;
-			admin: boolean;
-			owner: boolean;
-			files: number;
-			links: number;
-			customUrls?: string[];
-			email: string;
-			pendingEmail?: string;
-			notifications: Notification[];
-			createdAt: number;
-		} = {
+		const acc: AccountReturn = {
 			username: auth.username,
 			id: auth.id,
 			admin: auth.admin ?? false,
