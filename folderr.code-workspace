@@ -6,6 +6,7 @@
 	],
 	"settings": {
 		"xo.enable": true,
-		"xo.format.enable": true
+		"xo.format.enable": true,
+		"editor.insertSpaces": false
 	}
 }
