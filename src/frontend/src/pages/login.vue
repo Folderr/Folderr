@@ -8,12 +8,12 @@
         <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 flex-grow">
             <h1 class="text-secondary-text text-3xl mb-8">Login</h1>
             <p v-if="username.length" class="text-secondary-text mr-28">Username</p>
-            <input v-model="username" placeholder="Username" required class="mb-4 bg-bg text-brand p-4 border-brand border-b-2 placeholder-secondary-text">
+            <input v-on:keyup.enter="this.$refs.passw.focus()" v-model="username" placeholder="Username" required class="focus:outline-none mb-4 bg-bg text-brand p-4 border-brand border-b-2 placeholder-secondary-text">
             <br>
             <p v-if="password.length" class="text-secondary-text mr-28">Password</p>
-            <input v-model="password" placeholder="Password" type="password" required class="mb-8 bg-bg text-brand p-4 border-brand border-b-2 placeholder-secondary-text">
+            <input ref="passw" v-on:keyup.enter="this.$refs.login.click()" v-model="password" placeholder="Password" type="password" required class="focus:outline-none mb-8 bg-bg text-brand p-4 border-brand border-b-2 placeholder-secondary-text">
             <br>
-            <button v-on:click="login()" class="text-brand bg-brand bg-opacity-5 border-2 p-4 border-brand rounded-lg px-16">Login</button>
+            <button ref="login" v-on:click="login()" class="text-brand bg-brand bg-opacity-5 border-2 p-4 border-brand rounded-lg px-16">Login</button>
             <br>
             <p class="text-brand mt-4 underline"><a href="/signup">No account? Make one.</a></p>
         </div>
@@ -64,7 +64,7 @@ export default defineComponent({
       if (output.success) {
         this.$router.push('/account')
       }
-    }
+    },
   }
 })
 </script>

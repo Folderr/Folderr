@@ -86,6 +86,7 @@
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
                         >Username  &#10068;</p>
                         <input
+                            required
                             v-model="username" v-bind:placeholder="oldUsername"
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
                             :class="[
@@ -131,6 +132,7 @@
                         ]">Save changes {{isInfoSame ? '(Disabled)' : ''}}</button>
                         <p class="text-secondary-text text-md mt-10">Current Password</p>
                         <input
+                            v-on:keyup.enter="() => this.$refs.newPassword.focus()"
                             v-model="oldPassword"
                             type="password"
                             placeholder="Current Password"
@@ -158,6 +160,8 @@
                             New Password  &#10068;
                         </p>
                         <input
+                            ref="newPassword"
+                            v-on:keyup.enter="() => this.$refs.passwordConfirmation.focus()"
                             v-model="password"
                             type="password"
                             placeholder="New Password"
@@ -180,6 +184,8 @@
                             title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character">
                         <p class="text-secondary-text text-md">Confirm Password</p>
                         <input
+                            ref="passwordConfirmation"
+                            v-on:keyup.enter="() => this.isPasswordValid ? this.$refs.updatePassword.click() : null"
                             v-model="passwordConfirm"
                             type="password"
                             placeholder="Confirm Password"
@@ -201,7 +207,7 @@
                             ]"
                         >
                         <br>
-                        <button v-bind:disabled="!isPasswordValid" v-on:click="updatePassword()"
+                        <button ref="updatePasswword" v-bind:disabled="!isPasswordValid" v-on:click="updatePassword()"
                         title="Update your password" :class="[
                             'mt-2',
                             {
