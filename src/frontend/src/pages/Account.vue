@@ -68,7 +68,7 @@
                         <li class="active p-5 text-secondary-text">
                             <a href="/account">Account Info</a>
                         </li>
-                        <li v-show="false" class="p-5 text-secondary-text">
+                        <li class="p-5 text-secondary-text">
                             <a href="/account/#tokens">Token Management</a>
                         </li>
                         <li v-show="false" class="p-5 text-secondary-text">
@@ -81,8 +81,30 @@
                     <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Update your Folderr username, email, and password</h2>
                     <h3 class="mt-2 text-text text-lg lg:ml-20" v-if="emailerDisabled">You can't change your email as there is no emailer configured to verify a new email.</h3>
                     <div class="mt-10 lg:ml-20">
-                        <p class="text-secondary-text text-md">Username</p>
-                        <input v-model="username" v-bind:placeholder="oldUsername" class="mt-2 mb-4 bg-[#393939] text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text">
+                        <p
+                            class="text-secondary-text text-md"
+                            title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
+                        >Username  &#10068;</p>
+                        <input
+                            v-model="username" v-bind:placeholder="oldUsername"
+                            title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
+                            :class="[
+                                'mt-2',
+                                'mb-4',
+                                'bg-[#393939]',
+                                'text-text',
+                                'p-4',
+                                'w-[200px]',
+                                'xl:w-2/5',
+                                'placeholder-secondary-text',
+                                'focus:ring',
+                                'focus:outline-none',
+                                {
+                                    'focus:ring-brand': /^\w{3,16}$/.test(this.username),
+                                    'focus:ring-secondary-accent': !/^\w{3,16}$/.test(this.username)
+                                }
+                            ]"
+                        >
                         <p class="text-secondary-text text-md">Email {{emailerDisabled ? '(Disabled)' : ''}}</p>
                         <input v-model="email" v-bind:disabled="emailerDisabled" v-bind:placeholder="oldEmail" class="mt-2 mb-4 bg-[#393939] text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text" :class="[
                             {
@@ -108,16 +130,76 @@
                             'px-8'
                         ]">Save changes {{isInfoSame ? '(Disabled)' : ''}}</button>
                         <p class="text-secondary-text text-md mt-10">Current Password</p>
-                        <input v-model="oldPassword" type="password" placeholder="Current Password" class="mt-2 mb-4 bg-[#393939] text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text">
-                        <p class="text-secondary-text text-md">New Password</p>
+                        <input
+                            v-model="oldPassword"
+                            type="password"
+                            placeholder="Current Password"
+                            :class="[
+                                'mt-2',
+                                'mb-4',
+                                'bg-[#393939]',
+                                'text-text',
+                                'p-4',
+                                'w-[200px]',
+                                'xl:w-2/5',
+                                'placeholder-secondary-text',
+                                'focus:ring',
+                                'focus:outline-none',
+                                {
+                                    'focus:ring-brand': oldPasswordValid,
+                                    'focus:ring-secondary-accent': !oldPasswordValid
+                                }
+                            ]"
+                        >
+                        <p
+                            class="text-secondary-text text-md"
+                            title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
+                        >
+                            New Password  &#10068;
+                        </p>
                         <input
                             v-model="password"
                             type="password"
                             placeholder="New Password"
-                            class="mt-2 mb-4 bg-[#393939] text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text"
+                            :class="[
+                                'mt-2',
+                                'mb-4',
+                                'bg-[#393939]',
+                                'text-text',
+                                'p-4',
+                                'w-[200px]',
+                                'xl:w-2/5',
+                                'placeholder-secondary-text',
+                                'focus:ring',
+                                'focus:outline-none',
+                                {
+                                    'focus:ring-brand': passwordValid,
+                                    'focus:ring-secondary-accent': !passwordValid
+                                }
+                            ]"
                             title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character">
                         <p class="text-secondary-text text-md">Confirm Password</p>
-                        <input v-model="passwordConfirm" type="password" placeholder="Confirm Password" class="mt-2 mb-4 bg-[#393939] text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text">
+                        <input
+                            v-model="passwordConfirm"
+                            type="password"
+                            placeholder="Confirm Password"
+                            :class="[
+                                'mt-2',
+                                'mb-4',
+                                'bg-[#393939]',
+                                'text-text',
+                                'p-4',
+                                'w-[200px]',
+                                'xl:w-2/5',
+                                'placeholder-secondary-text',
+                                'focus:ring',
+                                'focus:outline-none',
+                                {
+                                    'focus:ring-brand': confirmPasswordValid,
+                                    'focus:ring-secondary-accent': !confirmPasswordValid
+                                }
+                            ]"
+                        >
                         <br>
                         <button v-bind:disabled="!isPasswordValid" v-on:click="updatePassword()"
                         title="Update your password" :class="[
@@ -150,7 +232,7 @@
                                 'text-secondary-text': owner,
                                 'text-secondary-accent': !owner,
                                 'opacity-80': owner,
-                                'hover:cursor-not-allowed': owner,
+                                'hover:cursor-not-allowed': owner
                             },
                             'bg-opacity-5',
                             'border-2',
@@ -161,8 +243,8 @@
                     </div>
                     <div class="lg:ml-20 mt-10">
                         <h2 class="text-text text-2xl"><b>Logout everywhere</b></h2>
-                        <p class="text-secondary-text text-md mt-2">This will log you out of every location you are logged in at, including the one you’re currently at</p>
-                        <button v-on:click="showLogoutConfirm()" class="mt-4 text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 p-4 border-secondary-accent rounded-lg px-8">Logout Everywhere</button>
+                        <p class="text-secondary-text text-md mt-2">This will log you out of every location/device you are logged in at, including the one you’re currently at</p>
+                        <button v-on:click="logoutEverywhere()" class="mt-4 text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 p-4 border-secondary-accent rounded-lg px-8">Logout Everywhere</button>
                     </div>
                 </div>
                 <div class="m-auto pt-10 text-justify w-full md:w-1/2">
@@ -226,13 +308,16 @@ export default {
             },
             tokens: [],
             tokenInfo: {},
+            tooltips: {
+                password: false
+            }
         }
     },
     computed: {
         isInfoSame() {
             let usernameSame = true;
             let emailSame = true;
-            const usernameRegex = /\w{3,16}/
+            const usernameRegex = /^\w{3,16}$/
             if (this.username !== this.oldUsername && usernameRegex.test(usernameRegex)) {
                 usernameSame = false;
             }
@@ -261,8 +346,31 @@ export default {
             }
 
             return !currentInvalid && !newInvalid && match
-        }
+        },
+        passwordValid() {
+            const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+            if (passwordExp.test(this.password)) {
+                return true;
+            }
+
+            return false;
+        },
+        oldPasswordValid() {
+            const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+            if (passwordExp.test(this.oldPassword)) {
+                return true;
+            }
+            return false;
+        },
+        confirmPasswordValid() {
+            const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+            if (this.passwordConfirm === this.password && passwordExp.test(this.passwordConfirm)) {
+                return true;
+            }
+            return false;
+        },
     },
+    
     async created() {
         await this.fetchData();
     },
