@@ -1,7 +1,7 @@
 <template>
     <div class="bg-bg h-screen flex flex-col">
         <Navbar />
-        <div v-if="error.length" class="justify-center bg-secondary-accent text-white w-full p-4 text-center flex m-auto">
+        <div v-if="error.length" class="justify-center bg-secondary-accent text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-secondary-accent">
             <p v-if="error.length">{{error}}</p>
             <button v-on:click="() => {error = ''}" class="bg-none border-none text-black ml-4">X</button>
         </div>
