@@ -746,3 +746,91 @@ export async function revokeToken(
 		};
 	}
 }
+
+export async function uploadFile(
+	data: FormData
+): Promise<GenericFetchReturn<string>> {
+	try {
+		const response = await fetch('/api/file', {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: data
+		});
+
+		console.log(response.headers.get('content-type'));
+
+		if (/2\d{2}/.test(response.status.toString())) {
+			return {
+				error: null,
+				success: true,
+				output: await response.text()
+			};
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const body: {code: number; message: string} | undefined =
+			await response.json();
+		if (response.status === 500) {
+			return {
+				error: body?.message ?? 'An internal server error occurred',
+				success: false,
+				response
+			};
+		}
+
+		if (response.status === 401) {
+			return {
+				error: body?.message ?? 'Unauthorized',
+				success: false,
+				response
+			};
+		}
+
+		if (response.status === 400) {
+			return {
+				error: body?.message ?? 'Bad Request',
+				success: false,
+				response
+			};
+		}
+
+		console.log('what');
+		return {
+			error: body?.message ?? 'An unknown error occurred',
+			success: false,
+			response
+		};
+	} catch (error: unknown) {
+		if (
+			error instanceof Error &&
+			error.message === 'Failed to fetch' &&
+			import.meta.env.DEV
+		) {
+			console.log(
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+			);
+			console.log(error);
+		}
+
+		if (error instanceof Error) {
+			return {
+				success: false,
+				error
+			};
+		}
+
+		if (typeof error === 'string') {
+			return {
+				success: false,
+				error
+			};
+		}
+
+		console.log(error);
+
+		return {
+			success: false,
+			error: 'An unknown error occured'
+		};
+	}
+}

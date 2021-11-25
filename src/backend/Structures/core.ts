@@ -14,6 +14,7 @@ import helmet from 'fastify-helmet';
 import fastifyStatic from 'fastify-static';
 import ratelimit from 'fastify-rate-limit';
 import fastifyCors from 'fastify-cors';
+import multipart from 'fastify-multipart';
 
 // Frontend stuff
 
@@ -146,6 +147,14 @@ export default class Core {
 
 		await this.app.register(fastifyCors, {
 			origin: '*'
+		});
+
+		await this.app.register(multipart, {
+			limits: {
+				fields: 0,
+				files: 1,
+				fileSize: 10_000_000_000
+			}
 		});
 
 		if (process.env.DEBUG) {

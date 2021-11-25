@@ -8,6 +8,7 @@ import Index from './pages/Index.vue';
 import Login from './pages/login.vue';
 import NotFound from './pages/404.vue';
 import Account from './pages/Account.vue';
+import Upload from './pages/Upload.vue';
 
 const routes = [
 	{
@@ -24,6 +25,10 @@ const routes = [
 		path: '/account',
 		component: Account,
 		beforeEnter: userGuards.authGuard
+	},
+	{
+		path: '/upload',
+		component: Upload
 	},
 	{
 		path: '/:pathMatch(.*)*',

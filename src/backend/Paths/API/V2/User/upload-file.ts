@@ -20,10 +20,16 @@
  */
 
 import {join} from 'path';
-import {unlinkSync} from 'fs';
+import {createWriteStream} from 'fs';
+import {promisify} from 'util';
+import {pipeline} from 'stream';
+import {unlink} from 'fs/promises';
 import {FastifyRequest, FastifyReply} from 'fastify';
-import formidable from 'formidable';
 import {Core, Path} from '../../../../internals';
+
+const pump = promisify(pipeline);
+
+const dir = join(process.cwd(), './Files/');
 
 /**
  * @classdesc Upload a file
@@ -70,26 +76,51 @@ class Image extends Path {
 			});
 		}
 
-		const name = await this.Utils.genID();
-		let file;
-		try {
-			file = await this.formidablePromise(request);
-		} catch (error: unknown) {
-			return response.status(this.codes.internalErr).send({
-				code: this.Utils.FoldCodes.fileParserError,
-				message: `Parser error!\n${(error as Error).message}`
-			});
-		}
+		const file = await request.file();
 
-		if (!file) {
+		if (!file || !file.file) {
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.noFile,
-				message: 'Files not parsed/found!'
+				message: 'File not found!'
 			});
 		}
 
-		if (!file.type) {
-			unlinkSync(file.path);
+		const ext = file.filename.split('.');
+		const fext = ext[ext.length - 1];
+		const name = await this.Utils.genID();
+
+		try {
+			await pump(file.file, createWriteStream(`${dir}/${name}.${fext}`));
+		} catch (error: unknown) {
+			if (
+				error instanceof this.core.app.multipartErrors.RequestFileTooLargeError
+			) {
+				await unlink(`${dir}/${name}.${fext}`);
+				return response.status(this.codes.badReq).send({
+					code: this.Utils.FoldCodes.fileSizeLimit,
+					message: `File is over size. Max size is 1GB`
+				});
+			}
+
+			return response.status(this.codes.internalErr).send({
+				code: this.Utils.FoldCodes.fileParserError,
+				message: `Parser error!\n${
+					error instanceof Error ? error.message : (error as string)
+				}`
+			});
+		}
+
+		// @ts-expect-error
+		if (file.file.truncated) {
+			await unlink(`${dir}/${name}.${fext}`);
+			return response.status(this.codes.badReq).send({
+				code: this.Utils.FoldCodes.fileSizeLimit,
+				message: `File is over size. Max size is 1GB`
+			});
+		}
+
+		if (!file.mimetype) {
+			await unlink(`${dir}/${name}.${fext}`);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.fileMimeError,
 				message: 'Invalid file!'
@@ -97,19 +128,24 @@ class Image extends Path {
 		}
 
 		let type = 'image';
-		if (file.type.startsWith('video')) {
+		if (file.mimetype.startsWith('video')) {
 			type = 'video';
-		} else if (!file.type.startsWith('image')) {
+		} else if (!file.mimetype.startsWith('image')) {
 			type = 'file';
 		}
 
-		const ext = file.path.split('.');
-		const fext = ext[ext.length - 1];
+		try {
+			await Promise.all([
+				this.core.db.makeFile(name, auth.id, `${dir}/${name}.${fext}`, {
+					generic: type,
+					mimetype: file.mimetype
+				}),
+				this.core.db.updateUser({id: auth.id}, {$inc: {files: 1}})
+			]);
+		} catch (error: unknown) {
+			console.log(error);
+		}
 
-		await Promise.all([
-			this.core.db.makeFile(name, auth.id, file.path, type),
-			this.core.db.updateUser({id: auth.id}, {$inc: {files: 1}})
-		]);
 		return response
 			.status(this.codes.ok)
 			.send(
@@ -121,32 +157,6 @@ class Image extends Path {
 						: await this.Utils.determineHomeURL(request)
 				}/${type[0]}/${name}.${fext}`
 			);
-	}
-
-	private async formidablePromise(
-		request: FastifyRequest
-	): Promise<formidable.File> {
-		return new Promise((resolve, reject): formidable.File | void => {
-			const path = join(process.cwd(), './Files/');
-			const form = new formidable.IncomingForm({
-				uploadDir: path,
-				multiples: false,
-				keepExtensions: true,
-				enabledPlugins: ['multipart']
-			});
-
-			form.parse(
-				request.raw,
-				(error: Error, fields: formidable.Fields, files: any) => {
-					if (error) {
-						reject(error);
-						return;
-					}
-
-					resolve(files);
-				}
-			);
-		});
 	}
 }
 

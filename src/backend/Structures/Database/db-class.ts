@@ -82,6 +82,7 @@ export interface Upload {
 	path: string;
 	type: string;
 	createdAt: Date;
+	mimetype: string;
 }
 
 /**
@@ -309,7 +310,7 @@ export class DBClass {
 		id: string,
 		owner: string,
 		path: string,
-		type: string
+		types: {generic: string; mimetype: string}
 	): Promise<Upload> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method makeFile is not implemented!'
