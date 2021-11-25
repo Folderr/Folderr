@@ -34,36 +34,40 @@
                 v-bind:greenContinue="true"
                 v-bind:noCancel="true"
             >
-                <div class="p-2 text-text bg-yellow-500 mx-auto text-center border-2 border-yellow-500 rounded-lg">
+                <div class="p-2 px-8 text-text bg-yellow-500 mx-auto text-center border-2 border-yellow-500 rounded-lg w-max">
                     You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
                 </div>
                 
                 <div class="text-text mt-4 text-lg">
                     <p><b>Token:</b></p>
-                    <div class="flex flex-shrink">
+                    <div class="flex flex-shrink items-center">
                         <input
                             readonly
                             title="Your authentication token"
                             v-bind:value='tokenInfo.token'
-                            class="mt-2 bg-[#393939] text-text p-4 w-[200px] lg:w-2/5 placeholder-secondary-text"
+                            class="mt-2 bg-tertiary-bg text-text p-4 w-[200px] lg:w-2/5 placeholder-secondary-text"
                             >
-                        <button v-on:click="copy(this.tokenInfo.token)" class="ml-4 mt-2 text-brand bg-brand border-brand bg-opacity-5 border-2 p-2 rounded-lg px-4">Copy!</button>
+                        <button v-on:click="copy(this.tokenInfo.token)" class="ml-4 mt-2 text-brand p-2 px-4">
+                            <svg v-if="!copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
+                            <svg v-if="copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
+                        </button>
+                        <p v-if="copied" class="text-brand-darkened text-md mr-2">Copied</p>
                     </div>
                     <p><br><b>Description:</b> {{tokenInfo.description}}</p>
                 </div>
 
             </FlexibleModal>
-            <div v-if="error.length" class="justify-center bg-secondary-accent text-white w-full p-4 text-center flex m-auto">
+            <div v-if="error.length" class="justify-center bg-secondary-accent text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-secondary-accent">
                 <p v-if="error.length">{{error}}</p>
                 <button v-on:click="() => {error = ''}" class="bg-none border-none text-black ml-4">X</button>
             </div>
-            <div v-if="success.length" class="justify-center bg-brand text-white w-full p-4 text-center flex m-auto">
+            <div v-if="success.length" class="justify-center bg-brand-darkened text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-brand-darkened">
                 <p >{{success}}</p>
                 <button v-on:click="() => {success = ''}" class="bg-none border-none text-black ml-4">X</button>
             </div>
             <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 flex-grow mb-20">
                 <h1 class="text-brand text-3xl mb-10"><b>Account Management</b></h1>
-                <div class="md:w-1/2 w-4/6 bg-[#393939] m-auto relative">
+                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto relative">
                     <ul class="flex list-none">
                         <li class="active p-5 text-secondary-text">
                             <a href="/account">Account Info</a>
@@ -92,7 +96,7 @@
                             :class="[
                                 'mt-2',
                                 'mb-4',
-                                'bg-[#393939]',
+                                'bg-tertiary-bg',
                                 'text-text',
                                 'p-4',
                                 'w-[200px]',
@@ -107,7 +111,7 @@
                             ]"
                         >
                         <p class="text-secondary-text text-md">Email {{emailerDisabled ? '(Disabled)' : ''}}</p>
-                        <input v-model="email" v-bind:disabled="emailerDisabled" v-bind:placeholder="oldEmail" class="mt-2 mb-4 bg-[#393939] text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text" :class="[
+                        <input v-model="email" v-bind:disabled="emailerDisabled" v-bind:placeholder="oldEmail" class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text" :class="[
                             {
                                 'opacity-50': emailerDisabled,
                                 'hover:cursor-not-allowed': emailerDisabled,
@@ -139,7 +143,7 @@
                             :class="[
                                 'mt-2',
                                 'mb-4',
-                                'bg-[#393939]',
+                                'bg-tertiary-bg',
                                 'text-text',
                                 'p-4',
                                 'w-[200px]',
@@ -168,7 +172,7 @@
                             :class="[
                                 'mt-2',
                                 'mb-4',
-                                'bg-[#393939]',
+                                'bg-tertiary-bg',
                                 'text-text',
                                 'p-4',
                                 'w-[200px]',
@@ -192,7 +196,7 @@
                             :class="[
                                 'mt-2',
                                 'mb-4',
-                                'bg-[#393939]',
+                                'bg-tertiary-bg',
                                 'text-text',
                                 'p-4',
                                 'w-[200px]',
@@ -316,7 +320,8 @@ export default {
             tokenInfo: {},
             tooltips: {
                 password: false
-            }
+            },
+            copied: false,
         }
     },
     computed: {
@@ -383,6 +388,7 @@ export default {
     methods: {
         async copy(text) {
             await navigator.clipboard.writeText(text);
+            this.copied = true;
         },
         async fetchData() {
             if (this.$store.user && this.$store.user.userID) {
@@ -606,6 +612,7 @@ export default {
                     description: description
                 };
                 this.success = 'Token Generated';
+                this.tokens.push({description, created: new Date().getTime()})
                 this.tokenCreateModal();
                 this.modals.tokens.showDetails = true;
                 return;
