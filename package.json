@@ -63,6 +63,7 @@
     "fastify-cookie": "^5.3.1",
     "fastify-cors": "^6.0.2",
     "fastify-helmet": "^5.3.2",
+    "fastify-multipart": "^5.1.0",
     "fastify-rate-limit": "^5.5.0",
     "fastify-static": "^4.2.2",
     "formidable": "^1.2.2",
@@ -86,6 +87,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@types/busboy": "^0.3.1",
     "@types/connect": "^3.4.35",
     "@types/formidable": "^1.2.3",
     "@types/js-yaml": "^4.0.2",

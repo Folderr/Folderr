@@ -257,8 +257,8 @@ class Utils {
 	async genID(): Promise<string> {
 		// Generate a random ID
 		const bytesToGen = 10;
-		const min = 10;
-		const max = 7;
+		const min = 4;
+		const max = 10;
 		const id = crypto
 			.randomBytes(bytesToGen)
 			.toString('base64')

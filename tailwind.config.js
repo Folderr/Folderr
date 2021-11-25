@@ -8,6 +8,7 @@ module.exports = {
 				'brand-darkened': '#2ba05c',
 				bg: '#313131',
 				'secondary-bg': '#131313',
+				'tertiary-bg': '#393939',
 				text: '#FFFFFF',
 				'secondary-text': '#C4C4C4',
 				'secondary-accent': '#C5395B'

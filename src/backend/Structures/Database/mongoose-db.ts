@@ -481,9 +481,15 @@ export default class MongooseDB extends DBClass {
 		id: string,
 		owner: string,
 		path: string,
-		type: string
+		types: {generic: string; mimetype: string}
 	): Promise<Upload> {
-		const file = new this.#Schemas.Upload({id, owner, path, type});
+		const file = new this.#Schemas.Upload({
+			id,
+			owner,
+			path,
+			type: types.generic,
+			mimetype: types.mimetype
+		});
 		await file.save();
 		return file;
 	}
