@@ -75,16 +75,22 @@ class Shorten extends Path {
 		}
 
 		try {
-			await this.core.got.get(request.body.url);
+			const url = new URL(request.body.url);
+			await this.core.got.get(url.toString());
 			// eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
 		} catch (error: any) {
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+			/* eslint-disable @typescript-eslint/no-unsafe-call */
 			if (
-				error.code &&
-				typeof error.code === 'string' &&
-				error.code === 'ENOTFOUND'
+				(error.code &&
+					typeof error.code === 'string' &&
+					error.code === 'ENOTFOUND') ||
+				(error.message &&
+					typeof error.message === 'string' &&
+					error.message.includes('EAI_AGAIN'))
 			) {
 				/* eslint-enable @typescript-eslint/no-unsafe-member-access */
+				/* eslint-enable @typescript-eslint/no-unsafe-call */
 				return response.status(this.codes.notFound).send({
 					code: this.Utils.FoldCodes.shortUrlNotFound,
 					message: 'URL not found!'
