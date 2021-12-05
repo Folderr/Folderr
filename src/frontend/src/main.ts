@@ -4,6 +4,7 @@ import router from './router';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
 import NavbarAuthenticated from './components/Navbar-Authenticated.vue';
+import SuccessNErrors from './components/Success-N-Error.vue';
 
 // Modals
 
@@ -18,6 +19,7 @@ const app = createApp(App);
 app.component('Navbar', Navbar);
 app.component('Footer', Footer);
 app.component('NavbarAuthenticated', NavbarAuthenticated);
+app.component('SuccessesErrors', SuccessNErrors);
 
 // Initalize Modals
 app.component('FlexibleModal', FlexibleModal);

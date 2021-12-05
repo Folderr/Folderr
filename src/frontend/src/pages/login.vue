@@ -1,6 +1,7 @@
 <template>
     <div class="bg-bg h-screen flex flex-col">
         <Navbar />
+        <SuccessesErrors ref="sne" />
         <div v-if="error.length" class="justify-center bg-secondary-accent text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-secondary-accent">
             <p v-if="error.length">{{error}}</p>
             <button v-on:click="() => {error = ''}" class="bg-none border-none text-black ml-4">X</button>
@@ -30,7 +31,6 @@ export default defineComponent({
       return {
           username: '',
           password: '',
-          error: '',
           loading: false,
           signups: false,
       }
@@ -48,14 +48,14 @@ export default defineComponent({
         if (!this.password) {
             missing.push('password');
         }
-        this.error = `Error: Missing ${missing.join(' & ')}`;
+        this.$refs.sne.addError(`Error: Missing ${missing.join(' & ')}`);
         return;
       }
       this.loading = true;
       const output = await api.login(this.username, this.password);
       if (output.error) {
         if (typeof output.error === 'string') {
-            this.error = output.error;
+            this.$refs.sne.addError(output.error);
         }
 
         this.loading = false;

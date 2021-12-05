@@ -57,14 +57,7 @@
                 </div>
 
             </FlexibleModal>
-            <div v-if="error.length" class="justify-center bg-secondary-accent text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-20 fixed right-4 top-20 rounded-lg border-secondary-accent">
-                <p v-if="error.length">{{error}}</p>
-                <button v-on:click="() => {error = ''}" class="bg-none border-none text-black ml-4">X</button>
-            </div>
-            <div v-if="success.length" class="justify-center bg-brand-darkened text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-20 fixed right-4 top-20 rounded-lg border-brand-darkened">
-                <p >{{success}}</p>
-                <button v-on:click="() => {success = ''}" class="bg-none border-none text-black ml-4">X</button>
-            </div>
+            <SuccessesErrors ref="sne" />
             <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 flex-grow mb-20">
                 <h1 class="text-brand text-3xl mb-10"><b>Account Management</b></h1>
                 <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto relative">
@@ -309,8 +302,6 @@ export default {
             oldUsername: null,
             oldEmail: null,
             owner: null,
-            error: '',
-            success: '',
             emailerDisabled: false,
             modals: {
                 deleteAccount: false,
@@ -405,7 +396,7 @@ export default {
                 const tokens = await api.getTokens();
                 console.log(tokens);
                 if (tokens.error) {
-                    this.error = tokens.error instanceof Error ? tokens.error.message : tokens.error;
+                    this.$refs.addError(tokens.error instanceof Error ? tokens.error.message : tokens.error);
                 } else if (Array.isArray(tokens.message) ) {
                     this.tokens = tokens.message;
                 } else {
@@ -419,7 +410,7 @@ export default {
             }
             const tokens = await api.getTokens();
             if (tokens.error) {
-                this.error = tokens.error instanceof Error ? tokens.error.message : tokens.error;
+                this.$refs.addError(tokens.error instanceof Error ? tokens.error.message : tokens.error);
             } else if (Array.isArray(tokens.message) ) {
                 this.tokens = tokens.message;
             } else {
@@ -444,10 +435,8 @@ export default {
             alert(text || 'this is a test');
         },
         async updateInfo()  {
-            this.success = '';
-            this.error = '';
             if (this.isInfoSame) {
-                this.error = 'You need to update either your email or your username!';
+                this.$refs.addError('You need to update either your email or your username!');
                 return;
             }
 
@@ -466,37 +455,35 @@ export default {
                 if (updated.success) {
                     this.oldEmail = this.email;
                     this.oldUsername = this.username;
-                    this.success = 'Information Updated';
+                    this.$refs.sne.addError('Information Updated!');
                 } else {
                     if (updated.error.startsWith('Emailer not configured') ) {
                         this.email = this.oldEmail;
                         this.emailerDisabled = true;
                     }
-                    this.error = typeof updated.error === 'string' ? updated.error : updated.error.message;
+                    this.$refs.sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
                 }
             } catch (error) {
                 if (typeof e === 'string') {
-                    this.error = error;
+                    this.$refs.sne.addError(error);
                     return;
                 }
 
                 if (error instanceof Error) {
                     console.log(error);
-                    this.error = error.message;
+                    this.$refs.sne.addError(error.message);
                     return;
                 }
 
-                this.error = 'Unknown Error Occured while updating your info';
+                this.$refs.sne.addError('Unknown Error Occured while updating your info');
                 console.log(error);
                 console.log(typeof error);
                 return;
             }
         },
         async updatePassword()  {
-            this.success = '';
-            this.error = '';
             if (!this.isPasswordValid) {
-                this.error = 'Password invalid!';
+                this.$refs.sne.addError('Password invalid!');
                 return;
             }
 
@@ -509,35 +496,33 @@ export default {
                 if (updated.success) {
                     this.oldEmail = this.email;
                     this.oldUsername = this.username;
-                    this.success = 'Information Updated';
+                    this.$refs.sne.addError('Information Updated!');
                 } else {
                     if (updated.error.startsWith('Emailer not configured') ) {
                         this.email = this.oldEmail;
                         this.emailerDisabled = true;
                     }
-                    this.error = typeof updated.error === 'string' ? updated.error : updated.error.message;
+                    this.$refs.sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
                 }
             } catch (error) {
                 if (typeof e === 'string') {
-                    this.error = error;
+                    this.$refs.sne.addError(error);
                     return;
                 }
 
                 if (error instanceof Error) {
                     console.log(error);
-                    this.error = error.message;
+                    this.$refs.sne.addError(error.messages);
                     return;
                 }
 
-                this.error = 'Unknown Error Occured while updating your password';
+                this.$refs.sne.addError('Unknown Error Occured while updating your password');
                 console.log(error);
                 console.log(typeof error);
                 return;
             }
         },
         async logoutEverywhere() {
-            this.success = '';
-            this.error = '';
 
             const logout = await api.logoutEverywhere();
 
@@ -547,14 +532,14 @@ export default {
             }
 
             if (logout.error instanceof Error) {
-                this.error = logout.error.message;
+                this.$refs.sne.addError(logout.error.message);
                 if (import.meta.env.DEV && logout.response) {
                     console.log('Debug Response from API/Logout (everywhere)');
                     console.log(logout.response);
                 }
             }
 
-            this.error = logout.error;
+            this.$refs.sne.addError(logout.error);
 
             if (import.meta.env.DEV && logout.response) {
                 console.log('Debug Response from API/Logout (everywhere)');
@@ -574,12 +559,12 @@ export default {
 
             if (!deleted.success) {
                 if (deleted.error instanceof Error) {
-                    this.error = deleted.error.message;
+                    this.$refs.sne.addError(deleted.error.message);
                     return;
                 }
 
                 if (typeof deleted.error === 'string') {
-                    this.error = deleted.error;
+                    this.$refs.sne.addError(deleted.error);
                     return;
                 }
             }
@@ -595,10 +580,8 @@ export default {
             this.modals.tokens.createToken = !this.modals.tokens.createToken;
         },
         async createToken(description) {
-            this.error = '';
-            this.success = '';
             if (!description || typeof description !== 'string') {
-                this.error = 'Description needed for the token';
+                this.$refs.sne.addError('Description needed for the token');
                 this.tokenCreateModal();
                 return;
             }
@@ -606,7 +589,7 @@ export default {
             const apitoken = await api.createToken(description);
             if (apitoken.error) {
                 this.tokenCreateModal();
-                this.error = `Token creation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`;
+                this.$refs.sne.addError(`Token creation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
                 return;
             }
 
@@ -615,7 +598,7 @@ export default {
                     token: apitoken.output,
                     description: description
                 };
-                this.success = 'Token Generated';
+                this.$refs.sne.addSuccess('Token Generated');
                 this.tokens.push({description, created: new Date().getTime()})
                 this.tokenCreateModal();
                 this.modals.tokens.showDetails = true;
@@ -623,17 +606,15 @@ export default {
             }
         },
         async revokeToken(id) {
-            this.error = '';
-            this.success = '';
 
             const apitoken = await api.revokeToken(id);
             if (apitoken.error) {
-                this.error = `Token revokation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`;
+                this.$refs.sne.addError(`Token revokation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
                 return;
             }
 
             if (apitoken.success) {
-                this.success = 'Token Revoked';
+                this.$refs.sne.addSuccess('Token Revoked');
                 this.tokens = this.tokens.filter((token) => {
                     return token.id !== id
                 });
