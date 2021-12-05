@@ -11,13 +11,13 @@
     <div v-if="username">
         <div class="bg-bg flex-grow flex flex-col min-h-screen">
             <NavbarAuthenticated v-bind:username="username"/>
-            <div v-if="error.length" class="justify-center bg-secondary-accent text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-secondary-accent">
-                <p v-if="error.length">{{error}}</p>
-                <button @click="() => {error = ''}" class="bg-none border-none text-black ml-4">X</button>
-            </div>
             <div v-if="success.length" class="justify-center bg-brand-darkened text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-brand-darkened">
                 <p >{{success}}</p>
                 <button @click="() => {success = ''}" class="bg-none border-none text-black ml-4">X</button>
+            </div>
+            <div v-if="error.length" class="justify-center bg-secondary-accent text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-secondary-accent">
+                <p v-if="error.length">{{error}}</p>
+                <button @click="() => {error = ''}" class="bg-none border-none text-black ml-4">X</button>
             </div>
             <div id="hero" :class="[
                 'm-auto',

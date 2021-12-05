@@ -24,6 +24,11 @@
                   </router-link>
               </li>
               <li>
+                  <router-link to="/shorten" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary">
+                    Shorten
+                  </router-link>
+              </li>
+              <li>
                   <router-link to="/account" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary">
                       {{username}}
                   </router-link>
@@ -41,7 +46,7 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import * as api from '../../wrappers/api';
+import * as api from '../wrappers/api';
 export default defineComponent({
     name: 'Navbar',
     props: ['username'],
