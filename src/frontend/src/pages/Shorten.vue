@@ -11,14 +11,7 @@
     <div v-if="username">
         <div class="bg-bg flex-grow flex flex-col min-h-screen">
             <NavbarAuthenticated v-bind:username="username"/>
-            <div v-if="success.length" class="justify-center bg-brand-darkened text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-brand-darkened">
-                <p >{{success}}</p>
-                <button @click="() => {success = ''}" class="bg-none border-none text-black ml-4">X</button>
-            </div>
-            <div v-if="error.length" class="justify-center bg-secondary-accent text-white p-4 text-center flex m-auto w-max px-8 mt-4 z-10 fixed right-4 top-20 rounded-lg border-secondary-accent">
-                <p v-if="error.length">{{error}}</p>
-                <button @click="() => {error = ''}" class="bg-none border-none text-black ml-4">X</button>
-            </div>
+            <SuccessesErrors ref="sne" />
             <div id="hero" :class="[
                 'm-auto',
                 'text-center',
@@ -79,8 +72,6 @@ export default {
         return {
             loading: true,
             username: null,
-            error: '',
-            success: '',
             shortenedLink: '',
             link: '',
             copied: false,
@@ -107,7 +98,7 @@ export default {
         async copy(text) {
             await navigator.clipboard.writeText(text);
             this.copied = true;
-            this.success = "Copied"
+            this.$refs.sne.addSuccess("Copied!", 1000)
         },
         async fetchData() {
             if (this.$store.user && this.$store.user.userID) {
@@ -127,7 +118,7 @@ export default {
         },
         async shorten() {
             if (!this.isLinkValid) {
-                this.error = "Link is a not a valid url!"
+                this.$refs.sne.addError("Link is a not a valid url!", 1000);
                 return false;
             }
 
@@ -136,27 +127,26 @@ export default {
 
                 if (shortened.success) {
                     this.shortenedLink = shortened.output;
-                    this.error = false;
                     this.link = '';
                     this.copy(shortened.output);
                     this.$refs.linkBox.blur();
                 } else {
-                    this.error = shortened.error
+                    this.$refs.sne.addError(shortened.error, 5000);
                     console.log(shortened.response);
                 }
             } catch (error) {
                 if (typeof e === 'string') {
-                    this.error = error;
+                    this.$refs.sne.addError(error, 5000);
                     return;
                 }
 
                 if (error instanceof Error) {
                     console.log(error);
-                    this.error = error.message;
+                    this.$refs.sne.addError(error.message, 5000);
                     return;
                 }
 
-                this.error = 'Unknown Error Occured while uploading your file';
+                this.$refs.sne.addError('Unknown Error Occured while shortening the url', 5000);
                 console.log(error);
                 console.log(typeof error);
                 return;
