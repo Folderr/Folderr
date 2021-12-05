@@ -90,6 +90,7 @@
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
                         >Username  &#10068;</p>
                         <input
+                            label="New username"
                             required
                             v-model="username" v-bind:placeholder="oldUsername"
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
@@ -111,7 +112,7 @@
                             ]"
                         >
                         <p class="text-secondary-text text-md">Email {{emailerDisabled ? '(Disabled)' : ''}}</p>
-                        <input v-model="email" v-bind:disabled="emailerDisabled" v-bind:placeholder="oldEmail" class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text" :class="[
+                        <input type="email" label="New email address" v-model="email" v-bind:disabled="emailerDisabled" v-bind:placeholder="oldEmail" class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text" :class="[
                             {
                                 'opacity-50': emailerDisabled,
                                 'hover:cursor-not-allowed': emailerDisabled,
@@ -139,6 +140,7 @@
                             v-on:keyup.enter="() => this.$refs.newPassword.focus()"
                             v-model="oldPassword"
                             type="password"
+                            label="Current password"
                             placeholder="Current Password"
                             :class="[
                                 'mt-2',
@@ -165,6 +167,7 @@
                         </p>
                         <input
                             ref="newPassword"
+                            label="New password"
                             v-on:keyup.enter="() => this.$refs.passwordConfirmation.focus()"
                             v-model="password"
                             type="password"
@@ -188,6 +191,7 @@
                             title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character">
                         <p class="text-secondary-text text-md">Confirm Password</p>
                         <input
+                            label="Confirm password"
                             ref="passwordConfirmation"
                             v-on:keyup.enter="() => this.isPasswordValid ? this.$refs.updatePassword.click() : null"
                             v-model="passwordConfirm"
