@@ -1,13 +1,13 @@
 import {createApp} from 'vue';
 import store from './store';
 import router from './router';
-import Navbar from './components/Inner-Components/Navbar.vue';
-import Footer from './components/Inner-Components/Footer.vue';
-import NavbarAuthenticated from './components/Inner-Components/Navbar-Authenticated.vue';
+import Navbar from './components/Navbar.vue';
+import Footer from './components/Footer.vue';
+import NavbarAuthenticated from './components/Navbar-Authenticated.vue';
 
 // Modals
 
-import FlexibleModal from './components/Inner-Components/Modals/Flexible.vue';
+import FlexibleModal from './components/Modals/Flexible.vue';
 
 import App from './App.vue';
 
