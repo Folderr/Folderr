@@ -9,6 +9,7 @@ import Login from './pages/login.vue';
 import NotFound from './pages/404.vue';
 import Account from './pages/Account.vue';
 import Upload from './pages/Upload.vue';
+import Shorten from './pages/Shorten.vue';
 
 const routes = [
 	{
@@ -29,6 +30,10 @@ const routes = [
 	{
 		path: '/upload',
 		component: Upload
+	},
+	{
+		path: '/shorten',
+		component: Shorten
 	},
 	{
 		path: '/:pathMatch(.*)*',
