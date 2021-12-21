@@ -7,6 +7,18 @@
 	"settings": {
 		"xo.enable": true,
 		"xo.format.enable": true,
-		"editor.insertSpaces": false
+		"editor.insertSpaces": false,
+		"editor.quickSuggestions": {
+			"other": true,
+			"comments": false,
+			"strings": false
+		},
+		"typescript.format.semicolons": "insert",
+		"typescript.format.placeOpenBraceOnNewLineForControlBlocks": false,
+		"typescript.format.enable": true,
+		"typescript.preferences.quoteStyle": "double",
+		"typescript.validate.enable": true,
+		"vetur.format.options.useTabs": true,
+		"vetur.validation.template": true
 	}
 }
