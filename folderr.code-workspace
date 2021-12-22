@@ -18,7 +18,7 @@
 		"typescript.format.enable": true,
 		"typescript.preferences.quoteStyle": "double",
 		"typescript.validate.enable": true,
-		"vetur.format.options.useTabs": true,
-		"vetur.validation.template": true
+		"volar.autoCompleteRefs": true,
+		"volar.codeLens.references": true
 	}
 }

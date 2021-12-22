@@ -34,19 +34,12 @@
   </nav>
 </template>
 
-<script lang="ts">
-import {defineComponent} from 'vue'
-export default defineComponent({
-    name: 'Navbar',
-    data() {
-        return {
-        showMenu: false
-        }
-    },
-    methods: {
-        toggleNavbar: function()    {
-            this.showMenu = !this.showMenu;
-        }
-    }
-})
+<script setup lang="ts">
+import {ref} from 'vue';
+
+const showMenu = ref(false);
+
+const toggleNavbar = () => {
+    showMenu.value = !showMenu.value;
+}
 </script>

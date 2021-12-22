@@ -44,35 +44,40 @@
   </nav>
 </template>
 
-<script lang="ts">
-import {defineComponent} from 'vue'
+<script setup lang="ts">
+import {ref} from 'vue';
 import * as api from '../wrappers/api';
-export default defineComponent({
-    name: 'Navbar',
-    props: ['username'],
-    data() {
-        return {
-        showMenu: false
-        }
-    },
-    methods: {
-        toggleNavbar: function() {
-            this.showMenu = !this.showMenu;
-        },
-        logout: async function() {
-            const output = await api.logout();
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
-            if (output.success) {
-                this.$router.push('/');
-                return;
-            }
+const props = defineProps<{
+    username: string;
+}>();
 
-            if (output.error instanceof Error) {
-                console.log(`Logout Error: ${output.error.message}`);
-            } else if (typeof output.error === 'string') {
-                console.log(`Logout Error: ${output.error}`);
-            }
-        }
+const emit = defineEmits<{
+    (e: 'error', error: Error | string): void
+}>();
+
+const showMenu = ref(false);
+
+const toggleNavbar = () => {
+    showMenu.value = !showMenu.value;
+}
+
+const logout = async (): Promise<void> => {
+    const output = await api.logout();
+
+    if (output.success) {
+        router.push('/');
+        return;
     }
-})
+
+    if (output.error instanceof Error) {
+        console.log(`Logout Error: ${output.error.message}`);
+        emit('error', output.error);
+    } else if (typeof output.error === 'string') {
+        console.log(`Logout Error: ${output.error}`);
+        emit('error', output.error);
+    }
+}
 </script>

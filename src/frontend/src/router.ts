@@ -5,7 +5,7 @@ import * as userGuards from './nav-gaurds/user-nav-guard';
 // Pages
 
 import Index from './pages/Index.vue';
-import Login from './pages/login.vue';
+import Login from './pages/Login.vue';
 import NotFound from './pages/404.vue';
 import Account from './pages/Account.vue';
 import Upload from './pages/Upload.vue';
@@ -15,35 +15,35 @@ const routes = [
 	{
 		path: '/',
 		component: Index,
-		beforeEnter: userGuards.authGuard
+		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: '/login',
 		component: Login,
-		beforeEnter: userGuards.authGuard
+		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: '/account',
 		component: Account,
-		beforeEnter: userGuards.authGuard
+		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: '/upload',
-		component: Upload
+		component: Upload,
 	},
 	{
 		path: '/shorten',
-		component: Shorten
+		component: Shorten,
 	},
 	{
 		path: '/:pathMatch(.*)*',
-		component: NotFound
-	}
+		component: NotFound,
+	},
 ];
 
 const router = createRouter({
 	history: createWebHistory(),
-	routes
+	routes,
 });
 
 export default router;
