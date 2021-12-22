@@ -7,6 +7,7 @@
     "build": "npm run build:backend && npm run build:frontend",
     "build:frontend": "vue-tsc --noEmit -p src/frontend && vite build",
     "build:backend": "tsc --skipLibCheck",
+    "build:production": "tsc --build && vite build",
     "start": "NODE_ENV=production node dist/src/backend/index.js",
     "start:plain": "node dist/src/backend/index.js",
     "setup": "node dist/scripts/setup.js",
