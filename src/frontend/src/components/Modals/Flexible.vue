@@ -44,71 +44,61 @@
 						'border-brand': greenContinue,
 						'text-brand': greenContinue,
 						'hover:cursor-not-allowed': needInput ? !(inputText?.length) : false,
-						'opacity-80': needInput ? !(inputText?.length) : false,
+						'opacity-80': showInput && needInput ? !(inputText?.length) : false,
 					},
 					'rounded-md']">{{ continueText }}</button>
 			</div>
 		</div>
 	</div>
 </template>
-<script>
-import {defineComponent} from 'vue';
 
-export default defineComponent({
-	props: {
-		header: {
-			type: String,
-			required: true
-		},
-		hide: {
-			type: Boolean,
-			required: true
-		},
-		cont: {
-			type: Function,
-			required: true
-		},
-		cancel: {
-			type: Function
-		},
-		continueText: {
-			type: String,
-			default: 'Continue'
-		},
-		greenContinue: {
-			type: Boolean,
-			required: false,
-			default: false,
-		}, // Everything beyond this point is input related -->
-		needInput: {
-			type: Boolean,
-			default: false
-		},
-		showInput: {
-			type: Boolean,
-			default: false
-		},
-		type: {
-			type: String,
-			default: 'text'
-		},
-		title: { // The thing you see when you hover over an input.
-			type: String
-		},
-		placeholder: { // Input placeholder.
-			type: String
-		}, // Extra stuff
-		noCancel: {
-			type: Boolean,
-			default: false
-		}
-	},
-	data() {
-		return {
-			inputText: undefined // Why define things right now if they may be completely unused?
-		}
-	},
-	name: 'FlexibleModal'
-})
+<script setup lang="ts">
+import {ref, PropType} from "vue"
 
+type Props = {
+	header: string;
+	hide: boolean;
+	cancel: () => any;
+	noCancel?: PropType<boolean>;
+
+	// Related to the continue button
+	cont: (input?: string) => any;
+	continueText?: string;
+	greenContinue?: boolean;
+
+	// Related to the input box
+	needInput?: boolean;
+	showInput: true;
+	type?: string;
+	title: string;
+	placeholder: string;
+} | {
+	header: string;
+	hide: boolean;
+	cancel: () => any;
+	noCancel?: boolean;
+
+	// Related to the continue button
+	cont: (input?: string) => any;
+	continueText?: string;
+	greenContinue?: boolean;
+
+	// Related to the input box
+	showInput: false
+	needInput?: boolean;
+	type?: string;
+	title?: string;
+	placeholder?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+	continueText: 'Continue',
+	greenContinue: false,
+	showInput: false,
+	needInput: false,
+	type: 'text',
+	noCancel: false
+});
+
+const inputText = ref<string>('');
 </script>
