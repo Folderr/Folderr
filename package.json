@@ -55,7 +55,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/Folderr/Folderr.git"
+    "url": "git+https://github.com/Folderr/Folderr.git"
   },
   "author": "Folderr",
   "license": "AGPL-3.0",
@@ -127,7 +127,7 @@
     "xo": "^0.46.4"
   },
   "lint-staged": {
-    "*.ts": "xo --fix",
+    "*.{ts,vue}": "xo --fix",
     "*.{md,yaml}": "prettier --write"
   }
 }
