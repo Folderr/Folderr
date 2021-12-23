@@ -24,9 +24,9 @@
                 <h1 class="text-secondary-text text-3xl mb-8">Upload a File</h1>
                 <h1 v-if="file" class="text-brand text-xl mb-8">File: {{ file.name }}</h1>
                 <div v-if="canPreview" class="p-4 bg-brand rounded-lg border-2 border-tertiary-bg m-auto mb-8 text-center max-w-xl w-max">
-                    <img v-if="file.type.startsWith('image')" class="m-auto" v-bind:src="filePreview">
-                    <video v-bind:src="filePreview" controls v-if="file.type.startsWith('video')" class="m-auto">
-                        <source v-bind:src="filePreview" v-bind:type="file.type">
+                    <img v-if="file?.type.startsWith('image')" class="m-auto" v-bind:src="filePreview">
+                    <video v-bind:src="filePreview" controls v-if="file?.type.startsWith('video')" class="m-auto">
+                        <source v-bind:src="filePreview" v-bind:type="file?.type">
                         Your browser can't play this video :(
                         <br>No preview for you
                     </video>
@@ -40,7 +40,7 @@
                 >
                 <div v-if="link" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-min p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
                     {{link}}
-                    <button v-if="link" v-on:click="copy(this.link)" class="ml-4 text-brand p-2 px-4">
+                    <button v-if="link" v-on:click="copy(link)" class="ml-4 text-brand p-2 px-4">
                         <svg v-if="!copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
                         <svg v-if="copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
                     </button>
@@ -61,109 +61,128 @@
 }
 </style>
 
-<script>
+<script setup lang="ts">
+import {ref, onMounted, computed} from 'vue';
+import {useStore} from 'vuex';
+import {useRouter} from 'vue-router';
 import * as api from '../wrappers/api';
-export default {
-    name: 'Account',
-    data() {
-        return {
-            loading: true,
-            username: null,
-            file: null,
-            filePreview: '',
-            link: '',
-            copied: false,
-        }
-    },
-    async created() {
-        await this.fetchData();
-    },
-    computed: {
-        canPreview() {
-            if (this.file && (this.file.type.startsWith('image') || this.file.type.startsWith('video'))) {
-                return true;
-            }
+import SuccessesErrors from "../components/Success-N-Error.vue";
 
-            return false;
-        }
-    },
-    methods: {
-        async copy(text) {
-            await navigator.clipboard.writeText(text);
-            this.copied = true;
-        },
-        async fetchData() {
-            if (this.$store.user && this.$store.user.userID) {
-                this.username = this.$store.user.username;
-                this.loading = false;
-                return;
-            }
-            const output = await api.fetchUser();
-            if (output.error) {
-                return this.$router.push('/404');
-            }
-            this.username = output.user.username;
-            this.loading = false;
-        },
-        test(text) {
-            alert(text || 'this is a test');
-        },
-        filePreviewURL() {
-            if (!this.file) {
-                return;
-            }
+// Setup store & router
+const store = useStore();
+const router = useRouter();
 
-            let previewer = new FileReader();
-            previewer.onload = (file => {
-                this.filePreview = file.target.result;
-            })
-            previewer.readAsDataURL(this.file);
-        },
-        startSelection() {
-            this.$refs.fileInput.click();
-        },
-        pickFile() {
-            const input = this.$refs.fileInput;
-            const files = input.files;
-            if (files && files[0]) {
-                this.file = files[0];
-                this.filePreviewURL();
-                return;
-            }
-        },
-        async upload() {
-            const form = new FormData();
-            form.append('file', this.file);
+// Setup components
+const sne = ref<InstanceType<typeof SuccessesErrors>>();
+const shortenBtn = ref<HTMLButtonElement>();
 
-            try {
-                const uploaded = await api.uploadFile(form);
+// Setup loading & user
+const loading = ref(true);
+const username = ref('');
 
-                if (uploaded.success) {
-                    this.link = uploaded.output;
-                    this.file = null;
-                    this.filePreview = null;
-                } else {
-                    this.$refs.sne.addError(uploaded.error);
-                    console.log(uploaded.response);
-                }
-            } catch (error) {
-                if (typeof e === 'string') {
-                    this.$refs.sne.addError(error);
-                    return;
-                }
+// Setup component
 
-                if (error instanceof Error) {
-                    console.log(error);
-                    this.$refs.sne.addError(error);
-                    return;
-                }
-
-                this.$refs.sne.addError('Unknown Error Occured while uploading your file');
-                console.log(error);
-                console.log(typeof error);
-                return;
-            } 
-        }
+onMounted(async() => {
+    if (store.state.user && store.state.user.userID) {
+        username.value = store.state.user.username;
+        loading.value = false;
+        return;
     }
+
+    const output = await api.fetchUser();
+    if (output.error || !output.user) {
+        return router.push('/404');
+    }
+    username.value = output.user.username;
+    loading.value = false;
+})
+
+const copied = ref(false);
+
+// A small copy function to copy links
+const copy = async(text: string): Promise<void> => {
+    await navigator.clipboard.writeText(text);
+    copied.value = true; // @ts-expect-error
+    sne.value?.addSuccess("Copied!", 1000)
+}
+
+// File stuff
+
+const file = ref<File>();
+const filePreview = ref<string | undefined>('');
+const link = ref('');
+
+const canPreview = computed(() => {
+    if (file.value && (file.value.type.startsWith('image') || file.value.type.startsWith('video'))) {
+        return true;
+    }
+
+    return false;
+})
+
+const filePreviewURL = () => {
+    if (!file.value) {
+        return;
+    }
+
+    let previewer = new FileReader();
+    previewer.onload = (file => {
+        filePreview.value = file.target?.result?.toString();
+    })
+    previewer.readAsDataURL(file.value);
+}
+
+const fileInput = ref<HTMLInputElement>();
+
+const startSelection = () => {
+    fileInput.value?.click();
+}
+
+const pickFile = () => {
+    const files = fileInput.value?.files;
+    if (files && files[0]) {
+        file.value = files[0];
+        filePreviewURL();
+        return;
+    }
+}
+
+// Upload the file time!
+
+const upload = async() => {
+    if (!file.value) {
+        return;
+    }
+    const form = new FormData();
+    form.append('file', file.value);
+
+    try {
+        const uploaded = await api.uploadFile(form);
+
+        if (uploaded.success && uploaded.output) {
+            link.value = uploaded.output;
+            file.value = undefined;
+            filePreview.value = undefined;
+        } else { // @ts-expect-error
+            sne.addError(uploaded.error);
+            console.log(uploaded.response);
+        }
+    } catch (error) {
+        if (typeof error === 'string') { // @ts-expect-error
+            sne.addError(error);
+            return;
+        }
+
+        if (error instanceof Error) {
+            console.log(error); // @ts-expect-error
+            sne.addError(error);
+            return;
+        }
+        // @ts-expect-error
+        sne.addError('Unknown Error Occured while uploading your file');
+        console.log(error);
+        console.log(typeof error);
+        return;
+    } 
 }
 </script>

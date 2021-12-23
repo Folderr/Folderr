@@ -1,7 +1,7 @@
 import {AccountReturn} from '../../../types/user';
 
 type GenericFetchReturn<T = void> =
-	| {error: string | Error; success: false; response?: Response; message: null}
+	| {error: string | Error; success: false; response?: Response; output: null}
 	| {error: null; success: true; response?: Response; output?: T};
 
 type UserReturn =
@@ -31,22 +31,22 @@ export async function login(
 				console.log(response);
 			}
 
-			return {error: 'Bad Request', success: false, message: null};
+			return {error: 'Bad Request', success: false, output: null};
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, message: null};
+			return {error: 'Unauthorized', success: false, output: null};
 		}
 
 		if (/5\d{2}/.test(response.status.toString())) {
-			return {error: 'Internal Server Error', success: false, message: null};
+			return {error: 'Internal Server Error', success: false, output: null};
 		}
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {success: true, error: null};
 		}
 
-		return {success: false, error: 'An unknown error occurred', message: null};
+		return {success: false, error: 'An unknown error occurred', output: null};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -58,7 +58,7 @@ export async function login(
 			);
 		}
 
-		return {error: 'An unknown error occurred', success: false, message: null};
+		return {error: 'An unknown error occurred', success: false, output: null};
 	}
 }
 
@@ -126,7 +126,7 @@ export async function updateInfo(
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, message: null};
+			return {error: 'Unauthorized', success: false, output: null};
 		}
 
 		if (response.status === 400) {
@@ -136,7 +136,7 @@ export async function updateInfo(
 			return {
 				error: output?.message ?? 'Bad Request',
 				success: false,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -148,7 +148,7 @@ export async function updateInfo(
 				error:
 					output?.message ?? 'Something you entered is in use by another user',
 				success: false,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -159,7 +159,7 @@ export async function updateInfo(
 			return {
 				error: output?.message ?? 'Method, resource, or action not implemented',
 				success: false,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -168,7 +168,7 @@ export async function updateInfo(
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, message: null};
+		return {error: 'Unknown Response', success: false, response, output: null};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -183,7 +183,7 @@ export async function updateInfo(
 
 		console.log(error);
 
-		return {error: 'An unknown error occurred', success: false, message: null};
+		return {error: 'An unknown error occurred', success: false, output: null};
 	}
 }
 
@@ -195,7 +195,7 @@ export async function updatePassword(info: {
 		return {
 			success: false,
 			error: 'Passwords cannot be the same',
-			message: null,
+			output: null,
 		};
 	}
 
@@ -216,7 +216,7 @@ export async function updatePassword(info: {
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, message: null};
+			return {error: 'Unauthorized', success: false, output: null};
 		}
 
 		if (response.status === 400) {
@@ -226,7 +226,7 @@ export async function updatePassword(info: {
 			return {
 				error: output?.message ?? 'Bad Request',
 				success: false,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -238,7 +238,7 @@ export async function updatePassword(info: {
 				error:
 					output?.message ?? 'Something you entered is in use by another user',
 				success: false,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -249,7 +249,7 @@ export async function updatePassword(info: {
 			return {
 				error: output?.message ?? 'Method, resource, or action not implemented',
 				success: false,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -258,7 +258,7 @@ export async function updatePassword(info: {
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, message: null};
+		return {error: 'Unknown Response', success: false, response, output: null};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -273,7 +273,7 @@ export async function updatePassword(info: {
 
 		console.log(error);
 
-		return {error: 'An unknown error occurred', success: false, message: null};
+		return {error: 'An unknown error occurred', success: false, output: null};
 	}
 }
 
@@ -298,7 +298,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 				error: output?.message ?? 'Could not log out (likely developer error)',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -307,7 +307,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 				error: 'Unauthorized',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -319,7 +319,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 				error: output?.message ?? 'Could not log out (likely issue with host)',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -328,7 +328,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, message: null};
+		return {error: 'Unknown Response', success: false, response, output: null};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -343,7 +343,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 
 		console.log(error);
 
-		return {error: 'An unknown error occurred', success: false, message: null};
+		return {error: 'An unknown error occurred', success: false, output: null};
 	}
 }
 
@@ -368,7 +368,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 				error: output?.message ?? 'Could not log out (likely developer error)',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -382,7 +382,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 					'Could not log out (likely issue with host/server)',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -391,7 +391,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, message: null};
+		return {error: 'Unknown Response', success: false, response, output: null};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -406,7 +406,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 
 		console.log(error);
 
-		return {error: 'An unknown error occurred', success: false, message: null};
+		return {error: 'An unknown error occurred', success: false, output: null};
 	}
 }
 
@@ -441,7 +441,7 @@ export async function deleteAccount(
 					'Could not delete account (likely developer error)',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -450,7 +450,7 @@ export async function deleteAccount(
 				error: 'Unauthorized',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -462,7 +462,7 @@ export async function deleteAccount(
 				error: output?.message ?? 'Forbidden from deleting that account',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -476,7 +476,7 @@ export async function deleteAccount(
 					'Could not delete account (likely issue with server)',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -485,7 +485,7 @@ export async function deleteAccount(
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, message: null};
+		return {error: 'Unknown Response', success: false, response, output: null};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -500,7 +500,7 @@ export async function deleteAccount(
 
 		console.log(error);
 
-		return {error: 'An unknown error occurred', success: false, message: null};
+		return {error: 'An unknown error occurred', success: false, output: null};
 	}
 }
 
@@ -636,7 +636,7 @@ export async function createToken(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -645,7 +645,7 @@ export async function createToken(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -654,7 +654,7 @@ export async function createToken(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -662,7 +662,7 @@ export async function createToken(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			message: null,
+			output: null,
 		};
 	} catch (error: unknown) {
 		if (
@@ -680,7 +680,7 @@ export async function createToken(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -688,7 +688,7 @@ export async function createToken(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -697,7 +697,7 @@ export async function createToken(
 		return {
 			success: false,
 			error: 'An unknown error occured',
-			message: null,
+			output: null,
 		};
 	}
 }
@@ -728,7 +728,7 @@ export async function revokeToken(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -737,7 +737,7 @@ export async function revokeToken(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -746,7 +746,7 @@ export async function revokeToken(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -754,7 +754,7 @@ export async function revokeToken(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			message: null,
+			output: null,
 		};
 	} catch (error: unknown) {
 		if (
@@ -772,7 +772,7 @@ export async function revokeToken(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -780,7 +780,7 @@ export async function revokeToken(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -789,7 +789,7 @@ export async function revokeToken(
 		return {
 			success: false,
 			error: 'An unknown error occured',
-			message: null,
+			output: null,
 		};
 	}
 }
@@ -822,7 +822,7 @@ export async function uploadFile(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -831,7 +831,7 @@ export async function uploadFile(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -840,7 +840,7 @@ export async function uploadFile(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -849,7 +849,7 @@ export async function uploadFile(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			message: null,
+			output: null,
 		};
 	} catch (error: unknown) {
 		if (
@@ -867,7 +867,7 @@ export async function uploadFile(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -875,7 +875,7 @@ export async function uploadFile(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -884,7 +884,7 @@ export async function uploadFile(
 		return {
 			success: false,
 			error: 'An unknown error occured',
-			message: null,
+			output: null,
 		};
 	}
 }
@@ -920,7 +920,7 @@ export async function shortenLink(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -929,7 +929,7 @@ export async function shortenLink(
 				error: body?.message ?? 'URL Not Accepted',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -938,7 +938,7 @@ export async function shortenLink(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -947,7 +947,7 @@ export async function shortenLink(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -957,7 +957,7 @@ export async function shortenLink(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			message: null,
+			output: null,
 		};
 	} catch (error: unknown) {
 		if (
@@ -975,7 +975,7 @@ export async function shortenLink(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -983,7 +983,7 @@ export async function shortenLink(
 			return {
 				success: false,
 				error,
-				message: null,
+				output: null,
 			};
 		}
 
@@ -992,7 +992,7 @@ export async function shortenLink(
 		return {
 			success: false,
 			error: 'An unknown error occured',
-			message: null,
+			output: null,
 		};
 	}
 }
