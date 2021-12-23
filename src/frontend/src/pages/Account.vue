@@ -11,7 +11,7 @@
     <div v-if="oldUsername || oldEmail">
         <div class="bg-bg flex-grow flex flex-col">
             <NavbarAuthenticated v-bind:username="oldUsername"/>
-            <FlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm">
+            <FlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm" v-bind:showInput="false">
                 <p class="text-secondary-text mt-10">This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br><b>This action is irreversible</b></p>
             </FlexibleModal>
             <FlexibleModal
@@ -33,6 +33,7 @@
                 v-bind:cancel="() => modals.tokens.showDetails = false"
                 v-bind:greenContinue="true"
                 v-bind:noCancel="true"
+                v-bind:showInput="false"
             >
                 <div class="p-2 px-8 text-text bg-yellow-500 mx-auto text-center border-2 border-yellow-500 rounded-lg w-max">
                     You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
@@ -47,7 +48,7 @@
                             v-bind:value='tokenInfo.token'
                             class="mt-2 bg-tertiary-bg text-text p-4 w-[200px] lg:w-2/5 placeholder-secondary-text"
                             >
-                        <button v-on:click="copy(this.tokenInfo.token)" class="ml-4 mt-2 text-brand p-2 px-4">
+                        <button v-on:click="copy(tokenInfo.token)" class="ml-4 mt-2 text-brand p-2 px-4">
                             <svg v-if="!copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
                             <svg v-if="copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
                         </button>
@@ -99,8 +100,8 @@
                                 'focus:ring',
                                 'focus:outline-none',
                                 {
-                                    'focus:ring-brand': /^\w{3,16}$/.test(this.username),
-                                    'focus:ring-secondary-accent': !/^\w{3,16}$/.test(this.username)
+                                    'focus:ring-brand': /^\w{3,16}$/.test(username),
+                                    'focus:ring-secondary-accent': !/^\w{3,16}$/.test(username)
                                 }
                             ]"
                         >
@@ -130,7 +131,7 @@
                         ]">Save changes {{isInfoSame ? '(Disabled)' : ''}}</button>
                         <p class="text-secondary-text text-md mt-10">Current Password</p>
                         <input
-                            v-on:keyup.enter="() => this.$refs.newPassword.focus()"
+                            v-on:keyup.enter="() => newPasswordEl?.focus()"
                             v-model="oldPassword"
                             type="password"
                             label="Current password"
@@ -161,7 +162,7 @@
                         <input
                             ref="newPassword"
                             label="New password"
-                            v-on:keyup.enter="() => this.$refs.passwordConfirmation.focus()"
+                            v-on:keyup.enter="() => passwordConfirmEl?.focus()"
                             v-model="password"
                             type="password"
                             placeholder="New Password"
@@ -186,7 +187,7 @@
                         <input
                             label="Confirm password"
                             ref="passwordConfirmation"
-                            v-on:keyup.enter="() => this.isPasswordValid ? this.$refs.updatePassword.click() : null"
+                            v-on:keyup.enter="() => isPasswordValid ? updatePasswordEl?.click() : null"
                             v-model="passwordConfirm"
                             type="password"
                             placeholder="Confirm Password"
@@ -230,7 +231,7 @@
                         <p v-if="owner" class="text-text text-md mt-4"><b>The owner account cannot be deleted.</b></p>
                         <p class="text-secondary-text text-md mt-2">This will remove all of your data from this instance of Folderr, including files and shortened URLs. Files and shortened links will not be deleted instantly.</p>
                         <p class="text-secondary-text text-md mt-4"><b>This cannot be undone and only applies to this instance of Folderr</b></p>
-                        <button v-bind:disabled="owner" v-on:click="() => this.modals.deleteAccount = true"
+                        <button v-bind:disabled="owner" v-on:click="() => modals.deleteAccount = true"
                          :class="[
                             'mt-4',
                             'border-secondary-accent',
@@ -260,9 +261,9 @@
                     <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Create, view, and delete your API tokens</h2>
                     <div>
                         <h3 v-if="tokens.length === 0" class="lg:ml-20 mt-5 text-secondary-text text-md bold"><b>You have no tokens!</b></h3>
-                        <h3 v-else class="lg:ml-20 mt-5 text-secondary-text text-lg bold"><b>Tokens [{{ tokens.length }}/10]</b></h3>
+                        <h3 v-show="tokens.length > 0" class="lg:ml-20 mt-5 text-secondary-text text-lg bold"><b>Tokens [{{ tokens.length }}/10]</b></h3>
                         <ul class="lg:ml-20 mt-5">
-                            <li v-for="token in tokens" v-bind:key="token.createdAt" class="flex mt-5">
+                            <li v-for="token in tokens" v-bind:key="token.created" class="flex mt-5">
                                 <p class="text-secondary-text text-md">ID: {{ token.id }}<br>Created on: {{ new Date(token.created).toLocaleString() }}<br>Description: {{ token.description }}</p>
                                 <button
                                     v-on:click="revokeToken(token.id)"
@@ -287,340 +288,382 @@
 }
 </style>
 
-<script>
+<script setup lang="ts">
+import {ref, reactive, computed, onMounted} from 'vue';
+import {useRouter} from 'vue-router';
+import { useStore } from 'vuex';
 import * as api from '../wrappers/api';
-export default {
-    name: 'Account',
-    data() {
-        return {
-            loading: true,
-            username: null,
-            oldPassword: null,
-            passwordConfirm: null,
-            email: null,
-            password: null,
-            oldUsername: null,
-            oldEmail: null,
-            owner: null,
-            emailerDisabled: false,
-            modals: {
-                deleteAccount: false,
-                tokens: {
-                    createToken: false,
-                    showDetails: false,
-                    deleteAll: false
-                }
-            },
-            tokens: [],
-            tokenInfo: {},
-            tooltips: {
-                password: false
-            },
-            copied: false,
+import SuccessNError from "../components/Success-N-Error.vue"; // Success & Error component
+const sne = ref<InstanceType<typeof SuccessNError>>();
+
+// Router & store
+const router = useRouter();
+const store = useStore();
+
+// Element references
+
+const newPasswordEl = ref<HTMLInputElement>();
+const passwordConfirmEl = ref<HTMLInputElement>();
+const updatePasswordEl = ref<HTMLButtonElement>();
+
+// User information & loading info
+const loading = ref(true);
+const username = ref(''), oldUsername = ref('');
+const email = ref(''), oldEmail = ref('');
+
+const emailerDisabled = ref(false);
+
+const isInfoSame = computed(() => {
+    let usernameSame = true;
+    let emailSame = true;
+    const usernameRegex = /^\w{3,16}$/
+    if (username.value !== oldUsername.value && usernameRegex.test(username.value)) {
+        usernameSame = false;
+    }
+
+    if (email.value !== oldEmail.value && email.value.length >= 4) {
+        emailSame = false;
+    }
+
+    return usernameSame && emailSame;
+})
+
+type UpdateInfo = {
+    email: string;
+    username?: string;
+} | {
+    username: string;
+    email?: string;
+} | {
+    username: string;
+    email: string;
+}
+
+const updateInfo = async() => {
+    if (isInfoSame.value) { // @ts-expect-error
+        sne.addError('You need to update either your email or your username!');
+        return;
+    }
+
+    // @ts-expect-error
+    const info: UpdateInfo = {}; // Hush TS, I know what the fuck im doing.
+    if (username.value !== oldUsername.value) {
+        info.username = username.value;
+    }
+
+    if (email.value !== oldEmail.value) {
+        info.email = email.value;
+    }
+
+    try {
+        const updated = await api.updateInfo(info);
+
+        if (updated.success) {
+            oldEmail.value = email.value;
+            oldUsername.value = username.value; // @ts-expect-error
+            sne.addError('Information Updated!');
+        } else {
+            if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
+                email.value = oldEmail.value;
+                emailerDisabled.value = true;
+            } // @ts-expect-error
+            sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
         }
-    },
-    computed: {
-        isInfoSame() {
-            let usernameSame = true;
-            let emailSame = true;
-            const usernameRegex = /^\w{3,16}$/
-            if (this.username !== this.oldUsername && usernameRegex.test(usernameRegex)) {
-                usernameSame = false;
-            }
+    } catch (error) {
+        if (typeof error === 'string') { // @ts-expect-error
+            sne.addError(error);
+            return;
+        }
 
-            if (this.email !== this.oldEmail && this.email?.length >= 4) {
-                emailSame = false;
-            }
+        if (error instanceof Error) {
+            console.log(error); // @ts-expect-error
+            sne.addError(error.message);
+            return;
+        }
+        // @ts-expect-error
+        sne.addError('Unknown Error Occured while updating your info');
+        console.log(error);
+        console.log(typeof error);
+        return;
+    }
+}
 
-            return usernameSame && emailSame;
-        },
-        isPasswordValid() {
-            let currentInvalid = true;
-            let newInvalid = true;
-            let match = false;
-            const currentLength = this.oldPassword?.length || 0;
-            const newLength = this.password?.length || 0;
-            if (8 <= currentLength && currentLength <= 64) {
-                currentInvalid = false;
-            }
-            const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
-            if (8 <= newLength && newLength <= 64 && !passwordExp.test(this.password)) {
-                newInvalid = false;
-            }
-            if (this.password === this.passwordConfirm) {
-                match = true;
-            }
+// Password related stuff
+const password = ref(''), passwordConfirm = ref(''), oldPassword = ref('');
 
-            return !currentInvalid && !newInvalid && match
-        },
-        passwordValid() {
-            const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
-            if (passwordExp.test(this.password)) {
-                return true;
-            }
+const isPasswordValid = computed(() => {
+    let currentInvalid = true;
+    let newInvalid = true;
+    let match = false;
+    const currentLength = oldPassword.value.length || 0;
+    const newLength = password.value.length || 0;
+    if (8 <= currentLength && currentLength <= 64) {
+        currentInvalid = false;
+    }
+    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+    if (8 <= newLength && newLength <= 64 && !passwordExp.test(password.value)) {
+        newInvalid = false;
+    }
+    if (password.value === passwordConfirm.value) {
+        match = true;
+    }
 
-            return false;
-        },
-        oldPasswordValid() {
-            const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
-            if (passwordExp.test(this.oldPassword)) {
-                return true;
-            }
-            return false;
-        },
-        confirmPasswordValid() {
-            const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
-            if (this.passwordConfirm === this.password && passwordExp.test(this.passwordConfirm)) {
-                return true;
-            }
-            return false;
-        },
-    },
+    return !currentInvalid && !newInvalid && match
+})
+
+const passwordValid = computed(() => {
+    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+    if (passwordExp.test(password.value)) {
+        return true;
+    }
+
+    return false;
+})
+
+const oldPasswordValid = computed(() => {
+    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+    if (passwordExp.test(oldPassword.value)) {
+        return true;
+    }
     
-    async created() {
-        await this.fetchData();
-    },
-    methods: {
-        async copy(text) {
-            await navigator.clipboard.writeText(text);
-            this.copied = true;
-        },
-        async fetchData() {
-            if (this.$store.user && this.$store.user.userID) {
-                this.username = this.$store.user.username;
-                this.email = this.$store.user.email;
-                this.oldUsername = account.username;
-                this.oldEmail = account.email;
-                this.loading = false;
-                this.owner = this.$store.user.owner
-                const tokens = await api.getTokens();
-                console.log(tokens);
-                if (tokens.error) {
-                    this.$refs.addError(tokens.error instanceof Error ? tokens.error.message : tokens.error);
-                } else if (Array.isArray(tokens.message) ) {
-                    this.tokens = tokens.message;
-                } else {
-                    console.log(tokens);
-                }
-                return;
-            }
-            const output = await api.fetchUser();
-            if (output.error) {
-                return this.$router.push('/404');
-            }
-            const tokens = await api.getTokens();
-            if (tokens.error) {
-                this.$refs.addError(tokens.error instanceof Error ? tokens.error.message : tokens.error);
-            } else if (Array.isArray(tokens.message) ) {
-                this.tokens = tokens.message;
+    return false;
+})
+
+const confirmPasswordValid = computed(() => {
+    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+    if (passwordConfirm.value === password.value && passwordExp.test(passwordConfirm.value)) {
+        return true;
+    }
+    
+    return false;
+})
+
+const updatePassword = async() =>  {
+    if (!isPasswordValid.value) { // @ts-expect-error
+        sne.addError('Password invalid!');
+        return;
+    }
+
+    try {
+        const updated = await api.updatePassword({
+            password: oldPassword.value,
+            newPassword: password.value
+        });
+
+        if (updated.success) {
+            oldPassword.value = password.value;
+            password.value = ''; // @ts-expect-error
+            sne.addError('Information Updated!');
+        } else {
+            if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
+                email.value = oldEmail.value;
+                emailerDisabled.value = true;
+            } // @ts-expect-error
+            sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
+        }
+    } catch (error) {
+        if (typeof error === 'string') { // @ts-expect-error
+            sne.addError(error);
+            return;
+        }
+
+        if (error instanceof Error) {
+            console.log(error); // @ts-expect-error
+            sne.addError(error.message);
+            return;
+        }
+        // @ts-expect-error
+        sne.addError('Unknown Error Occured while updating your password');
+        console.log(error);
+        console.log(typeof error);
+        return;
+    }
+}
+
+// Account related stuff
+const logoutEverywhere = async() => {
+    const logout = await api.logoutEverywhere();
+
+    if (logout.success) {
+        router.push('/');
+        return;
+    }
+
+    if (logout.error instanceof Error) { // @ts-expect-error
+        sne.addError(logout.error.message);
+        if (import.meta.env.DEV && logout.response) {
+            console.log('Debug Response from API/Logout (everywhere)');
+            console.log(logout.response);
+        }
+    }
+    // @ts-expect-error
+    sne.addError(logout.error);
+
+    if (import.meta.env.DEV && logout.response) {
+        console.log('Debug Response from API/Logout (everywhere)');
+        console.log(logout.response);
+    }
+}
+
+const owner = ref(false);
+// Init modals
+const modals = reactive({
+    deleteAccount: false,
+    tokens: {
+        createToken: false,
+        showDetails: false
+    }
+});
+
+const deleteAccount = async(confirmed: boolean) => {
+    if (!confirmed || owner.value === true) {
+        return;
+    }
+
+    const deleted = await api.deleteAccount();
+    if (deleted.success) {
+        router.push('/farewell');
+        return;
+    }
+
+    if (!deleted.success) {
+        if (deleted.error instanceof Error) { // @ts-expect-error
+            sne.addError(deleted.error.message);
+            return;
+        }
+
+        if (typeof deleted.error === 'string') { // @ts-expect-error
+            sne.addError(deleted.error);
+            return;
+        }
+    }
+}
+
+const cancelDeleteAccount = () => {
+    modals.deleteAccount = false;
+}
+
+const confirmDeleteAccount = () => {
+    modals.deleteAccount = false;
+    return deleteAccount(true);
+}
+
+// Token related stuff
+
+const tokens = ref<api.Token[]>([]);
+
+let tokenInfo = reactive<{
+    token: string;
+    description: string;
+}>({
+    description: '',
+    token: ''
+});
+const tokenCreateModal = () => {
+    modals.tokens.createToken = !modals.tokens.createToken;
+}
+
+const createToken = async(description: string) => {
+    if (!description || typeof description !== 'string') { // @ts-expect-error
+        sne.addError('Description needed for the token');
+        tokenCreateModal();
+        return;
+    }
+
+    const apitoken = await api.createToken(description);
+    if (apitoken.error) {
+        tokenCreateModal(); // @ts-expect-error
+        sne.addError(`Token creation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
+        return;
+    }
+
+    if (apitoken.success && apitoken.output) {
+        tokenInfo = {
+            token: apitoken.output,
+            description: description
+        }; // @ts-expect-error
+        sne.addSuccess('Token Generated');
+        const tokenRes = await api.getTokens();
+        if (tokenRes && tokenRes.message) {
+            tokens.value = tokenRes.message;
+        }
+        tokenCreateModal();
+        modals.tokens.showDetails = true;
+        return;
+    }
+}
+
+const revokeToken = async(id: string) => {
+    const apitoken = await api.revokeToken(id);
+    if (apitoken.error) { // @ts-expect-error
+        sne.addError(`Token revokation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
+        return;
+    }
+
+    if (apitoken.success) { // @ts-expect-error
+        sne.addSuccess('Token Revoked');
+        tokens.value = tokens.value.filter((token) => {
+            return token.id !== id
+        });
+        return;
+    }
+}
+
+// Instance methods
+
+const copied = ref(false);
+
+const copy = async(text: string) => {
+    await navigator.clipboard.writeText(text);
+    copied.value = true;
+}
+
+// Setup the component
+
+onMounted(async() => {
+    if (store.state.user && store.state.user.userID) {
+        username.value = store.state.user.username;
+        email.value = store.state.user.email;
+        oldUsername.value = store.state.user.username;
+        oldEmail.value = store.state.user.email;
+        loading.value = false;
+        owner.value = store.state.user.owner
+        const tokenRes = await api.getTokens();
+        if (tokenRes.error) { // @ts-expect-error
+            sne.value?.addError(tokenRes.error instanceof Error ? tokens.error.message : tokens.error);
+        } else if (Array.isArray(tokenRes.message) ) {
+            tokens.value = tokenRes.message;
+        } else {
+            console.log(tokens);
+        }
+    } else {
+        const output = await api.fetchUser();
+        if (output.error || !output.user) {
+            router.push('/404');
+        } else {
+            const tokenRes = await api.getTokens();
+            if (tokenRes.error) { // @ts-expect-error
+                sne.value?.addError(tokens.error instanceof Error ? tokens.error.message : tokens.error);
+            } else if (Array.isArray(tokenRes.message) ) {
+                tokens.value = tokenRes.message;
             } else {
-                console.log(tokens);
+                console.log(tokenRes);
             }
-            this.$store.commit('user/setUserinfo', {
+            store.commit('user/setUserinfo', {
                 email: output.user.email,
                 username: output.user.username,
-                userID: output.user.userID,
+                userID: output.user.id,
                 createdAt: output.user.createdAt,
                 notifications: output.user.notifications,
                 owner: output.user.owner,
             });
-            this.email = output.user.email;
-            this.oldEmail = output.user.email;
-            this.username = output.user.username;
-            this.oldUsername = output.user.username;
-            this.owner = output.user.owner;
-            this.loading = false;
-        },
-        test(text) {
-            alert(text || 'this is a test');
-        },
-        async updateInfo()  {
-            if (this.isInfoSame) {
-                this.$refs.addError('You need to update either your email or your username!');
-                return;
-            }
-
-            const info = {};
-            if (this.username !== this.oldUsername) {
-                info.username = this.username;
-            }
-
-            if (this.email !== this.oldEmail) {
-                info.email = this.email;
-            }
-
-            try {
-                const updated = await api.updateInfo(info);
-
-                if (updated.success) {
-                    this.oldEmail = this.email;
-                    this.oldUsername = this.username;
-                    this.$refs.sne.addError('Information Updated!');
-                } else {
-                    if (updated.error.startsWith('Emailer not configured') ) {
-                        this.email = this.oldEmail;
-                        this.emailerDisabled = true;
-                    }
-                    this.$refs.sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
-                }
-            } catch (error) {
-                if (typeof e === 'string') {
-                    this.$refs.sne.addError(error);
-                    return;
-                }
-
-                if (error instanceof Error) {
-                    console.log(error);
-                    this.$refs.sne.addError(error.message);
-                    return;
-                }
-
-                this.$refs.sne.addError('Unknown Error Occured while updating your info');
-                console.log(error);
-                console.log(typeof error);
-                return;
-            }
-        },
-        async updatePassword()  {
-            if (!this.isPasswordValid) {
-                this.$refs.sne.addError('Password invalid!');
-                return;
-            }
-
-            try {
-                const updated = await api.updatePassword({
-                    password: this.oldPassword,
-                    newPassword: this.password
-                });
-
-                if (updated.success) {
-                    this.oldEmail = this.email;
-                    this.oldUsername = this.username;
-                    this.$refs.sne.addError('Information Updated!');
-                } else {
-                    if (updated.error.startsWith('Emailer not configured') ) {
-                        this.email = this.oldEmail;
-                        this.emailerDisabled = true;
-                    }
-                    this.$refs.sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
-                }
-            } catch (error) {
-                if (typeof e === 'string') {
-                    this.$refs.sne.addError(error);
-                    return;
-                }
-
-                if (error instanceof Error) {
-                    console.log(error);
-                    this.$refs.sne.addError(error.messages);
-                    return;
-                }
-
-                this.$refs.sne.addError('Unknown Error Occured while updating your password');
-                console.log(error);
-                console.log(typeof error);
-                return;
-            }
-        },
-        async logoutEverywhere() {
-
-            const logout = await api.logoutEverywhere();
-
-            if (logout.success) {
-                this.$router.push('/');
-                return;
-            }
-
-            if (logout.error instanceof Error) {
-                this.$refs.sne.addError(logout.error.message);
-                if (import.meta.env.DEV && logout.response) {
-                    console.log('Debug Response from API/Logout (everywhere)');
-                    console.log(logout.response);
-                }
-            }
-
-            this.$refs.sne.addError(logout.error);
-
-            if (import.meta.env.DEV && logout.response) {
-                console.log('Debug Response from API/Logout (everywhere)');
-                console.log(logout.response);
-            }
-        },
-        async deleteAccount(confirmed) {
-            if (!confirmed || this.owner === true) {
-                return;
-            }
-
-            const deleted = await api.deleteAccount();
-            if (deleted.succes) {
-                this.$router.push('/deletedaccount');
-                return;
-            }
-
-            if (!deleted.success) {
-                if (deleted.error instanceof Error) {
-                    this.$refs.sne.addError(deleted.error.message);
-                    return;
-                }
-
-                if (typeof deleted.error === 'string') {
-                    this.$refs.sne.addError(deleted.error);
-                    return;
-                }
-            }
-        },
-        cancelDeleteAccount() {
-            this.modals.deleteAccount = false;
-        },
-        confirmDeleteAccount() {
-            this.modals.deleteAccount = false;
-            this.deleteAccount(true);
-        },
-        tokenCreateModal() {
-            this.modals.tokens.createToken = !this.modals.tokens.createToken;
-        },
-        async createToken(description) {
-            if (!description || typeof description !== 'string') {
-                this.$refs.sne.addError('Description needed for the token');
-                this.tokenCreateModal();
-                return;
-            }
-
-            const apitoken = await api.createToken(description);
-            if (apitoken.error) {
-                this.tokenCreateModal();
-                this.$refs.sne.addError(`Token creation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
-                return;
-            }
-
-            if (apitoken.success) {
-                this.tokenInfo = {
-                    token: apitoken.output,
-                    description: description
-                };
-                this.$refs.sne.addSuccess('Token Generated');
-                this.tokens.push({description, created: new Date().getTime()})
-                this.tokenCreateModal();
-                this.modals.tokens.showDetails = true;
-                return;
-            }
-        },
-        async revokeToken(id) {
-
-            const apitoken = await api.revokeToken(id);
-            if (apitoken.error) {
-                this.$refs.sne.addError(`Token revokation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
-                return;
-            }
-
-            if (apitoken.success) {
-                this.$refs.sne.addSuccess('Token Revoked');
-                this.tokens = this.tokens.filter((token) => {
-                    return token.id !== id
-                });
-                return;
-            }
+            email.value = output.user.email;
+            oldEmail.value = output.user.email;
+            username.value = output.user.username;
+            oldUsername.value = output.user.username;
+            owner.value = output.user.owner;
+            loading.value = false;
         }
     }
-}
+})
 </script>

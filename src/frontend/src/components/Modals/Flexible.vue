@@ -55,24 +55,7 @@
 <script setup lang="ts">
 import {ref, PropType} from "vue"
 
-type Props = {
-	header: string;
-	hide: boolean;
-	cancel: () => any;
-	noCancel?: PropType<boolean>;
-
-	// Related to the continue button
-	cont: (input?: string) => any;
-	continueText?: string;
-	greenContinue?: boolean;
-
-	// Related to the input box
-	needInput?: boolean;
-	showInput: true;
-	type?: string;
-	title: string;
-	placeholder: string;
-} | {
+interface Props {
 	header: string;
 	hide: boolean;
 	cancel: () => any;

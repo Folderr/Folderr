@@ -113,4 +113,12 @@ const getErrorIndex = (message: string): number => {
 const removeError = (index: number): void => {
     errors.value.splice(index);
 }
+
+defineExpose<{
+    addError: typeof addError,
+    addSuccess: typeof addSuccess
+}>({
+    addError,
+    addSuccess
+})
 </script>
