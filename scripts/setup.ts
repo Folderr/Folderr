@@ -1,5 +1,7 @@
 /* eslint complexity: [1, {max: 24 }] */
 import fs from 'fs/promises';
+import process from 'process';
+import {Buffer} from 'buffer';
 import os from 'os';
 import {join} from 'path';
 import readline from 'readline';
@@ -22,7 +24,7 @@ class MuteStreamHandler {
 				}
 
 				callback();
-			}
+			},
 		});
 	}
 
@@ -36,7 +38,7 @@ const stream = new MuteStreamHandler();
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: stream.stream,
-	terminal: true
+	terminal: true,
 });
 
 async function getKeyLocation(redo?: boolean): Promise<string> {
@@ -168,7 +170,7 @@ async function confirmDetails(
 	username: string,
 	email: string,
 	password: string,
-	redo?: boolean
+	redo?: boolean,
 ): Promise<'yes' | 'no'> {
 	let question =
 		'Confirm this is the email, username, and password you want for the owner account:\n' +
@@ -184,6 +186,7 @@ async function confirmDetails(
 	return new Promise<'yes' | 'no'>((resolve) => {
 		rl.question(question, (answer) => {
 			if (!answer) {
+				// eslint-disable-next-line @typescript-eslint/quotes
 				rl.write("I need confirmation. Let's try this again.");
 				resolve(confirmDetails(username, email, password));
 			} else if (answer === 'q' || answer === 'quit') {
@@ -202,7 +205,7 @@ async function confirmDetails(
 
 (async function () {
 	rl.write(
-		'Welcome to the Folderr setup CLI!\nGive us a moment while we check setup status...'
+		'Welcome to the Folderr setup CLI!\nGive us a moment while we check setup status...',
 	);
 	if (
 		!(await fs.stat(join(process.cwd(), 'configs/server.yaml'))) ||
@@ -215,7 +218,7 @@ async function confirmDetails(
 				' please ensure I have the correct permissions to ' +
 				'read, write, and execute the files.\n' +
 				'See the Folderr documentation about file permissions at ' +
-				'https://folderr.net/documentation/folderr/v2 for more details/guidance'
+				'https://folderr.net/documentation/folderr/v2 for more details/guidance',
 		);
 		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 		process.exit();
@@ -233,7 +236,7 @@ async function confirmDetails(
 
 	const keysConfigured = locations.keyConfigured;
 	const core = new Core();
-	await core.initDB();
+	await core.initDb();
 	try {
 		const folderr = await core.db.fetchFolderr();
 		if (folderr && keysConfigured) {
@@ -263,6 +266,7 @@ async function confirmDetails(
 	}
 
 	const owner = await core.db.findUser({owner: true}, 'owner id');
+	// eslint-disable-next-line @typescript-eslint/quotes
 	rl.write("You're not setup, lets fix that.");
 	let username: string | undefined;
 	let password: string | undefined;
@@ -272,7 +276,7 @@ async function confirmDetails(
 	if (!owner) {
 		rl.write(
 			'\nThis instance does not have an owner.' +
-				' The instance will not function without an owner.'
+				' The instance will not function without an owner.',
 		);
 		await core.Utils.sleep(1000);
 		const statement =
@@ -305,7 +309,7 @@ async function confirmDetails(
 	if (!keysConfigured) {
 		rl.write(
 			'It appears you have not configured your authorization keys.' +
-				' Please follow the prompts to do so.\n'
+				' Please follow the prompts to do so.\n',
 		);
 		const location = await getKeyLocation();
 		const keys = await core.Utils.genKeyPair();
@@ -320,7 +324,7 @@ async function confirmDetails(
 		newLocations.keyConfigured = true;
 		await fs.writeFile(
 			join(process.cwd(), '/internal/locations.json'),
-			JSON.stringify(newLocations, null, 4)
+			JSON.stringify(newLocations, null, 4),
 		);
 		await fs.writeFile(`${actualLocation}/privateJWT.pem`, actualPrivateKey);
 		await core.db.createFolderr(actualPubKey);
@@ -341,7 +345,7 @@ async function confirmDetails(
 				`User ID: ${id}\n` +
 				`Username: ${username}\n` +
 				`Email address: ${email}\n` +
-				`Password: ${password}`
+				`Password: ${password}`,
 		);
 		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 		process.exit();
