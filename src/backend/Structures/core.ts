@@ -5,7 +5,7 @@ import {EventEmitter} from 'events';
 import http from 'http';
 import {ChildProcess, fork} from 'child_process';
 import fs from 'fs';
-
+import process from 'process';
 // Fastify imports
 
 import fastify, {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
@@ -31,9 +31,9 @@ import Configurer, {
 	CoreConfig,
 	DBConfig,
 	ActEmailConfig,
-	KeyConfig
+	KeyConfig,
 } from '../handlers/config-handler';
-import * as endpoints from '../Paths/index';
+import * as endpointsImport from '../Paths/index';
 import * as APIs from '../Paths/API/index';
 import {
 	Path,
@@ -42,11 +42,11 @@ import {
 	MongoDB,
 	wlogger,
 	Regexs,
-	codes as StatusCodes
+	codes as StatusCodes,
 } from '../internals';
 import {version} from '../../../package.json';
 
-const Endpoints = endpoints as unknown as Record<string, typeof Path>; // TS fuckery.
+const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
 const ee = new EventEmitter();
 ee.on('fail', (code) => {
@@ -71,7 +71,7 @@ export default class Core {
 
 	public readonly codes: typeof StatusCodes;
 
-	public readonly Utils: Utils;
+	public readonly utils: Utils;
 
 	public readonly got: Got;
 
@@ -83,7 +83,7 @@ export default class Core {
 
 	#dbConfig: DBConfig;
 
-	#requestIDs: Set<string>;
+	#requestIds: Set<string>;
 
 	#internals: {
 		serverClosed: Error | boolean;
@@ -102,35 +102,35 @@ export default class Core {
 		this.app = fastify({
 			trustProxy: this.config.trustProxies,
 			disableRequestLogging: true,
-			serverFactory: this.initServer(this.#keys)
+			serverFactory: this.initServer(this.#keys),
 		});
 
 		this.db = new MongoDB(); // Time to abuse Node. :)
 
 		this.regexs = new Regexs();
-		this.Utils = new Utils(this);
+		this.utils = new Utils(this);
 		this.emailer = new Emailer(
 			this,
 			this.#emailConfig?.sendingEmail,
-			this.#emailConfig?.mailerOptions
+			this.#emailConfig?.mailerOptions,
 		);
 		this.codes = StatusCodes;
 		this.logger = wlogger;
 		this.got = got.extend({
 			http2: true,
 			headers: {
-				'User-Agent': `Folderr/${version} (github.com/Folderr/Folderr)`
-			}
+				'User-Agent': `Folderr/${version} (github.com/Folderr/Folderr)`,
+			},
 		});
 		this.#deleter = fork(join(process.cwd(), 'src/file-del-queue'), undefined, {
-			silent: true
+			silent: true,
 		});
 
-		this.#requestIDs = new Set();
+		this.#requestIds = new Set();
 		this.#internals = {
 			serverClosed: false,
 			deleterShutdown: false,
-			noRequests: true
+			noRequests: true,
 		};
 	}
 
@@ -142,19 +142,19 @@ export default class Core {
 
 		await this.app.register(ratelimit, {
 			max: process.env.NODE_ENV === 'dev' ? 100 : 20,
-			timeWindow: '10s'
+			timeWindow: '10s',
 		});
 
 		await this.app.register(fastifyCors, {
-			origin: '*'
+			origin: '*',
 		});
 
 		await this.app.register(multipart, {
 			limits: {
 				fields: 0,
 				files: 1,
-				fileSize: 10_000_000_000
-			}
+				fileSize: 10_000_000_000,
+			},
 		});
 
 		if (process.env.DEBUG) {
@@ -173,7 +173,7 @@ export default class Core {
 				this.logger.debug('Validation:');
 				console.log(request.body);
 				this.logger.debug(
-					`Content-Type: ${request.headers['content-type'] ?? 'N/A'}`
+					`Content-Type: ${request.headers['content-type'] ?? 'N/A'}`,
 				);
 				done();
 			});
@@ -185,11 +185,11 @@ export default class Core {
 	}
 
 	async initAuthorization() {
-		await this.Utils.authorization.init();
+		await this.utils.authorization.init();
 	}
 
 	initServer(
-		keys: KeyConfig
+		keys: KeyConfig,
 	): (handler: FastifyServerFactoryHandler) => http.Server {
 		return (handler: FastifyServerFactoryHandler) => {
 			if (keys.httpsCertOptions?.key && keys.httpsCertOptions?.cert) {
@@ -199,12 +199,12 @@ export default class Core {
 						cert: fs.readFileSync(keys.httpsCertOptions.cert),
 						key: fs.readFileSync(keys.httpsCertOptions.key),
 						spdy: {
-							protocols: ['h2', 'http/1.1']
-						}
+							protocols: ['h2', 'http/1.1'],
+						},
 					},
 					(request, response) => {
 						handler(request, response);
-					}
+					},
 				);
 				wlogger.log('prelisten', 'Initalized Server');
 				if (process.env.DEBUG) {
@@ -225,11 +225,11 @@ export default class Core {
 			if (process.env.NODE_ENV === 'production') {
 				wlogger.log(
 					'error',
-					'HTTPS and/or HTTP/2 required in production. Shuting down'
+					'HTTPS and/or HTTP/2 required in production. Shuting down',
 				);
 				this.shutdownServer();
 				throw new Error(
-					'HTTPS and/or HTTP/2 required in production. Shuting down'
+					'HTTPS and/or HTTP/2 required in production. Shuting down',
 				);
 			}
 
@@ -237,13 +237,13 @@ export default class Core {
 		};
 	}
 
-	async initDB(): Promise<void> {
+	async initDb(): Promise<void> {
 		wlogger.info('Init DB');
 		// Again, neglecting this potential error to handle elsewhere
 		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/folderr');
 	}
 
-	async registerAPIs() {
+	async registerApis() {
 		for (const api of Object.values<{
 			version: string;
 			prefix: string;
@@ -254,6 +254,7 @@ export default class Core {
 
 			void this.app.register(
 				(instance, options, done) => {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					for (const EndpointType of Object.values(api.endpoints)) {
 						const endpoint = new EndpointType(this);
 						// eslint-disable-next-line prefer-destructuring
@@ -271,7 +272,7 @@ export default class Core {
 
 						this.logger.log(
 							'startup',
-							`API Path ${label} v${version} initialized with method ${method}!`
+							`API Path ${label} v${version} initialized with method ${method}!`,
 						);
 						count++;
 					}
@@ -281,8 +282,8 @@ export default class Core {
 					done();
 				},
 				{
-					prefix: api.prefix
-				}
+					prefix: api.prefix,
+				},
 			);
 		}
 	}
@@ -386,22 +387,22 @@ export default class Core {
 				continue;
 			}
 
-			const base = endpoint;
-			const ActualEndpoint = Endpoints[endpoint];
+			const base = endpoint; // eslint-disable-next-line @typescript-eslint/naming-convention
+			const ActualEndpoint = endpoints[endpoint];
 			const path = new ActualEndpoint(this);
 			const endpointName =
 				((typeof path.path === 'string' && path.path) || path.label) ?? base;
 			if (path.enabled) {
 				if (!path.label || !path.path) {
 					wlogger.error(
-						`Path ${endpointName} label or endpoint not found, fail init of Path.`
+						`Path ${endpointName} label or endpoint not found, fail init of Path.`,
 					);
 					continue;
 				}
 
 				if (!path.execute) {
 					wlogger.error(
-						`Path ${endpointName} executable found, fail init of Path.`
+						`Path ${endpointName} executable found, fail init of Path.`,
 					);
 					continue;
 				}
@@ -413,7 +414,7 @@ export default class Core {
 					'startup',
 					`Initalized path ${
 						path.label
-					} (${base}) with method ${path.type.toUpperCase()}`
+					} (${base}) with method ${path.type.toUpperCase()}`,
 				);
 				pathCount++;
 			}
@@ -426,7 +427,7 @@ export default class Core {
 	async initFrontend() {
 		if (process.env.NODE_ENV === 'production') {
 			await this.app.register(fastifyStatic, {
-				root: join(process.cwd(), 'dist/src/frontend')
+				root: join(process.cwd(), 'dist/src/frontend'),
 			});
 			if (process.env.DEBUG) {
 				this.logger.debug('Using production build for frontend');
@@ -436,7 +437,7 @@ export default class Core {
 				if (request.url.startsWith('/api')) {
 					return reply.status(404).send({
 						code: '404',
-						message: `${request.method}: ${request.url} Not Found`
+						message: `${request.method}: ${request.url} Not Found`,
 					});
 				}
 
@@ -456,9 +457,8 @@ export default class Core {
 		await this.app.after();
 		const server = await createViteServer({
 			server: {
-				middlewareMode: 'html'
+				middlewareMode: 'html',
 			},
-			logLevel: 'silent'
 		});
 		this.app.use((request, response, next) => {
 			if (request.url?.startsWith('/api')) {
@@ -471,7 +471,7 @@ export default class Core {
 			if (request.url.startsWith('/api')) {
 				return reply.status(404).send({
 					code: '404',
-					message: `${request.method}: ${request.url} Not Found`
+					message: `${request.method}: ${request.url} Not Found`,
 				});
 			}
 
@@ -483,7 +483,7 @@ export default class Core {
 		this.app.addContentTypeParser(
 			'text/json',
 			{parseAs: 'string'},
-			this.app.getDefaultJsonParser('ignore', 'ignore')
+			this.app.getDefaultJsonParser('ignore', 'ignore'),
 		);
 		return 'development';
 	}
@@ -499,10 +499,10 @@ export default class Core {
 		) {
 			ee.emit('fail', 13);
 			wlogger.error(
-				`[FATAL] Cannot listen to port ${this.config.port} as you are not root!`
+				`[FATAL] Cannot listen to port ${this.config.port} as you are not root!`,
 			);
 			throw new Error(
-				`Cannot listen to port ${this.config.port} as you are not root!`
+				`Cannot listen to port ${this.config.port} as you are not root!`,
 			);
 		}
 
@@ -547,7 +547,7 @@ export default class Core {
 				}
 
 				console.log(
-					'Logger shutdown encountered an unkown error (result may be weird):\n'
+					'Logger shutdown encountered an unkown error (result may be weird):\n',
 				);
 				console.log(error);
 			} finally {
@@ -558,9 +558,9 @@ export default class Core {
 		});
 	}
 
-	removeRequestID(id: string): boolean {
-		const output = this.#requestIDs.delete(id);
-		if (this.#requestIDs.size === 0) {
+	removeRequestId(id: string): boolean {
+		const output = this.#requestIds.delete(id);
+		if (this.#requestIds.size === 0) {
 			this.#internals.noRequests = true;
 			ee.emit('noRequests');
 		}
@@ -568,9 +568,9 @@ export default class Core {
 		return output;
 	}
 
-	addRequestID(id: string): boolean {
-		this.#requestIDs.add(id);
+	addRequestId(id: string): boolean {
+		this.#requestIds.add(id);
 		this.#internals.noRequests = false;
-		return this.#requestIDs.has(id);
+		return this.#requestIds.has(id);
 	}
 }
