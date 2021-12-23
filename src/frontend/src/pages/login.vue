@@ -10,12 +10,11 @@ const loading = ref(false), signups = ref(false);
 
 // Initialize ref of custom component, displays errors & successes.
 const sne = ref<InstanceType<typeof SuccessesErrors>>();
-    
 // Initialize refs
 const passw = ref<HTMLInputElement>(), loginBtn = ref<HTMLButtonElement>();
+const router = useRouter();
 
 const login = async() => {
-    const router = useRouter();
     if (loading.value) { // Can't login if the page is loading!
         return;
     }
@@ -28,7 +27,7 @@ const login = async() => {
         }
         if (!password.value) {
             missing.push('password');
-        }
+        } // @ts-expect-error
         sne.value?.addError(`Error: Missing ${missing.join(' & ')}`);
         return;
     }
@@ -36,7 +35,7 @@ const login = async() => {
     loading.value = true;
     const output = await api.login(username.value, password.value);
     if (output.error) { // Oh no, login failed.
-        if (typeof output.error === 'string') {
+        if (typeof output.error === 'string') { // @ts-expect-error
             sne.value?.addError(output.error);
         }
 
@@ -48,7 +47,7 @@ const login = async() => {
     }
 }
 
-const jumpToPassword = () => { // Focuuses to the password input
+const jumpToPassword = () => { // Focuses to the password input
     passw.value?.focus();
 }
 
