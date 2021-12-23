@@ -74,7 +74,6 @@ const router = useRouter();
 
 // Setup components
 const sne = ref<InstanceType<typeof SuccessesErrors>>();
-const shortenBtn = ref<HTMLButtonElement>();
 
 // Setup loading & user
 const loading = ref(true);
