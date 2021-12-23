@@ -1,10 +1,11 @@
+import process from 'process'; // Shut.
 import Core from '../Structures/core';
 
 const core = new Core();
 
 export async function startFolderr(): Promise<void> {
 	try {
-		await core.initDB();
+		await core.initDb();
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -12,7 +13,7 @@ export async function startFolderr(): Promise<void> {
 				'Folderr DB entry not found, Folderr DB entry is required.'
 		) {
 			core.logger.error(
-				'Folderr has deemed that you have not set up this instance!'
+				'Folderr has deemed that you have not set up this instance!',
 			);
 			core.logger.notice('Folderr will exit as per protocol.');
 			// eslint-disable-next-line unicorn/no-process-exit
@@ -30,7 +31,7 @@ export async function startFolderr(): Promise<void> {
 		throw new Error('[FATAL] Paths could not initalize');
 	}
 
-	await core.registerAPIs();
+	await core.registerApis();
 
 	await core.initFrontend();
 

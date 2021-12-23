@@ -21,13 +21,14 @@
 
 import {Schema, model, Model, Document} from 'mongoose';
 
-const JwtToken: Schema = new Schema({
+const jwtToken: Schema = new Schema({
 	id: {type: String, required: true, index: true},
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	userID: {type: String, required: true, index: true},
 	web: {type: Boolean, required: false, default: false},
 	createdAt: {type: Date, default: new Date()},
 	expireAt: {type: Date},
-	description: {type: String, default: 'No description'}
+	description: {type: String, default: 'No description'},
 });
 
 export interface JwtTokenI extends Document {
@@ -39,7 +40,7 @@ export interface JwtTokenI extends Document {
 	description?: string;
 }
 
-JwtToken.index({expireAt: 1}, {expiresAfterSeconds: 0});
+jwtToken.index({expireAt: 1}, {expireAfterSeconds: 0});
 
-const mod: Model<JwtTokenI> = model<JwtTokenI>('token', JwtToken);
+const mod: Model<JwtTokenI> = model<JwtTokenI>('token', jwtToken);
 export default mod;

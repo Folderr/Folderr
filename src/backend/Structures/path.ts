@@ -20,6 +20,7 @@
  */
 
 import {join} from 'path';
+import process from 'process';
 import {FastifyRequest, FastifyReply, RouteShorthandOptions} from 'fastify';
 import {RequestGallery} from '../../types/fastify-request-types';
 import {ErrorHandler, Core, codes, Codes} from '../internals';
@@ -49,7 +50,9 @@ class Path {
 
 	public readonly core: Core;
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public Utils: Core['Utils'];
+	// Fuck doing all of that, I want to focus on the frontend.
 
 	public locked: boolean;
 
@@ -112,8 +115,9 @@ class Path {
 	async execute(
 		/* eslint-disable @typescript-eslint/no-unused-vars */
 		request: FastifyRequest,
-		response: FastifyReply /* eslint-enable @typescript-eslint/no-unused-vars */
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
+		/* eslint-enable @typescript-eslint/no-unused-vars */
 		throw new Error('Not implemented!');
 	}
 
@@ -123,13 +127,13 @@ class Path {
 			typeof request.headers.authorization === 'string'
 		) {
 			return this.Utils.authorization.verifyAccount(
-				request.headers.authorization
+				request.headers.authorization,
 			);
 		}
 
 		if (request.cookies.token && typeof request.cookies.token === 'string') {
 			return this.Utils.authorization.verifyAccount(request.cookies.token, {
-				web: true
+				web: true,
 			});
 		}
 	}
@@ -142,15 +146,15 @@ class Path {
 			return this.Utils.authorization.verifyAccount(
 				request.headers.authorization,
 				{
-					fn: (user) => Boolean(user.admin)
-				}
+					fn: (user) => Boolean(user.admin),
+				},
 			);
 		}
 
 		if (request.cookies.token && typeof request.cookies.token === 'string') {
 			return this.Utils.authorization.verifyAccount(request.cookies.token, {
 				web: true,
-				fn: (user) => Boolean(user.admin)
+				fn: (user) => Boolean(user.admin),
 			});
 		}
 	}
@@ -159,7 +163,7 @@ class Path {
 		request: FastifyRequest<{
 			Querystring?: RequestGallery;
 		}>,
-		owner: string
+		owner: string,
 	):
 		| {
 				httpCode: 406;
@@ -190,7 +194,7 @@ class Path {
 		const limits = {
 			max: 20,
 			middle: 15,
-			min: 10
+			min: 10,
 		};
 		let limit = request.query?.limit;
 		if (typeof limit === 'string') {
@@ -206,9 +210,9 @@ class Path {
 						httpCode: this.codes.notAccepted,
 						json: {
 							code: this.Utils.FoldCodes.unkownError,
-							message: 'An unknown error has occured!'
+							message: 'An unknown error has occured!',
 						},
-						errored: true
+						errored: true,
 					};
 				}
 			}
@@ -252,7 +256,7 @@ class Path {
 	async preHandler(
 		request: FastifyRequest,
 		response: FastifyReply,
-		done: () => void
+		done: () => void,
 	): Promise<FastifyReply | void> {
 		// If path is not enabled, and it is not lean... end the endpoint here
 		if (this.locked && !this.lean) {
@@ -264,14 +268,14 @@ class Path {
 
 			return response.status(this.codes.locked).send({
 				code: this.Utils.FoldCodes.locked,
-				message: 'Endpoint locked!'
+				message: 'Endpoint locked!',
 			});
 		}
 
 		if (this.secureOnly && request.protocol !== 'https') {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.FoldCodes.securityError,
-				message: 'Endpoint needs to be secure!'
+				message: 'Endpoint needs to be secure!',
 			});
 		}
 
@@ -303,12 +307,12 @@ class Path {
 		options?: {
 			noIncrease: boolean;
 			noResponse: boolean;
-		}
+		},
 	): FastifyReply | void {
 		const ops = options ?? {noIncrease: false, noResponse: false};
 		let severity;
-		const error_formatted = error.message;
-		if (!error_formatted.startsWith('[ERROR]') && !ops.noIncrease) {
+		const errorFromatted = error.message;
+		if (!errorFromatted.startsWith('[ERROR]') && !ops.noIncrease) {
 			if (this.fatalErrors > 2) {
 				severity = 'fatal';
 			} else {
@@ -330,14 +334,14 @@ class Path {
 			: formattedMessage.replace(/\n/g, '<br>');
 		if (ops.noResponse) {
 			if (uuid) {
-				this.core.removeRequestID(uuid);
+				this.core.removeRequestId(uuid);
 			}
 
 			return;
 		}
 
 		if (uuid) {
-			this.core.removeRequestID(uuid);
+			this.core.removeRequestId(uuid);
 		}
 
 		return response.status(this.codes.internalErr).send(out);

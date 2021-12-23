@@ -71,7 +71,8 @@ export default class Core {
 
 	public readonly codes: typeof StatusCodes;
 
-	public readonly utils: Utils;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	public readonly Utils: Utils;
 
 	public readonly got: Got;
 
@@ -108,7 +109,7 @@ export default class Core {
 		this.db = new MongoDB(); // Time to abuse Node. :)
 
 		this.regexs = new Regexs();
-		this.utils = new Utils(this);
+		this.Utils = new Utils(this);
 		this.emailer = new Emailer(
 			this,
 			this.#emailConfig?.sendingEmail,
@@ -185,7 +186,7 @@ export default class Core {
 	}
 
 	async initAuthorization() {
-		await this.utils.authorization.init();
+		await this.Utils.authorization.init();
 	}
 
 	initServer(
