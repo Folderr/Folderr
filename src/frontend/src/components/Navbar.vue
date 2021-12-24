@@ -19,7 +19,7 @@
                   </router-link>
               </li>
               <li>
-                  <router-link to="/login" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary" href="/login">
+                  <router-link to="/login" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-secondary-bg hover:bg-brand rounded-md" href="/login">
                       Login
                   </router-link>
               </li>
