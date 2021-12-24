@@ -24,17 +24,8 @@
                     type="url"
                     placeholder="Shorten a link!"
                     v-model="link"
+                    class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                     :class="[
-                        'mt-2',
-                        'mb-4',
-                        'bg-tertiary-bg',
-                        'text-text',
-                        'p-4',
-                        'w-[200px]',
-                        'xl:w-2/5',
-                        'placeholder-secondary-text',
-                        'focus:ring',
-                        'focus:outline-none',
                         {
                             'focus:ring-brand': isLinkValid,
                             'focus:ring-secondary-accent': !isLinkValid
@@ -47,8 +38,8 @@
                 <div v-if="shortenedLink" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-min p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
                     {{shortenedLink}}
                     <button ref="copyButton" v-if="shortenedLink" @click="copy(shortenedLink)" class="ml-4 text-brand p-2 px-4 focus:outline-none focus:ring focus:ring-brand rounded-sm">
-                        <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand"/>
-                        <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand"/>
+                        <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
+                        <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
                     </button>
                     <button @click="() => {shortenedLink = ''}" class="bg-none border-none text-brand p-2">
                         <XIcon class="h-5 w-5 text-brand-darkened hover:text-brand"/>

@@ -34,7 +34,7 @@
                             <MenuButton class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-secondary-bg hover:bg-brand px-3 py-2 rounded-md">
                               Account
                               <ChevronDownIcon
-                                class="w-5 h-5 ml-2 -mr-1 text-secondary-text hover:text-secondary-bg"
+                                class="w-5 h-5 ml-2 -mr-1 text-inherit"
                                 aria-hidden="true"
                               />
                             </MenuButton>

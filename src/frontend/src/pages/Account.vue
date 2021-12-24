@@ -24,7 +24,7 @@
                 placeholder="Something descriptive"
                 v-bind:needInput="true"
             >
-                <p class="text-secondary-text mt-10">Input a description for your token below</p>
+                <p class="text-secondary-text mt-2">Input a description for your token below</p>
             </FlexibleModal>
             <FlexibleModal
                 v-bind:hide="modals.tokens.showDetails"
@@ -35,26 +35,31 @@
                 v-bind:noCancel="true"
                 v-bind:showInput="false"
             >
-                <div class="p-2 px-8 text-text bg-yellow-500 mx-auto text-center border-2 border-yellow-500 rounded-lg w-max">
+                <div class="flex items-center p-2 px-8 text-text bg-yellow-500 mx-auto text-center border-2 border-yellow-500 rounded-lg mt-4 lg:w-max max-w-max w-4/5">
+                    <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 justify-center mr-4" aria-hidden="true"/>
                     You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
                 </div>
                 
                 <div class="text-text mt-4 text-lg">
                     <p><b>Token:</b></p>
-                    <div class="flex flex-shrink items-center">
+                    <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-4 w-max">
                         <input
                             readonly
-                            title="Your authentication token"
+                            title="Your API authentication token"
                             v-bind:value='tokenInfo.token'
-                            class="mt-2 bg-tertiary-bg text-text p-4 w-[200px] lg:w-2/5 placeholder-secondary-text"
+                            class="bg-tertiary-bg text-text p-4 placeholder-secondary-text rounded-lg"
                             >
-                        <button v-on:click="copy(tokenInfo.token)" class="ml-4 mt-2 text-brand p-2 px-4">
-                            <svg v-if="!copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
-                            <svg v-if="copied" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="30" height="30" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><g fill="#2ecc71"><path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></g></svg>
+                        <button
+                            v-on:click="copy(tokenInfo.token)"
+                            class="text-brand mx-4"
+                            title="Copy the token"
+                        >
+                            <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
+                            <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
                         </button>
-                        <p v-if="copied" class="text-brand-darkened text-md mr-2">Copied</p>
                     </div>
-                    <p><br><b>Description:</b> {{tokenInfo.description}}</p>
+                    <p><br><b>Description:</b></p>
+                    <p class="bg-tertiary-bg w-max px-4 py-4 rounded-lg mt-4">{{tokenInfo.description}}</p>
                 </div>
 
             </FlexibleModal>
@@ -82,37 +87,54 @@
                         <p
                             class="text-secondary-text text-md"
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
-                        >Username  &#10068;</p>
+                        >Username</p>
                         <input
                             label="New username"
                             required
                             v-model="username" v-bind:placeholder="oldUsername"
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
+                            class="mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
-                                'mt-2',
-                                'mb-4',
-                                'bg-tertiary-bg',
-                                'text-text',
-                                'p-4',
-                                'w-[200px]',
-                                'xl:w-2/5',
-                                'placeholder-secondary-text',
-                                'focus:ring',
-                                'focus:outline-none',
                                 {
                                     'focus:ring-brand': /^\w{3,16}$/.test(username),
                                     'focus:ring-secondary-accent': !/^\w{3,16}$/.test(username)
                                 }
                             ]"
                         >
+                        <div class="bg-secondary-bg rounded-lg w-max max-w-lg mb-4">
+                            <Disclosure v-slot=" { open }">
+                                <DisclosureButton
+                                    class="items-center px-4 py-2 text-secondary-text hover:text-brand rounded-lg hover:bg-secondary-bg w-full text-left flex"
+                                    :class="open ? 'bg-brand text-secondary-bg' : ''"
+                                >
+                                    <span>Username requirements & allowances</span>
+                                    <ChevronDownIcon
+                                        class="h-5 ml-5"
+                                        :class="open ? 'rotate-180' : ''"
+                                        aria-hidden="true"
+                                    />
+                                </DisclosureButton>
+                                <DisclosurePanel class="py-2 px-4 text-secondary-text">
+                                    Usernames must have at least 3 characters, can be A-z, and can have underscores and numbers.
+                                </DisclosurePanel>
+                            </Disclosure>
+                        </div>
                         <p class="text-secondary-text text-md">Email {{emailerDisabled ? '(Disabled)' : ''}}</p>
-                        <input type="email" label="New email address" v-model="email" v-bind:disabled="emailerDisabled" v-bind:placeholder="oldEmail" class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text" :class="[
-                            {
-                                'opacity-50': emailerDisabled,
-                                'hover:cursor-not-allowed': emailerDisabled,
-                                'border-secondary-accent': emailerDisabled
-                            }
-                        ]">
+                        <input
+                            type="email"
+                            label="New email address"
+                            v-model="email"
+                            v-bind:disabled="emailerDisabled"
+                            v-bind:placeholder="oldEmail"
+                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            :class="[
+                                {
+                                    'opacity-50': emailerDisabled,
+                                    'hover:cursor-not-allowed': emailerDisabled,
+                                    'border-secondary-accent': emailerDisabled
+                                }
+                            ]"
+                        >
                         <br>
                         <button v-bind:disabled="isInfoSame" v-on:click="updateInfo()" :class="[
                             'mt-2',
@@ -136,17 +158,8 @@
                             type="password"
                             label="Current password"
                             placeholder="Current Password"
+                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
-                                'mt-2',
-                                'mb-4',
-                                'bg-tertiary-bg',
-                                'text-text',
-                                'p-4',
-                                'w-[200px]',
-                                'xl:w-2/5',
-                                'placeholder-secondary-text',
-                                'focus:ring',
-                                'focus:outline-none',
                                 {
                                     'focus:ring-brand': oldPasswordValid,
                                     'focus:ring-secondary-accent': !oldPasswordValid
@@ -157,7 +170,7 @@
                             class="text-secondary-text text-md"
                             title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
                         >
-                            New Password  &#10068;
+                            New Password
                         </p>
                         <input
                             ref="newPassword"
@@ -166,23 +179,35 @@
                             v-model="password"
                             type="password"
                             placeholder="New Password"
+                            class="mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
-                                'mt-2',
-                                'mb-4',
-                                'bg-tertiary-bg',
-                                'text-text',
-                                'p-4',
-                                'w-[200px]',
-                                'xl:w-2/5',
-                                'placeholder-secondary-text',
-                                'focus:ring',
-                                'focus:outline-none',
                                 {
                                     'focus:ring-brand': passwordValid,
                                     'focus:ring-secondary-accent': !passwordValid
                                 }
                             ]"
-                            title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character">
+                            title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
+                        >
+                        <div class="bg-secondary-bg rounded-lg w-max max-w-lg mb-4">
+                            <Disclosure v-slot=" { open }">
+                                <DisclosureButton
+                                    class="items-center px-4 py-2 text-secondary-text hover:text-brand rounded-lg hover:bg-secondary-bg w-full text-left flex"
+                                    :class="open ? 'bg-brand text-secondary-bg' : ''"
+                                >
+                                    <span>Password requirements</span>
+                                    <ChevronDownIcon
+                                        class="h-5 ml-5"
+                                        :class="open ? 'rotate-180' : ''"
+                                        aria-hidden="true"
+                                    />
+                                </DisclosureButton>
+                                <DisclosurePanel class="py-2 px-4 text-secondary-text">
+                                    Passwords need to be between 8 and 64 characters. They must have one special character, one lowercase character, and one uppercase character.
+                                    <br>
+                                    Folderr allows numbers to be used in passwords.
+                                </DisclosurePanel>
+                            </Disclosure>
+                        </div>
                         <p class="text-secondary-text text-md">Confirm Password</p>
                         <input
                             label="Confirm password"
@@ -191,17 +216,8 @@
                             v-model="passwordConfirm"
                             type="password"
                             placeholder="Confirm Password"
+                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
-                                'mt-2',
-                                'mb-4',
-                                'bg-tertiary-bg',
-                                'text-text',
-                                'p-4',
-                                'w-[200px]',
-                                'xl:w-2/5',
-                                'placeholder-secondary-text',
-                                'focus:ring',
-                                'focus:outline-none',
                                 {
                                     'focus:ring-brand': confirmPasswordValid,
                                     'focus:ring-secondary-accent': !confirmPasswordValid
@@ -256,7 +272,7 @@
                     </div>
                 </div>
                 <div class="m-auto pt-10 text-justify w-full md:w-1/2">
-                    <hr class="border-brand">
+                    <hr class="border-brand" aria-hidden="true">
                     <h1 class="text-text text-3xl bold lg:ml-20 pt-10" id="tokens"><b>Token Management</b></h1>
                     <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Create, view, and delete your API tokens</h2>
                     <div>
@@ -290,6 +306,8 @@
 
 <script setup lang="ts">
 import {ref, reactive, computed, onMounted} from 'vue';
+import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, QuestionMarkCircleIcon, ChevronDownIcon} from "@heroicons/vue/solid";
+import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
 import { useStore } from 'vuex';
 import * as api from '../wrappers/api';
@@ -341,7 +359,7 @@ type UpdateInfo = {
 
 const updateInfo = async() => {
     if (isInfoSame.value) { // @ts-expect-error
-        sne.addError('You need to update either your email or your username!');
+        sne.value?.addError('You need to update either your email or your username!');
         return;
     }
 
@@ -361,27 +379,27 @@ const updateInfo = async() => {
         if (updated.success) {
             oldEmail.value = email.value;
             oldUsername.value = username.value; // @ts-expect-error
-            sne.addError('Information Updated!');
+            sne.value?.addError('Information Updated!');
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
                 email.value = oldEmail.value;
                 emailerDisabled.value = true;
             } // @ts-expect-error
-            sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
+            sne.value?.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
         }
     } catch (error) {
         if (typeof error === 'string') { // @ts-expect-error
-            sne.addError(error);
+            sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
             console.log(error); // @ts-expect-error
-            sne.addError(error.message);
+            sne.value?.addError(error.message);
             return;
         }
         // @ts-expect-error
-        sne.addError('Unknown Error Occured while updating your info');
+        sne.value?.addError('Unknown Error Occured while updating your info');
         console.log(error);
         console.log(typeof error);
         return;
@@ -440,7 +458,7 @@ const confirmPasswordValid = computed(() => {
 
 const updatePassword = async() =>  {
     if (!isPasswordValid.value) { // @ts-expect-error
-        sne.addError('Password invalid!');
+        sne.value?.addError('Password invalid!');
         return;
     }
 
@@ -453,27 +471,27 @@ const updatePassword = async() =>  {
         if (updated.success) {
             oldPassword.value = password.value;
             password.value = ''; // @ts-expect-error
-            sne.addError('Information Updated!');
+            sne.value?.addError('Information Updated!');
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
                 email.value = oldEmail.value;
                 emailerDisabled.value = true;
             } // @ts-expect-error
-            sne.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
+            sne.value?.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
         }
     } catch (error) {
         if (typeof error === 'string') { // @ts-expect-error
-            sne.addError(error);
+            sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
             console.log(error); // @ts-expect-error
-            sne.addError(error.message);
+            sne.value?.addError(error.message);
             return;
         }
         // @ts-expect-error
-        sne.addError('Unknown Error Occured while updating your password');
+        sne.value?.addError('Unknown Error Occured while updating your password');
         console.log(error);
         console.log(typeof error);
         return;
@@ -490,14 +508,14 @@ const logoutEverywhere = async() => {
     }
 
     if (logout.error instanceof Error) { // @ts-expect-error
-        sne.addError(logout.error.message);
+        sne.value?.addError(logout.error.message);
         if (import.meta.env.DEV && logout.response) {
             console.log('Debug Response from API/Logout (everywhere)');
             console.log(logout.response);
         }
     }
     // @ts-expect-error
-    sne.addError(logout.error);
+    sne.value?.addError(logout.error);
 
     if (import.meta.env.DEV && logout.response) {
         console.log('Debug Response from API/Logout (everywhere)');
@@ -528,12 +546,12 @@ const deleteAccount = async(confirmed: boolean) => {
 
     if (!deleted.success) {
         if (deleted.error instanceof Error) { // @ts-expect-error
-            sne.addError(deleted.error.message);
+            sne.value?.addError(deleted.error.message);
             return;
         }
 
         if (typeof deleted.error === 'string') { // @ts-expect-error
-            sne.addError(deleted.error);
+            sne.value?.addError(deleted.error);
             return;
         }
     }
@@ -565,7 +583,7 @@ const tokenCreateModal = () => {
 
 const createToken = async(description: string) => {
     if (!description || typeof description !== 'string') { // @ts-expect-error
-        sne.addError('Description needed for the token');
+        sne.value?.addError('Description needed for the token');
         tokenCreateModal();
         return;
     }
@@ -573,21 +591,20 @@ const createToken = async(description: string) => {
     const apitoken = await api.createToken(description);
     if (apitoken.error) {
         tokenCreateModal(); // @ts-expect-error
-        sne.addError(`Token creation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
+        sne.value?.addError(`Token creation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
         return;
     }
 
     if (apitoken.success && apitoken.output) {
-        tokenInfo = {
-            token: apitoken.output,
-            description: description
-        }; // @ts-expect-error
-        sne.addSuccess('Token Generated');
+        tokenInfo.token = apitoken.output;
+        tokenInfo.description = description; // @ts-expect-error
+        sne.value?.addSuccess('Token Generated');
         const tokenRes = await api.getTokens();
         if (tokenRes && tokenRes.message) {
             tokens.value = tokenRes.message;
         }
         tokenCreateModal();
+        console.log(tokenInfo);
         modals.tokens.showDetails = true;
         return;
     }
@@ -596,12 +613,12 @@ const createToken = async(description: string) => {
 const revokeToken = async(id: string) => {
     const apitoken = await api.revokeToken(id);
     if (apitoken.error) { // @ts-expect-error
-        sne.addError(`Token revokation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
+        sne.value?.addError(`Token revokation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
         return;
     }
 
     if (apitoken.success) { // @ts-expect-error
-        sne.addSuccess('Token Revoked');
+        sne.value?.addSuccess('Token Revoked');
         tokens.value = tokens.value.filter((token) => {
             return token.id !== id
         });
@@ -616,6 +633,8 @@ const copied = ref(false);
 const copy = async(text: string) => {
     await navigator.clipboard.writeText(text);
     copied.value = true;
+    // @ts-expect-error
+    sne.value?.addSuccess("Copied");
 }
 
 // Setup the component

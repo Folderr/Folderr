@@ -23,7 +23,7 @@
             ]">
                 <h1 class="text-secondary-text text-3xl mb-8">Upload a File</h1>
                 <h1 v-if="file" class="text-brand text-xl mb-8">File: {{ file.name }}</h1>
-                <div v-if="canPreview" class="p-4 bg-brand rounded-lg border-2 border-tertiary-bg m-auto mb-8 text-center max-w-xl w-max">
+                <div v-if="canPreview" class="p-1 bg-brand rounded-lg border-2 border-tertiary-bg m-auto mb-8 text-center max-w-xl w-max">
                     <img v-if="file?.type.startsWith('image')" class="m-auto" v-bind:src="filePreview">
                     <video v-bind:src="filePreview" controls v-if="file?.type.startsWith('video')" class="m-auto">
                         <source v-bind:src="filePreview" v-bind:type="file?.type">
@@ -40,9 +40,12 @@
                 >
                 <div v-if="link" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-min p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
                     {{link}}
-                    <button v-if="link" v-on:click="copy(link)" class="ml-4 text-brand p-2 px-4">
-                        <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand"/>
-                        <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand"/>
+                    <button v-if="link" @click="copy(link)" class="ml-4 text-brand p-2 px-4">
+                        <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
+                        <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
+                    </button>
+                    <button v-if="link" @click="link = ''" class="text-brand pr-4">
+                        <XIcon class="text-brand hover:text-brand h-5 w-5" aria-hidden="true" />
                     </button>
                 </div>
                 <div class="flex justify-center">
@@ -140,6 +143,7 @@ const startSelection = () => {
 
 const pickFile = () => {
     const files = fileInput.value?.files;
+    console.log('hi');
     if (files && files[0]) {
         file.value = files[0];
         filePreviewURL();
@@ -163,6 +167,10 @@ const upload = async() => {
             link.value = uploaded.output;
             file.value = undefined;
             filePreview.value = undefined;
+            if (fileInput.value) {
+                fileInput.value.value = '';
+            }
+            await copy(link.value);
         } else { // @ts-expect-error
             sne.addError(uploaded.error);
             console.log(uploaded.response);
