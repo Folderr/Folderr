@@ -19,24 +19,50 @@
                   </router-link>
               </li>
               <li>
-                  <router-link to="/upload" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary">
+                  <router-link to="/upload" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-secondary-bg hover:bg-brand rounded-md">
                       Upload
                   </router-link>
               </li>
               <li>
-                  <router-link to="/shorten" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary">
+                  <router-link to="/shorten" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-secondary-bg hover:bg-brand rounded-md">
                     Shorten
                   </router-link>
               </li>
               <li>
-                  <router-link to="/account" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary">
-                      Account
-                  </router-link>
-              </li>
-              <li>
-                  <button v-on:click="logout()" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary">
-                    Logout
-                  </button>
+                  <div class="w-auto">
+                      <Menu as="div" class="inline-block text-left">
+                            <MenuButton class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-secondary-bg hover:bg-brand px-3 py-2 rounded-md">
+                              Account
+                              <ChevronDownIcon
+                                class="w-5 h-5 ml-2 -mr-1 text-secondary-text hover:text-secondary-bg"
+                                aria-hidden="true"
+                              />
+                            </MenuButton>
+                            <transition
+                                enter-active-class="transition duration-100 ease-out"
+                                enter-from-class="transform scale-95 opacity-0"
+                                enter-to-class="transform scale-100 opacity-100"
+                                leave-active-class="transition duration-75 ease-in"
+                                leave-from-class="transform scale-100 opacity-100"
+                                leave-to-class="transform scale-95 opacity-0"
+                            >
+                                <MenuItems class="absolute mt-2 rounded-md bg-secondary-bg">
+                                    <MenuItem>
+                                        <router-link to="/account" class="leading-snug group flex rounded-md items-center w-full px-4 py-2 hover:bg-brand hover:text-secondary-bg">
+                                            <CogIcon class="w-5 h-5 mr-2" aria-hidden="true"/>
+                                            Settings
+                                        </router-link>
+                                    </MenuItem>
+                                    <MenuItem>
+                                        <button @click="logout" class="leading-snug group flex rounded-md items-center w-full px-4 py-2 hover:bg-brand hover:text-secondary-bg">
+                                            <LogoutIcon class="w-5 h-5 mr-2 hover:text-secondary-bg" aria-hidden="true"/>
+                                            Logout
+                                        </button>
+                                    </MenuItem>
+                                </MenuItems>
+                            </transition>
+                    </Menu>
+                  </div>
               </li>
           </ul>
       </div>
@@ -48,6 +74,8 @@
 import {ref} from 'vue';
 import * as api from '../wrappers/api';
 import { useRouter } from 'vue-router';
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
+import {LogoutIcon, ChevronDownIcon, CogIcon} from '@heroicons/vue/solid';
 const router = useRouter();
 
 const props = defineProps<{

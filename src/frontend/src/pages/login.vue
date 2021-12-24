@@ -48,11 +48,14 @@ const login = async() => {
 }
 
 const jumpToPassword = () => { // Focuses to the password input
+    if (password.value.length > 8) {
+        loginBtn.value?.click()
+    }
     passw.value?.focus();
 }
 
 const jumpToLogin = () => { // Focuses on the login button
-    loginBtn.value?.focus();
+    loginBtn.value?.click();
 }
 </script>
 
