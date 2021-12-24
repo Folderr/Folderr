@@ -1,6 +1,5 @@
 // eslint-disable-next-line unicorn/prefer-module
 module.exports = {
-	darkMode: false, // Or 'media' or 'class'
 	theme: {
 		extend: {
 			colors: {
@@ -11,8 +10,8 @@ module.exports = {
 				'tertiary-bg': '#393939',
 				text: '#FFFFFF',
 				'secondary-text': '#C4C4C4',
-				'secondary-accent': '#C5395B'
-			}
+				'secondary-accent': '#C5395B',
+			},
 		},
 		screens: {
 			sm: '640px',
@@ -20,13 +19,9 @@ module.exports = {
 			lg: '1024px',
 			xl: '1280px',
 			'2xl': '1536px',
-			'3xl': '2500px'
-		}
-	},
-	variants: {
-		extend: {}
+			'3xl': '2500px',
+		},
 	},
 	plugins: [],
-	purge: ['src/**/*.vue', 'src/**/**/*.vue'],
-	mode: 'jit'
+	content: ['src/**/*.vue', 'src/**/**/*.vue'],
 };

@@ -11,7 +11,7 @@
             <span class="block relative w-6 h-px rounded-sm mt-1 bg-brand"></span>
         </button>
       </div>
-      <div v-bind:class="{'hidden': !showMenu, 'flex': showMenu}" class="lg:flex lg:flex-grow items-center text-secondary-text">
+      <div v-bind:class="{'hidden': !showMenu, 'flex': showMenu}" class="lg:flex lg:grow items-center text-secondary-text">
           <ul class="flex flex-col lg:flex-row list-none ml-auto">
               <li>
                   <router-link to="/info" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-primary">

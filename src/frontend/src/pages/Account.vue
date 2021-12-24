@@ -2,14 +2,14 @@
     <div v-if="loading">
         <div class="bg-bg h-screen flex flex-col">
             <Navbar />
-            <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 flex-grow">
+            <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
                 <h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
             </div>
         </div>
         <Footer />
     </div>
     <div v-if="oldUsername || oldEmail">
-        <div class="bg-bg flex-grow flex flex-col">
+        <div class="bg-bg grow flex flex-col">
             <NavbarAuthenticated v-bind:username="oldUsername"/>
             <FlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm" v-bind:showInput="false">
                 <p class="text-secondary-text mt-10">This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br><b>This action is irreversible</b></p>
@@ -59,7 +59,7 @@
 
             </FlexibleModal>
             <SuccessesErrors ref="sne" />
-            <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 flex-grow mb-20">
+            <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 grow mb-20">
                 <h1 class="text-brand text-3xl mb-10"><b>Account Management</b></h1>
                 <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto relative">
                     <ul class="flex list-none">
