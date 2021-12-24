@@ -1,7 +1,7 @@
 <template>
   <div class="bg-bg h-screen flex flex-col">
     <Navbar />
-    <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 flex-grow">
+    <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
       <h1 class="text-4xl text-bold text-brand">
         404, Not Found
       </h1>

@@ -60,7 +60,7 @@ const jumpToLogin = () => { // Focuses on the login button
     <div class="bg-bg h-screen flex flex-col">
         <Navbar />
         <SuccessesErrors ref="sne" />
-        <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 flex-grow">
+        <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
             <h1 class="text-secondary-text text-3xl mb-8">Login</h1>
             <p v-if="username.length > 0" class="text-secondary-text mr-28">Username</p>
             <input v-on:keyup.enter="jumpToPassword()" v-model="username" placeholder="Username" required class="focus:outline-none mb-4 bg-bg text-brand p-4 border-brand border-b-2 placeholder-secondary-text">
