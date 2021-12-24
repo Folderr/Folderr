@@ -77,7 +77,10 @@ const store = useStore();
 const router = useRouter();
 
 // Setup components
-const sne = ref<InstanceType<typeof SuccessesErrors>>();
+const sne = ref<InstanceType<typeof SuccessesErrors> & {
+    addError: (messaage: string, time?: number) => void,
+    addSuccess: (message: string, time?: number) => void
+}>();
 
 // Setup loading & user
 const loading = ref(true);
@@ -105,7 +108,7 @@ const copied = ref(false);
 // A small copy function to copy links
 const copy = async(text: string): Promise<void> => {
     await navigator.clipboard.writeText(text);
-    copied.value = true; // @ts-expect-error
+    copied.value = true;
     sne.value?.addSuccess("Copied!", 1000)
 }
 
@@ -171,23 +174,24 @@ const upload = async() => {
                 fileInput.value.value = '';
             }
             await copy(link.value);
-        } else { // @ts-expect-error
-            sne.addError(uploaded.error);
+        } else {
+            const err = uploaded.error instanceof Error ? uploaded.error.message : uploaded.error || 'Unknown Shorten Error'
+            sne.value?.addError(err);
             console.log(uploaded.response);
         }
     } catch (error) {
-        if (typeof error === 'string') { // @ts-expect-error
-            sne.addError(error);
+        if (typeof error === 'string') {
+            sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
-            console.log(error); // @ts-expect-error
-            sne.addError(error);
+            console.log(error);
+            sne.value?.addError(error.message);
             return;
         }
-        // @ts-expect-error
-        sne.addError('Unknown Error Occured while uploading your file');
+
+        sne.value?.addError('Unknown Error Occured while uploading your file');
         console.log(error);
         console.log(typeof error);
         return;
