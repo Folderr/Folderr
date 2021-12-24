@@ -10,16 +10,17 @@
 			<!-- Allow for input, if needed -->
 			<input v-if="showInput"
 				:class="[
-					'mt-2',
+					'mt-4',
 					'mb-4',
 					'bg-[#393939]',
 					'text-text',
 					'p-4',
-					'w-[200px]',
+					'w-4/5',
 					'xl:w-2/5',
 					'placeholder-secondary-text',
 					'focus:outline-none',
 					'focus:ring',
+					'rounded-lg',
 					{
 						'focus:ring-brand': greenContinue,
 						'focus:ring-secondary-accent': !greenContinue,
@@ -28,7 +29,9 @@
 				v-bind:placeholder="placeholder"
 				v-bind:title="title"
 				v-bind:type="type"
-				v-model="inputText">
+				v-model="inputText"
+				v-on:keyup.enter="needInput || (needInput && inputText?.length > 0) ? cont(inputText) : false"
+				>
 			<div class="flex mt-10 m-auto justify-center">
 				<button v-if="!noCancel" v-on:click="cancel()" class="mr-5 text-text px-5 py-2 border-2 border-text rounded-md">Cancel</button>
 				<!-- "What color would you like your confirm button sir? We have green or red." -->
