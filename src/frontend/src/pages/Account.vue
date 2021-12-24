@@ -126,7 +126,7 @@
                             v-model="email"
                             v-bind:disabled="emailerDisabled"
                             v-bind:placeholder="oldEmail"
-                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg caret-brand"
                             :class="[
                                 {
                                     'opacity-50': emailerDisabled,
@@ -140,17 +140,19 @@
                             'mt-2',
                             {
                                 'text-brand': !isInfoSame,
-                                'text-secondary-text': isInfoSame,
-                                'hover:cursor-not-allowed': isInfoSame
+                                'text-brand-darkened': isInfoSame,
+                                'hover:cursor-not-allowed': isInfoSame,
+                                'bg-brand-darkened': isInfoSame,
+                                'border-brand-darkened': isInfoSame,
+                                'border-brand': !isInfoSame,
+                                'bg-brand': !isInfoSame
                             },
-                            'bg-brand',
                             'bg-opacity-5',
                             'border-2',
                             'p-4',
-                            'border-brand',
                             'rounded-lg',
                             'px-8'
-                        ]">Save changes {{isInfoSame ? '(Disabled)' : ''}}</button>
+                        ]">Save Changes</button>
                         <p class="text-secondary-text text-md mt-10">Current Password</p>
                         <input
                             v-on:keyup.enter="() => newPasswordEl?.focus()"
@@ -229,18 +231,20 @@
                         title="Update your password" :class="[
                             'mt-2',
                             {
-                                'text-brand': isPasswordValid,
-                                'text-secondary-text': !isPasswordValid,
-                                'hover:cursor-not-allowed': !isPasswordValid
+                                'text-brand': !isInfoSame,
+                                'text-brand-darkened': isInfoSame,
+                                'hover:cursor-not-allowed': isInfoSame,
+                                'bg-brand-darkened': isInfoSame,
+                                'border-brand-darkened': isInfoSame,
+                                'border-brand': !isInfoSame,
+                                'bg-brand': !isInfoSame
                             },
-                            'bg-brand',
                             'bg-opacity-5',
                             'border-2',
                             'p-4',
-                            'border-brand',
                             'rounded-lg',
                             'px-8'
-                        ]">Update Password {{!isPasswordValid ? '(Disabled)' : ''}}</button>
+                        ]">Update Password</button>
                     </div>
                     <div class="mt-10 lg:ml-20">
                         <h2 class="text-text text-2xl"><b>Delete your account</b></h2>
@@ -249,12 +253,14 @@
                         <p class="text-secondary-text text-md mt-4"><b>This cannot be undone and only applies to this instance of Folderr</b></p>
                         <button v-bind:disabled="owner" v-on:click="() => modals.deleteAccount = true"
                          :class="[
-                            'mt-4',
-                            'border-secondary-accent',
-                            'bg-secondary-accent',
+                            'mt-4',,
                             {
-                                'text-secondary-text': owner,
+                                'text-secondary-accent-dark': owner,
+                                'bg-secondary-accent-dark': owner,
+                                'border-secondary-accent-dark': owner,
                                 'text-secondary-accent': !owner,
+                                'border-secondary-accent': !owner,
+                                'bg-secondary-accent': !owner,
                                 'opacity-80': owner,
                                 'hover:cursor-not-allowed': owner
                             },
@@ -263,7 +269,7 @@
                             'p-4',
                             'rounded-lg',
                             'px-8'
-                        ]">Delete Account {{ owner ? '(Disabled)' : '' }}</button>
+                        ]">Delete Account</button>
                     </div>
                     <div class="lg:ml-20 mt-10">
                         <h2 class="text-text text-2xl"><b>Logout everywhere</b></h2>
