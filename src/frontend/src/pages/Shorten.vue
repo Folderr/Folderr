@@ -69,7 +69,10 @@ const store = useStore();
 const router = useRouter();
 
 // Setup components
-const sne = ref<InstanceType<typeof SuccessesErrors>>();
+const sne = ref<InstanceType<typeof SuccessesErrors> & {
+    addError: (messaage: string, time?: number) => void,
+    addSuccess: (message: string, time?: number) => void
+}>();
 const shortenBtn = ref<HTMLButtonElement>();
 
 // Setup loading & user
@@ -98,7 +101,7 @@ const copied = ref(false);
 // A small copy function to copy links
 const copy = async(text: string): Promise<void> => {
     await navigator.clipboard.writeText(text);
-    copied.value = true; // @ts-expect-error
+    copied.value = true;
     sne.value?.addSuccess("Copied!", 1000)
 }
 
@@ -121,7 +124,7 @@ const isLinkValid = computed(() => {
 })
 
 const shorten = async() =>  {
-    if (!isLinkValid.value) { // @ts-expect-error
+    if (!isLinkValid.value) {
         sne.value?.addError("Link is a not a valid url!", 1000);
         return false;
     }
@@ -134,22 +137,22 @@ const shorten = async() =>  {
             link.value = '';
             copy(shortened.output);
             linkBox.value?.blur();
-        } else { // @ts-expect-error
-            sne.value?.addError(shortened.error, 5000);
+        } else {
+            const err = shortened.error instanceof Error ? shortened.error.message : shortened.error || 'Unknown Error'
+            sne.value?.addError(err, 5000);
             console.log(shortened.response);
         }
     } catch (error) {
-        if (typeof error === 'string') { // @ts-expect-error
-            sne.addError(error, 5000);
+        if (typeof error === 'string') {
+            sne.value?.addError(error, 5000);
             return;
         }
 
         if (error instanceof Error) {
-            console.log(error); // @ts-expect-error
+            console.log(error);
             sne.value?.addError(error.message, 5000);
             return;
         }
-        // @ts-expect-error
         sne.value?.addError('Unknown Error Occured while shortening the url', 5000);
         console.log(error);
         console.log(typeof error);

@@ -317,8 +317,11 @@ import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
 import { useStore } from 'vuex';
 import * as api from '../wrappers/api';
-import SuccessNError from "../components/Success-N-Error.vue"; // Success & Error component
-const sne = ref<InstanceType<typeof SuccessNError>>();
+import SuccessesErrors from "../components/Success-N-Error.vue"; // Success & Error component
+const sne = ref<InstanceType<typeof SuccessesErrors> & {
+    addError: (messaage: string, time?: number) => void,
+    addSuccess: (message: string, time?: number) => void
+}>();
 
 // Router & store
 const router = useRouter();
@@ -364,7 +367,7 @@ type UpdateInfo = {
 }
 
 const updateInfo = async() => {
-    if (isInfoSame.value) { // @ts-expect-error
+    if (isInfoSame.value) {
         sne.value?.addError('You need to update either your email or your username!');
         return;
     }
@@ -384,27 +387,27 @@ const updateInfo = async() => {
 
         if (updated.success) {
             oldEmail.value = email.value;
-            oldUsername.value = username.value; // @ts-expect-error
+            oldUsername.value = username.value;
             sne.value?.addError('Information Updated!');
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
                 email.value = oldEmail.value;
                 emailerDisabled.value = true;
-            } // @ts-expect-error
+            }
             sne.value?.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
         }
     } catch (error) {
-        if (typeof error === 'string') { // @ts-expect-error
+        if (typeof error === 'string') {
             sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
-            console.log(error); // @ts-expect-error
+            console.log(error);
             sne.value?.addError(error.message);
             return;
         }
-        // @ts-expect-error
+
         sne.value?.addError('Unknown Error Occured while updating your info');
         console.log(error);
         console.log(typeof error);
@@ -463,7 +466,7 @@ const confirmPasswordValid = computed(() => {
 })
 
 const updatePassword = async() =>  {
-    if (!isPasswordValid.value) { // @ts-expect-error
+    if (!isPasswordValid.value) {
         sne.value?.addError('Password invalid!');
         return;
     }
@@ -476,27 +479,27 @@ const updatePassword = async() =>  {
 
         if (updated.success) {
             oldPassword.value = password.value;
-            password.value = ''; // @ts-expect-error
+            password.value = '';
             sne.value?.addError('Information Updated!');
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
                 email.value = oldEmail.value;
                 emailerDisabled.value = true;
-            } // @ts-expect-error
+            }
             sne.value?.addError(typeof updated.error === 'string' ? updated.error : updated.error.message);
         }
     } catch (error) {
-        if (typeof error === 'string') { // @ts-expect-error
+        if (typeof error === 'string') {
             sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
-            console.log(error); // @ts-expect-error
+            console.log(error);
             sne.value?.addError(error.message);
             return;
         }
-        // @ts-expect-error
+
         sne.value?.addError('Unknown Error Occured while updating your password');
         console.log(error);
         console.log(typeof error);
@@ -513,15 +516,15 @@ const logoutEverywhere = async() => {
         return;
     }
 
-    if (logout.error instanceof Error) { // @ts-expect-error
+    if (logout.error instanceof Error) {
         sne.value?.addError(logout.error.message);
         if (import.meta.env.DEV && logout.response) {
             console.log('Debug Response from API/Logout (everywhere)');
             console.log(logout.response);
         }
     }
-    // @ts-expect-error
-    sne.value?.addError(logout.error);
+
+    sne.value?.addError(logout.error instanceof Error ? logout.error.message : logout.error);
 
     if (import.meta.env.DEV && logout.response) {
         console.log('Debug Response from API/Logout (everywhere)');
@@ -551,12 +554,12 @@ const deleteAccount = async(confirmed: boolean) => {
     }
 
     if (!deleted.success) {
-        if (deleted.error instanceof Error) { // @ts-expect-error
+        if (deleted.error instanceof Error) {
             sne.value?.addError(deleted.error.message);
             return;
         }
 
-        if (typeof deleted.error === 'string') { // @ts-expect-error
+        if (typeof deleted.error === 'string') {
             sne.value?.addError(deleted.error);
             return;
         }
@@ -588,7 +591,7 @@ const tokenCreateModal = () => {
 }
 
 const createToken = async(description: string) => {
-    if (!description || typeof description !== 'string') { // @ts-expect-error
+    if (!description || typeof description !== 'string') {
         sne.value?.addError('Description needed for the token');
         tokenCreateModal();
         return;
@@ -596,14 +599,14 @@ const createToken = async(description: string) => {
 
     const apitoken = await api.createToken(description);
     if (apitoken.error) {
-        tokenCreateModal(); // @ts-expect-error
+        tokenCreateModal();
         sne.value?.addError(`Token creation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
         return;
     }
 
     if (apitoken.success && apitoken.output) {
         tokenInfo.token = apitoken.output;
-        tokenInfo.description = description; // @ts-expect-error
+        tokenInfo.description = description;
         sne.value?.addSuccess('Token Generated');
         const tokenRes = await api.getTokens();
         if (tokenRes && tokenRes.message) {
@@ -618,12 +621,12 @@ const createToken = async(description: string) => {
 
 const revokeToken = async(id: string) => {
     const apitoken = await api.revokeToken(id);
-    if (apitoken.error) { // @ts-expect-error
+    if (apitoken.error) {
         sne.value?.addError(`Token revokation failed. Error: ${apitoken.error instanceof Error ? apitoken.error.message : apitoken.error}`);
         return;
     }
 
-    if (apitoken.success) { // @ts-expect-error
+    if (apitoken.success) {
         sne.value?.addSuccess('Token Revoked');
         tokens.value = tokens.value.filter((token) => {
             return token.id !== id
@@ -639,7 +642,6 @@ const copied = ref(false);
 const copy = async(text: string) => {
     await navigator.clipboard.writeText(text);
     copied.value = true;
-    // @ts-expect-error
     sne.value?.addSuccess("Copied");
 }
 
@@ -654,8 +656,8 @@ onMounted(async() => {
         loading.value = false;
         owner.value = store.state.user.owner
         const tokenRes = await api.getTokens();
-        if (tokenRes.error) { // @ts-expect-error
-            sne.value?.addError(tokenRes.error instanceof Error ? tokens.error.message : tokens.error);
+        if (tokenRes.error) {
+            sne.value?.addError(tokenRes.error instanceof Error ? tokenRes.error.message : tokenRes.error);
         } else if (Array.isArray(tokenRes.message) ) {
             tokens.value = tokenRes.message;
         } else {
@@ -667,8 +669,8 @@ onMounted(async() => {
             router.push('/404');
         } else {
             const tokenRes = await api.getTokens();
-            if (tokenRes.error) { // @ts-expect-error
-                sne.value?.addError(tokens.error instanceof Error ? tokens.error.message : tokens.error);
+            if (tokenRes.error) {
+                sne.value?.addError(tokenRes.error instanceof Error ? tokenRes.error.message : tokenRes.error);
             } else if (Array.isArray(tokenRes.message) ) {
                 tokens.value = tokenRes.message;
             } else {
