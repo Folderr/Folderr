@@ -13,4 +13,4 @@ logs/*.log
 configs/
 
 # Ignore internal files
-internal/
+internal/*
