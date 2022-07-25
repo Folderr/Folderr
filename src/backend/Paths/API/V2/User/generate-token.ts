@@ -21,7 +21,7 @@
 
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../../../internals';
-import {TokenDB} from '../../../../Structures/Database/db-class';
+import {Tokendb} from '../../../../Structures/Database/db-class';
 
 /**
  * @classdesc Allow a user to generate a token
@@ -40,32 +40,32 @@ class GenToken extends Path {
 				body: {
 					description: {
 						type: 'string',
-						maxLength: 50
-					}
+						maxLength: 50,
+					},
 				},
 				querystring: {
 					type: 'object',
 					properties: {
-						override: {type: 'boolean'}
-					}
+						override: {type: 'boolean'},
+					},
 				},
 				response: {
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -78,14 +78,14 @@ class GenToken extends Path {
 				description?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -98,21 +98,21 @@ class GenToken extends Path {
 				code: this.Utils.FoldCodes.tokenSizeLimit,
 				/* eslint-disable max-len */
 				message:
-					'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url (This will delete the first one created).'
+					'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url (This will delete the first one created).',
 				/* eslint-enable max-len */
 			});
 		}
 
 		if (tokens.length >= 10 && request.query.override) {
 			const tkns = tokens.sort(
-				(a: TokenDB, b: TokenDB) => Number(a.createdAt) - Number(b.createdAt)
+				(a: Tokendb, b: Tokendb) => Number(a.createdAt) - Number(b.createdAt),
 			);
 			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {web: false});
 		}
 
 		const token = await this.Utils.authorization.genKey(
 			auth.id,
-			request.body.description
+			request.body.description,
 		);
 		return response
 			.status(this.codes.created)

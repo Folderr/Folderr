@@ -9,8 +9,8 @@
         <Footer />
     </div>
     <div v-if="oldUsername || oldEmail">
-        <div class="bg-bg grow flex flex-col">
-            <NavbarAuthenticated v-bind:username="oldUsername"/>
+        <div class="bg-bg grow flex flex-col scroll-smooth" ref="top">
+            <NavbarAuthenticated v-bind:username="oldUsername" :admin="admin"/>
             <FlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm" v-bind:showInput="false">
                 <p class="text-secondary-text mt-10">This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br><b>This action is irreversible</b></p>
             </FlexibleModal>
@@ -65,21 +65,28 @@
             </FlexibleModal>
             <SuccessesErrors ref="sne" />
             <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 grow mb-20">
-                <h1 class="text-brand text-3xl mb-10"><b>Account Management</b></h1>
-                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto relative">
+                <h1 class="text-brand text-3xl mb-10" ref="acct"><b>Account Management</b></h1>
+                <!--- Mini-Nav -->
+                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto sticky top-2 z-50">
                     <ul class="flex list-none">
-                        <li class="active p-5 text-secondary-text">
-                            <a href="/account">Account Info</a>
+                        <li class="p-5 text-secondary-text" :class="[{
+                            'bg-[#303030]': activeSection == 'account'
+                        }]">
+                            <button v-on:click="scrollToTop()">Account Info</button>
                         </li>
-                        <li class="p-5 text-secondary-text">
-                            <a href="/account/#tokens">Token Management</a>
+                        <li class="p-5 text-secondary-text" :class="[{
+                            'bg-[#303030]': activeSection == 'tokens'
+                        }]">
+                            <button v-on:click="tokendiv?.scrollIntoView({ behavior: 'smooth' })">Token Management</button>
                         </li>
-                        <li v-show="false" class="p-5 text-secondary-text">
+                        <li v-show="false" class="p-5 text-secondary-text" :class="[{
+                            'bg-[#303030]': activeSection == 'integrations'
+                        }]">
                             <a href="/account/#integrations">Integrations</a>
                         </li>
                     </ul>
                 </div>
-                <div class="m-auto pt-10 text-justify w-5/6 md:w-1/2">
+                <div class="m-auto pt-10 text-justify w-5/6 md:w-1/2" >
                     <h1 class="text-text text-3xl bold lg:ml-20"><b>Account Info</b></h1>
                     <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Update your Folderr username, email, and password</h2>
                     <h3 class="mt-2 text-text text-lg lg:ml-20" v-if="emailerDisabled">You can't change your email as there is no emailer configured to verify a new email.</h3>
@@ -100,16 +107,17 @@
                                     'focus:ring-secondary-accent': !/^\w{3,16}$/.test(username)
                                 }
                             ]"
+                            ref="usernameinp"
                         >
-                        <div class="bg-secondary-bg rounded-lg w-max max-w-lg mb-4">
+                        <div class="bg-[#303030] rounded-lg w-max max-w-lg mb-4">
                             <Disclosure v-slot=" { open }">
                                 <DisclosureButton
-                                    class="items-center px-4 py-2 text-secondary-text hover:text-brand rounded-lg hover:bg-secondary-bg w-full text-left flex"
-                                    :class="open ? 'bg-brand text-secondary-bg' : ''"
+                                    class="items-center px-4 py-2 text-secondary-text rounded-lg w-full hover:text-brand text-left flex"
+                                    :class="open ? 'bg-brand-darkened text-secondary-bg hover:bg-inherit' : ''"
                                 >
                                     <span>Username requirements & allowances</span>
                                     <ChevronDownIcon
-                                        class="h-5 ml-5"
+                                        class="h-5 ml-2"
                                         :class="open ? 'rotate-180' : ''"
                                         aria-hidden="true"
                                     />
@@ -190,11 +198,11 @@
                             ]"
                             title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
                         >
-                        <div class="bg-secondary-bg rounded-lg w-max max-w-lg mb-4">
+                        <div class="bg-[#303030] rounded-lg w-max max-w-lg mb-4">
                             <Disclosure v-slot=" { open }">
                                 <DisclosureButton
-                                    class="items-center px-4 py-2 text-secondary-text hover:text-brand rounded-lg hover:bg-secondary-bg w-full text-left flex"
-                                    :class="open ? 'bg-brand text-secondary-bg' : ''"
+                                    class="items-center px-4 py-2 text-secondary-text rounded-lg w-full hover:text-brand text-left flex"
+                                    :class="open ? 'bg-brand-darkened text-secondary-bg hover:bg-inherit' : ''"
                                 >
                                     <span>Password requirements</span>
                                     <ChevronDownIcon
@@ -277,7 +285,8 @@
                         <button v-on:click="logoutEverywhere()" class="mt-4 text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 p-4 border-secondary-accent rounded-lg px-8">Logout Everywhere</button>
                     </div>
                 </div>
-                <div class="m-auto pt-10 text-justify w-full md:w-1/2">
+                <!-- Token Management -->
+                <div class="m-auto pt-10 text-justify w-full md:w-1/2" ref="tokendiv">
                     <hr class="border-brand" aria-hidden="true">
                     <h1 class="text-text text-3xl bold lg:ml-20 pt-10" id="tokens"><b>Token Management</b></h1>
                     <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Create, view, and delete your API tokens</h2>
@@ -306,7 +315,7 @@
 
 <style>
 .active {
-    background-color: #282828;
+    background-color: #404040;
 }
 </style>
 
@@ -337,6 +346,7 @@ const updatePasswordEl = ref<HTMLButtonElement>();
 const loading = ref(true);
 const username = ref(''), oldUsername = ref('');
 const email = ref(''), oldEmail = ref('');
+const admin = ref(false);
 
 const emailerDisabled = ref(false);
 
@@ -365,6 +375,11 @@ type UpdateInfo = {
     username: string;
     email: string;
 }
+
+// refs for managing the "active" class of the mini nav
+const acct = ref<HTMLInputElement>(), tokendiv = ref<HTMLDivElement>(), top = ref<HTMLDivElement>();
+const usernameinp = ref<HTMLInputElement>();
+const activeSection = ref('account');
 
 const updateInfo = async() => {
     if (isInfoSame.value) {
@@ -645,6 +660,15 @@ const copy = async(text: string) => {
     sne.value?.addSuccess("Copied");
 }
 
+const scrollToTop = () => {
+    if (top.value) {
+        top.value.scrollIntoView({behavior: 'smooth'});
+        if (usernameinp.value) {
+            usernameinp.value.focus();
+        }
+    }
+}
+
 // Setup the component
 
 onMounted(async() => {
@@ -655,6 +679,7 @@ onMounted(async() => {
         oldEmail.value = store.state.user.email;
         loading.value = false;
         owner.value = store.state.user.owner
+        admin.value = store.state.user.admin;
         const tokenRes = await api.getTokens();
         if (tokenRes.error) {
             sne.value?.addError(tokenRes.error instanceof Error ? tokenRes.error.message : tokenRes.error);
@@ -683,6 +708,7 @@ onMounted(async() => {
                 createdAt: output.user.createdAt,
                 notifications: output.user.notifications,
                 owner: output.user.owner,
+                admin: output.user.admin,
             });
             email.value = output.user.email;
             oldEmail.value = output.user.email;
@@ -690,7 +716,20 @@ onMounted(async() => {
             oldUsername.value = output.user.username;
             owner.value = output.user.owner;
             loading.value = false;
+            admin.value = output.user.admin;
         }
     }
+    window.addEventListener('scroll', () => {
+        if (tokendiv.value) {
+            const height = tokendiv.value.offsetTop - tokendiv.value.offsetHeight;
+            if (window.scrollY > height) {
+                activeSection.value = 'tokens';
+            }
+            if (window.scrollY < height) {
+                activeSection.value = 'account';
+            }
+        }
+    })
+    
 })
 </script>

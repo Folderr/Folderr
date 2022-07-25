@@ -10,7 +10,7 @@ import process from 'process';
 
 import fastify, {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
 import cookie from 'fastify-cookie';
-import helmet from 'fastify-helmet';
+import helmet from '@fastify/helmet';
 import fastifyStatic from 'fastify-static';
 import ratelimit from 'fastify-rate-limit';
 import fastifyCors from 'fastify-cors';
@@ -133,12 +133,34 @@ export default class Core {
 			deleterShutdown: false,
 			noRequests: true,
 		};
+		this.app.addContentTypeParser(
+			'text/plain',
+			{
+				parseAs: 'string',
+			},
+			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+			(request, body, done) => done(null, body),
+		);
 	}
 
 	async registerServerPlugins() {
 		await this.app.register(cookie);
 		if (process.env.NODE_ENV !== 'dev') {
-			await this.app.register(helmet);
+			// eslint-disable-next-line @typescript-eslint/quotes
+			const defaultSrc = ["'self'"];
+			if (process.env.NODE_ENV !== 'production') {
+				defaultSrc.push('ws://localhost:*');
+			}
+
+			await this.app.register(helmet, {
+				contentSecurityPolicy: {
+					directives: {
+						defaultSrc,
+						// eslint-disable-next-line @typescript-eslint/quotes
+						scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+					},
+				},
+			});
 		}
 
 		await this.app.register(ratelimit, {
@@ -458,7 +480,7 @@ export default class Core {
 		await this.app.after();
 		const server = await createViteServer({
 			server: {
-				middlewareMode: 'html',
+				middlewareMode: true,
 			},
 		});
 		this.app.use((request, response, next) => {

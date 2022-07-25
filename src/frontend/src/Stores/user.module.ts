@@ -12,17 +12,20 @@ export interface UserStore {
 		createdAt: Date;
 	}>;
 	owner?: boolean;
+	admin?: boolean;
 }
 
 const usermod: Module<UserStore, unknown> = {
 	namespaced: true,
 	state: () => ({
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		userID: undefined,
 		username: undefined,
 		email: undefined,
 		createdAt: undefined,
 		notifications: [],
-		owner: false
+		owner: false,
+		admin: false,
 	}),
 	mutations: {
 		setUserinfo(state: UserStore, info: UserStore) {
@@ -32,6 +35,7 @@ const usermod: Module<UserStore, unknown> = {
 			state.notifications = info.notifications;
 			state.owner = info.owner;
 			state.username = info.username;
+			state.admin = info.admin;
 		},
 		updateEmail(state: UserStore, email: string) {
 			state.email = email;
@@ -43,8 +47,9 @@ const usermod: Module<UserStore, unknown> = {
 			state.createdAt = undefined;
 			state.notifications = [];
 			state.owner = false;
-		}
-	}
+			state.admin = false;
+		},
+	},
 };
 
 export default usermod;

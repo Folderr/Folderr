@@ -1,6 +1,6 @@
-import MongooseDB from './mongoose-db';
+import Mongoosedb from './mongoose-db';
 import {DBClass} from './db-class';
 
-export function pickDB(): DBClass {
-	return new MongooseDB();
+export function pickdb(): DBClass {
+	return new Mongoosedb();
 }

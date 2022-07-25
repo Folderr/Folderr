@@ -2,7 +2,7 @@ import {RouteLocationNormalized} from 'vue-router';
 import * as api from '../wrappers/api';
 import store from '../store';
 
-export async function authGuard(
+export async function adminAuthGuard(
 	to: RouteLocationNormalized,
 ): Promise<string | boolean | Error> {
 	if (to.name === 'NotFound') {
@@ -11,7 +11,7 @@ export async function authGuard(
 
 	try {
 		const response = await api.fetchUser();
-		if (response.error && !['/login', '/'].includes(to.path)) {
+		if (response.error || (response.user && !response.user.admin)) {
 			return '/404';
 		}
 
@@ -26,10 +26,6 @@ export async function authGuard(
 				owner: response.user.owner,
 				admin: response.user.admin,
 			});
-		}
-
-		if ((to.path === '/login' || to.path === '/') && !response.error) {
-			return '/account';
 		}
 
 		return true;
