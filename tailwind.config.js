@@ -5,7 +5,8 @@ module.exports = {
 			colors: {
 				brand: '#2ECC71',
 				'brand-darkened': '#2ba05c',
-				bg: '#313131',
+				bg: '#282828',
+				'bg-old': '#313131',
 				'secondary-bg': '#131313',
 				'tertiary-bg': '#393939',
 				text: '#FFFFFF',
@@ -21,6 +22,11 @@ module.exports = {
 			xl: '1280px',
 			'2xl': '1536px',
 			'3xl': '2500px',
+		},
+		fontFamily: {
+			headline: ['Raleway'],
+			info: ['"Open Sans"'],
+			input: ['"Jetbrains Mono"', 'sans-serif'],
 		},
 	},
 	plugins: [],

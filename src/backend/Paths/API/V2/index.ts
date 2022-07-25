@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 // Authorization locked  endpoints
 import Info from './private-info';
 import ConfigureShareX from './configurator';
@@ -43,6 +44,7 @@ import AccountLookup from './Admin/reverse-lookup-account';
 import PVerify from './Admin/verify-account';
 import DVerify from './Admin/deny-account';
 import Users from './Admin/users';
+import Stats from './Admin/statistics';
 
 // Authroization locked owner endpoints
 import OwnerManage from './Management/manage';
@@ -89,9 +91,10 @@ export const endpoints = {
 	AccountLookup,
 	PVerify,
 	Users,
+	Stats,
 	OwnerManage,
 	Eval,
 	AddAdmin,
 	DelAdmin,
-	Logout
+	Logout,
 };

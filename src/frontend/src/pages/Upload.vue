@@ -10,7 +10,7 @@
     </div>
     <div v-if="username">
         <div class="bg-bg grow flex flex-col min-h-screen">
-            <NavbarAuthenticated v-bind:username="username"/>
+            <NavbarAuthenticated v-bind:username="username" :admin="admin"/>
             <SuccessesErrors ref="sne" />
             <div id="hero" :class="[
                 'm-auto',
@@ -85,6 +85,7 @@ const sne = ref<InstanceType<typeof SuccessesErrors> & {
 // Setup loading & user
 const loading = ref(true);
 const username = ref('');
+const admin = ref(false);
 
 // Setup component
 
@@ -92,6 +93,7 @@ onMounted(async() => {
     if (store.state.user && store.state.user.userID) {
         username.value = store.state.user.username;
         loading.value = false;
+        admin.value = store.state.user.admin;
         return;
     }
 
@@ -100,6 +102,7 @@ onMounted(async() => {
         return router.push('/404');
     }
     username.value = output.user.username;
+    admin.value = output.user.admin;
     loading.value = false;
 })
 

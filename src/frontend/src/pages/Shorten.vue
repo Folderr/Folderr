@@ -10,7 +10,7 @@
     </div>
     <div v-if="username">
         <div class="bg-bg grow flex flex-col min-h-screen">
-            <NavbarAuthenticated v-bind:username="username"/>
+            <NavbarAuthenticated v-bind:username="username" :admin="admin"/>
             <SuccessesErrors ref="sne" />
             <div id="hero" :class="[
                 'm-auto',
@@ -78,6 +78,7 @@ const shortenBtn = ref<HTMLButtonElement>();
 // Setup loading & user
 const loading = ref(true);
 const username = ref('');
+const admin = ref(false);
 
 // Setup component
 
@@ -85,6 +86,7 @@ onMounted(async() => {
     if (store.state.user && store.state.user.userID) {
         username.value = store.state.user.username;
         loading.value = false;
+        admin.value = store.state.user.admin;
         return;
     }
 
@@ -94,6 +96,7 @@ onMounted(async() => {
     }
     username.value = output.user.username;
     loading.value = false;
+    admin.value = output.user.admin;
 })
 
 const copied = ref(false);
