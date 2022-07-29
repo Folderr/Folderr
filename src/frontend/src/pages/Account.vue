@@ -305,7 +305,7 @@
                                         v-on:click="revokeToken(token.id)"
                                         class="text-secondary-accent border-none bg-none"
                                     >
-                                        <TrashIcon class="h-10"></TrashIcon>
+                                        <TrashIcon class="h-10" aria-hidden="true"></TrashIcon>
                                 </button>
                                 
                                 <!--
