@@ -303,7 +303,7 @@
                                 <br>Description: {{ token.description }}</p>
                                 <button
                                         v-on:click="revokeToken(token.id)"
-                                        class="ml-1 border-secondary-accent text-secondary-accent bg-opacity-5 border-2 p-1 rounded-sm max-h-min border-none bg-none"
+                                        class="text-secondary-accent border-none bg-none"
                                     >
                                         <TrashIcon class="h-10"></TrashIcon>
                                 </button>
@@ -317,7 +317,7 @@
                             </li>
                         </ul>
                         <div class="flex">
-                            <button v-on:click="tokenCreateModal()" class="mt-4 lg:ml-20 text-brand bg-brand border-brand bg-opacity-5 border-2 p-2 rounded-lg px-4">Generate a Token</button>
+                            <button v-on:click="tokenCreateModal()" class="mt-6 lg:ml-20 text-brand bg-brand border-brand bg-opacity-5 border-2 p-2 rounded-sm px-4">Generate a Token</button>
                         </div>
                     </div>
                 </div>
