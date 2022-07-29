@@ -13,6 +13,7 @@ module.exports = {
 				'secondary-text': '#C4C4C4',
 				'secondary-accent': '#C5395B',
 				'secondary-accent-dark': '#A91F40',
+				disabled: '#7E7E7E',
 			},
 		},
 		screens: {

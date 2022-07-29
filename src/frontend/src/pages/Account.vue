@@ -148,17 +148,17 @@
                             'mt-2',
                             {
                                 'text-brand': !isInfoSame,
-                                'text-brand-darkened': isInfoSame,
+                                'text-disabled': isInfoSame,
                                 'hover:cursor-not-allowed': isInfoSame,
-                                'bg-brand-darkened': isInfoSame,
-                                'border-brand-darkened': isInfoSame,
+                                'bg-disabled': isInfoSame,
+                                'border-disabled': isInfoSame,
                                 'border-brand': !isInfoSame,
                                 'bg-brand': !isInfoSame
                             },
                             'bg-opacity-5',
                             'border-2',
-                            'p-4',
-                            'rounded-lg',
+                            'p-2',
+                            'rounded-sm',
                             'px-8'
                         ]">Save Changes</button>
                         <p class="text-secondary-text text-md mt-10">Current Password</p>
@@ -240,17 +240,17 @@
                             'mt-2',
                             {
                                 'text-brand': !isInfoSame,
-                                'text-brand-darkened': isInfoSame,
+                                'text-disabled': isInfoSame,
                                 'hover:cursor-not-allowed': isInfoSame,
-                                'bg-brand-darkened': isInfoSame,
-                                'border-brand-darkened': isInfoSame,
+                                'bg-disabled': isInfoSame,
+                                'border-disabled': isInfoSame,
                                 'border-brand': !isInfoSame,
                                 'bg-brand': !isInfoSame
                             },
                             'bg-opacity-5',
                             'border-2',
-                            'p-4',
-                            'rounded-lg',
+                            'p-2',
+                            'rounded-sm',
                             'px-8'
                         ]">Update Password</button>
                     </div>
@@ -263,9 +263,9 @@
                          :class="[
                             'mt-4',,
                             {
-                                'text-secondary-accent-dark': owner,
-                                'bg-secondary-accent-dark': owner,
-                                'border-secondary-accent-dark': owner,
+                                'text-disabled': owner,
+                                'bg-disabled': owner,
+                                'border-disabled': owner,
                                 'text-secondary-accent': !owner,
                                 'border-secondary-accent': !owner,
                                 'bg-secondary-accent': !owner,
@@ -274,15 +274,15 @@
                             },
                             'bg-opacity-5',
                             'border-2',
-                            'p-4',
-                            'rounded-lg',
+                            'p-2',
+                            'rounded-sm',
                             'px-8'
                         ]">Delete Account</button>
                     </div>
                     <div class="lg:ml-20 mt-10">
                         <h2 class="text-text text-2xl"><b>Logout everywhere</b></h2>
                         <p class="text-secondary-text text-md mt-2">This will log you out of every location/device you are logged in at, including the one you’re currently at</p>
-                        <button v-on:click="logoutEverywhere()" class="mt-4 text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 p-4 border-secondary-accent rounded-lg px-8">Logout Everywhere</button>
+                        <button v-on:click="logoutEverywhere()" class="mt-4 text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 p-2 border-secondary-accent rounded-sm px-8">Logout Everywhere</button>
                     </div>
                 </div>
                 <!-- Token Management -->
@@ -294,12 +294,26 @@
                         <h3 v-if="tokens.length === 0" class="lg:ml-20 mt-5 text-secondary-text text-md bold"><b>You have no tokens!</b></h3>
                         <h3 v-show="tokens.length > 0" class="lg:ml-20 mt-5 text-secondary-text text-lg bold"><b>Tokens [{{ tokens.length }}/10]</b></h3>
                         <ul class="lg:ml-20 mt-5">
-                            <li v-for="token in tokens" v-bind:key="token.created" class="flex mt-5">
-                                <p class="text-secondary-text text-md">ID: {{ token.id }}<br>Created on: {{ new Date(token.created).toLocaleString() }}<br>Description: {{ token.description }}</p>
+                            <li v-for="token in tokens" v-bind:key="token.created" class="max-h-min mt-7 grid grid-cols-2">
+                                <p class="text-secondary-text text-md">
+                                    ID: {{ token.id }}
+                                
+                                
+                                <br>Created on: {{ new Date(token.created).toLocaleString() }}
+                                <br>Description: {{ token.description }}</p>
+                                <button
+                                        v-on:click="revokeToken(token.id)"
+                                        class="ml-1 border-secondary-accent text-secondary-accent bg-opacity-5 border-2 p-1 rounded-sm max-h-min border-none bg-none"
+                                    >
+                                        <TrashIcon class="h-10"></TrashIcon>
+                                </button>
+                                
+                                <!--
                                 <button
                                     v-on:click="revokeToken(token.id)"
-                                    class="ml-4 border-secondary-accent text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 p-2 rounded-lg px-4"
+                                    class="ml-4 border-secondary-accent text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 rounded-sm px-4 max-h-min"
                                 >Revoke</button>
+                                -->
                             </li>
                         </ul>
                         <div class="flex">
@@ -321,7 +335,7 @@
 
 <script setup lang="ts">
 import {ref, reactive, computed, onMounted} from 'vue';
-import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, QuestionMarkCircleIcon, ChevronDownIcon} from "@heroicons/vue/solid";
+import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, QuestionMarkCircleIcon, ChevronDownIcon, TrashIcon} from "@heroicons/vue/solid";
 import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
 import { useStore } from 'vuex';
