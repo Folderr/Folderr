@@ -15,14 +15,11 @@ module.exports = {
 				'secondary-accent-dark': '#A91F40',
 				disabled: '#7E7E7E',
 			},
-		},
-		screens: {
-			sm: '640px',
-			md: '768px',
-			lg: '1024px',
-			xl: '1280px',
-			'2xl': '1536px',
-			'3xl': '2500px',
+			screens: {
+				lg: '1024px',
+				'2xl': '1536px',
+				'3xl': '2500px',
+			}
 		},
 		fontFamily: {
 			headline: ['Raleway'],

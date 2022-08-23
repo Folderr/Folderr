@@ -11,10 +11,17 @@
     <div v-if="oldUsername || oldEmail">
         <div class="bg-bg grow flex flex-col scroll-smooth" ref="top">
             <NavbarAuthenticated v-bind:username="oldUsername" :admin="admin"/>
-            <FlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm" v-bind:showInput="false">
-                <p class="text-secondary-text mt-10">This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br><b>This action is irreversible</b></p>
-            </FlexibleModal>
-            <FlexibleModal
+            <NFlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm" v-bind:showInput="false">
+                <p class="text-secondary-text mt-10">This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br></p>
+                <template #warning>
+                    <div class="flex items-center p-2 pr-4 text-text bg-yellow-700 text-center border-2 border-yellow-700 rounded-lg mt-4 lg:w-max max-w-max w-4/5">
+                        <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 mr-4" aria-hidden="true"/>
+                        <b>This action is irreversible. All of your data will be removed.</b>
+                    </div>
+                </template>
+            </NFlexibleModal>
+
+            <NFlexibleModal
                 v-bind:hide="modals.tokens.createToken"
                 header="Input Token Description"
                 v-bind:cancel="tokenCreateModal"
@@ -25,7 +32,7 @@
                 v-bind:needInput="true"
             >
                 <p class="text-secondary-text mt-2">Input a description for your token below</p>
-            </FlexibleModal>
+            </NFlexibleModal>
             <FlexibleModal
                 v-bind:hide="modals.tokens.showDetails"
                 header="Token Details"
@@ -35,14 +42,16 @@
                 v-bind:noCancel="true"
                 v-bind:showInput="false"
             >
-                <div class="flex items-center p-2 px-8 text-text bg-yellow-500 mx-auto text-center border-2 border-yellow-500 rounded-lg mt-4 lg:w-max max-w-max w-4/5">
-                    <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 justify-center mr-4" aria-hidden="true"/>
-                    You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
-                </div>
+                <template #warning>
+                    <div class="flex items-center p-2 px-8 text-text bg-yellow-700 text-center border-2 border-yellow-700 rounded-lg mt-4 lg:w-max max-w-max w-4/5">
+                        <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 justify-center mr-4" aria-hidden="true"/>
+                        You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
+                    </div>
+                </template>
                 
                 <div class="text-text mt-4 text-lg">
                     <p><b>Token:</b></p>
-                    <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-4 w-max">
+                    <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-2 w-max">
                         <input
                             readonly
                             title="Your API authentication token"
@@ -58,8 +67,40 @@
                             <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
                         </button>
                     </div>
-                    <p><br><b>Description:</b></p>
-                    <p class="bg-tertiary-bg w-max px-4 py-4 rounded-lg mt-4">{{tokenInfo.description}}</p>
+                    <div class="my-4">
+                        <h2>Description:</h2>
+                        <p class="text-md bg-tertiary-bg w-max px-4 py-4 rounded-lg mt-2">{{tokenInfo.description}}</p>
+                    </div>
+                    <div>
+                        <h2 class="text-text text-md">ShareX configuration</h2>
+                        <div class="bg-secondary-bg rounded-md p-4">
+                            <code><pre>{
+    "Version": "14.0.1",
+    "Name": "{{url.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')}} Image Host",
+    "DestinationType": "ImageUploader, TextUploader, FileUploader",
+    "RequestMethod": "POST",
+    "RequestURL": "{{url}}/api/file",
+    "Headers": {
+        "authorization": "{{tokenInfo.token}}"
+    },
+    "Body": "MultipartFormData",
+    "FileFormName": "image"
+}
+                            </pre></code>
+                            <!-- I must say. That is a rather annoying break of style.-->
+                        </div>
+                        <!-- Client side ability to download or copy the config. -->
+                        <div class="flex space-x-2">
+                            <button class="flex my-2 p-2 px-4 border-0 hover:bg-none rounded-sm text-brand-darkened hover:text-brand bg-tertiary-bg" @click="downloadShareXConfig()">
+                                <DocumentDownloadIcon class="w-7 mr-2" aria-hidden="true"/>
+                                <b>Download Config!</b>
+                            </button>
+                            <button class="flex my-2 p-2 px-4 border-0 hover:bg-none rounded-sm text-brand-darkened hover:text-brand bg-tertiary-bg" @click="copyShareXConfig()">
+                                <ClipboardCopyIcon class="w-7 mr-2" aria-hidden="true"/>
+                                <b>Copy Config!</b>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
             </FlexibleModal>
@@ -67,7 +108,7 @@
             <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 grow mb-20">
                 <h1 class="text-brand text-3xl mb-10" ref="acct"><b>Account Management</b></h1>
                 <!--- Mini-Nav -->
-                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto sticky top-2 z-50">
+                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto sticky top-2 z-10">
                     <ul class="flex list-none">
                         <li class="p-5 text-secondary-text" :class="[{
                             'bg-[#303030]': activeSection == 'account'
@@ -145,7 +186,6 @@
                         >
                         <br>
                         <button v-bind:disabled="isInfoSame" v-on:click="updateInfo()" :class="[
-                            'mt-2',
                             {
                                 'text-brand': !isInfoSame,
                                 'text-disabled': isInfoSame,
@@ -155,12 +195,7 @@
                                 'border-brand': !isInfoSame,
                                 'bg-brand': !isInfoSame
                             },
-                            'bg-opacity-5',
-                            'border-2',
-                            'p-2',
-                            'rounded-sm',
-                            'px-8'
-                        ]">Save Changes</button>
+                        ]" class="px-8 rounded-sm p-2 border-2 bg-opacity-5 mt-2">Save Changes</button>
                         <p class="text-secondary-text text-md mt-10">Current Password</p>
                         <input
                             v-on:keyup.enter="() => newPasswordEl?.focus()"
@@ -293,8 +328,8 @@
                     <div>
                         <h3 v-if="tokens.length === 0" class="lg:ml-20 mt-5 text-secondary-text text-md bold"><b>You have no tokens!</b></h3>
                         <h3 v-show="tokens.length > 0" class="lg:ml-20 mt-5 text-secondary-text text-lg bold"><b>Tokens [{{ tokens.length }}/10]</b></h3>
-                        <ul class="lg:ml-20 mt-5">
-                            <li v-for="token in tokens" v-bind:key="token.created" class="max-h-min mt-7 grid grid-cols-2">
+                        <ul class="lg:ml-20 mt-5 xl:grid xl:grid-cols-2 xl:gap-1">
+                            <li v-for="token in tokens" v-bind:key="token.created" class="max-h-min mt-7 grid gap-4 grid-cols-[repeat(2, minmax(0, 2fr))] grid-flow-col-dense">
                                 <p class="text-secondary-text text-md">
                                     ID: {{ token.id }}
                                 
@@ -303,7 +338,7 @@
                                 <br>Description: {{ token.description }}</p>
                                 <button
                                         v-on:click="revokeToken(token.id)"
-                                        class="text-secondary-accent border-none bg-none"
+                                        class="text-secondary-accent border-none w-min"
                                     >
                                         <TrashIcon class="h-10" aria-hidden="true"></TrashIcon>
                                 </button>
@@ -335,7 +370,7 @@
 
 <script setup lang="ts">
 import {ref, reactive, computed, onMounted} from 'vue';
-import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, QuestionMarkCircleIcon, ChevronDownIcon, TrashIcon} from "@heroicons/vue/solid";
+import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, QuestionMarkCircleIcon, ChevronDownIcon, TrashIcon, DocumentDownloadIcon} from "@heroicons/vue/solid";
 import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
 import { useStore } from 'vuex';
@@ -345,6 +380,8 @@ const sne = ref<InstanceType<typeof SuccessesErrors> & {
     addError: (messaage: string, time?: number) => void,
     addSuccess: (message: string, time?: number) => void
 }>();
+
+const url = computed(() => window.location.origin);
 
 // Router & store
 const router = useRouter();
@@ -681,6 +718,50 @@ const scrollToTop = () => {
             usernameinp.value.focus();
         }
     }
+}
+
+const downloadShareXConfig = () => {
+    const config = JSON.stringify({
+       Version: '14.0.1',
+       Name: `${url.value.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')} Image Host`,
+       DestinationType: 'ImageUploader, TextUploader, FileUploader',
+       RequestMethod: 'POST' ,
+       RequestURL: `${url.value}/api/file`,
+       Headers: {
+        authorization: tokenInfo.token
+       },
+       Body: 'MultipartFormData',
+       FileFormName: 'Image'
+    });
+    const bytes = new TextEncoder().encode(config);
+    const blob = new Blob([bytes], {
+        type: "application/json;charset=utf-8"
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${url.value.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')} Folderr ShareXConfig.sxcu`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    document.removeChild(link);
+    sne.value?.addSuccess('Downloading Config!');
+}
+
+const copyShareXConfig = async () => {
+    const config = JSON.stringify({
+       Version: '14.0.1',
+       Name: `${url.value.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')} Image Host`,
+       DestinationType: 'ImageUploader, TextUploader, FileUploader',
+       RequestMethod: 'POST' ,
+       RequestURL: `${url.value}/api/file`,
+       Headers: {
+        authorization: tokenInfo.token
+       },
+       Body: 'MultipartFormData',
+       FileFormName: 'Image'
+    });
+    const bytes = new TextEncoder().encode(config);
+    await navigator.clipboard.writeText(config);
+    sne.value?.addSuccess('Copied Config!');
 }
 
 // Setup the component
