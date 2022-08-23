@@ -18,6 +18,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+
+import process from 'process';
 import argon2 from 'argon2';
 import {FastifyRequest, FastifyReply} from 'fastify';
 import {Core, Path} from '../../../../internals';
@@ -59,34 +61,35 @@ class UpdateAcc extends Path {
 					properties: {
 						email: {type: 'string'},
 						password: {type: 'string'},
-						username: {type: 'string'}
+						username: {type: 'string'},
 					},
-					anyRequired: ['email', 'password', 'username']
+
+					// Find a way to require one of these properties
 				},
 				response: {
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					'5xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					'2xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -94,7 +97,7 @@ class UpdateAcc extends Path {
 		request: FastifyRequest<{
 			Body: UpdateAccBody;
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Check pass/username auth
 		const base = await this.isValid(request);
@@ -125,7 +128,7 @@ class UpdateAcc extends Path {
 
 		const newUsername = await this.handleUsername(
 			auth.username,
-			request.body.username
+			request.body.username,
 		);
 
 		if (newUsername && typeof newUsername === 'string') {
@@ -137,7 +140,7 @@ class UpdateAcc extends Path {
 		const emailUpdated = await this.handleEmailUpdate(
 			request,
 			auth.email,
-			auth.username
+			auth.username,
 		);
 		if (emailUpdated && !emailUpdated.accepted) {
 			return response.status(emailUpdated.httpCode).send(emailUpdated.message);
@@ -158,16 +161,16 @@ class UpdateAcc extends Path {
 
 				return response.status(this.codes.internalErr).send({
 					code: this.Utils.FoldCodes.unkownError,
-					message: 'An unknown error has occured!'
+					message: 'An unknown error has occured!',
 				});
 			}
 
 			this.core.logger.error(
-				`Database failed to update user - ${error.message}`
+				`Database failed to update user - ${error.message}`,
 			);
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.dbUnkownError,
-				message: 'An unknown error encountered while updating your account'
+				message: 'An unknown error encountered while updating your account',
 			});
 		}
 
@@ -203,8 +206,8 @@ class UpdateAcc extends Path {
 					message: {
 						code: this.Utils.FoldCodes.unkownError,
 						message:
-							'An unknown error occured with the handling of the password!'
-					}
+							'An unknown error occured with the handling of the password!',
+					},
 				};
 			}
 
@@ -213,8 +216,8 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.passwordSize,
-						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS
-					}
+						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS,
+					},
 				};
 			}
 
@@ -223,8 +226,8 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.illegalPassword,
-						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED
-					}
+						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED,
+					},
 				};
 			}
 
@@ -233,8 +236,8 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.illegalPassword,
-						message: 'NUL character not allowed in password!'
-					}
+						message: 'NUL character not allowed in password!',
+					},
 				};
 			}
 
@@ -243,8 +246,8 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.badReq,
 				message: {
 					code: this.codes.internalErr,
-					message: `${error.message}`
-				}
+					message: `${error.message}`,
+				},
 			};
 		}
 	}
@@ -254,7 +257,7 @@ class UpdateAcc extends Path {
 			Body: UpdateAccBody;
 		}>,
 		preEmail: string,
-		username: string
+		username: string,
 	): Promise<
 		| {
 				accepted: true;
@@ -283,9 +286,9 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.badReq,
 				message: {
 					code: this.codes.badReq,
-					message: 'Invalid email'
+					message: 'Invalid email',
 				},
-				accepted: false
+				accepted: false,
 			};
 		}
 
@@ -299,9 +302,9 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.notAccepted,
 				message: {
 					code: this.codes.notAccepted,
-					message: 'Already using that email'
+					message: 'Already using that email',
 				},
-				accepted: false
+				accepted: false,
 			};
 		}
 
@@ -310,9 +313,9 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.notImplemented,
 				message: {
 					code: this.Utils.FoldCodes.emailerNotConfigured,
-					message: 'Emailer not configured. Unable to update email.'
+					message: 'Emailer not configured. Unable to update email.',
 				},
-				accepted: false
+				accepted: false,
 			};
 		}
 
@@ -322,9 +325,9 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.forbidden,
 				message: {
 					code: this.Utils.FoldCodes.bannedEmail,
-					message: 'Email banned'
+					message: 'Email banned',
 				},
-				accepted: false
+				accepted: false,
 			};
 		}
 
@@ -332,21 +335,21 @@ class UpdateAcc extends Path {
 			(await this.core.db.findUsers({
 				$or: [
 					{
-						email: request.body.email
+						email: request.body.email,
 					},
 					{
-						pendingEmail: request.body.email
-					}
-				]
+						pendingEmail: request.body.email,
+					},
+				],
 			})) || (await this.core.db.findVerifies({email: request.body.email}));
 		if (user) {
 			return {
 				httpCode: this.codes.used,
 				message: {
 					code: this.codes.used,
-					message: 'Email used!'
+					message: 'Email used!',
 				},
-				accepted: false
+				accepted: false,
 			};
 		}
 
@@ -356,19 +359,19 @@ class UpdateAcc extends Path {
 		await this.core.emailer.changeEmail(
 			request.body.email,
 			`${url}/account/confirm/${token.token}`,
-			username
+			username,
 		);
 		// Update
 		return {
 			accepted: true,
 			pendingEmail: request.body.email,
-			pendingEmailToken: token.hash
+			pendingEmailToken: token.hash,
 		};
 	}
 
 	private async handleUsername(
 		preUsername: string,
-		username?: string
+		username?: string,
 	): Promise<
 		| {
 				httpCode: 226 | 400;
@@ -389,8 +392,8 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.badReq,
 					message: {
 						code: this.Utils.FoldCodes.usernameSizeLimit,
-						message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH
-					}
+						message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH,
+					},
 				};
 			}
 
@@ -403,8 +406,8 @@ class UpdateAcc extends Path {
 					message: {
 						code: this.Utils.FoldCodes.illegalUsername,
 						message:
-							constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
-					}
+							constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS,
+					},
 				};
 			}
 
@@ -416,8 +419,8 @@ class UpdateAcc extends Path {
 					httpCode: this.codes.used,
 					message: {
 						code: this.Utils.FoldCodes.usernameOrEmailTaken,
-						message: 'Username taken!'
-					}
+						message: 'Username taken!',
+					},
 				};
 			}
 
@@ -430,7 +433,7 @@ class UpdateAcc extends Path {
 	private async isValid(
 		request: FastifyRequest<{
 			Body: UpdateAccBody;
-		}>
+		}>,
 	): Promise<
 		| {
 				httpCode: 400 | 401 | 403;
@@ -451,9 +454,9 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.unauth,
 				message: {
 					code: this.codes.unauth,
-					message: 'Authorization failed.'
+					message: 'Authorization failed.',
 				},
-				failed: true
+				failed: true,
 			};
 		}
 
@@ -466,9 +469,9 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.badReq,
 				message: {
 					code: this.codes.badReq,
-					message: 'BODY REQUIRES ONE OF PASSWORD, USERNAME, OR EMAIL!'
+					message: 'BODY REQUIRES ONE OF PASSWORD, USERNAME, OR EMAIL!',
 				},
-				failed: true
+				failed: true,
 			};
 		}
 
@@ -481,9 +484,9 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.forbidden,
 				message: {
 					code: this.codes.forbidden,
-					message: 'EMAIL UPDATE IN PROGRESS'
+					message: 'EMAIL UPDATE IN PROGRESS',
 				},
-				failed: true
+				failed: true,
 			};
 		}
 

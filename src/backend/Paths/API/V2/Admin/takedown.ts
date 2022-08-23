@@ -39,36 +39,34 @@ class Takedown extends Path {
 					type: 'object',
 					properties: {
 						type: {type: 'string'},
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['type', 'id']
+					required: ['type', 'id'],
 				},
 				response: {
-					response: {
-						'4xx': {
-							type: 'object',
-							properties: {
-								message: {type: 'string'},
-								code: {type: 'number'}
-							}
+					'4xx': {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'},
 						},
-						500: {
-							type: 'object',
-							properties: {
-								message: {type: 'string'},
-								code: {type: 'number'}
-							}
+					},
+					500: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'},
 						},
-						200: {
-							type: 'object',
-							properties: {
-								message: {type: 'string'},
-								code: {type: 'number'}
-							}
-						}
-					}
-				}
-			}
+					},
+					200: {
+						type: 'object',
+						properties: {
+							message: {type: 'string'},
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -79,7 +77,7 @@ class Takedown extends Path {
 				type: string;
 				id: string;
 			};
-		}>
+		}>,
 	): Promise<{
 		httpCode: 406 | 200;
 		msg: {
@@ -93,8 +91,8 @@ class Takedown extends Path {
 				httpCode: this.codes.notAccepted,
 				msg: {
 					code: this.Utils.FoldCodes.dbNotFound,
-					message: 'File not found!'
-				}
+					message: 'File not found!',
+				},
 			};
 		}
 
@@ -102,12 +100,12 @@ class Takedown extends Path {
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
 				{id: del.owner},
-				'id username email'
+				'id username email',
 			);
 			if (!user) {
 				return {
 					httpCode: this.codes.ok,
-					msg: {code: this.codes.ok, message: 'OK'}
+					msg: {code: this.codes.ok, message: 'OK'},
 				};
 			}
 
@@ -117,9 +115,9 @@ class Takedown extends Path {
 					email: user.email,
 					username: user.username,
 					id,
-					type: del.type
+					type: del.type,
 				},
-				url
+				url,
 			);
 		}
 
@@ -133,7 +131,7 @@ class Takedown extends Path {
 				type: string;
 				id: string;
 			};
-		}>
+		}>,
 	): Promise<{
 		httpCode: 406 | 200;
 		msg: {
@@ -147,8 +145,8 @@ class Takedown extends Path {
 				httpCode: this.codes.notAccepted,
 				msg: {
 					code: this.Utils.FoldCodes.dbNotFound,
-					message: 'Link not found!'
-				}
+					message: 'Link not found!',
+				},
 			};
 		}
 
@@ -156,12 +154,12 @@ class Takedown extends Path {
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
 				{id: del.owner},
-				'id username email'
+				'id username email',
 			);
 			if (!user) {
 				return {
 					httpCode: this.codes.ok,
-					msg: {code: this.codes.ok, message: 'OK'}
+					msg: {code: this.codes.ok, message: 'OK'},
 				};
 			}
 
@@ -171,9 +169,9 @@ class Takedown extends Path {
 					email: user.email,
 					username: user.username,
 					id,
-					type: 'Link'
+					type: 'Link',
 				},
-				url
+				url,
 			);
 		}
 
@@ -187,15 +185,15 @@ class Takedown extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed'
+				message: 'Authorization failed',
 			});
 		}
 
@@ -205,34 +203,34 @@ class Takedown extends Path {
 		) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing or invalid requirements'
+				message: 'Missing or invalid requirements',
 			});
 		}
 
 		try {
 			if (request.params.type === 'file') {
 				const out = await this.takedownFile(request.params.id, request);
-				return response.status(out.httpCode).send(out.msg);
+				return await response.status(out.httpCode).send(out.msg);
 			}
 
 			const out = await this.takedownLink(request.params.id, request);
-			return response.status(out.httpCode).send(out.msg);
+			return await response.status(out.httpCode).send(out.msg);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				return response.status(this.codes.internalErr).send({
 					code: this.Utils.FoldCodes.unkownError,
-					message: `An error occurred!\n${error.message}`
+					message: `An error occurred!\n${error.message}`,
 				});
 			}
 
 			this.core.logger.log(
 				'fatal',
-				`[PATH ${this.label}] Unknown fatal error!`
+				`[PATH ${this.label}] Unknown fatal error!`,
 			);
 
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.FoldCodes.unkownError,
-				message: 'An unknown error occurred with this operation!'
+				message: 'An unknown error occurred with this operation!',
 			});
 		}
 	}
