@@ -19,6 +19,7 @@
  *
  */
 
+import {createReadStream} from 'fs';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import mime from 'mime-types';
 import {Core, Path} from '../internals';
@@ -37,16 +38,16 @@ class Videos extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
 					'4xx': {
-						type: 'string'
-					}
-				}
-			}
+						type: 'string',
+					},
+				},
+			},
 		};
 	}
 
@@ -59,7 +60,7 @@ class Videos extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
 			return response.status(this.codes.badReq).send('Missing video ID');
@@ -101,7 +102,10 @@ class Videos extends Path {
 			content = `video/${array[array.length - 1].toLowerCase()}`;
 		}
 
-		return response.header('Content-Type', content).sendFile(image.path);
+		return response
+			.header('Content-Type', content)
+			.status(200)
+			.send(createReadStream(image.path));
 	}
 }
 

@@ -19,6 +19,7 @@
  *
  */
 
+import {createReadStream} from 'fs';
 import mime from 'mime-types';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../internals';
@@ -37,16 +38,16 @@ class Images extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
 					'4xx': {
-						type: 'string'
-					}
-				}
-			}
+						type: 'string',
+					},
+				},
+			},
 		};
 	}
 
@@ -59,7 +60,7 @@ class Images extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
 			return response.status(this.codes.badReq).send('Missing image ID');
@@ -76,7 +77,7 @@ class Images extends Path {
 
 		const image = await this.core.db.findFile(
 			{id: parts[0], type: 'image'},
-			'type path owner'
+			'type path owner',
 		);
 		if (image) {
 			const owner = await this.core.db.findUser({id: image.owner});
@@ -97,6 +98,7 @@ class Images extends Path {
 		}
 
 		if (!content) {
+			console.log('Image not found!');
 			return response.status(this.codes.notFound).send('Image type not found!');
 		}
 
@@ -104,7 +106,12 @@ class Images extends Path {
 			content = `image/${array[array.length - 1].toLowerCase()}`;
 		}
 
-		return response.header('Content-Type', content).sendFile(image.path);
+		return response
+			.header('Content-Type', content)
+			.status(200)
+			.send(createReadStream(image.path));
+
+		// Return response.header('Content-Type', content).sendFile(image.path);
 	}
 }
 

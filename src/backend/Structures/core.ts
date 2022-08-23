@@ -489,7 +489,7 @@ export default class Core {
 			},
 		});
 		this.app.use((request, response, next) => {
-			if (request.url?.startsWith('/api')) {
+			if (request.url?.match(/^\/(api|image|i\/|v\/|video|file|f\/)/)) {
 				next();
 			} else {
 				server.middlewares(request, response, next);
