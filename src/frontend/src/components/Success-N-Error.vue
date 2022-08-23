@@ -1,5 +1,5 @@
 <template>
-    <div v-if="successes.length || errors.length" class="mt-4 z-10 fixed right-4 top-20">
+    <div v-if="successes.length || errors.length" class="mt-4 z-50 fixed right-4 top-20">
         <div v-for="success of successes" v-bind:key="success">
             <div :class="[
                 'justify-center',

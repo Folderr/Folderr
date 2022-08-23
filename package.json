@@ -63,7 +63,7 @@
   "homepage": "https://github.com/Folderr/Folderr#readme",
   "dependencies": {
     "@fastify/helmet": "8.0",
-    "@headlessui/vue": "^1.4.2",
+    "@headlessui/vue": "^1.6.7",
     "@heroicons/vue": "^1.0.5",
     "@iconify/icons-codicon": "^1.2.13",
     "@iconify/vue": "^3.2.1",

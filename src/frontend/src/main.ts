@@ -9,6 +9,7 @@ import SuccessNErrors from './components/Success-N-Error.vue';
 // Modals
 
 import FlexibleModal from './components/Modals/Flexible.vue';
+import NewFlexible from './components/Modals/NewFlexible.vue';
 
 import App from './App.vue';
 
@@ -23,6 +24,7 @@ app.component('SuccessesErrors', SuccessNErrors);
 
 // Initalize Modals
 app.component('FlexibleModal', FlexibleModal);
+app.component('NFlexibleModal', NewFlexible);
 
 app.use(store);
 app.use(router);
