@@ -19,6 +19,7 @@
  *
  */
 
+import {createReadStream} from 'fs';
 import mime from 'mime-types';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../internals';
@@ -37,16 +38,16 @@ class Files extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
 					'4xx': {
-						type: 'string'
-					}
-				}
-			}
+						type: 'string',
+					},
+				},
+			},
 		};
 	}
 
@@ -59,7 +60,7 @@ class Files extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		if (!request.params || !request.params.id) {
 			return response.status(this.codes.badReq).send('Missing file ID');
@@ -76,7 +77,7 @@ class Files extends Path {
 
 		const image = await this.core.db.findFile(
 			{id: parts[0]},
-			'path type owner'
+			'path type owner',
 		);
 		if (image) {
 			const owner = await this.core.db.findUser({id: image.owner});
@@ -108,7 +109,7 @@ class Files extends Path {
 			await response.header('Content-Type', content);
 		}
 
-		return response.sendFile(image.path);
+		return response.status(200).send(createReadStream(image.path));
 	}
 }
 
