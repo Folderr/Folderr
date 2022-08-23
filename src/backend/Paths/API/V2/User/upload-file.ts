@@ -19,6 +19,7 @@
  *
  */
 
+import process from 'process';
 import {join} from 'path';
 import {createWriteStream} from 'fs';
 import {promisify} from 'util';
@@ -49,21 +50,21 @@ class Image extends Path {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					500: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
-						type: 'string'
-					}
-				}
-			}
+						type: 'string',
+					},
+				},
+			},
 		};
 	}
 
@@ -72,7 +73,7 @@ class Image extends Path {
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -81,7 +82,7 @@ class Image extends Path {
 		if (!file || !file.file) {
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.noFile,
-				message: 'File not found!'
+				message: 'File not found!',
 			});
 		}
 
@@ -98,7 +99,7 @@ class Image extends Path {
 				await unlink(`${dir}/${name}.${fext}`);
 				return response.status(this.codes.badReq).send({
 					code: this.Utils.FoldCodes.fileSizeLimit,
-					message: `File is over size. Max size is 1GB`
+					message: 'File is over size. Max size is 1GB',
 				});
 			}
 
@@ -106,16 +107,15 @@ class Image extends Path {
 				code: this.Utils.FoldCodes.fileParserError,
 				message: `Parser error!\n${
 					error instanceof Error ? error.message : (error as string)
-				}`
+				}`,
 			});
 		}
 
-		// @ts-expect-error
 		if (file.file.truncated) {
 			await unlink(`${dir}/${name}.${fext}`);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.fileSizeLimit,
-				message: `File is over size. Max size is 1GB`
+				message: 'File is over size. Max size is 1GB',
 			});
 		}
 
@@ -123,7 +123,7 @@ class Image extends Path {
 			await unlink(`${dir}/${name}.${fext}`);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.FoldCodes.fileMimeError,
-				message: 'Invalid file!'
+				message: 'Invalid file!',
 			});
 		}
 
@@ -138,9 +138,9 @@ class Image extends Path {
 			await Promise.all([
 				this.core.db.makeFile(name, auth.id, `${dir}/${name}.${fext}`, {
 					generic: type,
-					mimetype: file.mimetype
+					mimetype: file.mimetype,
 				}),
-				this.core.db.updateUser({id: auth.id}, {$inc: {files: 1}})
+				this.core.db.updateUser({id: auth.id}, {$inc: {files: 1}}),
 			]);
 		} catch (error: unknown) {
 			console.log(error);
@@ -155,7 +155,7 @@ class Image extends Path {
 					(await this.Utils.testMirrorURL(request.headers.responseURL!))
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${name}.${fext}`
+				}/${type[0]}/${name}.${fext}`,
 			);
 	}
 }

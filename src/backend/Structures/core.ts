@@ -9,12 +9,12 @@ import process from 'process';
 // Fastify imports
 
 import fastify, {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
-import cookie from 'fastify-cookie';
+import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
-import fastifyStatic from 'fastify-static';
-import ratelimit from 'fastify-rate-limit';
-import fastifyCors from 'fastify-cors';
-import multipart from 'fastify-multipart';
+import fastifyStatic from '@fastify/static';
+import ratelimit from '@fastify/rate-limit';
+import fastifyCors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 
 // Frontend stuff
 
@@ -456,7 +456,7 @@ export default class Core {
 				this.logger.debug('Using production build for frontend');
 			}
 
-			this.app.setNotFoundHandler((request, reply) => {
+			this.app.setNotFoundHandler(async (request, reply) => {
 				if (request.url.startsWith('/api')) {
 					return reply.status(404).send({
 						code: '404',
@@ -467,6 +467,11 @@ export default class Core {
 				if (!this.config.apiOnly) {
 					return reply.sendFile('index.html');
 				}
+
+				return reply.status(404).send({
+					code: '404',
+					message: `${request.method}: ${request.url} Not Found`,
+				});
 			});
 
 			return;
@@ -490,7 +495,7 @@ export default class Core {
 				server.middlewares(request, response, next);
 			}
 		});
-		this.app.setNotFoundHandler((request, reply) => {
+		this.app.setNotFoundHandler(async (request, reply) => {
 			if (request.url.startsWith('/api')) {
 				return reply.status(404).send({
 					code: '404',
@@ -501,6 +506,11 @@ export default class Core {
 			if (!this.config.apiOnly) {
 				return reply.sendFile('index.html');
 			}
+
+			return reply.status(404).send({
+				code: '404',
+				message: `${request.method}: ${request.url} Not Found`,
+			});
 		});
 
 		this.app.addContentTypeParser(
@@ -538,7 +548,7 @@ export default class Core {
 
 	async listen(): Promise<string> {
 		this.checkPorts();
-		return this.app.listen(this.config.port);
+		return this.app.listen({port: this.config.port});
 	}
 
 	shutdownServer(): void {
