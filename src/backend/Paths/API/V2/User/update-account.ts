@@ -63,8 +63,8 @@ class UpdateAcc extends Path {
 						password: {type: 'string'},
 						username: {type: 'string'},
 					},
-
-					// Find a way to require one of these properties
+					minProperties: 1,
+					additionalProperties: false,
 				},
 				response: {
 					'4xx': {
@@ -427,7 +427,13 @@ class UpdateAcc extends Path {
 			return username;
 		}
 
-		return undefined;
+		return {
+			httpCode: 226,
+			message: {
+				message: 'You already have this username',
+				code: this.Utils.FoldCodes.usernameOrEmailTaken,
+			},
+		};
 	}
 
 	private async isValid(
@@ -469,7 +475,7 @@ class UpdateAcc extends Path {
 				httpCode: this.codes.badReq,
 				message: {
 					code: this.codes.badReq,
-					message: 'BODY REQUIRES ONE OF PASSWORD, USERNAME, OR EMAIL!',
+					message: 'BODY REQUIRES ONE OF password, username, OR email!',
 				},
 				failed: true,
 			};
