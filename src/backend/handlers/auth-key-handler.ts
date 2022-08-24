@@ -1,4 +1,6 @@
+/* eslint-disable node/prefer-global/buffer */
 import {join} from 'path';
+import process from 'process';
 import fs from 'fs/promises';
 import locations from '../../../internal/locations.json';
 import AbstractDB from '../Structures/Database/db-class';
@@ -20,7 +22,6 @@ export default class AuthKeyHandler {
 			this.#privateKey = await fs.readFile(this.#location);
 			const folderr = await db.fetchFolderr();
 			this.#publicKey = Buffer.from(folderr.publicKeyJWT.buffer);
-			console.log(this.#publicKey);
 		} catch (error: unknown) {
 			console.log(error);
 			throw new Error('Unable to fetch keys');
