@@ -52,9 +52,9 @@ import { ref, Ref } from 'vue';
 import SuccessesErrors from "../components/Success-N-Error.vue";
 import Login from '../components/Login.vue';
 
-const sne = ref<typeof SuccessesErrors & {
-        addError: (message: string, time?: number) => void,
-        addSuccess: (message: string, time?: number) => void
+const sne = ref<InstanceType<typeof SuccessesErrors> & {
+    addError: (messaage: string, time?: number) => void,
+    addSuccess: (message: string, time?: number) => void
 }>();
 
 </script>

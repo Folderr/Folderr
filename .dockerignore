@@ -1,0 +1,14 @@
+.git
+node_modules
+.gitignore
+.prettierignore
+.prettierrc.json
+folderr.code-workspace
+README.md
+*.config.js
+logs/
+.vscode
+.husky
+.idea
+Files
+scripts
