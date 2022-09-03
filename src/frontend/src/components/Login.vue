@@ -10,7 +10,10 @@ const username = ref(''), password = ref('');
 const loading = ref(false), signups = ref(false);
 
 const props = defineProps<{
-    sne?: typeof SuccessesErrors
+    sne?: InstanceType<typeof SuccessesErrors> & {
+        addError: (messaage: string, time?: number) => void,
+        addSuccess: (message: string, time?: number) => void
+    };
 }>();
 
 // Initialize refs
@@ -41,7 +44,7 @@ const login = async() => {
         if (!password.value) {
             missing.push('password');
         }
-        props.sne?.value?.addError(`Error: Missing ${missing.join(' & ')}`);
+        props.sne?.addError(`Error: Missing ${missing.join(' & ')}`);
         return;
     }
 
@@ -49,7 +52,7 @@ const login = async() => {
     const output = await api.login(username.value, password.value);
     if (output.error) { // Oh no, login failed.
         if (typeof output.error === 'string') {
-            props.sne?.value?.addError(output.error);
+            props.sne?.addError(output.error);
         }
 
         loading.value = false;

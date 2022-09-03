@@ -4,7 +4,7 @@ export {default as Core} from './Structures/core';
 export {default as Emailer} from './Structures/emailer';
 export {default as Authorization} from './Structures/Utilities/authorization';
 export {default as Path} from './Structures/path';
-export {default as Utils} from './Structures/Utilities/Utils';
+export {default as Utils} from './Structures/Utilities/utils';
 export {default as ErrorHandler} from './Structures/error-handler';
 /* eslint-enable import/no-cycle */
 export {default as wlogger} from './Structures/winston-logger';

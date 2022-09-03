@@ -194,7 +194,6 @@ export default class Core {
 			});
 			this.app.addHook('preValidation', (request, reply, done) => {
 				this.logger.debug('Validation:');
-				console.log(request.body);
 				this.logger.debug(
 					`Content-Type: ${request.headers['content-type'] ?? 'N/A'}`,
 				);
@@ -237,14 +236,6 @@ export default class Core {
 				return server;
 			}
 
-			const server = http.createServer((request, response) => {
-				handler(request, response);
-			});
-			if (process.env.DEBUG) {
-				wlogger.log('debug', 'Using HTTP server');
-			}
-
-			wlogger.log('prelisten', 'Initalized Server');
 			if (process.env.NODE_ENV === 'production') {
 				wlogger.log(
 					'error',
@@ -255,6 +246,15 @@ export default class Core {
 					'HTTPS and/or HTTP/2 required in production. Shuting down',
 				);
 			}
+
+			const server = http.createServer((request, response) => {
+				handler(request, response);
+			});
+			if (process.env.DEBUG) {
+				wlogger.log('debug', 'Using HTTP server');
+			}
+
+			wlogger.log('prelisten', 'Initalized Server');
 
 			return server;
 		};
@@ -548,7 +548,10 @@ export default class Core {
 
 	async listen(): Promise<string> {
 		this.checkPorts();
-		return this.app.listen({port: this.config.port});
+		return this.app.listen({
+			port: this.config.port,
+			host: process.env.DOCKER === 'true' ? '0.0.0.0' : undefined,
+		});
 	}
 
 	shutdownServer(): void {
