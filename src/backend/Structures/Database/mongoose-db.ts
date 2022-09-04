@@ -77,12 +77,7 @@ export default class Mongoosedb extends DBClass {
 	async init(url: string): Promise<void> {
 		/* eslint-disable unicorn/no-process-exit */
 		try {
-			await mongoose.connect(url, {
-				useNewUrlParser: true,
-				useFindAndModify: false,
-				useCreateIndex: true,
-				useUnifiedTopology: true,
-			});
+			await mongoose.connect(url);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				wlogger.error(
@@ -115,12 +110,7 @@ export default class Mongoosedb extends DBClass {
 		});
 		this.#internals.connection.on('disconnect', async () => {
 			try {
-				await mongoose.connect(url, {
-					useNewUrlParser: true,
-					useFindAndModify: false,
-					useCreateIndex: true,
-					useUnifiedTopology: true,
-				});
+				await mongoose.connect(url);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					wlogger.error(
@@ -153,7 +143,7 @@ export default class Mongoosedb extends DBClass {
 			{},
 			{$addToSet: {bans: email}},
 		).exec();
-		return add?.nModified > 0;
+		return add?.modifiedCount > 0;
 	}
 
 	async removeFolderrBan(email: string): Promise<boolean> {
@@ -161,7 +151,7 @@ export default class Mongoosedb extends DBClass {
 			{},
 			{$pull: {bans: email}},
 		).exec();
-		return add?.nModified > 0;
+		return add?.modifiedCount > 0;
 	}
 
 	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
@@ -311,7 +301,7 @@ export default class Mongoosedb extends DBClass {
 		update: Record<string, unknown>,
 	): Promise<boolean> {
 		const upd = await this.#schemas.User.updateOne(query, update).exec();
-		return Boolean(upd?.nModified && upd.nModified > 0);
+		return Boolean(upd?.modifiedCount && upd.modifiedCount > 0);
 	}
 
 	async makeUser(
@@ -487,7 +477,7 @@ export default class Mongoosedb extends DBClass {
 		update: Record<string, unknown>,
 	): Promise<boolean | undefined> {
 		const upd = await this.#schemas.Upload.updateOne(query, update).exec();
-		if (upd?.nModified && upd.nModified > 0) {
+		if (upd?.modifiedCount && upd.modifiedCount > 0) {
 			return true;
 		}
 
@@ -582,7 +572,7 @@ export default class Mongoosedb extends DBClass {
 		update: Record<string, unknown>,
 	): Promise<boolean> {
 		const out = await this.#schemas.Upload.updateOne(query, update).exec();
-		return Boolean(out?.nModified && out.nModified > 0);
+		return Boolean(out?.modifiedCount && out.modifiedCount > 0);
 	}
 
 	async makeLink(id: string, owner: string, link: string): Promise<Link> {
@@ -669,7 +659,7 @@ export default class Mongoosedb extends DBClass {
 			? await this.#schemas.Token.deleteMany({userID, web}).exec()
 			: // eslint-disable-next-line @typescript-eslint/naming-convention
 			  await this.#schemas.Token.deleteMany({userID}).exec();
-		return del.n;
+		return del.deletedCount;
 	}
 
 	/* ---- ADMIN RELATED METHODS ---- */
