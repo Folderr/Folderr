@@ -19,6 +19,7 @@
  *
  */
 
+import process from 'process';
 import {FastifyReply, FastifyRequest} from 'fastify';
 import {Core, Path} from '../../../../internals';
 import {User} from '../../../../Structures/Database/db-class';
@@ -42,9 +43,9 @@ class Login extends Path {
 			schema: {
 				headers: {
 					username: {type: 'string'},
-					password: {type: 'string'}
-				}
-			}
+					password: {type: 'string'},
+				},
+			},
 		};
 
 		this.#sameSite = 'strict';
@@ -52,6 +53,10 @@ class Login extends Path {
 		if (process.env.NODE_ENV === 'dev') {
 			this.#secure = false;
 			this.#sameSite = undefined;
+		}
+
+		if (this.core.config.trustProxies && !this.core.httpsEnabled) {
+			this.#secure = false;
 		}
 	}
 
@@ -62,7 +67,7 @@ class Login extends Path {
 				password: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		let auth: false | User = false;
 
@@ -75,7 +80,7 @@ class Login extends Path {
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -88,12 +93,12 @@ class Login extends Path {
 				expires: date,
 				secure: this.#secure,
 				httpOnly: true,
-				sameSite: this.#sameSite
+				sameSite: this.#sameSite,
 			})
 			.status(this.codes.ok)
 			.send({
 				code: this.codes.ok,
-				message: 'OK'
+				message: 'OK',
 			});
 	}
 }
