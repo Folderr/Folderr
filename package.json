@@ -13,7 +13,8 @@
     "dev": "ts-node-dev src/backend/index.ts --trace-warnings",
     "test": "xo && node dist/src/backend/index.js",
     "lint": "xo src/ scripts/ vite.config.ts",
-    "lint:fix": "xo --fix src/ scripts/ vite.config.ts"
+    "lint:fix": "xo --fix src/ scripts/ vite.config.ts",
+    "installdev": "npm i -D && husky install"
   },
   "xo": {
     "extends": [
