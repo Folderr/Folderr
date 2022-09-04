@@ -76,6 +76,8 @@ export default class Core {
 
 	public readonly got: Got;
 
+	public readonly httpsEnabled: boolean;
+
 	#deleter: ChildProcess;
 
 	#keys: KeyConfig;
@@ -99,6 +101,10 @@ export default class Core {
 		this.#keys = configs.key;
 		this.#dbConfig = configs.db;
 		this.#emailConfig = configs.email;
+
+		this.httpsEnabled = Boolean(
+			this.#keys.httpsCertOptions?.cert && this.#keys.httpsCertOptions?.key,
+		);
 
 		this.app = fastify({
 			trustProxy: this.config.trustProxies,
@@ -236,7 +242,7 @@ export default class Core {
 				return server;
 			}
 
-			if (process.env.NODE_ENV === 'production') {
+			if (process.env.NODE_ENV === 'production' && !this.config.trustProxies) {
 				wlogger.log(
 					'error',
 					'HTTPS and/or HTTP/2 required in production. Shuting down',
