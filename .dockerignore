@@ -5,7 +5,7 @@ node_modules
 .prettierrc.json
 folderr.code-workspace
 README.md
-*.config.js
+vetur.config.js
 logs/
 .vscode
 .husky

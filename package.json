@@ -44,7 +44,8 @@
         }
       ],
       "no-underscore-dangle": "error",
-      "unicorn/prefer-node-protocol": "off"
+      "unicorn/prefer-node-protocol": "off",
+      "import/extensions": "off"
     },
     "prettier": true
   },
@@ -73,7 +74,7 @@
     "@iconify/icons-codicon": "^1.2.13",
     "@iconify/vue": "^3.2.1",
     "ajv": "^8.6.2",
-    "argon2": "^0.28.2",
+    "argon2": "^0.28.7",
     "fastify": "^4.5.2",
     "formidable": "^1.2.2",
     "got": "^11.8.2",

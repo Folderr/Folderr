@@ -3,12 +3,14 @@ import {join} from 'path';
 import {platform} from 'os';
 import {EventEmitter} from 'events';
 import http from 'http';
-import {ChildProcess, fork} from 'child_process';
+import type {ChildProcess} from 'child_process';
+import {fork} from 'child_process';
 import fs from 'fs';
 import process from 'process';
 // Fastify imports
 
-import fastify, {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
+import type {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
+import fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
@@ -18,25 +20,26 @@ import multipart from '@fastify/multipart';
 
 // Frontend stuff
 
-import {createServer as createViteServer} from 'vite';
 import middie from 'middie';
 
 // Other imports
 import spdy from 'spdy';
-import winston from 'winston';
-import got, {Got} from 'got';
+import type winston from 'winston';
+import type {Got} from 'got';
+import got from 'got';
 
 // Local files
-import Configurer, {
+import type {
 	CoreConfig,
 	DBConfig,
 	ActEmailConfig,
 	KeyConfig,
 } from '../handlers/config-handler';
+import Configurer from '../handlers/config-handler';
 import * as endpointsImport from '../Paths/index';
 import * as APIs from '../Paths/API/index';
+import type {Path} from '../internals';
 import {
-	Path,
 	Emailer,
 	Utils,
 	MongoDB,
@@ -487,9 +490,10 @@ export default class Core {
 			this.logger.debug('Using Development Vite server for frontend');
 		}
 
+		const vite = await import('vite');
 		await this.app.register(middie);
 		await this.app.after();
-		const server = await createViteServer({
+		const server = await vite.createServer({
 			server: {
 				middlewareMode: true,
 			},

@@ -1,3 +1,4 @@
+import process from 'process';
 import * as StartupHandler from './handlers/startup-handler';
 
 process.on('beforeExit', (code) => {
@@ -5,7 +6,7 @@ process.on('beforeExit', (code) => {
 });
 
 process.on('exit', () => {
-	console.log('Exiting...');
+	console.log('(Index) Exiting...');
 });
 void StartupHandler.startFolderr();
 
