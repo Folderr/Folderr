@@ -19,9 +19,9 @@ ENV DOCKER=true
 
 RUN apt install python make gcc g++
 
-RUN CXX=g++-6 npm install argon2
+RUN npm install --omit=dev
 
-RUN npm install --omit=dev --ignore-scripts
+ENV DEBUG=true
 
 COPY --from=build /usr/build/dist ./dist
 COPY --from=build /usr/build/internal ./internal
