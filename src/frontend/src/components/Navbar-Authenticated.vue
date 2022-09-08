@@ -62,15 +62,15 @@
                                 leave-from-class="transform scale-100 opacity-100"
                                 leave-to-class="transform scale-95 opacity-0"
                             >
-                                <MenuItems class="absolute mt-2 rounded-md bg-[#303030] px-2">
+                                <MenuItems class="absolute mt-2 rounded-md bg-[#303030]">
                                     <MenuItem>
-                                        <router-link to="/account" class="leading-snug group flex rounded-md items-center w-full px-4 py-2 hover:text-text hover:bg-tertiary-bg">
+                                        <router-link to="/account" class="leading-snug group flex rounded-md items-center w-full px-6 py-2 hover:text-text hover:bg-tertiary-bg">
                                             <CogIcon class="w-5 h-5 mr-2" aria-hidden="true"/>
                                             Settings
                                         </router-link>
                                     </MenuItem>
                                     <MenuItem>
-                                        <button @click="logout" class="leading-snug group flex rounded-md items-center w-full px-4 py-2 hover:bg-red-800 hover:text-text">
+                                        <button @click="logout" class="leading-snug group flex rounded-md items-center w-full px-6 py-2 hover:bg-red-800 hover:text-text">
                                             <LogoutIcon class="w-5 h-5 mr-2 hover:text-secondary-bg" aria-hidden="true"/>
                                             Logout
                                         </button>
