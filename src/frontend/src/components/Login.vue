@@ -20,16 +20,6 @@ const props = defineProps<{
 const passw = ref<HTMLInputElement>(), loginBtn = ref<HTMLButtonElement>();
 const router = useRouter();
 
-const passwordType = ref('password');
-
-const switchPasswordVisibility = () => {
-    if (passwordType.value === 'password') {
-        passwordType.value = 'text';
-    } else {
-        passwordType.value = 'password';
-    }
-}
-
 const login = async() => {
     if (loading.value) { // Can't login if the page is loading!
         return;
@@ -80,19 +70,13 @@ const jumpToLogin = () => { // Focuses on the login button
             <h1 class="text-text text-3xl mb-1 font-headline">login</h1>
             <p class="text-secondary-text mb-4 font-headline">welcome back!</p>
             <p class="text-text font-info">username or email</p>
-            <input v-on:keyup.enter="jumpToPassword()" v-model="username" placeholder="your username or email" required class="font-input focus:outline-none mb-4 text-brand p-4 pl-0 w-full border-brand border-b-2 placeholder-secondary-text bg-tertiary-bg">
+            <input v-on:keyup.enter="jumpToPassword()" v-model="username" placeholder="your username or email" required class="font-input focus:outline-none mb-4 text-brand p-4 pl-0 w-full border-brand border-b-2 placeholder-secondary-text bg-tertiary-bg hover:border-brand-darkened hover:placeholder-text focus:placeholder-secondary-text focus:border-brand" autocomplete="username">
             <br>
             <div class="flex">
                 <p class="text-text font-info justify-center">password</p>
             </div>
-            <div class="flex mb-1 border-brand border-b-2">
-                <input ref="passw" v-on:keyup.enter="jumpToLogin()" v-model="password" placeholder="your password" :type="passwordType" required class="font-input focus:outline-none bg-tertiary-bg text-brand p-4 pl-0 w-full placeholder-secondary-text">
-                <button class="pl-2 bg-transparent text-secondary-text hover:text-text border-0" @click="switchPasswordVisibility">
-                    <EyeIcon v-if="passwordType === 'text'" class="h-5" />
-                    <EyeOffIcon v-if="passwordType === 'password'" class="h-5" />
-                </button>
-            </div>
+            <input ref="passw" v-on:keyup.enter="jumpToLogin()" v-model="password" placeholder="your password" type="password" required class="mb-4 border-b-2 border-brand font-input focus:outline-none bg-inherit text-brand p-4 pl-0 w-full placeholder-secondary-text hover:placeholder-text focus:placeholder-secondary-text hover:border-brand-darkened focus:border-brand" autocomplete="current-password">
             <br>
-            <button ref="loginBtn" v-on:click="login()" class="font-info text-white font-extrabold bg-brand-darkened border-2 p-4 border-brand-darkened rounded-lg w-[100%]">Log In</button>
+            <button ref="loginBtn" v-on:click="login()" class="font-info text-white font-extrabold hover:bg-brand-darkened border-2 p-4 hover:border-brand-darkened bg-brand border-brand rounded-lg w-[100%]">Log In</button>
         </div>
 </template>

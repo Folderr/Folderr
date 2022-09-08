@@ -149,12 +149,13 @@
                                 }
                             ]"
                             ref="usernameinp"
+                            autocomplete="username"
                         >
                         <div class="bg-[#303030] rounded-lg w-max max-w-lg mb-4">
                             <Disclosure v-slot=" { open }">
                                 <DisclosureButton
                                     class="items-center px-4 py-2 text-secondary-text rounded-lg w-full hover:text-brand text-left flex"
-                                    :class="open ? 'bg-brand-darkened text-secondary-bg hover:bg-inherit' : ''"
+                                    :class="open ? 'text-brand hover:text-brand-darkened hover:bg-inherit' : ''"
                                 >
                                     <span>Username requirements & allowances</span>
                                     <ChevronDownIcon
@@ -183,6 +184,7 @@
                                     'border-secondary-accent': emailerDisabled
                                 }
                             ]"
+                            autocomplete="email"
                         >
                         <br>
                         <button v-bind:disabled="isInfoSame" v-on:click="updateInfo()" :class="[
@@ -210,6 +212,7 @@
                                     'focus:ring-secondary-accent': !oldPasswordValid
                                 }
                             ]"
+                            autocomplete="current-password"
                         >
                         <p
                             class="text-secondary-text text-md"
@@ -232,12 +235,13 @@
                                 }
                             ]"
                             title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
+                            autocomplete="new-password"
                         >
                         <div class="bg-[#303030] rounded-lg w-max max-w-lg mb-4">
                             <Disclosure v-slot=" { open }">
                                 <DisclosureButton
                                     class="items-center px-4 py-2 text-secondary-text rounded-lg w-full hover:text-brand text-left flex"
-                                    :class="open ? 'bg-brand-darkened text-secondary-bg hover:bg-inherit' : ''"
+                                    :class="open ? 'text-brand hover:text-brand-darkened hover:bg-inherit' : ''"
                                 >
                                     <span>Password requirements</span>
                                     <ChevronDownIcon
@@ -268,6 +272,7 @@
                                     'focus:ring-secondary-accent': !confirmPasswordValid
                                 }
                             ]"
+                            autocomplete="new-password"
                         >
                         <br>
                         <button ref="updatePasswword" v-bind:disabled="!isPasswordValid" v-on:click="updatePassword()"
@@ -370,7 +375,7 @@
 
 <script setup lang="ts">
 import {ref, reactive, computed, onMounted} from 'vue';
-import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, QuestionMarkCircleIcon, ChevronDownIcon, TrashIcon, DocumentDownloadIcon} from "@heroicons/vue/solid";
+import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, ChevronDownIcon, TrashIcon, DocumentDownloadIcon, EyeIcon, EyeOffIcon} from "@heroicons/vue/solid";
 import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
 import { useStore } from 'vuex';
@@ -482,6 +487,7 @@ const updateInfo = async() => {
 }
 
 // Password related stuff
+
 const password = ref(''), passwordConfirm = ref(''), oldPassword = ref('');
 
 const isPasswordValid = computed(() => {
