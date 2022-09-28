@@ -20,7 +20,7 @@ import multipart from '@fastify/multipart';
 
 // Frontend stuff
 
-import middie from 'middie';
+import middie from '@fastify/middie';
 
 // Other imports
 import spdy from 'spdy';
