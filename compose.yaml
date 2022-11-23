@@ -1,0 +1,15 @@
+services:
+  folderr:
+    build:
+      context: .
+    depends_on:
+      - db
+    volumes:
+      - folderr-images:/usr/fldrr/Files
+  db:
+    image: mongo
+    restart: always
+    volumes:
+      - db-data:/data/mongodb
+volumes:
+  folderr-images:

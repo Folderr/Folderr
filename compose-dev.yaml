@@ -3,14 +3,19 @@ services:
     build:
       context: .
       target: dev
+      args:
+        installtype: -D
+        buildcmd: build
     depends_on:
       - db
     volumes:
       - folderr-images:/usr/fldrr/Files
+    environment:
+      NODE_ENV: dev
   db:
     image: mongo
     restart: always
-    volumes: 
+    volumes:
       - db-data:/data/mongodb
 volumes:
   db-data:
