@@ -20,8 +20,9 @@
  */
 
 import moment from 'moment';
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc User can delete a single notification
@@ -40,36 +41,38 @@ class DelNotify extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					500: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -77,14 +80,14 @@ class DelNotify extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -92,7 +95,7 @@ class DelNotify extends Path {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing notification ID'
+				message: 'Missing notification ID',
 			});
 		}
 
@@ -101,18 +104,18 @@ class DelNotify extends Path {
 		if (!notifs) {
 			return response.status(this.codes.notFound).send({
 				code: this.codes.notFound,
-				message: 'You have no notifications!'
+				message: 'You have no notifications!',
 			});
 		}
 
 		const notify = notifs.find(
-			(notification) => notification.id === request.params.id
+			(notification) => notification.id === request.params.id,
 		);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
 			return response.status(this.codes.notFound).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'Notification not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'Notification not found!',
 			});
 		}
 
@@ -122,14 +125,14 @@ class DelNotify extends Path {
 			hoursPerDay: 24,
 			minutesPerHour: 60,
 			secondsPerMinute: 60,
-			msPerSecond: 1000
+			msPerSecond: 1000,
 		};
 		let limit = 0;
 		for (const setLimit of Object.values(breakdown)) {
 			if (Number.isNaN(limit)) {
 				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
-					message: 'Internal Math Error'
+					message: 'Internal Math Error',
 				});
 			}
 
@@ -144,11 +147,11 @@ class DelNotify extends Path {
 			const formattedTime = moment
 				.duration(time)
 				.format(
-					'M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]'
+					'M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]',
 				);
 			return response.status(this.codes.forbidden).send({
 				code: this.codes.forbidden,
-				message: `Notification cannot be deleted for ${formattedTime}`
+				message: `Notification cannot be deleted for ${formattedTime}`,
 			});
 		}
 
@@ -158,14 +161,14 @@ class DelNotify extends Path {
 			{
 				$pull: {
 					notifs: {
-						id: request.params.id
-					}
-				}
-			}
+						id: request.params.id,
+					},
+				},
+			},
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK'
+			message: 'OK',
 		});
 	}
 }

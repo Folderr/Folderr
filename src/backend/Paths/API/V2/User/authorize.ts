@@ -20,9 +20,10 @@
  */
 
 import process from 'process';
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 
 /**
  * @classdesc Allow a user to login
@@ -71,6 +72,7 @@ class Login extends Path {
 	): Promise<FastifyReply> {
 		let auth: false | User = false;
 
+		console.log('Authorize');
 		try {
 			auth = await this.Utils.authPassword(request);
 		} catch (error: unknown) {
@@ -85,21 +87,29 @@ class Login extends Path {
 		}
 
 		// Set the cookie
-		const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
-		const date = new Date();
-		date.setDate(date.getDate() + 2 * 7);
-		return response
-			.cookie('token', jwt, {
-				expires: date,
-				secure: this.#secure,
-				httpOnly: true,
-				sameSite: this.#sameSite,
-			})
-			.status(this.codes.ok)
-			.send({
-				code: this.codes.ok,
-				message: 'OK',
+		try {
+			const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
+			const date = new Date();
+			date.setDate(date.getDate() + 2 * 7);
+			return await response
+				.cookie('token', jwt, {
+					expires: date,
+					secure: this.#secure,
+					httpOnly: true,
+					sameSite: this.#sameSite,
+				})
+				.status(this.codes.ok)
+				.send({
+					code: this.codes.ok,
+					message: 'OK',
+				});
+		} catch (error: unknown) {
+			this.core.logger.error(error);
+			return response.status(this.codes.internalErr).send({
+				code: this.codes.internalErr,
+				message: 'failed to generate auth code',
 			});
+		}
 	}
 }
 

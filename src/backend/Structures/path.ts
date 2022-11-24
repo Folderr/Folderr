@@ -21,10 +21,15 @@
 
 import {join} from 'path';
 import process from 'process';
-import {FastifyRequest, FastifyReply, RouteShorthandOptions} from 'fastify';
-import {RequestGallery} from '../../types/fastify-request-types';
-import {ErrorHandler, Core, codes, Codes} from '../internals';
-import {User} from './Database/db-class';
+import type {
+	FastifyRequest,
+	FastifyReply,
+	RouteShorthandOptions,
+} from 'fastify';
+import type {RequestGallery} from '../../types/fastify-request-types';
+import type {Core, Codes} from '../internals';
+import {ErrorHandler, codes} from '../internals';
+import type {User} from './Database/db-class';
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -113,11 +118,9 @@ class Path {
 	 * @param {Object} response Some object used for sending data back
 	 */
 	async execute(
-		/* eslint-disable @typescript-eslint/no-unused-vars */
 		request: FastifyRequest,
 		response: FastifyReply,
 	): Promise<FastifyReply | void> {
-		/* eslint-enable @typescript-eslint/no-unused-vars */
 		throw new Error('Not implemented!');
 	}
 
@@ -209,7 +212,7 @@ class Path {
 					return {
 						httpCode: this.codes.notAccepted,
 						json: {
-							code: this.Utils.FoldCodes.unkownError,
+							code: this.Utils.foldCodes.unkownError,
 							message: 'An unknown error has occured!',
 						},
 						errored: true,
@@ -267,14 +270,14 @@ class Path {
 			}
 
 			return response.status(this.codes.locked).send({
-				code: this.Utils.FoldCodes.locked,
+				code: this.Utils.foldCodes.locked,
 				message: 'Endpoint locked!',
 			});
 		}
 
 		if (this.secureOnly && request.protocol !== 'https') {
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.securityError,
+				code: this.Utils.foldCodes.securityError,
 				message: 'Endpoint needs to be secure!',
 			});
 		}

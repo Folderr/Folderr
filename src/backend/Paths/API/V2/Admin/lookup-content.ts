@@ -19,9 +19,10 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 
 /**
  * @classdesc Allows admins to lookup content
@@ -38,29 +39,31 @@ class Lookup extends Path {
 					type: 'object',
 					properties: {
 						type: {type: 'string'},
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id', 'type']
+					required: ['id', 'type'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'object'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -69,15 +72,15 @@ class Lookup extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed'
+				message: 'Authorization failed',
 			});
 		}
 
@@ -87,7 +90,7 @@ class Lookup extends Path {
 		) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing or invalid requirements'
+				message: 'Missing or invalid requirements',
 			});
 		}
 
@@ -97,21 +100,21 @@ class Lookup extends Path {
 					? await this.core.db.findFile({id: request.params.id})
 					: await this.core.db.findLink({id: request.params.id});
 			if (!out) {
-				return response.status(this.codes.ok).send({
-					code: this.Utils.FoldCodes.dbNotFound,
-					message: {}
+				return await response.status(this.codes.ok).send({
+					code: this.Utils.foldCodes.dbNotFound,
+					message: {},
 				});
 			}
 
-			return response
+			return await response
 				.status(this.codes.ok)
 				.send({code: this.codes.ok, message: out});
 		} catch (error: unknown) {
 			return response.status(this.codes.internalErr).send({
-				code: this.Utils.FoldCodes.dbError,
+				code: this.Utils.foldCodes.dbError,
 				message: `An error occurred!\n${
 					(error as Error).message || (error as string)
-				}`
+				}`,
 			});
 		}
 	}

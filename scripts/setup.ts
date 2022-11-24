@@ -337,7 +337,7 @@ async function confirmDetails(
 	}
 
 	if (username && email && password) {
-		const id = core.Utils.genV4UUID();
+		const id = core.Utils.genV4uuid();
 		const hashedPassword = await core.Utils.hashPass(password);
 		await core.db.makeOwner(username, hashedPassword, id, email);
 		console.log(

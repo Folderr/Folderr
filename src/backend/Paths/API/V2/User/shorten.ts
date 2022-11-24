@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc SHorten links endpoint
@@ -38,25 +39,27 @@ class Shorten extends Path {
 				body: {
 					type: 'object',
 					properties: {
-						url: {type: 'string'}
+						url: {type: 'string'},
 					},
-					required: ['url']
+					required: ['url'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
-						type: 'string'
-					}
-				}
-			}
+						type: 'string',
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -64,13 +67,13 @@ class Shorten extends Path {
 				url: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -79,7 +82,6 @@ class Shorten extends Path {
 			await this.core.got.get(url.toString());
 			// eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
 		} catch (error: any) {
-			/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 			/* eslint-disable @typescript-eslint/no-unsafe-call */
 			if (
 				(error.code &&
@@ -89,28 +91,28 @@ class Shorten extends Path {
 					typeof error.message === 'string' &&
 					error.message.includes('EAI_AGAIN'))
 			) {
-				/* eslint-enable @typescript-eslint/no-unsafe-member-access */
 				/* eslint-enable @typescript-eslint/no-unsafe-call */
 				return response.status(this.codes.notFound).send({
-					code: this.Utils.FoldCodes.shortUrlNotFound,
-					message: 'URL not found!'
+					code: this.Utils.foldCodes.shortUrlNotFound,
+					message: 'URL not found!',
 				});
-			} /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+			}
 
 			if (error.message && typeof error.message === 'string') {
 				this.core.logger.debug(error.message);
-			} /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+			}
 
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.unkownError,
-				message: 'Unknown error occured'
+				code: this.Utils.foldCodes.unkownError,
+				message: 'Unknown error occured',
 			});
 		}
 
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const ID = await this.Utils.genID();
 		await Promise.all([
 			this.core.db.makeLink(ID, auth.id, request.body.url),
-			this.core.db.updateUser({id: auth.id}, {$inc: {links: 1}})
+			this.core.db.updateUser({id: auth.id}, {$inc: {links: 1}}),
 		]);
 
 		return response
@@ -123,7 +125,7 @@ class Shorten extends Path {
 					(await this.Utils.testMirrorURL(request.headers.responseURL))
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/l/${ID}`
+				}/l/${ID}`,
 			);
 	}
 }

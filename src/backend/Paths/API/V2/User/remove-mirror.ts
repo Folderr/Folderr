@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classsdesc Allows users to remove a mirror
@@ -38,29 +39,31 @@ class MirrorRemove extends Path {
 				body: {
 					type: 'object',
 					properties: {
-						mirror: {type: 'string'}
+						mirror: {type: 'string'},
 					},
-					required: ['mirror']
+					required: ['mirror'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'object'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -68,21 +71,21 @@ class MirrorRemove extends Path {
 				mirror: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		if (auth.cURLs.length === 0 || !auth.cURLs.includes(request.body.mirror)) {
 			return response.status(this.codes.badReq).send({
 				message: 'Mirror not linked!',
-				code: this.Utils.FoldCodes.dbNotFound
+				code: this.Utils.foldCodes.dbNotFound,
 			});
 		}
 
@@ -90,13 +93,14 @@ class MirrorRemove extends Path {
 			{id: auth.id},
 			{
 				$pullAll: {
-					cURLs: request.body.mirror
-				}
-			}
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					cURLs: request.body.mirror,
+				},
+			},
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK'
+			message: 'OK',
 		});
 	}
 }

@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc Have a user delete their file
@@ -38,28 +39,30 @@ class DeleteFile extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
-					}
+						id: {type: 'string'},
+					},
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -67,35 +70,35 @@ class DeleteFile extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		if (!request.params.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing File ID!'
+				message: 'Missing File ID!',
 			});
 		}
 
-		const File = await this.core.db.findFile({
+		const file = await this.core.db.findFile({
 			owner: auth.id,
-			id: request.params.id
+			id: request.params.id,
 		});
-		if (!File) {
+		if (!file) {
 			return response.status(this.codes.notFound).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'File not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'File not found!',
 			});
 		}
 
-		await this.core.db.purgeFile({id: File.id, owner: auth.id});
+		await this.core.db.purgeFile({id: file.id, owner: auth.id});
 		return response
 			.status(this.codes.ok)
 			.send({code: this.codes.ok, message: 'OK'});

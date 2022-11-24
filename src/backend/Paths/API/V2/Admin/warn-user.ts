@@ -19,9 +19,10 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 
 /**
  * @classdesc Warn a user
@@ -38,36 +39,38 @@ class WarnUser extends Path {
 				body: {
 					type: 'object',
 					properties: {
-						reason: {type: 'string'}
+						reason: {type: 'string'},
 					},
-					required: ['reason']
+					required: ['reason'],
 				},
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -78,30 +81,30 @@ class WarnUser extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		if (!/^\d+$/.test(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Requirements missing or invalid!'
+				message: 'Requirements missing or invalid!',
 			});
 		}
 
 		const user = await this.core.db.findUser({id: request.params.id});
 		if (!user) {
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'User not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'User not found!',
 			});
 		}
 
@@ -113,15 +116,15 @@ class WarnUser extends Path {
 					notifs: {
 						id,
 						title: 'Warn',
-						notify: `You were warned for: ${request.body.reason}`
-					}
-				}
-			}
+						notify: `You were warned for: ${request.body.reason}`,
+					},
+				},
+			},
 		);
 		if (!updated) {
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.unkownError,
-				message: 'Warn failed'
+				code: this.Utils.foldCodes.unkownError,
+				message: 'Warn failed',
 			});
 		}
 
@@ -131,13 +134,13 @@ class WarnUser extends Path {
 				user.email,
 				request.body.reason,
 				user.username,
-				url
+				url,
 			);
 		}
 
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK'
+			message: 'OK',
 		});
 	}
 }

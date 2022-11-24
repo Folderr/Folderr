@@ -19,9 +19,10 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 
 /**
  * @classdesc Administrators verify accounts via this endpoint
@@ -41,29 +42,31 @@ class VerifyAccount extends Path {
 					type: 'object',
 					properties: {
 						token: {type: 'string'},
-						userid: {type: 'string'}
+						userid: {type: 'string'},
 					},
-					required: ['token', 'userid']
+					required: ['token', 'userid'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					201: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -72,28 +75,28 @@ class VerifyAccount extends Path {
 				userid: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Handle authorization
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		// Look for the user
 		const user = await this.Utils.findVerifying(
 			request.body.token,
-			request.body.userid
+			request.body.userid,
 		);
 		if (!user) {
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'User not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'User not found!',
 			});
 		}
 
@@ -104,7 +107,7 @@ class VerifyAccount extends Path {
 		// Alert the console and the admin that the user was verified
 		this.core.logger.info(
 			// eslint-disable-next-line max-len
-			`User account ${username} (${id}) granted by administrator ${auth.username} (${auth.id})`
+			`User account ${username} (${id}) granted by administrator ${auth.username} (${auth.id})`,
 		);
 		return response
 			.status(this.codes.created)

@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 import wlogger from '../../../../Structures/winston-logger';
 import * as constants from '../../../../Structures/constants/index';
 
@@ -42,40 +43,42 @@ class Signup extends Path {
 					properties: {
 						email: {type: 'string'},
 						username: {type: 'string'},
-						password: {type: 'string'}
+						password: {type: 'string'},
 					},
-					required: ['email', 'username', 'password']
+					required: ['email', 'username', 'password'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					500: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					201: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
 
 	async genUID(): Promise<string> {
 		// Generate an ID, and do not allow a users id to be reused
-		const uID = this.Utils.genV4UUID();
+		const uID = this.Utils.genV4uuid();
+		/* eslint-enable @typescript-eslint/naming-convention */
 		const user = await this.core.db.findUser({id: uID});
 		if (user) {
 			// If the user was found, retry
@@ -98,9 +101,10 @@ class Signup extends Path {
 			hash: string;
 			token: string;
 		},
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<{httpCode: 500 | 201; msg: {code: number; message: string}}> {
 		// Find admin notifications, and generate an ID
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const notifyID = await this.Utils.genNotifyID();
 		// Make a new notification and save to database
 		try {
@@ -111,33 +115,33 @@ class Signup extends Path {
 					`Username: ${userInfo.username}\n` +
 						`User ID: ${userInfo.id}\n` +
 						`Validation Token: ${validationToken.token}`,
-					'New user signup!'
-				)
+					'New user signup!',
+				),
 			]);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				await this.handleError(error, response, undefined, {
 					noResponse: true,
-					noIncrease: false
+					noIncrease: false,
 				});
 			}
 
 			return {
 				httpCode: this.codes.internalErr,
 				msg: {
-					code: this.Utils.FoldCodes.unkownError,
-					message: 'An internal error occurred while signing up!'
-				}
+					code: this.Utils.foldCodes.unkownError,
+					message: 'An internal error occurred while signing up!',
+				},
 			};
 		}
 
 		// Notify the console, and the user that the admins have been notified.
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 		);
 		return {
 			httpCode: this.codes.created,
-			msg: {code: this.codes.created, message: 'OK'}
+			msg: {code: this.codes.created, message: 'OK'},
 		};
 	}
 
@@ -153,7 +157,7 @@ class Signup extends Path {
 			token: string;
 		},
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<{
 		httpCode: 500 | 201;
 		msg: {
@@ -170,35 +174,35 @@ class Signup extends Path {
 			await this.core.emailer.verifyEmail(
 				userInfo.email,
 				`${url}/verify/${userInfo.id}/${validationToken.token}`,
-				userInfo.username
+				userInfo.username,
 			);
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				await this.handleError(error, response, undefined, {
 					noResponse: true,
-					noIncrease: false
+					noIncrease: false,
 				});
 			}
 
 			return {
 				httpCode: this.codes.internalErr,
 				msg: {
-					code: this.Utils.FoldCodes.unkownError,
-					message: 'An internal error occurred while signing up!'
-				}
+					code: this.Utils.foldCodes.unkownError,
+					message: 'An internal error occurred while signing up!',
+				},
 			};
 		}
 
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 		);
 		return {
 			httpCode: this.codes.created,
 			msg: {
-				code: this.Utils.FoldCodes.emailSent,
-				message: 'OK'
-			}
+				code: this.Utils.foldCodes.emailSent,
+				message: 'OK',
+			},
 		};
 	}
 
@@ -210,13 +214,13 @@ class Signup extends Path {
 				username: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// If signups are closed, state that and do not allow them through
 		if (!this.core.config.signups) {
 			return response.status(this.codes.locked).send({
 				code: this.codes.locked,
-				message: "Signup's are closed."
+				message: "Signup's are closed.", // eslint-disable-line @typescript-eslint/quotes
 			});
 		}
 
@@ -225,7 +229,7 @@ class Signup extends Path {
 		const isValid = await this.checkUserInput(
 			request.body.email,
 			username,
-			password
+			password,
 		);
 		if (typeof isValid !== 'boolean') {
 			return response.status(isValid.httpCode).send(isValid.response);
@@ -241,13 +245,13 @@ class Signup extends Path {
 				wlogger.error(`[SIGNUP -  Create password] - ${error.message}`);
 				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
-					message: `${error.message}`
+					message: `${error.message}`,
 				});
 			}
 
 			return response.status(this.codes.internalErr).send({
 				code: this.codes.internalErr,
-				message: 'An unknown error occured!'
+				message: 'An unknown error occured!',
 			});
 		}
 
@@ -264,21 +268,21 @@ class Signup extends Path {
 							username,
 							id,
 							password: pswd,
-							email
+							email,
 						},
 						validationToken,
 						request,
-						response
+						response,
 				  )
 				: await this.noEmail(
 						{
 							username,
 							id,
 							password: pswd,
-							email
+							email,
 						},
 						validationToken,
-						response
+						response,
 				  );
 		return response.status(r.httpCode).send(r.msg);
 	}
@@ -286,7 +290,7 @@ class Signup extends Path {
 	private async checkUserInput(
 		email: string,
 		username: string,
-		password: string
+		password: string,
 	): Promise<
 		| {
 				httpCode: number;
@@ -305,9 +309,9 @@ class Signup extends Path {
 			return {
 				httpCode: this.codes.badReq,
 				response: {
-					code: this.Utils.FoldCodes.usernameSizeLimit,
-					message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH
-				}
+					code: this.Utils.foldCodes.usernameSizeLimit,
+					message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH,
+				},
 			};
 		}
 
@@ -316,10 +320,10 @@ class Signup extends Path {
 			return {
 				httpCode: this.codes.badReq,
 				response: {
-					code: this.Utils.FoldCodes.illegalUsername,
+					code: this.Utils.foldCodes.illegalUsername,
 					message:
-						constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS
-				}
+						constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS,
+				},
 			};
 		}
 
@@ -327,9 +331,9 @@ class Signup extends Path {
 			return {
 				httpCode: this.codes.badReq,
 				response: {
-					code: this.Utils.FoldCodes.badEmail,
-					message: 'Invalid email!'
-				}
+					code: this.Utils.foldCodes.badEmail,
+					message: 'Invalid email!',
+				},
 			};
 		}
 
@@ -338,9 +342,9 @@ class Signup extends Path {
 			return {
 				httpCode: this.codes.forbidden,
 				response: {
-					code: this.Utils.FoldCodes.bannedEmail,
-					message: 'Email banned'
-				}
+					code: this.Utils.foldCodes.bannedEmail,
+					message: 'Email banned',
+				},
 			};
 		}
 
@@ -352,9 +356,9 @@ class Signup extends Path {
 			return {
 				httpCode: this.codes.used,
 				response: {
-					code: this.Utils.FoldCodes.usernameOrEmailTaken,
-					message: 'Username or email taken!'
-				}
+					code: this.Utils.foldCodes.usernameOrEmailTaken,
+					message: 'Username or email taken!',
+				},
 			};
 		}
 
@@ -365,9 +369,9 @@ class Signup extends Path {
 			return {
 				httpCode: this.codes.badReq,
 				response: {
-					code: this.Utils.FoldCodes.passwordSize,
-					message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS
-				}
+					code: this.Utils.foldCodes.passwordSize,
+					message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS,
+				},
 			};
 		}
 
@@ -376,9 +380,9 @@ class Signup extends Path {
 			return {
 				httpCode: this.codes.forbidden,
 				response: {
-					code: this.Utils.FoldCodes.illegalPassword,
-					message: 'NUL character forbidden in passwords!'
-				}
+					code: this.Utils.foldCodes.illegalPassword,
+					message: 'NUL character forbidden in passwords!',
+				},
 			};
 		}
 

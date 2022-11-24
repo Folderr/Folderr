@@ -19,10 +19,11 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
-import {RequestGallery} from '../../../../../types/fastify-request-types';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
+import type {RequestGallery} from '../../../../../types/fastify-request-types';
 
 /**
  * @classdesc Shows users to admins
@@ -37,45 +38,47 @@ class Users extends Path {
 		this.options = {
 			schema: {
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					500: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'array'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
 			Querystring: RequestGallery;
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -105,8 +108,8 @@ class Users extends Path {
 		const users: User[] = await this.core.db.findUsers(query, options);
 		if (users.length === 0) {
 			return response.status(this.codes.ok).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: []
+				code: this.Utils.foldCodes.dbNotFound,
+				message: [],
 			});
 		}
 
@@ -121,12 +124,12 @@ class Users extends Path {
 			title:
 				!user.admin && !user.owner
 					? ''
-					: (user.admin && 'admin') || (user.owner && 'first'),
+					: (user.admin && 'admin') ?? (user.owner && 'first'),
 			username: user.username,
 			files: user.files,
 			links: user.links,
 			id: user.id,
-			created: Math.round(user.createdAt.getTime() / 1000)
+			created: Math.round(user.createdAt.getTime() / 1000),
 		}));
 		return response
 			.status(this.codes.ok)

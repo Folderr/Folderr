@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc Allow a user to deny the creation of their account
@@ -38,29 +39,31 @@ class Deny extends Path {
 					type: 'object',
 					properties: {
 						userid: {type: 'string'},
-						token: {type: 'string'}
+						token: {type: 'string'},
 					},
-					required: ['userid', 'token']
+					required: ['userid', 'token'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -69,23 +72,23 @@ class Deny extends Path {
 				token: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		if (!request.params?.userid || !request.params?.token) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing requirements!'
+				message: 'Missing requirements!',
 			});
 		}
 
 		const verify = await this.Utils.findVerifying(
 			request.params.token,
-			request.params.userid
+			request.params.userid,
 		);
 		if (!verify) {
 			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'User not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'User not found!',
 			});
 		}
 

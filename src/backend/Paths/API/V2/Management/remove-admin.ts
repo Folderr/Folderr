@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc Remove an administrators admin status
@@ -39,29 +40,31 @@ class RemoveAdmin extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'object'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -69,16 +72,16 @@ class RemoveAdmin extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Actually check auth, and make sure they are the owner
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
+			Boolean(user.owner),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -86,40 +89,40 @@ class RemoveAdmin extends Path {
 		if (!match || match[0].length !== request.params.id.length) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'ID is not a valid Folderr ID!'
+				message: 'ID is not a valid Folderr ID!',
 			});
 		}
 
 		const user = await this.core.db.findAndUpdateUser(
 			{
 				id: request.params.id,
-				$nor: [{admin: false}, {first: true}]
+				$nor: [{admin: false}, {first: true}],
 			},
 			{admin: false},
-			'admin'
+			'admin',
 		);
 		if (!user) {
 			return response.status(this.codes.notFound).send({
 				message: 'User not found!',
-				code: this.Utils.FoldCodes.dbNotFound
+				code: this.Utils.foldCodes.dbNotFound,
 			});
 		}
 
 		if (user.admin) {
 			return response.status(this.codes.notAccepted).send({
 				message: 'Update fail!',
-				code: this.Utils.FoldCodes.dbUnkownError
+				code: this.Utils.foldCodes.dbUnkownError,
 			});
 		}
 
 		const responsible = `${auth.username} (${auth.id})`;
 		const formerAdmin = `${user.username} (${user.id})`;
 		this.core.logger.info(
-			`Administator removed for ${formerAdmin} by ${responsible}`
+			`Administator removed for ${formerAdmin} by ${responsible}`,
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK'
+			message: 'OK',
 		});
 	}
 }

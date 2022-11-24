@@ -20,8 +20,10 @@
  */
 
 import {inspect} from 'util';
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import process from 'process';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc Allows owner to eval on the instance.
@@ -40,10 +42,10 @@ class Eval extends Path {
 				body: {
 					type: 'object',
 					properties: {
-						eval: {type: 'string'}
-					}
-				}
-			}
+						eval: {type: 'string'},
+					},
+				},
+			},
 		};
 	}
 
@@ -53,15 +55,15 @@ class Eval extends Path {
 				eval: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
+			Boolean(user.owner),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -69,7 +71,7 @@ class Eval extends Path {
 			/* eslint-disable no-eval */
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			let evaled: string | Record<string, unknown> = await eval(
-				request.body.eval
+				request.body.eval,
 			);
 			/* eslint-enable no-eval */
 			evaled =
@@ -78,35 +80,35 @@ class Eval extends Path {
 					: (evaled = String(evaled));
 
 			if (!evaled || evaled.length === 0) {
-				return response.status(this.codes.noContent).send({
+				return await response.status(this.codes.noContent).send({
 					code: this.codes.ok,
-					message: ''
+					message: '',
 				});
 			}
 
 			const maxLength = 2000; // This limit makes sense.
 			if (evaled.length > maxLength) {
-				return response.status(this.codes.ok).send({
-					code: this.Utils.FoldCodes.evalSizeLimit,
-					message: 'Eval input too big'
+				return await response.status(this.codes.ok).send({
+					code: this.Utils.foldCodes.evalSizeLimit,
+					message: 'Eval input too big',
 				});
 			}
 
-			return response.status(this.codes.ok).send({
+			return await response.status(this.codes.ok).send({
 				code: this.codes.ok,
-				message: evaled
+				message: evaled,
 			});
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				return response.status(this.codes.badReq).send({
-					code: this.Utils.FoldCodes.evalError,
-					message: `${error.message}`
+					code: this.Utils.foldCodes.evalError,
+					message: `${error.message}`,
 				});
 			}
 
 			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.evalError,
-				message: 'Unknown Eval Error. No error object returned.'
+				code: this.Utils.foldCodes.evalError,
+				message: 'Unknown Eval Error. No error object returned.',
 			});
 		}
 	}

@@ -19,14 +19,15 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 import wlogger from '../../../../Structures/winston-logger';
 
 /**
  * @classdesc Delete an admin notification.
  */
-class DelANotify extends Path {
+class DelAdminNotify extends Path {
 	constructor(core: Core) {
 		super(core);
 		this.label = 'API/Admin Delete notification';
@@ -40,28 +41,30 @@ class DelANotify extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
-					}
+						id: {type: 'string'},
+					},
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -69,7 +72,7 @@ class DelANotify extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Authorize the user as admin, or throw error.
 		const auth = await this.checkAuthAdmin(request);
@@ -81,7 +84,7 @@ class DelANotify extends Path {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing notification ID'
+				message: 'Missing notification ID',
 			});
 		}
 
@@ -89,8 +92,8 @@ class DelANotify extends Path {
 		const notify = await this.core.db.findAdminNotify({id: request.params.id});
 		if (!notify) {
 			return response.status(this.codes.notFound).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'Notification not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'Notification not found!',
 			});
 		}
 
@@ -98,14 +101,14 @@ class DelANotify extends Path {
 		if (notify.title === 'New user signup!') {
 			return response.status(this.codes.forbidden).send({
 				code: this.codes.forbidden,
-				message: 'Signup notifications cannot be removed!'
+				message: 'Signup notifications cannot be removed!',
 			});
 		}
 
 		// Remove the admin notification and tell the admin it was removed
 		await this.core.db.purgeAdminNotify({id: request.params.id});
 		wlogger.info(
-			`[SYSTEM] Admin notification ${notify.id} removed by ${auth.username}!`
+			`[SYSTEM] Admin notification ${notify.id} removed by ${auth.username}!`,
 		);
 		return response
 			.status(this.codes.ok)
@@ -113,4 +116,4 @@ class DelANotify extends Path {
 	}
 }
 
-export default DelANotify;
+export default DelAdminNotify;

@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc Ban a user via ID
@@ -38,36 +39,38 @@ class Ban extends Path {
 				body: {
 					type: 'object',
 					properties: {
-						reason: {type: 'string'}
+						reason: {type: 'string'},
 					},
-					required: ['reason']
+					required: ['reason'],
 				},
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -78,28 +81,28 @@ class Ban extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		if (!/^\d+$/.test(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing requirements'
+				message: 'Missing requirements',
 			});
 		}
 
 		const user = await this.core.db.findUser({id: request.params.id});
 		if (!user) {
 			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'User not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'User not found!',
 			});
 		}
 
@@ -111,7 +114,7 @@ class Ban extends Path {
 					user.email,
 					request.body.reason,
 					user.username,
-					url
+					url,
 				);
 			}
 
@@ -119,13 +122,13 @@ class Ban extends Path {
 			await this.core.db.purgeUser(user.id);
 			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
-				message: 'OK'
+				message: 'OK',
 			});
 		}
 
 		return response.status(this.codes.notAccepted).send({
 			code: this.codes.notAccepted,
-			message: 'BAN FAILED'
+			message: 'BAN FAILED',
 		});
 	}
 }
