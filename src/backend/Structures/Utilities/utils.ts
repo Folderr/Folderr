@@ -456,8 +456,10 @@ class Utils {
 		validationToken: string,
 		userID: string,
 	): Promise<PendingMember | false> {
-		const user: PendingMember | undefined | undefined =
-			await this.#core.db.findVerify({id: userID});
+		// eslint-disable-next-line @typescript-eslint/ban-types
+		const user: PendingMember | null = await this.#core.db.findVerify({
+			id: userID,
+		});
 		if (!user) {
 			return false;
 		}
