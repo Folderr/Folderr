@@ -1,22 +1,27 @@
 services:
-  folderr:
+  folderr-dev:
     build:
-      context: .
+      context: ../
       target: dev
       args:
         installtype: -D
         buildcmd: build
     depends_on:
-      - db
+      - mongo
     volumes:
-      - folderr-images:/usr/fldrr/Files
+      - folderr:/usr/fldrr/Files
+      - keys:/usr/fldrr/internal
     environment:
       NODE_ENV: dev
-  db:
+      DEBUG: true
+    ports:
+      - 8888:8888
+  mongo:
     image: mongo
     restart: always
     volumes:
       - db-data:/data/mongodb
 volumes:
   db-data:
-  folderr-images:
+  folderr:
+  keys:
