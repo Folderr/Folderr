@@ -19,9 +19,10 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 
 /**
  * @classdesc Allows admins to look up accounts
@@ -38,29 +39,31 @@ class LookupAccount extends Path {
 					type: 'object',
 					properties: {
 						id: {type: 'string'},
-						type: {type: 'string'}
+						type: {type: 'string'},
 					},
-					required: ['id', 'type']
+					required: ['id', 'type'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'object'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -69,15 +72,15 @@ class LookupAccount extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed'
+				message: 'Authorization failed',
 			});
 		}
 
@@ -87,7 +90,7 @@ class LookupAccount extends Path {
 		) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing or invalid requirements'
+				message: 'Missing or invalid requirements',
 			});
 		}
 
@@ -99,19 +102,19 @@ class LookupAccount extends Path {
 			const formattedType = request.params.type === 'file' ? 'File' : 'Link';
 			console.log(formattedType);
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: `${formattedType} not found!`
+				code: this.Utils.foldCodes.dbNotFound,
+				message: `${formattedType} not found!`,
 			});
 		}
 
 		const user = await this.core.db.findUser(
 			{id: out.owner},
-			'id username email created'
+			'id username email created',
 		);
 		if (!user) {
 			return response.status(this.codes.ok).send({
-				code: this.Utils.FoldCodes.noUserFound,
-				message: {}
+				code: this.Utils.foldCodes.noUserFound,
+				message: {},
 			});
 		}
 
@@ -120,8 +123,8 @@ class LookupAccount extends Path {
 			message: {
 				username: user.username,
 				id: user.id,
-				created: Number(user.createdAt)
-			}
+				created: Number(user.createdAt),
+			},
 		});
 	}
 }

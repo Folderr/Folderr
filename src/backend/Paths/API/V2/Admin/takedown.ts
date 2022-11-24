@@ -19,9 +19,10 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 
 /**
  * @classdesc Admin endpoint for removing a users content
@@ -44,6 +45,7 @@ class Takedown extends Path {
 					required: ['type', 'id'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
@@ -69,6 +71,7 @@ class Takedown extends Path {
 			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async takedownFile(
 		id: string,
@@ -90,7 +93,7 @@ class Takedown extends Path {
 			return {
 				httpCode: this.codes.notAccepted,
 				msg: {
-					code: this.Utils.FoldCodes.dbNotFound,
+					code: this.Utils.foldCodes.dbNotFound,
 					message: 'File not found!',
 				},
 			};
@@ -144,7 +147,7 @@ class Takedown extends Path {
 			return {
 				httpCode: this.codes.notAccepted,
 				msg: {
-					code: this.Utils.FoldCodes.dbNotFound,
+					code: this.Utils.foldCodes.dbNotFound,
 					message: 'Link not found!',
 				},
 			};
@@ -218,7 +221,7 @@ class Takedown extends Path {
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				return response.status(this.codes.internalErr).send({
-					code: this.Utils.FoldCodes.unkownError,
+					code: this.Utils.foldCodes.unkownError,
 					message: `An error occurred!\n${error.message}`,
 				});
 			}
@@ -229,7 +232,7 @@ class Takedown extends Path {
 			);
 
 			return response.status(this.codes.internalErr).send({
-				code: this.Utils.FoldCodes.unkownError,
+				code: this.Utils.foldCodes.unkownError,
 				message: 'An unknown error occurred with this operation!',
 			});
 		}

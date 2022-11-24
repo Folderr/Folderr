@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc View the admin notification
@@ -38,29 +39,31 @@ class AdminNotification extends Path {
 				params: {
 					type: 'object',
 					properties: {
-						id: {type: 'string'}
+						id: {type: 'string'},
 					},
-					required: ['id']
+					required: ['id'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					'2xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -68,14 +71,14 @@ class AdminNotification extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -83,7 +86,7 @@ class AdminNotification extends Path {
 		if (!request.params.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Notification ID required!'
+				message: 'Notification ID required!',
 			});
 		}
 
@@ -91,8 +94,8 @@ class AdminNotification extends Path {
 		const notify = await this.core.db.findAdminNotify({id: request.params.id});
 		if (!notify) {
 			return response.status(this.codes.noContent).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: []
+				code: this.Utils.foldCodes.dbNotFound,
+				message: [],
 			});
 		}
 

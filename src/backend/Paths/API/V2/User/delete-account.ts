@@ -19,14 +19,15 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 
-interface DelReturns {
+type DelReturns = {
 	code: number;
 	mess: {code: number; message: string};
-}
+};
 
 /**
  * @classdesc Delete account. Admins can delete others accounts
@@ -45,35 +46,37 @@ class DelAccount extends Path {
 				querystring: {
 					type: 'object',
 					properties: {
-						userid: {type: 'string'}
-					}
+						userid: {type: 'string'},
+					},
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					500: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	/**
 	 * @desc Delete the account, separate function to make things be CLEAN
@@ -88,7 +91,7 @@ class DelAccount extends Path {
 			await this.core.db.purgeUser(id);
 			return {
 				code: this.codes.ok,
-				mess: {code: this.codes.ok, message: 'Account deleted!'}
+				mess: {code: this.codes.ok, message: 'Account deleted!'},
 			};
 		} catch (error: unknown) {
 			// If an error occurs, tell the user that an error occured
@@ -96,14 +99,14 @@ class DelAccount extends Path {
 			const formattedError = declaredError.message || (error as string);
 			this.core.logger.error(
 				// eslint disable-next-line max-len
-				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
+				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`,
 			);
 			return {
 				code: this.codes.internalErr,
 				mess: {
 					code: this.codes.internalErr,
-					message: `Account deletion error - ${formattedError}`
-				}
+					message: `Account deletion error - ${formattedError}`,
+				},
 			};
 		}
 	}
@@ -114,14 +117,14 @@ class DelAccount extends Path {
 				userid?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = await this.Utils.authPassword(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -132,7 +135,7 @@ class DelAccount extends Path {
 			if (!auth.admin) {
 				return response.status(this.codes.unauth).send({
 					code: this.codes.unauth,
-					message: 'Authorization failed.'
+					message: 'Authorization failed.',
 				});
 			}
 
@@ -140,8 +143,8 @@ class DelAccount extends Path {
 			const mem = await this.core.db.findUser({id: request.query.userid});
 			if (!mem) {
 				return response.status(this.codes.notFound).send({
-					code: this.Utils.FoldCodes.dbNotFound,
-					message: 'User not found!'
+					code: this.Utils.foldCodes.dbNotFound,
+					message: 'User not found!',
 				});
 			}
 
@@ -149,21 +152,21 @@ class DelAccount extends Path {
 			if (mem.owner) {
 				return response.status(this.codes.forbidden).send({
 					code: this.codes.forbidden,
-					message: 'You can not delete that account as they are the owner!'
+					message: 'You can not delete that account as they are the owner!',
 				});
 			}
 
 			if (mem.admin && !auth.owner) {
 				return response.status(this.codes.forbidden).send({
 					code: this.codes.forbidden,
-					message: 'You cannot delete another admins account!'
+					message: 'You cannot delete another admins account!',
 				});
 			}
 
 			// Delete the account
 			out = await this.deleteAccount(auth, request.query.userid);
 			this.core.logger.info(
-				`Account ${mem.id} deleted by administrator (${auth.username} - ${auth.id})`
+				`Account ${mem.id} deleted by administrator (${auth.username} - ${auth.id})`,
 			);
 			this.core.addDeleter(request.query.userid);
 			return response.status(out.code).send(out.mess);
@@ -173,7 +176,7 @@ class DelAccount extends Path {
 		if (auth.owner) {
 			return response.status(this.codes.forbidden).send({
 				message: 'You can not delete your account as you are the owner!',
-				code: this.codes.forbidden
+				code: this.codes.forbidden,
 			});
 		}
 

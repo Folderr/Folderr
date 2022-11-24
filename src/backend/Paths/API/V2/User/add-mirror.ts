@@ -19,28 +19,30 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {JTDSchemaType} from 'ajv/dist/jtd';
+import AJV from 'ajv/dist/jtd';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
-interface MirrorResponse {
+type MirrorResponse = {
 	message: {
 		res: string;
 		token: string;
 	};
-}
+};
 
 const msgschema: JTDSchemaType<MirrorResponse['message']> = {
 	properties: {
 		res: {type: 'string'},
-		token: {type: 'string'}
-	}
+		token: {type: 'string'},
+	},
 };
 
 const schema: JTDSchemaType<MirrorResponse> = {
 	properties: {
-		message: msgschema
-	}
+		message: msgschema,
+	},
 };
 
 const ajv = new AJV();
@@ -62,36 +64,38 @@ class MirrorAdd extends Path {
 				body: {
 					type: 'object',
 					properties: {
-						url: {type: 'string'}
+						url: {type: 'string'},
 					},
-					required: ['url']
+					required: ['url'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					'5xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -99,21 +103,21 @@ class MirrorAdd extends Path {
 				url: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		if (!/http(s)?:\/\//.test(request.body.url)) {
 			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.mirrorInvalidUrl,
-				message: 'Invalid Mirror URL'
+				code: this.Utils.foldCodes.mirrorInvalidUrl,
+				message: 'Invalid Mirror URL',
 			});
 		}
 
@@ -124,7 +128,7 @@ class MirrorAdd extends Path {
 			u = await this.Utils.determineHomeURL(request);
 			const out = await this.Utils.authorization.genMirrorKey(
 				u,
-				request.body.url
+				request.body.url,
 			);
 			id = out.id;
 			r = await this.core.got.post<MirrorResponse>(
@@ -135,15 +139,15 @@ class MirrorAdd extends Path {
 					json: {
 						url: u,
 						owner: auth.id,
-						token: out.key
-					}
-				}
+						token: out.key,
+					},
+				},
 			);
 		} catch (error: unknown) {
 			if (!error || !(error instanceof Error)) {
 				return response.status(this.codes.internalErr).send({
-					code: this.Utils.FoldCodes.unkownError,
-					message: 'Unknown error occured'
+					code: this.Utils.foldCodes.unkownError,
+					message: 'Unknown error occured',
 				});
 			}
 
@@ -154,21 +158,21 @@ class MirrorAdd extends Path {
 				/Not Found|\[FAIL]/.test(error.message)
 			) {
 				return response.status(this.codes.notAccepted).send({
-					code: this.Utils.FoldCodes.mirrorReject,
-					message: 'Mirror failed Validation'
+					code: this.Utils.foldCodes.mirrorReject,
+					message: 'Mirror failed Validation',
 				});
 			}
 
 			return response.status(this.codes.internalErr).send({
-				code: this.Utils.FoldCodes.unkownError,
-				message: 'Something unknown happened.'
+				code: this.Utils.foldCodes.unkownError,
+				message: 'Something unknown happened.',
 			});
 		}
 
 		if (!r || !r.body) {
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.mirrorReject,
-				message: 'Mirror failed Validation'
+				code: this.Utils.foldCodes.mirrorReject,
+				message: 'Mirror failed Validation',
 			});
 		}
 
@@ -179,25 +183,26 @@ class MirrorAdd extends Path {
 						message,
 						id,
 						u,
-						request.body.url
+						request.body.url,
 				  )
 				: false;
 		if (!valid) {
 			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.FoldCodes.mirrorReject,
-				message: 'Mirror failed Validation'
+				code: this.Utils.foldCodes.mirrorReject,
+				message: 'Mirror failed Validation',
 			});
 		}
 
 		await this.core.db.updateUser(
 			{
-				id: auth.id
+				id: auth.id,
 			},
 			{
 				$addToSet: {
-					cURLs: request.body.url
-				}
-			}
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					cURLs: request.body.url,
+				},
+			},
 		);
 		return response
 			.status(this.codes.ok)

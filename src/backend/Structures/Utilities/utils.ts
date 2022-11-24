@@ -21,51 +21,55 @@
 
 import {promisify} from 'util';
 import crypto from 'crypto';
+import buffer from 'buffer';
 import argon2 from 'argon2';
 import * as uuid from 'uuid';
-import AJV, {JTDSchemaType} from 'ajv/dist/jtd';
-import {FastifyRequest} from 'fastify';
-import {User as UI, PendingMember} from '../Database/db-class';
-import {Core, Authorization} from '../../internals';
+import type {JTDSchemaType} from 'ajv/dist/jtd';
+import AJV from 'ajv/dist/jtd';
+import type {FastifyRequest} from 'fastify';
+import type {User as UI, PendingMember} from '../Database/db-class';
+import type {Core} from '../../internals';
+import {Authorization} from '../../internals';
 import * as constants from '../constants/index';
-import {FoldCodesI, FoldCodes} from './fold-codes';
+import type {FoldCodesI} from './fold-codes';
+import {FoldCodes} from './fold-codes';
 
-interface MirrorResponse {
+type MirrorResponse = {
 	message: {
 		res: string;
 	};
-}
+};
 
-interface APIResponse {
+type ApiResponse = {
 	message: {
 		message: string;
 	};
-}
+};
 
 const ajv = new AJV();
 
 const msgschema: JTDSchemaType<MirrorResponse['message']> = {
 	properties: {
-		res: {type: 'string'}
-	}
+		res: {type: 'string'},
+	},
 };
 
 const mirrorschema: JTDSchemaType<MirrorResponse> = {
 	properties: {
-		message: msgschema
-	}
+		message: msgschema,
+	},
 };
 
-const apimsg: JTDSchemaType<APIResponse['message']> = {
+const apimsg: JTDSchemaType<ApiResponse['message']> = {
 	properties: {
-		message: {type: 'string'}
-	}
+		message: {type: 'string'},
+	},
 };
 
-const apiresponse: JTDSchemaType<APIResponse> = {
+const apiresponse: JTDSchemaType<ApiResponse> = {
 	properties: {
-		message: apimsg
-	}
+		message: apimsg,
+	},
 };
 
 const mirrorparse = ajv.compileParser(mirrorschema);
@@ -74,10 +78,10 @@ const apiparse = ajv.compileParser(apiresponse);
 const sleep = promisify(setTimeout);
 const generateKeyPair = promisify(crypto.generateKeyPair);
 
-interface TokenReturn {
+type TokenReturn = {
 	token: string;
 	hash: string;
-}
+};
 
 /**
  * @param {Folderr} core The Core of the project
@@ -91,7 +95,7 @@ class Utils {
 
 	public authorization: Authorization;
 
-	public FoldCodes: FoldCodesI;
+	public foldCodes: FoldCodesI;
 
 	#core: Core;
 
@@ -107,7 +111,7 @@ class Utils {
 		this.byteSize = 48;
 		this.#core = core;
 		this.authorization = new Authorization(core);
-		this.FoldCodes = FoldCodes;
+		this.foldCodes = FoldCodes;
 	}
 
 	/**
@@ -142,7 +146,6 @@ class Utils {
 	// Taken from https://github.com/Khaazz/AxonCore/blob/d597089b80615fdd5ceab8f0a1b1d83f70fc5187/src/Utility/Utils.js#L355
 	async sleep(ms: number): Promise<void> {
 		await sleep(ms);
-		return Promise.resolve();
 	}
 
 	/**
@@ -150,7 +153,7 @@ class Utils {
 	 * @param {string} [passphrase] The passphrase for the private key
 	 */
 	async genKeyPair(
-		passphrase?: string
+		passphrase?: string,
 	): Promise<{privateKey: string; publicKey: string}> {
 		const privateKeyEncoding: {
 			format: 'pem';
@@ -164,20 +167,20 @@ class Utils {
 		}
 
 		return generateKeyPair('rsa', {
-			modulusLength: 512,
+			modulusLength: 2048,
 			publicKeyEncoding: {
 				format: 'pem',
-				type: 'spki'
+				type: 'spki',
 			},
-			privateKeyEncoding
+			privateKeyEncoding,
 		});
 	}
 
 	verifyKeyMatch(keys: {
-		private: Buffer | string;
-		public: Buffer | string;
+		private: buffer.Buffer | string;
+		public: buffer.Buffer | string;
 	}): boolean {
-		const testdata = Buffer.from('I am a test!');
+		const testdata = buffer.Buffer.from('I am a test!');
 		let decrypted;
 		try {
 			const encrypted = crypto.publicEncrypt(keys.public, testdata);
@@ -203,7 +206,7 @@ class Utils {
 	 *
 	 * @returns {Promise<string>}
 	 */
-	async genUID(): Promise<string> {
+	async genUid(): Promise<string> {
 		// Minimum and max id length
 		const max = 22;
 		const min = 18;
@@ -211,18 +214,18 @@ class Utils {
 		const wut = 1;
 		// Pick between 18 and 22
 		const number = Math.floor(Math.random() * (max - min + wut)) + min;
-		let uID = '';
+		let userid = '';
 		// Min and max numbers
 		const maxChar = 9;
 		const minChar = 1;
 		// Generate the user ID
 		for (let i = 0; i < number; i++) {
-			uID += String(
-				Math.floor(Math.random() * (maxChar - minChar + wut)) + minChar
+			userid += String(
+				Math.floor(Math.random() * (maxChar - minChar + wut)) + minChar,
 			);
 		}
 
-		return Promise.resolve(uID);
+		return userid;
 	}
 
 	/**
@@ -230,11 +233,11 @@ class Utils {
 	 *
 	 * Generate a ID using uuid
 	 */
-	genV4UUID(): string {
+	genV4uuid(): string {
 		return uuid.v4();
 	}
 
-	validateUUID(id: string, version: 4 | 5) {
+	validateUuid(id: string, version: 4 | 5) {
 		if (version === 5 && uuid.version(id) === 5 && uuid.validate(id)) {
 			return true;
 		}
@@ -254,6 +257,7 @@ class Utils {
 	 *
 	 * @returns {Promise<string>}
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async genID(): Promise<string> {
 		// Generate a random ID
 		const bytesToGen = 10;
@@ -265,11 +269,11 @@ class Utils {
 			.replace(/[+/=\\]/g, '')
 			.slice(min, max);
 		let toReturn = true;
-		const [Upload, Link] = await Promise.all([
+		const [upload, link] = await Promise.all([
 			this.#core.db.findFile({id}, 'id'),
-			this.#core.db.findLink({id}, 'id')
+			this.#core.db.findLink({id}, 'id'),
 		]);
-		if (Upload || Link) {
+		if (upload ?? link) {
 			toReturn = false;
 		}
 
@@ -296,14 +300,14 @@ class Utils {
 		const match: boolean = this.#core.regexs.password.test(password);
 		if (password.length < minPass || !match) {
 			throw new Error( // eslint disable-next-line max-len
-				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`
+				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`,
 			);
 		}
 
 		// If the password is too long
 		if (password.length > maxPass) {
 			throw new Error(
-				`[PSW2] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED}`
+				`[PSW2] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED}`,
 			);
 		}
 
@@ -323,9 +327,10 @@ class Utils {
 	 * @param {Object[]} notifs The notifications IDs to ignore
 	 * @returns {Promise<string|Promise<*>>}
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async genNotifyID(): Promise<string> {
 		// Gen the ID, and dont let the ID equal a already made notify id
-		const id: string = await this.genUID();
+		const id: string = await this.genUid();
 		const notify = await this.#core.db.findAdminNotify({id});
 		if (notify) {
 			// Retry if notify exists
@@ -351,14 +356,14 @@ class Utils {
 			.randomBytes(this.byteSize)
 			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
-		const uID = Buffer.from(r)
+		const userid = buffer.Buffer.from(r)
 			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
-		const date = Buffer.from(new Date().getUTCMilliseconds().toString())
+		const date = buffer.Buffer.from(new Date().getUTCMilliseconds().toString())
 			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
 		// Combine, hash, and return the hashed and unhashed token
-		const token = `${uID}.${random}.${date}`;
+		const token = `${userid}.${random}.${date}`;
 		const hash = await argon2.hash(token, {timeCost: this.saltRounds});
 		return {token, hash};
 	}
@@ -374,7 +379,7 @@ class Utils {
 	 */
 	async authPassword(
 		request: FastifyRequest,
-		fn?: (arg0: UI) => boolean
+		fn?: (arg0: UI) => boolean,
 	): Promise<UI | false> {
 		// Make sure all of the auth stuff is there
 		if (!request.headers.password && !request.headers.username) {
@@ -394,7 +399,7 @@ class Utils {
 		}
 
 		const user = await this.#core.db.findUser({
-			username: request.headers.username
+			username: request.headers.username,
 		});
 		if (!user) {
 			return false;
@@ -449,9 +454,9 @@ class Utils {
 	 */
 	async findVerifying(
 		validationToken: string,
-		userID: string
+		userID: string,
 	): Promise<PendingMember | false> {
-		const user: PendingMember | undefined | null =
+		const user: PendingMember | undefined | undefined =
 			await this.#core.db.findVerify({id: userID});
 		if (!user) {
 			return false;
@@ -464,11 +469,12 @@ class Utils {
 		return user;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async testMirrorURL(url: string): Promise<boolean> {
 		try {
 			const test = await this.#core.got.get<MirrorResponse>(`${url}/api`, {
 				responseType: 'json',
-				parseJson: mirrorparse
+				parseJson: mirrorparse,
 			});
 			if (!test || !test.body) {
 				return false;
@@ -484,6 +490,7 @@ class Utils {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async determineHomeURL(request: FastifyRequest): Promise<string> {
 		const protocol = `${request.protocol || 'http'}://`;
 		let host = request.hostname;
@@ -492,12 +499,12 @@ class Utils {
 		}
 
 		try {
-			const test = await this.#core.got.get<APIResponse>(
+			const test = await this.#core.got.get<ApiResponse>(
 				`${this.#core.config.url}/api`,
 				{
 					responseType: 'json',
-					parseJson: apiparse
-				}
+					parseJson: apiparse,
+				},
 			);
 			if (!test) {
 				return `${protocol}${host}`;

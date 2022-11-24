@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 /**
  * @classdesc Admin can deny a users account
@@ -40,29 +41,31 @@ class DenyAccount extends Path {
 					type: 'object',
 					properties: {
 						token: {type: 'string'},
-						userid: {type: 'string'}
+						userid: {type: 'string'},
 					},
-					required: ['token', 'userid']
+					required: ['token', 'userid'],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							code: {type: 'number'},
+						},
 					},
 					200: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -71,26 +74,26 @@ class DenyAccount extends Path {
 				token: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth by id/token
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		// Search for the user, and if not found send in an error
 		const user = await this.Utils.findVerifying(
 			request.body.token,
-			request.body.userid
+			request.body.userid,
 		);
 		if (!user) {
 			return response.status(this.codes.notFound).send({
-				code: this.Utils.FoldCodes.dbNotFound,
-				message: 'User not found!'
+				code: this.Utils.foldCodes.dbNotFound,
+				message: 'User not found!',
 			});
 		}
 
@@ -98,7 +101,7 @@ class DenyAccount extends Path {
 		await this.core.db.denyUser(user.id);
 		// Log that the account was denied by admin x, and tell the admin the account was denied
 		this.core.logger.info(
-			`User account denied by administrator (${user.username} - ${user.id})`
+			`User account denied by administrator (${user.username} - ${user.id})`,
 		);
 		return response
 			.status(this.codes.ok)

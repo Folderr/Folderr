@@ -25,8 +25,9 @@ import {createWriteStream} from 'fs';
 import {promisify} from 'util';
 import {pipeline} from 'stream';
 import {unlink} from 'fs/promises';
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 const pump = promisify(pipeline);
 
@@ -46,6 +47,7 @@ class Image extends Path {
 		this.options = {
 			schema: {
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
@@ -67,6 +69,7 @@ class Image extends Path {
 			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(request: FastifyRequest, response: FastifyReply) {
 		const auth = await this.checkAuth(request);
@@ -81,7 +84,7 @@ class Image extends Path {
 
 		if (!file || !file.file) {
 			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.noFile,
+				code: this.Utils.foldCodes.noFile,
 				message: 'File not found!',
 			});
 		}
@@ -98,13 +101,13 @@ class Image extends Path {
 			) {
 				await unlink(`${dir}/${name}.${fext}`);
 				return response.status(this.codes.badReq).send({
-					code: this.Utils.FoldCodes.fileSizeLimit,
+					code: this.Utils.foldCodes.fileSizeLimit,
 					message: 'File is over size. Max size is 1GB',
 				});
 			}
 
 			return response.status(this.codes.internalErr).send({
-				code: this.Utils.FoldCodes.fileParserError,
+				code: this.Utils.foldCodes.fileParserError,
 				message: `Parser error!\n${
 					error instanceof Error ? error.message : (error as string)
 				}`,
@@ -114,7 +117,7 @@ class Image extends Path {
 		if (file.file.truncated) {
 			await unlink(`${dir}/${name}.${fext}`);
 			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.fileSizeLimit,
+				code: this.Utils.foldCodes.fileSizeLimit,
 				message: 'File is over size. Max size is 1GB',
 			});
 		}
@@ -122,7 +125,7 @@ class Image extends Path {
 		if (!file.mimetype) {
 			await unlink(`${dir}/${name}.${fext}`);
 			return response.status(this.codes.badReq).send({
-				code: this.Utils.FoldCodes.fileMimeError,
+				code: this.Utils.foldCodes.fileMimeError,
 				message: 'Invalid file!',
 			});
 		}

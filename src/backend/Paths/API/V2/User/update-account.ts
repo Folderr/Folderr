@@ -21,9 +21,10 @@
 
 import process from 'process';
 import argon2 from 'argon2';
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import type {FastifyRequest, FastifyReply} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {User} from '../../../../Structures/Database/db-class';
 import * as constants from '../../../../Structures/constants/index';
 
 type UpdateAccBody =
@@ -67,6 +68,7 @@ class UpdateAcc extends Path {
 					additionalProperties: false,
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					'4xx': {
 						type: 'object',
 						properties: {
@@ -92,6 +94,7 @@ class UpdateAcc extends Path {
 			},
 		};
 	}
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -160,7 +163,7 @@ class UpdateAcc extends Path {
 				}
 
 				return response.status(this.codes.internalErr).send({
-					code: this.Utils.FoldCodes.unkownError,
+					code: this.Utils.foldCodes.unkownError,
 					message: 'An unknown error has occured!',
 				});
 			}
@@ -169,7 +172,7 @@ class UpdateAcc extends Path {
 				`Database failed to update user - ${error.message}`,
 			);
 			return response.status(this.codes.internalErr).send({
-				code: this.Utils.FoldCodes.dbUnkownError,
+				code: this.Utils.foldCodes.dbUnkownError,
 				message: 'An unknown error encountered while updating your account',
 			});
 		}
@@ -204,7 +207,7 @@ class UpdateAcc extends Path {
 				return {
 					httpCode: this.codes.internalErr,
 					message: {
-						code: this.Utils.FoldCodes.unkownError,
+						code: this.Utils.foldCodes.unkownError,
 						message:
 							'An unknown error occured with the handling of the password!',
 					},
@@ -215,7 +218,7 @@ class UpdateAcc extends Path {
 				return {
 					httpCode: this.codes.badReq,
 					message: {
-						code: this.Utils.FoldCodes.passwordSize,
+						code: this.Utils.foldCodes.passwordSize,
 						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS,
 					},
 				};
@@ -225,7 +228,7 @@ class UpdateAcc extends Path {
 				return {
 					httpCode: this.codes.badReq,
 					message: {
-						code: this.Utils.FoldCodes.illegalPassword,
+						code: this.Utils.foldCodes.illegalPassword,
 						message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED,
 					},
 				};
@@ -235,7 +238,7 @@ class UpdateAcc extends Path {
 				return {
 					httpCode: this.codes.badReq,
 					message: {
-						code: this.Utils.FoldCodes.illegalPassword,
+						code: this.Utils.foldCodes.illegalPassword,
 						message: 'NUL character not allowed in password!',
 					},
 				};
@@ -312,7 +315,7 @@ class UpdateAcc extends Path {
 			return {
 				httpCode: this.codes.notImplemented,
 				message: {
-					code: this.Utils.FoldCodes.emailerNotConfigured,
+					code: this.Utils.foldCodes.emailerNotConfigured,
 					message: 'Emailer not configured. Unable to update email.',
 				},
 				accepted: false,
@@ -324,7 +327,7 @@ class UpdateAcc extends Path {
 			return {
 				httpCode: this.codes.forbidden,
 				message: {
-					code: this.Utils.FoldCodes.bannedEmail,
+					code: this.Utils.foldCodes.bannedEmail,
 					message: 'Email banned',
 				},
 				accepted: false,
@@ -391,7 +394,7 @@ class UpdateAcc extends Path {
 				return {
 					httpCode: this.codes.badReq,
 					message: {
-						code: this.Utils.FoldCodes.usernameSizeLimit,
+						code: this.Utils.foldCodes.usernameSizeLimit,
 						message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH,
 					},
 				};
@@ -404,7 +407,7 @@ class UpdateAcc extends Path {
 				return {
 					httpCode: this.codes.badReq,
 					message: {
-						code: this.Utils.FoldCodes.illegalUsername,
+						code: this.Utils.foldCodes.illegalUsername,
 						message:
 							constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS,
 					},
@@ -418,7 +421,7 @@ class UpdateAcc extends Path {
 				return {
 					httpCode: this.codes.used,
 					message: {
-						code: this.Utils.FoldCodes.usernameOrEmailTaken,
+						code: this.Utils.foldCodes.usernameOrEmailTaken,
 						message: 'Username taken!',
 					},
 				};
@@ -431,7 +434,7 @@ class UpdateAcc extends Path {
 			httpCode: 226,
 			message: {
 				message: 'You already have this username',
-				code: this.Utils.FoldCodes.usernameOrEmailTaken,
+				code: this.Utils.foldCodes.usernameOrEmailTaken,
 			},
 		};
 	}
