@@ -7,7 +7,6 @@ import * as userChecks from './nav-gaurds/user-checks';
 // Pages
 
 import Index from './pages/Index.vue';
-import Login from './pages/Login.vue';
 import NotFound from './pages/404.vue';
 import Account from './pages/Account.vue';
 import Upload from './pages/Upload.vue';
@@ -18,11 +17,6 @@ const routes = [
 	{
 		path: '/',
 		component: Index,
-		beforeEnter: userGuards.authGuard,
-	},
-	{
-		path: '/login',
-		component: Login,
 		beforeEnter: userGuards.authGuard,
 	},
 	{
