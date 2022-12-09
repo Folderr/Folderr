@@ -14,7 +14,7 @@
             <NFlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm" v-bind:showInput="false">
                 <p class="text-secondary-text mt-10">This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br></p>
                 <template #warning>
-                    <div class="flex items-center p-2 pr-4 text-text bg-yellow-700 text-center border-2 border-yellow-700 rounded-lg mt-4 lg:w-max max-w-max w-4/5">
+                    <div class="flex items-center justify-center p-2 px-8 text-text font-bold bg-yellow-600 text-center border-2 border-yellow-600 rounded-lg mt-4 md:max-w-screen-sm 3xl:max-w-full break-words max-w-screen-sm font-info">
                         <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 mr-4" aria-hidden="true"/>
                         <b>This action is irreversible. All of your data will be removed.</b>
                     </div>
@@ -31,7 +31,7 @@
                 placeholder="Something descriptive"
                 v-bind:needInput="true"
             >
-                <p class="text-secondary-text mt-2">Input a description for your token below</p>
+                <p class="text-secondary-text mt-2 font-info">Input a description for your token below</p>
             </NFlexibleModal>
             <FlexibleModal
                 v-bind:hide="modals.tokens.showDetails"
@@ -43,20 +43,20 @@
                 v-bind:showInput="false"
             >
                 <template #warning>
-                    <div class="flex items-center justify-center p-2 px-8 text-text bg-yellow-600 text-center border-2 border-yellow-600 rounded-lg mt-4 md:max-w-screen-sm 3xl:max-w-full break-words max-w-screen-sm">
+                    <div class="flex items-center justify-center p-2 px-8 text-text font-bold bg-yellow-600 text-center border-2 border-yellow-600 rounded-lg mt-4 md:max-w-screen-sm 3xl:max-w-full break-words max-w-screen-sm font-info">
                         <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 justify-center mr-4" aria-hidden="true"/>
                         You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
                     </div>
                 </template>
                 
                 <div class="text-text mt-4 text-lg">
-                    <p><b>Token:</b></p>
+                    <h1 class="font-info"><b>Token:</b></h1>
                     <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-2">
                         <input
                             readonly
                             title="Your API authentication token"
                             v-bind:value='tokenInfo.token'
-                            class="bg-tertiary-bg text-text p-4 placeholder-secondary-text rounded-lg w-full truncate"
+                            class="bg-tertiary-bg p-4 placeholder-secondary-text rounded-lg w-full truncate font-input text-secondary-text text-sm"
                             >
                         <button
                             v-on:click="copy(tokenInfo.token)"
@@ -68,12 +68,12 @@
                         </button>
                     </div>
                     <div class="my-4">
-                        <h2>Description:</h2>
-                        <p class="text-md bg-tertiary-bg w-max px-4 py-4 rounded-lg mt-2">{{tokenInfo.description}}</p>
+                        <h2 class="text-text font-info">Description</h2>
+                        <p class="text-sm font-input text-secondary-text max-w-max py-2 rounded-lg mt-2">{{tokenInfo.description}}</p>
                     </div>
                     <div>
-                        <h2 class="text-text text-md">ShareX configuration</h2>
-                        <div class="bg-secondary-bg rounded-md p-4 truncate">
+                        <h2 class="text-text text-md font-info">ShareX configuration</h2>
+                        <div class="bg-secondary-bg rounded-md p-4 truncate font-input text-sm">
                             <code>{<br>
                             &emsp;&emsp;"Version": "14.0.1",<br>
                             &emsp;&emsp;"Name": "{{url.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')}} Image Host",<br>
@@ -106,9 +106,9 @@
             </FlexibleModal>
             <SuccessesErrors ref="sne" />
             <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 grow mb-20">
-                <h1 class="text-brand text-3xl mb-10" ref="acct"><b>Account Management</b></h1>
+                <h1 class="text-brand text-3xl mb-10 font-headline" ref="acct"><b>Account Management</b></h1>
                 <!--- Mini-Nav -->
-                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto sticky top-2 z-10">
+                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto sticky top-2 z-10 font-info">
                     <ul class="flex list-none">
                         <li class="p-5 text-secondary-text" :class="[{
                             'bg-[#303030]': activeSection == 'account'
@@ -127,9 +127,9 @@
                         </li>
                     </ul>
                 </div>
-                <div class="m-auto pt-10 text-justify w-5/6 md:w-1/2" >
-                    <h1 class="text-text text-3xl bold lg:ml-20"><b>Account Info</b></h1>
-                    <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Update your Folderr username, email, and password</h2>
+                <div class="m-auto pt-10 text-justify w-5/6 md:w-1/2 font-info" >
+                    <h1 class="text-text text-3xl bold lg:ml-20 font-headline"><b>Account Info</b></h1>
+                    <h2 class="mt-5 text-secondary-text text-lg lg:ml-20 font-info">Update your Folderr username, email, and password</h2>
                     <h3 class="mt-2 text-text text-lg lg:ml-20" v-if="emailerDisabled">You can't change your email as there is no emailer configured to verify a new email.</h3>
                     <div class="mt-10 lg:ml-20">
                         <p
@@ -141,7 +141,7 @@
                             required
                             v-model="username" v-bind:placeholder="oldUsername"
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
-                            class="mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="font-input mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': /^\w{3,16}$/.test(username),
@@ -176,7 +176,7 @@
                             v-model="email"
                             v-bind:disabled="emailerDisabled"
                             v-bind:placeholder="oldEmail"
-                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg caret-brand"
+                            class="font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg caret-brand"
                             :class="[
                                 {
                                     'opacity-50': emailerDisabled,
@@ -205,7 +205,7 @@
                             type="password"
                             label="Current password"
                             placeholder="Current Password"
-                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': oldPasswordValid,
@@ -227,7 +227,7 @@
                             v-model="password"
                             type="password"
                             placeholder="New Password"
-                            class="mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="font-input mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': passwordValid,
@@ -265,7 +265,7 @@
                             v-model="passwordConfirm"
                             type="password"
                             placeholder="Confirm Password"
-                            class="mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': confirmPasswordValid,
@@ -295,7 +295,7 @@
                         ]">Update Password</button>
                     </div>
                     <div class="mt-10 lg:ml-20">
-                        <h2 class="text-text text-2xl"><b>Delete your account</b></h2>
+                        <h2 class="text-text text-2xl font-headline"><b>Delete your account</b></h2>
                         <p v-if="owner" class="text-text text-md mt-4"><b>The owner account cannot be deleted.</b></p>
                         <p class="text-secondary-text text-md mt-2">This will remove all of your data from this instance of Folderr, including files and shortened URLs. Files and shortened links will not be deleted instantly.</p>
                         <p class="text-secondary-text text-md mt-4"><b>This cannot be undone and only applies to this instance of Folderr</b></p>
@@ -328,7 +328,7 @@
                 <!-- Token Management -->
                 <div class="m-auto pt-10 text-justify w-full md:w-1/2" ref="tokendiv">
                     <hr class="border-brand" aria-hidden="true">
-                    <h1 class="text-text text-3xl bold lg:ml-20 pt-10" id="tokens"><b>Token Management</b></h1>
+                    <h1 class="text-text text-3xl bold lg:ml-20 pt-10 font-headline" id="tokens"><b>Token Management</b></h1>
                     <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Create, view, and delete your API tokens</h2>
                     <div>
                         <h3 v-if="tokens.length === 0" class="lg:ml-20 mt-5 text-secondary-text text-md bold"><b>You have no tokens!</b></h3>
@@ -343,17 +343,10 @@
                                 <br>Description: {{ token.description }}</p>
                                 <button
                                         v-on:click="revokeToken(token.id)"
-                                        class="text-secondary-accent border-none w-min"
+                                        class="text-secondary-accent border-none w-min m-auto mr-8"
                                     >
                                         <TrashIcon class="h-10" aria-hidden="true"></TrashIcon>
                                 </button>
-                                
-                                <!--
-                                <button
-                                    v-on:click="revokeToken(token.id)"
-                                    class="ml-4 border-secondary-accent text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 rounded-sm px-4 max-h-min"
-                                >Revoke</button>
-                                -->
                             </li>
                         </ul>
                         <div class="flex">
