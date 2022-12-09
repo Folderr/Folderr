@@ -3,7 +3,7 @@
 	<Dialog :open="hide" @close="cancel" class="bg-opacity-50 bg-black right-0 top-0 w-full z-40 h-[100%] fixed flex flex-col">
 		<DialogPanel class="bg-bg w-4/5 sm:w-4/5 lg:w-2/5 justify-center m-auto p-10 rounded-md border-2 border-bg overflow-auto">
 			<span class="float-right text-text hover:cursor-pointer hover:text-secondary-text" v-on:click="cancel()">&times;</span>
-			<DialogTitle class="text-brand text-lg">{{header}}</DialogTitle>
+			<DialogTitle class="text-brand text-lg font-headline font-semibold">{{header}}</DialogTitle>
 			<!-- Allow for completely custom warnings and other information -->
 			<slot name="warning"></slot>
 			<DialogDescription><slot></slot></DialogDescription>
@@ -15,7 +15,7 @@
 						'focus:ring-secondary-accent': !greenContinue,
 					}
 				]"
-				class="mt-4 mb-4 bg-[#393939] text-text p-4 w-4/5 xl:w-full placeholder-secondary-text focus:outline-none focus:ring rounded-sm"
+				class="mt-4 mb-4 bg-[#393939] text-text p-4 w-4/5 xl:w-full placeholder-secondary-text focus:outline-none focus:ring rounded-sm font-input"
 				v-bind:placeholder="placeholder"
 				v-bind:title="title"
 				v-bind:type="type"
