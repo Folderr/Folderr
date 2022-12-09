@@ -43,14 +43,14 @@
                 v-bind:showInput="false"
             >
                 <template #warning>
-                    <div class="flex items-center justify-center p-2 px-8 text-text font-bold bg-yellow-600 text-center border-2 border-yellow-600 rounded-lg mt-4 md:max-w-screen-sm 3xl:max-w-full break-words max-w-screen-sm font-info">
+                    <div class="flex items-center justify-center p-2 px-8 text-text font-bold bg-yellow-600 text-center border-2 border-yellow-600 rounded-lg mt-4 md:max-w-screen-sm 3xl:max-w-full break-words max-w-screen-sm font-info m-auto">
                         <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 justify-center mr-4" aria-hidden="true"/>
                         You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
                     </div>
                 </template>
                 
                 <div class="text-text mt-4 text-lg">
-                    <h1 class="font-info"><b>Token:</b></h1>
+                    <h1 class="font-info"><b>Token</b></h1>
                     <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-2">
                         <input
                             readonly
