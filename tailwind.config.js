@@ -18,8 +18,8 @@ module.exports = {
 			screens: {
 				lg: '1024px',
 				'2xl': '1536px',
-				'3xl': '2500px',
-			}
+				'3xl': '2400px',
+			},
 		},
 		fontFamily: {
 			headline: ['Raleway'],

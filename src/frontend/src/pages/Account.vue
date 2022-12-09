@@ -43,7 +43,7 @@
                 v-bind:showInput="false"
             >
                 <template #warning>
-                    <div class="flex items-center p-2 px-8 text-text bg-yellow-700 text-center border-2 border-yellow-700 rounded-lg mt-4 lg:w-max max-w-max w-4/5">
+                    <div class="flex items-center justify-center p-2 px-8 text-text bg-yellow-600 text-center border-2 border-yellow-600 rounded-lg mt-4 md:max-w-screen-sm 3xl:max-w-full break-words max-w-screen-sm">
                         <ExclamationIcon class="min-h-6 min-w-6 w-20 h-20 lg:w-10 lg:h-10 text-yellow-300 justify-center mr-4" aria-hidden="true"/>
                         You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
                     </div>
@@ -51,12 +51,12 @@
                 
                 <div class="text-text mt-4 text-lg">
                     <p><b>Token:</b></p>
-                    <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-2 w-max">
+                    <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-2">
                         <input
                             readonly
                             title="Your API authentication token"
                             v-bind:value='tokenInfo.token'
-                            class="bg-tertiary-bg text-text p-4 placeholder-secondary-text rounded-lg"
+                            class="bg-tertiary-bg text-text p-4 placeholder-secondary-text rounded-lg w-full truncate"
                             >
                         <button
                             v-on:click="copy(tokenInfo.token)"
@@ -73,20 +73,20 @@
                     </div>
                     <div>
                         <h2 class="text-text text-md">ShareX configuration</h2>
-                        <div class="bg-secondary-bg rounded-md p-4">
-                            <code><pre>{
-    "Version": "14.0.1",
-    "Name": "{{url.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')}} Image Host",
-    "DestinationType": "ImageUploader, TextUploader, FileUploader",
-    "RequestMethod": "POST",
-    "RequestURL": "{{url}}/api/file",
-    "Headers": {
-        "authorization": "{{tokenInfo.token}}"
-    },
-    "Body": "MultipartFormData",
-    "FileFormName": "image"
-}
-                            </pre></code>
+                        <div class="bg-secondary-bg rounded-md p-4 truncate">
+                            <code>{<br>
+                            &emsp;&emsp;"Version": "14.0.1",<br>
+                            &emsp;&emsp;"Name": "{{url.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')}} Image Host",<br>
+                            &emsp;&emsp;"DestinationType": "ImageUploader, TextUploader, FileUploader",<br>
+                            &emsp;&emsp;"RequestMethod": "POST",<br>
+                            &emsp;&emsp;"RequestURL": "{{url}}/api/file",<br>
+                            &emsp;&emsp;"Headers": {<br>
+                            &emsp;&emsp;&emsp;&emsp;"authorization": "{{tokenInfo.token}}"<br>
+                            &emsp;&emsp;},<br>
+                            &emsp;&emsp;"Body": "MultipartFormData",<br>
+                            &emsp;&emsp;"FileFormName": "image"<br>
+                            }<br>
+                            </code>
                             <!-- I must say. That is a rather annoying break of style.-->
                         </div>
                         <!-- Client side ability to download or copy the config. -->
