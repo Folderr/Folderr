@@ -72,7 +72,6 @@ class Login extends Path {
 	): Promise<FastifyReply> {
 		let auth: false | User = false;
 
-		console.log('Authorize');
 		try {
 			auth = await this.Utils.authPassword(request);
 		} catch (error: unknown) {
