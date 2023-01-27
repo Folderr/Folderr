@@ -1,12 +1,12 @@
 <template>
     <div v-if="loading">
         <div class="bg-bg h-screen flex flex-col ">
-            <Navbar />
+            <FNavbar />
             <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
                 <h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
             </div>
         </div>
-        <Footer />
+        <FFooter />
     </div>
     <div v-if="username">
         <div class="bg-bg grow flex flex-col min-h-screen">
@@ -34,7 +34,13 @@
                     @keyup.enter="() => isLinkValid ? shortenBtn?.click() : false"
                     ref="linkBox"
                 >
-                <button ref="shortenBtn" v-bind:disabled="!isLinkValid" class="text-brand bg-brand border-brand bg-opacity-5 border-2 p-4 rounded-lg px-6 ml-2" @click="shorten()">Shorten!</button>
+                <FButton
+                    v-bind:onClick="shorten"
+                    buttontitle="Shorten the Link!"
+                    v-bind:buttonDisabled="!isLinkValid"
+                    class="p-4 ml-2"
+                    v-bind:colorDisabled="!isLinkValid"
+                >Shorten It!</FButton>
                 <div v-if="shortenedLink" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-min p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
                     {{shortenedLink}}
                     <button ref="copyButton" v-if="shortenedLink" @click="copy(shortenedLink)" class="ml-4 text-brand p-2 px-4 focus:outline-none focus:ring focus:ring-brand rounded-sm">
@@ -46,7 +52,7 @@
                     </button>
                 </div>
             </div>
-            <Footer />
+            <FFooter />
         </div>
     </div>
 </template>

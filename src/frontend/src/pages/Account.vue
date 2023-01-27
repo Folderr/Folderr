@@ -1,12 +1,12 @@
 <template>
     <div v-if="loading">
         <div class="bg-bg h-screen flex flex-col">
-            <Navbar />
+            <FNavbar />
             <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
                 <h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
             </div>
         </div>
-        <Footer />
+        <FFooter />
     </div>
     <div v-if="oldUsername || oldEmail">
         <div class="bg-bg grow flex flex-col scroll-smooth" ref="top">
@@ -187,17 +187,13 @@
                             autocomplete="email"
                         >
                         <br>
-                        <button v-bind:disabled="isInfoSame" v-on:click="updateInfo()" :class="[
-                            {
-                                'text-brand': !isInfoSame,
-                                'text-disabled': isInfoSame,
-                                'hover:cursor-not-allowed': isInfoSame,
-                                'bg-disabled': isInfoSame,
-                                'border-disabled': isInfoSame,
-                                'border-brand': !isInfoSame,
-                                'bg-brand': !isInfoSame
-                            },
-                        ]" class="px-8 rounded-sm p-2 border-2 bg-opacity-5 mt-2">Save Changes</button>
+                        <FButton
+                            v-bind:buttonDisabled="isInfoSame"
+                            v-bind:onClick="updateInfo"
+                            buttontitle="Update Your Information"
+                            v-bind:colorDisabled="isInfoSame"
+                        >Save Changes</FButton>
+                        
                         <p class="text-secondary-text text-md mt-10">Current Password</p>
                         <input
                             v-on:keyup.enter="() => newPasswordEl?.focus()"
@@ -275,54 +271,35 @@
                             autocomplete="new-password"
                         >
                         <br>
-                        <button ref="updatePasswword" v-bind:disabled="!isPasswordValid" v-on:click="updatePassword()"
-                        title="Update your password" :class="[
-                            'mt-2',
-                            {
-                                'text-brand': !isInfoSame,
-                                'text-disabled': isInfoSame,
-                                'hover:cursor-not-allowed': isInfoSame,
-                                'bg-disabled': isInfoSame,
-                                'border-disabled': isInfoSame,
-                                'border-brand': !isInfoSame,
-                                'bg-brand': !isInfoSame
-                            },
-                            'bg-opacity-5',
-                            'border-2',
-                            'p-2',
-                            'rounded-sm',
-                            'px-8'
-                        ]">Update Password</button>
+                        <FButton
+                            v-bind:buttonDisabled="!isPasswordValid"
+                            v-bind:onClick="updatePassword"
+                            buttontitle="Update Your Password"
+                            v-bind:colorDisabled="!confirmPasswordValid"
+                        >Update Password</FButton>
                     </div>
                     <div class="mt-10 lg:ml-20">
                         <h2 class="text-text text-2xl font-headline"><b>Delete your account</b></h2>
                         <p v-if="owner" class="text-text text-md mt-4"><b>The owner account cannot be deleted.</b></p>
                         <p class="text-secondary-text text-md mt-2">This will remove all of your data from this instance of Folderr, including files and shortened URLs. Files and shortened links will not be deleted instantly.</p>
                         <p class="text-secondary-text text-md mt-4"><b>This cannot be undone and only applies to this instance of Folderr</b></p>
-                        <button v-bind:disabled="owner" v-on:click="() => modals.deleteAccount = true"
-                         :class="[
-                            'mt-4',,
-                            {
-                                'text-disabled': owner,
-                                'bg-disabled': owner,
-                                'border-disabled': owner,
-                                'text-secondary-accent': !owner,
-                                'border-secondary-accent': !owner,
-                                'bg-secondary-accent': !owner,
-                                'opacity-80': owner,
-                                'hover:cursor-not-allowed': owner
-                            },
-                            'bg-opacity-5',
-                            'border-2',
-                            'p-2',
-                            'rounded-sm',
-                            'px-8'
-                        ]">Delete Account</button>
+                        <FButton
+                            v-bind:buttonDisabled="owner"
+                            v-bind:onClick="() => modals.deleteAccount = true"
+                            buttontitle="Delete Your Account"
+                            v-bind:colorDisabled="owner"
+                            class="mt-2"
+                        >Delete Account</FButton>
                     </div>
                     <div class="lg:ml-20 mt-10">
                         <h2 class="text-text text-2xl"><b>Logout everywhere</b></h2>
                         <p class="text-secondary-text text-md mt-2">This will log you out of every location/device you are logged in at, including the one you’re currently at</p>
-                        <button v-on:click="logoutEverywhere()" class="mt-4 text-secondary-accent bg-secondary-accent bg-opacity-5 border-2 p-2 border-secondary-accent rounded-sm px-8">Logout Everywhere</button>
+                        <FButton
+                            v-bind:onClick="logoutEverywhere"
+                            buttontitle="Logout Everywhere"
+                            type="red"
+                            class="mt-2"
+                        >Logout Everywhere</FButton>
                     </div>
                 </div>
                 <!-- Token Management -->
@@ -350,12 +327,12 @@
                             </li>
                         </ul>
                         <div class="flex">
-                            <button v-on:click="tokenCreateModal()" class="mt-6 lg:ml-20 text-brand bg-brand border-brand bg-opacity-5 border-2 p-2 rounded-sm px-4">Generate a Token</button>
+                            <FButton v-on:click="tokenCreateModal" class="mt-6 lg:ml-20">Generate a Token</FButton>
                         </div>
                     </div>
                 </div>
             </div>
-            <Footer />
+            <FFooter />
         </div>
     </div>
 </template>
@@ -452,7 +429,7 @@ const updateInfo = async() => {
         if (updated.success) {
             oldEmail.value = email.value;
             oldUsername.value = username.value;
-            sne.value?.addError('Information Updated!');
+            sne.value?.addSuccess('Information Updated!');
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
                 email.value = oldEmail.value;
@@ -493,7 +470,7 @@ const isPasswordValid = computed(() => {
         currentInvalid = false;
     }
     const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
-    if (8 <= newLength && newLength <= 64 && !passwordExp.test(password.value)) {
+    if (8 <= newLength && newLength <= 64 && passwordExp.test(password.value)) {
         newInvalid = false;
     }
     if (password.value === passwordConfirm.value) {
@@ -532,6 +509,7 @@ const confirmPasswordValid = computed(() => {
 
 const updatePassword = async() =>  {
     if (!isPasswordValid.value) {
+        const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/
         sne.value?.addError('Password invalid!');
         return;
     }
@@ -545,7 +523,7 @@ const updatePassword = async() =>  {
         if (updated.success) {
             oldPassword.value = password.value;
             password.value = '';
-            sne.value?.addError('Information Updated!');
+            sne.value?.addSuccess('Information Updated!');
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
                 email.value = oldEmail.value;
