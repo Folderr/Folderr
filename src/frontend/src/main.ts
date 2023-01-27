@@ -5,6 +5,7 @@ import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
 import NavbarAuthenticated from './components/Navbar-Authenticated.vue';
 import SuccessNErrors from './components/Success-N-Error.vue';
+import Button from './components/Button.vue';
 
 // Modals
 
@@ -17,10 +18,13 @@ import './index.css';
 
 const app = createApp(App);
 
-app.component('Navbar', Navbar);
-app.component('Footer', Footer);
+// The prefix "F" stands for Folderr.
+
+app.component('FNavbar', Navbar);
+app.component('FFooter', Footer);
 app.component('NavbarAuthenticated', NavbarAuthenticated);
 app.component('SuccessesErrors', SuccessNErrors);
+app.component('FButton', Button);
 
 // Initalize Modals
 app.component('FlexibleModal', FlexibleModal);

@@ -1,6 +1,6 @@
 <template>
   <div class="bg-bg h-screen flex flex-col">
-    <Navbar url='/'/>
+    <FNavbar url='/'/>
     <SuccessesErrors ref="sne" />
     <div class="flex">
       <div id="hero" class="ml-32 pt-20 flex flex-col w-[40%]">
@@ -40,7 +40,7 @@
         </div>
       </div>
     </div>
-    <Footer />
+    <FFooter />
   </div>
 </template>
 

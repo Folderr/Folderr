@@ -1,6 +1,6 @@
 <template>
   <div class="bg-bg h-screen flex flex-col">
-    <Navbar v-if="!username || !admin"/>
+    <FNavbar v-if="!username || !admin"/>
     <NavbarAuthenticated v-if="username" :username="username" :admin="admin" />
     <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
       <h1 class="text-4xl text-bold text-brand">
@@ -10,7 +10,7 @@
         Whatever you're looking for, I can't find it.
       </p>
     </div>
-    <Footer />
+    <FFooter />
   </div>
 </template>
 

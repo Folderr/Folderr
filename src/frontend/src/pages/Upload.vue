@@ -1,7 +1,7 @@
 <template>
     <div v-if="loading">
         <div class="bg-bg h-screen flex flex-col ">
-            <Navbar />
+            <FNavbar />
             <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
                 <h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
             </div>
@@ -49,11 +49,20 @@
                     </button>
                 </div>
                 <div class="flex justify-center">
-                    <button v-on:click="startSelection" class="text-brand bg-brand border-brand bg-opacity-5 border-2 p-2 rounded-lg px-4">Pick a File</button>
-                    <button v-if="file" v-on:click="upload" class="ml-4 text-brand bg-brand border-brand bg-opacity-5 border-2 p-2 rounded-lg px-4">Upload file!</button>
+                    <FButton
+                        v-bind:onClick="startSelection"
+                        buttontitle="Pick a File to Upload"
+                        class="px-4 p-2"
+                    >Pick a file</FButton>
+                    <FButton
+                        v-bind:onClick="upload"
+                        buttontitle="Shorten the Link!"
+                        class="p-2 ml-4"
+                        v-if="file"
+                    >Upload!</FButton>
                 </div>
             </div>
-            <Footer />
+            <FFooter />
         </div>
     </div>
 </template>
