@@ -28,7 +28,7 @@
                   </router-link>
               </li>
               <li>
-                  <a href="github.com/Folderr/Folderr" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-text rounded-md">
+                  <a href="https://github.com/Folderr/Folderr" class="px-3 py-2 flex items-center text-md font-bold leading-snug hover:text-text rounded-md">
                       <Icon :icon="github" height="20" class="mr-2"/>
                       learn more
                   </a>
