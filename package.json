@@ -10,7 +10,7 @@
     "build:production": "tsc --build && vite build",
     "start": "node dist/src/backend/index.js",
     "setup": "node dist/scripts/setup.js",
-    "dev": "ts-node-dev src/backend/index.ts --trace-warnings",
+    "dev": "ts-node-dev --trace-warnings -- src/backend/index.ts",
     "test": "xo && node dist/src/backend/index.js",
     "lint": "xo src/ scripts/ vite.config.ts",
     "lint:fix": "xo --fix src/ scripts/ vite.config.ts",
