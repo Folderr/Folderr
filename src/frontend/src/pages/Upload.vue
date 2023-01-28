@@ -6,7 +6,7 @@
                 <h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
             </div>
         </div>
-        <Footer />
+        <FFooter />
     </div>
     <div v-if="username">
         <div class="bg-bg grow flex flex-col min-h-screen">
