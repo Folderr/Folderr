@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, defineProps} from 'vue';
+import {ref} from 'vue';
 import { InformationCircleIcon, QuestionMarkCircleIcon } from "@heroicons/vue/solid";
 import { Icon } from "@iconify/vue";
 import github from '@iconify/icons-codicon/github-inverted'
