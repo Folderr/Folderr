@@ -560,7 +560,7 @@ export default class Core {
 		this.checkPorts();
 		return this.app.listen({
 			port: this.config.port,
-			host: process.env.DOCKER === 'true' ? '0.0.0.0' : undefined,
+			host: process.env.DOCKER === 'true' ? '0.0.0.0' : 'localhost',
 		});
 	}
 
