@@ -1,4 +1,4 @@
-import {RouteLocationNormalized} from 'vue-router';
+import type {RouteLocationNormalized} from 'vue-router';
 import * as api from '../wrappers/api';
 import store from '../store';
 

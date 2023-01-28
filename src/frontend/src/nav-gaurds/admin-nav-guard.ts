@@ -1,4 +1,4 @@
-import {RouteLocationNormalized} from 'vue-router';
+import type {RouteLocationNormalized} from 'vue-router';
 import * as api from '../wrappers/api';
 import store from '../store';
 
@@ -11,7 +11,7 @@ export async function adminAuthGuard(
 
 	try {
 		const response = await api.fetchUser();
-		if (response.error || (response.user && !response.user.admin)) {
+		if (response.error ?? (response.user && !response.user.admin)) {
 			return '/404';
 		}
 
