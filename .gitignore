@@ -1,6 +1,3 @@
-# Ignore package lock files
-package-lock.json
-
 # Ignore node modules
 node_modules/
 
