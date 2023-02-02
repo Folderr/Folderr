@@ -42,6 +42,10 @@ const rl = readline.createInterface({
 });
 
 async function getKeyLocation(redo?: boolean): Promise<string> {
+	if (process.env.publicKey && process.env.privateKey) {
+		return 'none';
+	}
+
 	const homedir = os.homedir();
 	const keyDirOption = join(homedir, '.folderr/keys');
 	const redoQuestion =
@@ -78,6 +82,15 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 
 async function askUsername(core: Core): Promise<string> {
 	return new Promise<string>((resolve) => {
+		if (process.env.username) {
+			if (!core.regexs.username.test(process.env.username)) {
+				throw new Error('ENV Var "username" invalid.');
+			}
+
+			resolve(process.env.username);
+			return;
+		}
+
 		const q = // eslint-disable-next-line max-len
 			'What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\n> ';
 		rl.question(q, (answer: string) => {
@@ -116,6 +129,15 @@ async function askPassword(core: Core, confirm?: boolean): Promise<string> {
 	}
 
 	return new Promise<string>((resolve) => {
+		if (process.env.password) {
+			if (!core.regexs.password.test(process.env.password)) {
+				throw new Error('ENV Var "password" invalid.');
+			}
+
+			resolve(process.env.password);
+			return;
+		}
+
 		rl.question(q, (answer: string) => {
 			stream.muted = false;
 			if (!answer) {
@@ -143,6 +165,15 @@ async function askPassword(core: Core, confirm?: boolean): Promise<string> {
 
 async function askEmail(core: Core): Promise<string> {
 	return new Promise<string>((resolve) => {
+		if (process.env.email) {
+			if (!core.regexs.email.test(process.env.email)) {
+				throw new Error('ENV Var "email" invalid.');
+			}
+
+			resolve(process.env.email);
+			return;
+		}
+
 		rl.question('What is your email?\n> ', (answer: string) => {
 			if (!answer) {
 				rl.write('I need an email!\n');
@@ -172,6 +203,10 @@ async function confirmDetails(
 	password: string,
 	redo?: boolean,
 ): Promise<'yes' | 'no'> {
+	if (process.env.username && process.env.password && process.env.email) {
+		return 'yes';
+	}
+
 	let question =
 		'Confirm this is the email, username, and password you want for the owner account:\n' +
 		`Username: ${username}\n` +
@@ -201,6 +236,50 @@ async function confirmDetails(
 			}
 		});
 	});
+}
+
+async function keyGen(
+	core: Core,
+): Promise<{privateKey: string; publicKey: string}> {
+	let keys: {privateKey: string; publicKey: string};
+	if (process.env.publicKey && process.env.privateKey) {
+		const crypto = await import('crypto');
+		try {
+			const data = crypto.publicEncrypt(
+				process.env.publicKey,
+				// eslint-disable-next-line prettier/prettier
+				Buffer.from('Hi! I\'m Folderr!'),
+			);
+			const decrypted = crypto.privateDecrypt(process.env.privateKey, data);
+			// eslint-disable-next-line prettier/prettier
+			if (decrypted.toString() !== 'Hi I\'m Folderr') {
+				throw new Error('Public key and private key do not match!');
+			}
+
+			keys = {
+				privateKey: process.env.privateKey,
+				publicKey: process.env.publicKey,
+			};
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				// eslint-disable-next-line unicorn/prefer-type-error
+				throw new Error(error.message, {
+					cause: error,
+				});
+			}
+
+			throw new Error(
+				'Something went wrong when checking the keys. Maybe the keys are incorrect.',
+				{
+					cause: error,
+				},
+			);
+		}
+	} else {
+		keys = await core.Utils.genKeyPair();
+	}
+
+	return keys;
 }
 
 (async function () {
@@ -326,7 +405,10 @@ async function confirmDetails(
 			join(process.cwd(), '/internal/locations.json'),
 			JSON.stringify(newLocations, null, 4),
 		);
-		await fs.writeFile(`${actualLocation}/privateJWT.pem`, actualPrivateKey);
+		if (location !== 'none') {
+			await fs.writeFile(`${actualLocation}/privateJWT.pem`, actualPrivateKey);
+		}
+
 		await core.db.createFolderr(actualPubKey);
 		console.log('Authorization keys created\n');
 		if (!username && !email && !password) {
@@ -344,8 +426,7 @@ async function confirmDetails(
 			'Owner account created successfully. Information below.\n' +
 				`User ID: ${id}\n` +
 				`Username: ${username}\n` +
-				`Email address: ${email}\n` +
-				`Password: ${password}`,
+				`Email address: ${email}\n`,
 		);
 		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 		process.exit();
