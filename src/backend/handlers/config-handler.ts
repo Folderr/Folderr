@@ -383,8 +383,8 @@ const configHandler = {
 		};
 
 		if (
-			!(files?.server?.port && !env?.server.port) ||
-			typeof files.server.port !== 'number'
+			!(files?.server?.port ?? env?.server.port) ||
+			typeof files?.server?.port !== 'number'
 		) {
 			missingConfigs.server.push('server/port - Must be a number');
 		}
@@ -427,7 +427,7 @@ const configHandler = {
 				error += `\n${missingConfigs.db.join('\n')}`;
 			}
 
-			error += 'Potential fix: run "npm run configure --invalid-or-missing"';
+			error += '\nPotential fix: run "npm run configure --invalid-or-missing"';
 			process.emitWarning('Config Error (config-handler:277)');
 
 			throw new Error(`[CONFIG] Missing/Invalid Required Options:\n${error}`);

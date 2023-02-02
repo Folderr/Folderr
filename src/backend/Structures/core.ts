@@ -81,6 +81,8 @@ export default class Core {
 
 	public readonly httpsEnabled: boolean;
 
+	public listening: boolean;
+
 	#deleter: ChildProcess;
 
 	#keys: KeyConfig;
@@ -116,6 +118,7 @@ export default class Core {
 		});
 
 		this.db = new MongoDB(); // Time to abuse Node. :)
+		this.listening = false;
 
 		this.regexs = new Regexs();
 		this.Utils = new Utils(this);
@@ -573,7 +576,7 @@ export default class Core {
 		}
 
 		try {
-			if (!this.app || !this.app.close) {
+			if (!this.app || !this.app.close || !this.listening) {
 				this.#internals.serverClosed = true;
 			} else {
 				this.app.close(() => {
@@ -582,6 +585,26 @@ export default class Core {
 			}
 		} catch (error: unknown) {
 			wlogger.error(error);
+			console.log(error);
+		}
+
+		if (this.#internals.serverClosed && this.#requestIds.size === 0) {
+			try {
+				wlogger.close();
+			} catch (error: unknown) {
+				if (error instanceof Error) {
+					console.log(`Logger shutdown error:\n${error.message}`);
+				}
+
+				console.log(
+					'Logger shutdown encountered an unkown error (result may be weird):\n',
+				);
+				console.log(error);
+			} finally {
+				// Silence unicorn.
+				// eslint-disable-next-line unicorn/no-process-exit
+				process.exit(0);
+			}
 		}
 
 		ee.once('noRequests', () => {
