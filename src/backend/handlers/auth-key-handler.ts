@@ -1,9 +1,9 @@
-/* eslint-disable node/prefer-global/buffer */
+import {Buffer} from 'buffer';
 import {join} from 'path';
 import process from 'process';
 import fs from 'fs/promises';
 import locations from '../../../internal/locations.json';
-import AbstractDB from '../Structures/Database/db-class';
+import type AbstractDB from '../Structures/Database/db-class';
 
 export default class AuthKeyHandler {
 	#publicKey?: Buffer;
@@ -19,12 +19,60 @@ export default class AuthKeyHandler {
 
 	async fetchKeys(db: AbstractDB): Promise<void> {
 		try {
-			this.#privateKey = await fs.readFile(this.#location);
+			if (locations.keys === 'none' && process.env.privateKey) {
+				this.#privateKey = Buffer.from(process.env.privateKey);
+			} else if (locations.keys === 'none' && !process.env.privateKey) {
+				throw new Error(
+					'You Need to Pass the Secret Key with an Environment Variable',
+				);
+			} else {
+				this.#privateKey = await fs.readFile(this.#location);
+			}
+
 			const folderr = await db.fetchFolderr();
 			this.#publicKey = Buffer.from(folderr.publicKeyJWT.buffer);
+			if (locations.keys === 'none') {
+				const crypto = await import('crypto');
+				try {
+					const data = crypto.publicEncrypt(
+						this.#publicKey,
+						// eslint-disable-next-line prettier/prettier
+						Buffer.from('Hi I\'m Folderr!'),
+					);
+					const decrypted = crypto.privateDecrypt(this.#privateKey, data);
+					// eslint-disable-next-line prettier/prettier
+					if (decrypted.toString() !== 'Hi I\'m Folderr!') {
+						throw new Error('Private and public keys do not match.');
+					}
+				} catch (error: unknown) {
+					throw new Error('Your private key and public key do not match', {
+						cause: error,
+					});
+				}
+			}
 		} catch (error: unknown) {
+			if (
+				error instanceof Error &&
+				error.message ===
+					'You Need to Pass the Secret Key with an Environment Variable'
+			) {
+				throw new Error(
+					'You need to provide the private key via environment variables.',
+					{cause: error},
+				);
+			}
+
+			if (
+				error instanceof Error &&
+				error.message === 'Private and public keys do not match.'
+			) {
+				throw new Error('Private and public keys do not match.', {
+					cause: error,
+				});
+			}
+
 			console.log(error);
-			throw new Error('Unable to fetch keys');
+			throw new Error('Unable to fetch keys', {cause: error});
 		}
 	}
 
