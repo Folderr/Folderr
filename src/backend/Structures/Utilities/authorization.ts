@@ -24,9 +24,11 @@
  */
 
 import crypto from 'crypto';
+import {Buffer} from 'buffer';
 import jwt from 'jsonwebtoken';
-import {Core, wlogger} from '../../internals';
-import {User} from '../Database/db-class';
+import type {Core} from '../../internals';
+import {wlogger} from '../../internals';
+import type {User} from '../Database/db-class';
 import AuthKeyHandler from '../../handlers/auth-key-handler';
 
 /**
@@ -50,8 +52,15 @@ export default class Authorization {
 		try {
 			await this.#keyHandler.fetchKeys(this.#core.db);
 		} catch (error: unknown) {
-			if (error instanceof Error && error.message === 'Unable to fetch keys') {
-				this.#core.logger.log('error', 'Keys not found. Exiting');
+			console.log((error as Error).message);
+			const messages = [
+				'Private and Public Keys Do Not Match.',
+				'Unable to fetch keys',
+				'You Need to Pass the Secret Key with an Environment Variable',
+			];
+			if (error instanceof Error && messages.includes(error.message)) {
+				this.#core.logger.log('error', error.message);
+				await this.#core.Utils.sleep(1000);
 				this.#core.shutdownServer();
 			}
 
@@ -67,21 +76,21 @@ export default class Authorization {
 	}
 
 	public async verify(token: string, web?: boolean): Promise<string | void> {
-		if (web || token.startsWith('Bearer: ')) {
+		if (web ?? token.startsWith('Bearer: ')) {
 			token = token.slice(8);
 		}
 
 		try {
 			const result = jwt.verify(token, this.#pubKey, {
 				issuer: 'folderr',
-				algorithms: ['RS512']
+				algorithms: ['RS512'],
 			});
 			if (!result || typeof result === 'string' || !result.jti) {
 				return;
 			}
 
 			const verify = await this.#core.db.findToken(result.jti, result.id, {
-				web
+				web,
 			});
 			if (!verify) {
 				return;
@@ -103,7 +112,7 @@ export default class Authorization {
 		options?: {
 			fn?: (args0: User) => boolean;
 			web?: boolean;
-		}
+		},
 	): Promise<User | void> {
 		if (!token) {
 			return;
@@ -134,7 +143,7 @@ export default class Authorization {
 
 	public async revoke(
 		token: string,
-		web?: boolean
+		web?: boolean,
 	): Promise<boolean | void | 404> {
 		if (token.startsWith('Bearer: ')) {
 			web = true;
@@ -147,16 +156,16 @@ export default class Authorization {
 		try {
 			const result = jwt.verify(token, this.#pubKey, {
 				issuer: 'folderr',
-				algorithms: ['RS512']
+				algorithms: ['RS512'],
 			});
 			if (!result || typeof result === 'string' || !result.jti) {
 				return;
 			}
 
-			const verifyDB = await this.#core.db.purgeToken(result.jti, result.id, {
-				web
+			const verifyDb = await this.#core.db.purgeToken(result.jti, result.id, {
+				web,
 			});
-			if (!verifyDB) {
+			if (!verifyDb) {
 				return 404;
 			}
 
@@ -166,7 +175,7 @@ export default class Authorization {
 
 	public async revokeAll(
 		userID: string,
-		web?: boolean
+		web?: boolean,
 	): Promise<boolean | void> {
 		try {
 			const del = await this.#core.db.purgeTokens(userID, web);
@@ -192,7 +201,7 @@ export default class Authorization {
 			expiresIn: '14d',
 			issuer: 'folderr',
 			jwtid: id,
-			algorithm: 'RS512'
+			algorithm: 'RS512',
 		})}`;
 	}
 
@@ -202,30 +211,31 @@ export default class Authorization {
 		return jwt.sign({id: userID}, this.#privKey, {
 			issuer: 'folderr',
 			jwtid: id,
-			algorithm: 'RS512'
+			algorithm: 'RS512',
 		});
 	}
 
 	async genMirrorKey(
 		url: string,
-		mirrorURL: string
+		mirrorURL: string,
 	): Promise<{key: string; id: string}> {
 		const id = this.genID();
 		return {
 			key: jwt.sign(
 				{
 					url,
-					mirrorURL
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					mirrorURL,
 				},
 				this.#privKey,
 				{
 					issuer: 'folderr',
 					jwtid: id,
 					expiresIn: '1h',
-					algorithm: 'RS512'
-				}
+					algorithm: 'RS512',
+				},
 			),
-			id
+			id,
 		};
 	}
 
@@ -236,10 +246,10 @@ export default class Authorization {
 		},
 		id: string,
 		url: string,
-		mirrorURL: string
+		mirrorURL: string,
 	): boolean {
 		const out = jwt.verify(message.token, this.#privKey, {
-			issuer: 'folderr'
+			issuer: 'folderr',
 		});
 		if (
 			out &&
@@ -255,6 +265,7 @@ export default class Authorization {
 		return false;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private genID(): string {
 		return `${
 			crypto.randomBytes(10).toString('hex') +

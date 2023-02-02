@@ -45,7 +45,7 @@ export default class AuthKeyHandler {
 						throw new Error('Private and public keys do not match.');
 					}
 				} catch (error: unknown) {
-					throw new Error('Your private key and public key do not match', {
+					throw new Error('Private and Public Keys Do Not Match.', {
 						cause: error,
 					});
 				}
@@ -57,16 +57,16 @@ export default class AuthKeyHandler {
 					'You Need to Pass the Secret Key with an Environment Variable'
 			) {
 				throw new Error(
-					'You need to provide the private key via environment variables.',
+					'You Need to Pass the Secret Key with an Environment Variable',
 					{cause: error},
 				);
 			}
 
 			if (
 				error instanceof Error &&
-				error.message === 'Private and public keys do not match.'
+				error.message === 'Private and Public Keys Do Not Match.'
 			) {
-				throw new Error('Private and public keys do not match.', {
+				throw new Error('Private and Public Keys Do Not Match.', {
 					cause: error,
 				});
 			}
