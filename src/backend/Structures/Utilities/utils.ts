@@ -149,7 +149,7 @@ class Utils {
 	}
 
 	/**
-	 * Generates a ed25519 private & public key pair
+	 * Generates a RSA2048 private & public key pair
 	 * @param {string} [passphrase] The passphrase for the private key
 	 */
 	async genKeyPair(
