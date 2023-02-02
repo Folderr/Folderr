@@ -31,7 +31,7 @@ import got from 'got';
 // Local files
 import type {
 	CoreConfig,
-	DBConfig,
+	DbConfig,
 	ActEmailConfig,
 	KeyConfig,
 } from '../handlers/config-handler';
@@ -87,7 +87,7 @@ export default class Core {
 
 	#emailConfig: ActEmailConfig;
 
-	#dbConfig: DBConfig;
+	#dbConfig: DbConfig;
 
 	#requestIds: Set<string>;
 

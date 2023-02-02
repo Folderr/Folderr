@@ -23,9 +23,10 @@
  * @fileoverview Handle the database file deletion queue
  */
 
-import DBQueue from './Structures/Utilities/db-queue';
+import process from 'process';
+import DbQueue from './Structures/Utilities/db-queue';
 
-const queuer = new DBQueue();
+const queuer = new DbQueue();
 
 let stopped = false;
 

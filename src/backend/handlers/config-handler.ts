@@ -1,16 +1,26 @@
 import fs, {existsSync} from 'fs';
+import process from 'process';
 import {join} from 'path';
 import yaml from 'js-yaml';
+import {
+	cleanEnv,
+	json,
+	port,
+	host,
+	bool,
+	num,
+	email as envemail,
+} from 'envalid';
 import {wlogger} from '../internals';
 
-interface CertOptions {
-	key?: string | any;
-	cert?: string | any;
+type CertOptions = {
+	key?: string;
+	cert?: string;
 	requestCert?: boolean;
 	ca?: string[];
-}
+};
 
-interface EmailOptions {
+type EmailOptions = {
 	mailerOptions?: {
 		auth: {
 			user: string;
@@ -23,33 +33,33 @@ interface EmailOptions {
 		ignoreTLS?: boolean;
 	};
 	sendingEmail?: string;
-}
+};
 
-export interface DBConfig {
+export type DbConfig = {
 	url: string;
 	protocol?: string;
 	dbName?: string;
 	extraConfig?: Record<string, unknown>;
-}
-export interface KeyOptions {
+};
+export type KeyOptions = {
 	privKeyPath: string;
 	algorithm?: string;
 	pubKeyPath: string;
-}
+};
 
-export interface Options {
+export type Options = {
 	port?: number;
 	url?: string;
-	db: DBConfig;
+	db: DbConfig;
 	signups?: number;
 	apiOnly?: boolean;
 	trustProxies?: boolean;
 	certOptions?: CertOptions;
 	auth: KeyOptions;
 	email?: EmailOptions;
-}
+};
 
-export interface ServerConfig {
+export type ServerConfig = {
 	port: number;
 	signups: number;
 	url: string;
@@ -61,9 +71,9 @@ export interface ServerConfig {
 		requestCert?: boolean;
 		ca?: string[];
 	};
-}
+};
 
-export interface EmailConfig {
+export type EmailConfig = {
 	mailerOptions?: {
 		auth: {
 			username: string;
@@ -76,26 +86,39 @@ export interface EmailConfig {
 		ignoreTls?: boolean;
 	};
 	sendingEmail?: string;
-}
+};
 
-export interface CoreConfig {
+type EnvEmailConfig = {
+	auth: {
+		pass?: string;
+		user?: string;
+	};
+	host?: string;
+	port?: number;
+	secure?: boolean;
+	requireTLS?: boolean;
+	ignoreTLS?: boolean;
+	sendingEmail?: string;
+};
+
+export type CoreConfig = {
 	port: number;
 	signups: number;
 	url: string;
 	trustProxies: boolean;
 	apiOnly: boolean;
-}
+};
 
-export interface KeyConfig {
+export type KeyConfig = {
 	httpsCertOptions?: {
 		key?: string;
 		cert?: string;
 		requestCert?: boolean;
 		ca?: string[];
 	};
-}
+};
 
-export interface ActEmailConfig {
+export type ActEmailConfig = {
 	mailerOptions?: {
 		auth: {
 			user: string;
@@ -108,14 +131,21 @@ export interface ActEmailConfig {
 		ignoreTLS?: boolean;
 	};
 	sendingEmail?: string;
-}
+};
 
-const ConfigHandler = {
-	fetchFiles(): {
-		server: Record<string, unknown>;
-		db: Record<string, unknown>;
-		email: Record<string, unknown> | undefined | false;
+const configHandler = {
+	fetchFiles(env: {server: CoreConfig; db: DbConfig; email: EnvEmailConfig}): {
+		server?: Record<string, unknown>;
+		db?: Record<string, unknown>;
+		email?: Record<string, unknown> | undefined | false;
 	} {
+		// This entire segment sees if the env has the required config
+		const precheck = this.preCheckEnv(env);
+		const dbFail = precheck.filter((item) => item.includes('db'));
+		const serverFail = precheck.filter((item) => item.includes('server'));
+		const emailFail = precheck.filter((item) => item.includes('email'));
+
+		// Grab all the config files (if they exist)
 		const dir = join(process.cwd(), 'configs');
 		const server =
 			existsSync(join(dir, 'server.yaml')) &&
@@ -126,16 +156,25 @@ const ConfigHandler = {
 		const email =
 			existsSync(join(dir, 'email.yaml')) &&
 			yaml.load(fs.readFileSync(join(dir, 'email.yaml'), {encoding: 'utf8'}));
+
+		// Check if the configs exist
+		// Note: Envs count as configs
 		const missing: string[] = [];
-		if (typeof server !== 'object') {
+		if (typeof server !== 'object' && serverFail.length <= 0) {
+			// If the server config is not present, the env server config must work instead.
 			missing.push('server.yaml');
 		}
 
-		if (typeof db !== 'object') {
+		if (typeof db !== 'object' && dbFail.length <= 0) {
+			// If the db config is not present, the env db config must work instead.
 			missing.push('db.yaml');
 		}
 
-		if (typeof email !== 'object' && typeof email !== 'undefined') {
+		if (
+			(typeof email !== 'object' && typeof email !== 'undefined') ||
+			emailFail.length <= 0
+		) {
+			// If the email config is not present, the env email config must work instead.
 			missing.push('email.yaml');
 		}
 
@@ -150,23 +189,99 @@ const ConfigHandler = {
 		return {
 			server: server as Record<string, unknown>,
 			db: db as Record<string, unknown>,
-			email: email as Record<string, unknown> | undefined | false
+			email: email as Record<string, unknown> | undefined | false,
 		};
+	},
+
+	verifyEmailer(
+		envEmailConfig: EnvEmailConfig,
+		email?: EmailConfig,
+	): ActEmailConfig {
+		const emailConfig: ActEmailConfig = {};
+		if (email ?? envEmailConfig) {
+			emailConfig.sendingEmail = email?.sendingEmail;
+			const hasAuth =
+				Boolean(email?.mailerOptions?.auth) &&
+				Boolean(email?.mailerOptions?.auth.password) &&
+				Boolean(email?.mailerOptions?.auth.username);
+			if (email?.mailerOptions && hasAuth) {
+				emailConfig.mailerOptions = {
+					auth: {
+						user:
+							envEmailConfig.auth.user ?? email?.mailerOptions.auth.username,
+						pass:
+							envEmailConfig.auth.pass ?? email?.mailerOptions.auth.password,
+					},
+					host: envEmailConfig.host ?? email.mailerOptions.host,
+					port: envEmailConfig.port ?? email.mailerOptions.port,
+					secure: envEmailConfig.secure ?? email.mailerOptions.secure,
+					/* eslint-disable @typescript-eslint/naming-convention */
+					requireTLS:
+						envEmailConfig.requireTLS ?? email.mailerOptions.requireTls,
+					ignoreTLS: envEmailConfig.ignoreTLS ?? email.mailerOptions.ignoreTls,
+					/* eslint-enable @typescript-eslint/naming-convention */
+				};
+			}
+		}
+
+		return emailConfig;
 	},
 
 	verifyFetch(noExitEmit?: boolean): {
 		core: CoreConfig;
 		email: ActEmailConfig;
 		key: KeyConfig;
-		db: DBConfig;
+		db: DbConfig;
 	} {
-		const files = this.fetchFiles() as unknown as {
-			server: ServerConfig;
-			db: DBConfig;
+		const envCoreConfig = cleanEnv(process.env, {
+			url: host({default: undefined}),
+			port: port({default: undefined}),
+			trustProxies: bool({default: false}),
+			signups: num({default: undefined}),
+			apiOnly: bool({default: false}),
+			httpsCertOptions: json<KeyConfig['httpsCertOptions']>({
+				default: {
+					key: undefined,
+					cert: undefined,
+					requestCert: undefined,
+					ca: undefined,
+				},
+			}),
+		});
+
+		const envDbConfig = cleanEnv(process.env, {
+			url: host({default: undefined}),
+		});
+
+		/* eslint-disable @typescript-eslint/naming-convention */
+		const envEmailConfig = cleanEnv(process.env, {
+			auth: json<
+				{user: string; pass: string} | {user: undefined; pass: undefined}
+			>({default: {user: undefined, pass: undefined}}),
+			host: host({default: undefined}),
+			port: port({default: undefined}),
+			secure: bool({default: false}),
+			requireTLS: bool({default: false}),
+			ignoreTLS: bool({default: false}),
+			sendingEmail: envemail({default: undefined}),
+		});
+		/* eslint-enable @typescript-eslint/naming-convention */
+
+		const files = this.fetchFiles({
+			server: envCoreConfig,
+			db: envDbConfig,
+			email: envEmailConfig,
+		}) as unknown as {
+			server?: ServerConfig;
+			db?: DbConfig;
 			email?: EmailConfig;
 		};
 		try {
-			this.preCheck(files);
+			this.preCheck(files, {
+				server: envCoreConfig,
+				db: envDbConfig,
+				email: envEmailConfig,
+			});
 		} catch (error: unknown) {
 			process.emitWarning('Unknown Error (config-handler:171)');
 			if (error instanceof Error) {
@@ -176,53 +291,42 @@ const ConfigHandler = {
 
 		const keyConfig: KeyConfig = {
 			httpsCertOptions: {
-				key: files.server.httpsCertOptions?.key,
-				cert: files.server.httpsCertOptions?.cert,
-				ca: files.server.httpsCertOptions?.ca,
-				requestCert: Boolean(files.server.httpsCertOptions?.requestCert)
-			}
+				key:
+					files.server?.httpsCertOptions?.key ??
+					envCoreConfig.httpsCertOptions?.key,
+				cert:
+					files.server?.httpsCertOptions?.cert ??
+					envCoreConfig.httpsCertOptions?.cert,
+				ca:
+					files.server?.httpsCertOptions?.ca ??
+					envCoreConfig.httpsCertOptions?.ca,
+				requestCert:
+					Boolean(files.server?.httpsCertOptions?.requestCert) ||
+					envCoreConfig.httpsCertOptions?.requestCert,
+			},
 		};
+
 		const coreConfig = {
-			url: files.server.url,
-			port: files.server.port,
-			trustProxies: files.server.trustProxies ?? false,
-			signups: files.server.signups,
-			apiOnly: files.server.apiOnly ?? false
+			url: envCoreConfig.url ?? files.server?.url,
+			port: envCoreConfig.port ?? files.server?.port,
+			trustProxies: files.server?.trustProxies ?? envCoreConfig.trustProxies,
+			signups: files.server?.signups ?? envCoreConfig.signups,
+			apiOnly: files.server?.apiOnly ?? envCoreConfig.apiOnly,
 		};
-		const emailConfig: ActEmailConfig = {};
+		const emailConfig = this.verifyEmailer(envEmailConfig, files.email);
 		const dbConfig = {
-			url: files.db.url,
-			dbName: files.db.dbName,
-			protocol: files.db.protocol,
-			extraConfig: files.db.extraConfig
+			url: envDbConfig.url ?? files.db?.url,
+			dbName: files.db?.dbName,
+			protocol: files.db?.protocol,
+			extraConfig: files.db?.extraConfig,
 		};
-		if (files.email) {
-			emailConfig.sendingEmail = files.email.sendingEmail;
-			const hasAuth =
-				Boolean(files.email.mailerOptions?.auth) &&
-				Boolean(files.email.mailerOptions?.auth.password) &&
-				Boolean(files.email.mailerOptions?.auth.username);
-			if (files.email.mailerOptions && hasAuth) {
-				emailConfig.mailerOptions = {
-					auth: {
-						user: files.email.mailerOptions.auth.username,
-						pass: files.email.mailerOptions.auth.password
-					},
-					host: files.email.mailerOptions.host,
-					port: files.email.mailerOptions.port,
-					secure: files.email.mailerOptions.secure,
-					requireTLS: files.email.mailerOptions.requireTls,
-					ignoreTLS: files.email.mailerOptions.ignoreTls
-				};
-			}
-		}
 
 		// Check validity, exit process if invalid.
 		const postCheck = this.postCheck(
 			coreConfig,
 			keyConfig,
 			emailConfig,
-			!noExitEmit
+			!noExitEmit,
 		);
 		if (typeof postCheck === 'string') {
 			throw new TypeError(postCheck);
@@ -231,32 +335,82 @@ const ConfigHandler = {
 		return {key: keyConfig, email: emailConfig, core: coreConfig, db: dbConfig};
 	},
 
-	preCheck(files: {
+	preCheckEnv(env: {
 		server: ServerConfig;
-		db: DBConfig;
-		email?: EmailConfig;
-	}): true | void {
+		db: DbConfig;
+		email: EnvEmailConfig;
+	}): string[] {
+		const missing = [];
+
+		if (!env.server.port) {
+			missing.push('server/port');
+		}
+
+		if (!env.server.url) {
+			missing.push('server/url');
+		}
+
+		if (!env.server.signups) {
+			missing.push('server/signups');
+		}
+
+		if (!env.db.url) {
+			missing.push('server/url');
+		}
+
+		if (env.email?.sendingEmail && !env.email.auth) {
+			missing.push('email', 'email/auth');
+		}
+
+		return missing;
+	},
+
+	preCheck(
+		files?: {
+			server?: ServerConfig;
+			db?: DbConfig;
+			email?: EmailConfig;
+		},
+		env?: {
+			server: ServerConfig;
+			db: DbConfig;
+			email?: EnvEmailConfig;
+		},
+	): true | void {
 		const missingConfigs = {
 			server: [] as string[],
-			db: [] as string[]
+			db: [] as string[],
 		};
 
-		if (!files.server.port || typeof files.server.port !== 'number') {
+		if (
+			!(files?.server?.port && !env?.server.port) ||
+			typeof files.server.port !== 'number'
+		) {
 			missingConfigs.server.push('server/port - Must be a number');
 		}
 
 		if (
-			(!files.server.signups && files.server.signups !== 0) ||
+			(!env?.server.signups &&
+				!files?.server?.signups &&
+				files?.server?.signups !== 0) ||
+			(!files?.server?.signups && files?.server?.signups !== 0) ||
 			typeof files.server.signups !== 'number'
 		) {
+			console.log(env?.server.signups);
 			missingConfigs.server.push('server/signups - Must be a number');
 		}
 
-		if (!files.server.url || typeof files.server.url !== 'string') {
+		if (
+			!(files?.server?.url ?? env?.server.url) ||
+			typeof files?.server?.url !== 'string'
+		) {
 			missingConfigs.db.push('server/url - Must be a url string');
 		}
 
-		if (!files.db.url || typeof files.db.url !== 'string') {
+		if (
+			!(files?.db?.url ?? env?.db.url) ||
+			typeof files?.db?.url !== 'string'
+		) {
 			missingConfigs.db.push('db/url - Must be a url string');
 		}
 
@@ -305,7 +459,7 @@ const ConfigHandler = {
 		coreConfig: CoreConfig,
 		keyConfig: KeyConfig,
 		emailConfig: ActEmailConfig,
-		exitEmit?: boolean
+		exitEmit?: boolean,
 	): true | string | void {
 		const missingFiles = this.keyCheck(keyConfig);
 
@@ -337,7 +491,7 @@ const ConfigHandler = {
 		}
 
 		// Check if anything has failed
-		if (failedSignups || failedPort || missingFiles.length > 0) {
+		if (failedSignups ?? failedPort ?? missingFiles.length > 0) {
 			let error = '[CONFIG - INVALID CONFIG]';
 			if (failedPort) {
 				error +=
@@ -379,7 +533,7 @@ const ConfigHandler = {
 
 			return true;
 		}
-	}
+	},
 };
 
-export default ConfigHandler;
+export default configHandler;

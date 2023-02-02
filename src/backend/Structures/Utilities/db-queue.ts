@@ -20,18 +20,21 @@
  */
 
 import {EventEmitter} from 'events';
-import Configurer, {DBConfig} from '../../handlers/config-handler';
-import DB, {Upload} from '../Database/db-class';
+import process from 'process';
+import type {DbConfig} from '../../handlers/config-handler';
+import Configurer from '../../handlers/config-handler';
+import type {Upload} from '../Database/db-class';
+import type DB from '../Database/db-class';
 import MongoDB from '../Database/mongoose-db';
 import {wlogger} from '../../internals';
 
 /**
  * @classdesc Handles deleting files
  */
-export default class DBQueue extends EventEmitter {
+export default class DbQueue extends EventEmitter {
 	public onGoing: boolean;
 
-	private readonly config: DBConfig;
+	private readonly config: DbConfig;
 
 	private readonly db: DB;
 
@@ -43,7 +46,7 @@ export default class DBQueue extends EventEmitter {
 		super();
 		this.onGoing = true;
 		this.config = Configurer.verifyFetch().db;
-		this.db = new MongoDB(); // eslint-disable-next-line promise/prefer-await-to-then
+		this.db = new MongoDB();
 		this.db.init(this.config.url).catch((error) => {
 			wlogger.error('CANNOT RUN DBQueue - Database Error');
 			if (error instanceof Error && process.env.DEBUG) {
@@ -79,12 +82,12 @@ export default class DBQueue extends EventEmitter {
 				if (error instanceof Error) {
 					wlogger.error(
 						// eslint-disable-next-line max-len
-						`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`
+						`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`,
 					);
 				}
 
 				wlogger.error(
-					`Database ran into an error while deleting file "${file.path}".`
+					`Database ran into an error while deleting file "${file.path}".`,
 				);
 			}
 		}
@@ -102,7 +105,7 @@ export default class DBQueue extends EventEmitter {
 			/* eslint-disable no-await-in-loop */
 			const files = await this.db.findFiles(
 				{owner: value},
-				{selector: 'id, path'}
+				{selector: 'id, path'},
 			);
 			if (files.length > 0) {
 				await this.removeFiles(files); /* eslint-enable no-await-in-loop */
