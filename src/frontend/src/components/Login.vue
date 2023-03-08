@@ -70,13 +70,13 @@ const jumpToLogin = () => { // Focuses on the login button
             <h1 class="text-text text-3xl mb-1 font-headline">login</h1>
             <p class="text-secondary-text mb-4 font-headline">welcome back!</p>
             <p class="text-text font-info">username or email</p>
-            <input v-on:keyup.enter="jumpToPassword()" v-model="username" placeholder="your username or email" required class="font-input focus:outline-none mb-4 text-brand p-4 pl-0 w-full border-brand border-b-2 placeholder-secondary-text bg-tertiary-bg hover:border-brand-darkened hover:placeholder-text focus:placeholder-secondary-text focus:border-brand" autocomplete="username">
+            <input v-on:keyup.enter="jumpToPassword()" v-model="username" placeholder="your username or email" required class="font-input focus:outline-none mb-4 text-brand p-4 pl-0 w-full border-brand border-b-2 placeholder-secondary-text bg-inherit hover:border-brand hover:placeholder-text focus:placeholder-secondary-text focus:border-brand" autocomplete="username">
             <br>
             <div class="flex">
                 <p class="text-text font-info justify-center">password</p>
             </div>
-            <input ref="passw" v-on:keyup.enter="jumpToLogin()" v-model="password" placeholder="your password" type="password" required class="mb-4 border-b-2 border-brand font-input focus:outline-none bg-inherit text-brand p-4 pl-0 w-full placeholder-secondary-text hover:placeholder-text focus:placeholder-secondary-text hover:border-brand-darkened focus:border-brand" autocomplete="current-password">
+            <input ref="passw" v-on:keyup.enter="jumpToLogin()" v-model="password" placeholder="your password" type="password" required class="mb-4 border-b-2 border-brand font-input focus:outline-none bg-inherit text-brand p-4 pl-0 w-full placeholder-secondary-text hover:placeholder-text focus:placeholder-secondary-text hover:border-brand focus:border-brand" autocomplete="current-password">
             <br>
-            <button ref="loginBtn" v-on:click="login()" class="font-info text-white font-extrabold hover:bg-brand-darkened border-2 p-4 hover:border-brand-darkened bg-brand border-brand rounded-lg w-[100%]">Log In</button>
+            <button ref="loginBtn" v-on:click="login()" class="font-info text-white font-extrabold hover:bg-brand-darkened border-2 p-4 hover:border-brand-darkened bg-brand border-brand rounded-lg w-[100%] xl:w-80">Log In</button>
         </div>
 </template>
