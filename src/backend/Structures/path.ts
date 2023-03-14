@@ -26,6 +26,7 @@ import type {
 	FastifyReply,
 	RouteShorthandOptions,
 } from 'fastify';
+import * as Sentry from '@sentry/node';
 import type {RequestGallery} from '../../types/fastify-request-types';
 import type {Core, Codes} from '../internals';
 import {ErrorHandler, codes} from '../internals';
@@ -324,6 +325,11 @@ class Path {
 			}
 		}
 
+		// Have Sentry handle the error too.
+		if (process.env.SENTRY) {
+			Sentry.captureException(error);
+		}
+
 		// Parse error and log the error
 		const handled = this.eHandler.handlePathError(error, severity);
 		const formattedMessage = `[PATH ${this.label}] ${
@@ -347,7 +353,7 @@ class Path {
 			this.core.removeRequestId(uuid);
 		}
 
-		return response.status(this.codes.internalErr).send(out);
+		return response.status(523).send(out);
 	}
 
 	protected addFatalError(): void {

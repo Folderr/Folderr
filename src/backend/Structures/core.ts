@@ -3,13 +3,12 @@ import {join} from 'path';
 import {platform} from 'os';
 import {EventEmitter} from 'events';
 import http from 'http';
-import type {ChildProcess} from 'child_process';
 import {fork} from 'child_process';
 import fs from 'fs';
 import process from 'process';
-// Fastify imports
+import type {ChildProcess} from 'child_process';
 
-import type {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
+// Fastify imports
 import fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
@@ -17,6 +16,12 @@ import fastifyStatic from '@fastify/static';
 import ratelimit from '@fastify/rate-limit';
 import fastifyCors from '@fastify/cors';
 import multipart from '@fastify/multipart';
+import type {
+	FastifyInstance,
+	FastifyReply,
+	FastifyRequest,
+	FastifyServerFactoryHandler,
+} from 'fastify';
 
 // Frontend stuff
 
@@ -24,21 +29,15 @@ import middie from '@fastify/middie';
 
 // Other imports
 import spdy from 'spdy';
+import got from 'got';
 import type winston from 'winston';
 import type {Got} from 'got';
-import got from 'got';
+import * as Sentry from '@sentry/node';
 
 // Local files
-import type {
-	CoreConfig,
-	DbConfig,
-	ActEmailConfig,
-	KeyConfig,
-} from '../handlers/config-handler';
 import Configurer from '../handlers/config-handler';
 import * as endpointsImport from '../Paths/index';
 import * as APIs from '../Paths/API/index';
-import type {Path} from '../internals';
 import {
 	Emailer,
 	Utils,
@@ -48,6 +47,13 @@ import {
 	codes as StatusCodes,
 } from '../internals';
 import {version} from '../../../package.json';
+import type {
+	CoreConfig,
+	DbConfig,
+	ActEmailConfig,
+	KeyConfig,
+} from '../handlers/config-handler';
+import type {Path} from '../internals';
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -107,6 +113,7 @@ export default class Core {
 		this.#dbConfig = configs.db;
 		this.#emailConfig = configs.email;
 
+		// Init app
 		this.httpsEnabled = Boolean(
 			this.#keys.httpsCertOptions?.cert && this.#keys.httpsCertOptions?.key,
 		);
@@ -117,6 +124,9 @@ export default class Core {
 			serverFactory: this.initServer(this.#keys),
 		});
 
+		this.app.setErrorHandler(this.errorHandler.bind(this));
+
+		// Init db
 		this.db = new MongoDB(); // Time to abuse Node. :)
 		this.listening = false;
 
@@ -151,7 +161,7 @@ export default class Core {
 				parseAs: 'string',
 			},
 			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
-			(request, body, done) => done(null, body),
+			(_request, body, done) => done(null, body),
 		);
 	}
 
@@ -199,10 +209,8 @@ export default class Core {
 
 				done();
 			});
-			this.app.addHook('onResponse', (request, reply, done) => {
+			this.app.addHook('onResponse', async (request, reply) => {
 				this.logger.debug(`Status: ${reply.raw.statusCode}`);
-
-				done();
 			});
 			this.app.addHook('preValidation', (request, reply, done) => {
 				this.logger.debug('Validation:');
@@ -288,7 +296,7 @@ export default class Core {
 			let count = 0;
 
 			void this.app.register(
-				(instance, options, done) => {
+				(instance, _options, done) => {
 					// eslint-disable-next-line @typescript-eslint/naming-convention
 					for (const EndpointType of Object.values(api.endpoints)) {
 						const endpoint = new EndpointType(this);
@@ -641,5 +649,25 @@ export default class Core {
 		this.#requestIds.add(id);
 		this.#internals.noRequests = false;
 		return this.#requestIds.has(id);
+	}
+
+	async errorHandler(
+		error: Error,
+		request: FastifyRequest,
+		reply: FastifyReply,
+	) {
+		this.logger.error(error.message || error);
+
+		Sentry.withScope((scope) => {
+			scope.addEventProcessor((event) => {
+				return Sentry.addRequestDataToEvent(event, request.raw);
+			});
+			Sentry.captureException(error);
+		});
+
+		return reply.status(this.codes.internalErr).send({
+			error: 'An internal unknown error has occurred',
+			code: this.codes.internalErr,
+		});
 	}
 }

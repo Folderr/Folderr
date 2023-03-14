@@ -8,3 +8,7 @@ signups: 0 # Required, state of signups
 #  - cert: # Add https cert here
 #  - ca: # Unknown use. Optional.
 #  - requestCert: # Request the certificate from the end user. Not recommended to use
+#sentry:
+#  - dsn: key@hostname.io
+#  - tracing: true
+#  - rate: 0.5
