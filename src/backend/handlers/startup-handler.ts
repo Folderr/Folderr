@@ -1,9 +1,9 @@
 import process from 'process'; // Shut.
+import * as Sentry from '@sentry/node';
 import Core from '../Structures/core';
 
-const core = new Core();
-
 export async function startFolderr(): Promise<void> {
+	const core = new Core();
 	try {
 		await core.initDb();
 	} catch (error: unknown) {
@@ -18,6 +18,8 @@ export async function startFolderr(): Promise<void> {
 			core.logger.notice('Folderr will exit as per protocol.');
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(0);
+		} else {
+			Sentry.captureException(error);
 		}
 	}
 
@@ -48,6 +50,8 @@ export async function startFolderr(): Promise<void> {
 		if (error instanceof Error) {
 			core.logger.error(error);
 			core.logger.debug(error.stack);
+
+			Sentry.captureException(error);
 		}
 	}
 }
