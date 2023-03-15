@@ -55,6 +55,9 @@ import type {
 } from '../handlers/config-handler';
 import type {Path} from '../internals';
 
+// Local Fastify plugins
+import SentryPlugin from './plugins/sentry';
+
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
 const ee = new EventEmitter();
@@ -64,6 +67,15 @@ ee.on('fail', (code) => {
 		process.exit(code || 1); // Justification: Process may not exit if this is not called
 	}, 1000);
 });
+
+// Since we decorate the fastify instance we need to add that as a type.
+declare module 'fastify' {
+	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+	interface FastifyInstance {
+		wlogger: winston.Logger;
+		codes: typeof StatusCodes;
+	}
+}
 
 export default class Core {
 	public readonly db: MongoDB;
@@ -123,8 +135,7 @@ export default class Core {
 			disableRequestLogging: true,
 			serverFactory: this.initServer(this.#keys),
 		});
-
-		this.app.setErrorHandler(this.errorHandler.bind(this));
+		this.app.decorate('codes', StatusCodes);
 
 		// Init db
 		this.db = new MongoDB(); // Time to abuse Node. :)
@@ -139,6 +150,7 @@ export default class Core {
 		);
 		this.codes = StatusCodes;
 		this.logger = wlogger;
+		this.app.decorate('wlogger', wlogger);
 		this.got = got.extend({
 			http2: true,
 			headers: {
@@ -167,6 +179,13 @@ export default class Core {
 
 	async registerServerPlugins() {
 		await this.app.register(cookie);
+
+		// Enable Sentry tracing
+		if (this.config.sentry.tracing && this.config.sentry.dsn) {
+			console.log('Enabling Tracing');
+			await this.app.register(SentryPlugin);
+		}
+
 		if (process.env.NODE_ENV !== 'dev') {
 			// eslint-disable-next-line @typescript-eslint/quotes
 			const defaultSrc = ["'self'"];
@@ -333,6 +352,7 @@ export default class Core {
 
 	internalInitPath(path: Path, instance = this.app) {
 		const app = instance;
+
 		switch (path.type) {
 			case 'post': {
 				if (Array.isArray(path.path)) {
@@ -649,25 +669,5 @@ export default class Core {
 		this.#requestIds.add(id);
 		this.#internals.noRequests = false;
 		return this.#requestIds.has(id);
-	}
-
-	async errorHandler(
-		error: Error,
-		request: FastifyRequest,
-		reply: FastifyReply,
-	) {
-		this.logger.error(error.message || error);
-
-		Sentry.withScope((scope) => {
-			scope.addEventProcessor((event) => {
-				return Sentry.addRequestDataToEvent(event, request.raw);
-			});
-			Sentry.captureException(error);
-		});
-
-		return reply.status(this.codes.internalErr).send({
-			error: 'An internal unknown error has occurred',
-			code: this.codes.internalErr,
-		});
 	}
 }
