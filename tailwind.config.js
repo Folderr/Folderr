@@ -4,7 +4,8 @@ module.exports = {
 		extend: {
 			colors: {
 				brand: '#2ECC71',
-				'brand-darkened': '#2ba05c',
+				'brand-darkened': '#2ba05c', // #1A6137
+				'secondary-brand': '#81B5D9', // '#B8E1FF',
 				bg: '#282828',
 				'bg-old': '#313131',
 				'secondary-bg': '#131313',
@@ -13,7 +14,8 @@ module.exports = {
 				'secondary-text': '#C4C4C4',
 				'secondary-accent': '#C5395B',
 				'secondary-accent-dark': '#A91F40',
-				disabled: '#7E7E7E',
+				disabled: '#757575',
+				'disabled-red': '#590015',
 			},
 			screens: {
 				lg: '1024px',

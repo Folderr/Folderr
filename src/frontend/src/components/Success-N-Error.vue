@@ -3,8 +3,8 @@
         <div v-for="success of successes" v-bind:key="success">
             <div :class="[
                 'justify-center',
-                'bg-brand-darkened',
-                'text-white',
+                'bg-brand',
+                'text-black',
                 'p-4',
                 'text-center',
                 'flex',
@@ -15,7 +15,7 @@
                     'mt-2': successes.length > 0
                 },
                 'rounded-lg',
-                'border-brand-darkened'
+                'border-brand'
             ]">
                 <p>{{success}}</p>
                 <button @click="removeSuccess(getSuccessIndex(success))" class="bg-none border-none text-black ml-4">X</button>
