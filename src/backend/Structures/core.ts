@@ -181,10 +181,7 @@ export default class Core {
 		await this.app.register(cookie);
 
 		// Enable Sentry tracing
-		if (this.config.sentry.tracing && this.config.sentry.dsn) {
-			console.log('Enabling Tracing');
-			await this.app.register(SentryPlugin);
-		}
+		await this.app.register(SentryPlugin);
 
 		if (process.env.NODE_ENV !== 'dev') {
 			// eslint-disable-next-line @typescript-eslint/quotes
@@ -528,6 +525,7 @@ export default class Core {
 			server: {
 				middlewareMode: true,
 			},
+			envDir: process.cwd(),
 		});
 		this.app.use((request, response, next) => {
 			if (request.url?.match(/^\/(api|image|i\/|v\/|video|file|f\/)/)) {
