@@ -11,3 +11,6 @@ configs/
 
 # Ignore internal files
 internal/*
+
+# Ignore .env
+.env
