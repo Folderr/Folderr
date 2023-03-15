@@ -1,3 +1,4 @@
+/* eslint-disable n/prefer-global/buffer */
 /**
  * @license
  *
@@ -19,16 +20,13 @@
  *
  */
 
-import {Schema, model, Document} from 'mongoose';
+import {Schema, model} from 'mongoose';
+import type {Folderr} from '../Structures/Database/db-class';
 
-export interface FolderrDB extends Document {
-	bans: string[];
-	publicKeyJWT: Buffer;
-}
-
-const Folderr: Schema = new Schema({
+const folderr: Schema = new Schema({
 	bans: {type: Array, default: [], required: false},
-	publicKeyJWT: {type: Buffer, required: true}
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	publicKeyJWT: {type: Buffer, required: true},
 });
 
-export default model<FolderrDB>('folderr', Folderr);
+export default model<Folderr>('folderr', folderr);

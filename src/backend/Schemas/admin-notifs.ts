@@ -19,25 +19,16 @@
  *
  */
 
-import {Schema, model, Model, Document} from 'mongoose';
+import {Schema, model} from 'mongoose';
+import type {Notification} from '../Structures/Database/db-class';
 
-const AdminNotifs: Schema = new Schema({
+const adminNotifs = new Schema({
 	title: {type: String, required: true},
 	notify: {type: String, required: true},
 	id: {type: String, required: true, index: true},
-	createdAt: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()},
 });
 
-export interface Notification extends Document {
-	title: string;
-	notify: string;
-	id: string;
-	createdAt: Date;
-}
-
-const mod: Model<Notification> = model<Notification>(
-	'admin_notifs',
-	AdminNotifs
-);
+const mod = model<Notification>('admin_notifs', adminNotifs);
 
 export default mod;

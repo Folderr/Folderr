@@ -19,25 +19,17 @@
  *
  */
 
-import {Schema, model, Model, Document} from 'mongoose';
+import {Schema, model} from 'mongoose';
+import type {Upload} from '../Structures/Database/db-class';
 
-const File: Schema = new Schema({
+const file = new Schema({
 	id: {type: String, required: true, index: true},
 	owner: {type: String, required: true},
 	path: {type: String, required: true},
 	type: {type: String, required: true},
 	createdAt: {type: Date, default: new Date()},
-	mimetype: {type: String, required: true}
+	mimetype: {type: String, required: true},
 });
-export interface UploadI extends Document {
-	id: string;
-	owner: string;
-	format: string;
-	path: string;
-	type: string;
-	createdAt: Date;
-	mimetype: string;
-}
 
-const mod: Model<UploadI> = model<UploadI>('file', File);
+const mod = model<Upload>('file', file);
 export default mod;

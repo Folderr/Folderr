@@ -90,7 +90,7 @@
     "mime-types": "^2.1.29",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
-    "mongoose": "^6.5.4",
+    "mongoose": "^7.0.2",
     "nodemailer": "^6.7.2",
     "spdy": "^4.0.2",
     "uuid": "^8.3.2",

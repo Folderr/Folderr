@@ -19,26 +19,19 @@
  *
  */
 
-import {Schema, model, Model, Document} from 'mongoose';
+import type {Model} from 'mongoose';
+import {Schema, model} from 'mongoose';
+import type {PendingMember} from '../Structures/Database/db-class';
 
-const User: Schema = new Schema({
+const user = new Schema({
 	id: {type: String, required: true, index: true},
 	password: {type: String, required: true},
 	username: {type: String, required: true},
 	validationToken: {type: String, required: true},
 	email: {type: String, required: true},
-	createdAt: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()},
 });
 
-export interface VUser extends Document {
-	id: string;
-	password: string;
-	username: string;
-	validationToken: string;
-	email: string;
-	createdAt: Date;
-}
-
-const mod: Model<VUser> = model<VUser>('verifying_user', User);
+const mod: Model<PendingMember> = model<PendingMember>('verifying_user', user);
 
 export default mod;
