@@ -326,7 +326,7 @@ class Path {
 		}
 
 		// Have Sentry handle the error too.
-		if (process.env.SENTRY) {
+		if (this.core.config.sentry.dsn) {
 			Sentry.captureException(error);
 		}
 
