@@ -36,7 +36,7 @@
         <Login :sne="sne" />
         <div class="flex mt-2 justify-center w-[100%] font-headline">
           <p class="text-secondary-text">new here?</p>
-          <button class="border-0 bg-transparent text-brand ml-2">Sign Up</button>
+          <button class="border-0 bg-transparent text-brand ml-2 hover:font-bold">Sign Up</button>
         </div>
       </div>
     </div>

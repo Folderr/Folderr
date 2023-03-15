@@ -60,11 +60,11 @@
                             >
                         <button
                             v-on:click="copy(tokenInfo.token)"
-                            class="text-brand mx-4"
+                            class="text-brand hover:text-brand-darkened mx-4"
                             title="Copy the token"
                         >
-                            <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
-                            <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
+                            <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 hover:text-brand-darkened text-brand" aria-hidden="true"/>
+                            <ClipboardCheckIcon v-if="copied" class="h-5 w-5 hover:text-brand-darkened text-brand" aria-hidden="true"/>
                         </button>
                     </div>
                     <div class="my-4">
@@ -132,16 +132,17 @@
                     <h2 class="mt-5 text-secondary-text text-lg lg:ml-20 font-info">Update your Folderr username, email, and password</h2>
                     <h3 class="mt-2 text-text text-lg lg:ml-20" v-if="emailerDisabled">You can't change your email as there is no emailer configured to verify a new email.</h3>
                     <div class="mt-10 lg:ml-20">
-                        <p
-                            class="text-secondary-text text-md"
+                        <label for="username"
+                            class="text-secondary-text text-md block"
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
-                        >Username</p>
+                        >Username</label>
                         <input
-                            label="New username"
+                            label="Username"
+                            id="username"
                             required
                             v-model="username" v-bind:placeholder="oldUsername"
                             title="Username must be at least 3 characters long, lowercase, and can include underscores as well as numbers"
-                            class="font-input mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="block font-input mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': /^\w{3,16}$/.test(username),
@@ -169,14 +170,15 @@
                                 </DisclosurePanel>
                             </Disclosure>
                         </div>
-                        <p class="text-secondary-text text-md">Email {{emailerDisabled ? '(Disabled)' : ''}}</p>
+                        <label for="email" class="text-secondary-text text-md block">Email {{emailerDisabled ? '(Disabled)' : ''}}</label>
                         <input
+                            id="email"
                             type="email"
                             label="New email address"
                             v-model="email"
                             v-bind:disabled="emailerDisabled"
                             v-bind:placeholder="oldEmail"
-                            class="font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg caret-brand"
+                            class="block font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg caret-brand"
                             :class="[
                                 {
                                     'opacity-50': emailerDisabled,
@@ -186,7 +188,6 @@
                             ]"
                             autocomplete="email"
                         >
-                        <br>
                         <FButton
                             v-bind:buttonDisabled="isInfoSame"
                             v-bind:onClick="updateInfo"
@@ -194,9 +195,10 @@
                             v-bind:colorDisabled="isInfoSame"
                         >Save Changes</FButton>
                         
-                        <p class="text-secondary-text text-md mt-10">Current Password</p>
+                        <label for="password" class="block text-secondary-text text-md mt-10">Current Password</label>
                         <input
                             v-on:keyup.enter="() => newPasswordEl?.focus()"
+                            id="password"
                             v-model="oldPassword"
                             type="password"
                             label="Current password"
@@ -210,14 +212,15 @@
                             ]"
                             autocomplete="current-password"
                         >
-                        <p
-                            class="text-secondary-text text-md"
+                        <label for="newpassword"
+                            class="block text-secondary-text text-md"
                             title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
                         >
                             New Password
-                        </p>
+                        </label>
                         <input
                             ref="newPassword"
+                            id="newpassword"
                             label="New password"
                             v-on:keyup.enter="() => passwordConfirmEl?.focus()"
                             v-model="password"
@@ -253,15 +256,16 @@
                                 </DisclosurePanel>
                             </Disclosure>
                         </div>
-                        <p class="text-secondary-text text-md">Confirm Password</p>
+                        <label for="confirmpassword" class="block text-secondary-text text-md">Confirm Password</label>
                         <input
+                            id="confirmpassword"
                             label="Confirm password"
                             ref="passwordConfirmation"
                             v-on:keyup.enter="() => isPasswordValid ? updatePasswordEl?.click() : null"
                             v-model="passwordConfirm"
                             type="password"
                             placeholder="Confirm Password"
-                            class="font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="block font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': confirmPasswordValid,
@@ -270,7 +274,6 @@
                             ]"
                             autocomplete="new-password"
                         >
-                        <br>
                         <FButton
                             v-bind:buttonDisabled="!isPasswordValid"
                             v-bind:onClick="updatePassword"
@@ -289,6 +292,7 @@
                             buttontitle="Delete Your Account"
                             v-bind:colorDisabled="owner"
                             class="mt-2"
+                            type="red"
                         >Delete Account</FButton>
                     </div>
                     <div class="lg:ml-20 mt-10">

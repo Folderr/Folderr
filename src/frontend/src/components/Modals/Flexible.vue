@@ -23,23 +23,15 @@
 				v-on:keyup.enter="needInput || (needInput && inputText?.length > 0) ? cont(inputText) : false"
 				>
 			<div class="flex mt-5 m-auto justify-center">
-				<button v-if="!noCancel" v-on:click="cancel()" class="mr-4 text-text px-5 py-2 border-2 border-text rounded-sm">Cancel</button>
+				<FButton v-if="!noCancel" v-bind:onClick="cancel" title="Cancel" type="neutral" class="mr-4">Cancel</FButton>
 				<!-- "What color would you like your confirm button sir? We have green or red." -->
 				<!-- inputText is sent here so it doesn't need to be a prop. -->
-				<button v-bind:disabled="needInput ? !(inputText?.length > 0) : false" v-on:click="cont(inputText)" :class="[
-					'ml-5',
-					'px-5',
-					'py-2',
-					'border-2',
-					{
-						'border-secondary-accent': !greenContinue,
-						'text-secondary-accent': !greenContinue,
-						'border-brand': greenContinue,
-						'text-brand': greenContinue,
-						'hover:cursor-not-allowed': needInput ? !(inputText?.length) : false,
-						'opacity-80': showInput && needInput ? !(inputText?.length) : false,
-					},
-					'rounded-sm']">{{ continueText }}</button>
+				<FButton
+					v-bind:buttonDisabled="needInput ? !(inputText?.length > 0) : false"
+					v-bind:onClick="() => cont(inputText)"
+					v-bind:type="!greenContinue ? 'red' : undefined" class="ml-5"
+					v-bind:colorDisabled="needInput ? !(inputText?.length > 0) : false"
+				>{{ continueText }}</FButton>
 			</div>
 		</DialogPanel>
 	</Dialog>
