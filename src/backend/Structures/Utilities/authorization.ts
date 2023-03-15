@@ -61,9 +61,13 @@ export default class Authorization {
 			if (error instanceof Error && messages.includes(error.message)) {
 				this.#core.logger.log('error', error.message);
 				await this.#core.Utils.sleep(1000);
-				this.#core.shutdownServer();
+				this.#core.shutdownServer(
+					'Utils.init',
+					'Utility initialization failed',
+				);
 			}
 
+			this.#core.app.sentry.captureException(error);
 			return;
 		}
 

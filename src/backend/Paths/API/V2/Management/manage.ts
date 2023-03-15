@@ -21,8 +21,9 @@
 import childProcess from 'child_process';
 import util from 'util';
 import {promises} from 'fs';
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -43,11 +44,11 @@ class Manage extends Path {
 				querystring: {
 					type: 'object',
 					properties: {
-						type: {type: 'string'}
+						type: {type: 'string'},
 					},
-					required: ['type']
-				}
-			}
+					required: ['type'],
+				},
+			},
 		};
 	}
 
@@ -57,44 +58,47 @@ class Manage extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
+			Boolean(user.owner),
 		);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
 		if (request.query.type === 'shutdown') {
 			this.core.logger.info(
-				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`
+				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`,
 			);
-			this.core.shutdownServer();
+			this.core.shutdownServer(
+				'API/Manage/Shutdown',
+				'Remote shutdown by owner',
+			);
 			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
-				message: 'OK'
+				message: 'OK',
 			});
 		}
 
 		if (request.query.type === 'update') {
 			await response.status(this.codes.accepted).send({
 				code: this.codes.ok,
-				message: 'Attempting update.'
-			}); // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const oPackage: Record<string, string> = JSON.parse(
-				(await promises.readFile('./package.json')).toString()
-			);
+				message: 'Attempting update.',
+			});
+			const file = await promises.readFile('./package.json');
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const oPackage: Record<string, string> = JSON.parse(file.toString());
 			try {
 				await exec('npm run update'); // Eventually make file to handle this
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					return this.handleError(error, response, undefined, {
 						noIncrease: true,
-						noResponse: true
+						noResponse: true,
 					});
 				}
 
@@ -107,7 +111,7 @@ class Manage extends Path {
 			let v;
 			const vers = {
 				af: Number(af.version.split('.').join(' ')),
-				old: Number(oPackage.version.split('.').join(' '))
+				old: Number(oPackage.version.split('.').join(' ')),
 			};
 			if (vers.af > vers.old) {
 				v = `Version upgraded from ${oPackage.version} to ${af.version}`;
@@ -118,12 +122,12 @@ class Manage extends Path {
 			}
 
 			this.core.logger.info(`System updated. ${v}`);
-			return Promise.resolve();
+			return;
 		}
 
 		return response.status(this.codes.badReq).send({
 			code: this.codes.badReq,
-			message: 'Not an option!'
+			message: 'Not an option!',
 		});
 	}
 }
