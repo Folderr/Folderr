@@ -111,7 +111,6 @@
     "@typescript-eslint/eslint-plugin": "^5.36.1",
     "@typescript-eslint/parser": "^5.36.1",
     "@vitejs/plugin-vue": "^4.0.0",
-    "@vue/compiler-sfc": "^3.2.26",
     "autoprefixer": "^10.4.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
