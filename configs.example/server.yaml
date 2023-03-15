@@ -4,11 +4,11 @@ signups: 0 # Required, state of signups
 # apiOnly: false # Optional, turns off the frontend if set to true.
 # trustProxies: false # Optional, only set this to true when behind a proxy server you trust.
 # httpsCertOptions: # optional
-#  - key: # Add https private key here
-#  - cert: # Add https cert here
-#  - ca: # Unknown use. Optional.
-#  - requestCert: # Request the certificate from the end user. Not recommended to use
+#  key: # Add https private key here
+#  cert: # Add https cert here
+#  ca: # Unknown use. Optional.
+#  requestCert: # Request the certificate from the end user. Not recommended to use
 #sentry:
-#  - dsn: key@hostname.io
-#  - tracing: true
-#  - rate: 0.5
+#  dsn: key@hostname.io
+#  tracing: true
+#  rate: 0.5

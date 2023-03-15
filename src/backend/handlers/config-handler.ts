@@ -10,6 +10,7 @@ import {
 	bool,
 	num,
 	email as envemail,
+	str,
 } from 'envalid';
 import {wlogger} from '../internals';
 
@@ -71,6 +72,11 @@ export type ServerConfig = {
 		requestCert?: boolean;
 		ca?: string[];
 	};
+	sentry?: {
+		dsn?: string;
+		tracing?: boolean;
+		rate?: number;
+	};
 };
 
 export type EmailConfig = {
@@ -107,6 +113,11 @@ export type CoreConfig = {
 	url: string;
 	trustProxies: boolean;
 	apiOnly: boolean;
+	sentry: {
+		dsn?: string;
+		tracing?: boolean;
+		rate?: number;
+	};
 };
 
 export type KeyConfig = {
@@ -199,11 +210,16 @@ const configHandler = {
 	): ActEmailConfig {
 		const emailConfig: ActEmailConfig = {};
 		if (email ?? envEmailConfig) {
-			emailConfig.sendingEmail = email?.sendingEmail;
+			emailConfig.sendingEmail =
+				envEmailConfig.sendingEmail ?? email?.sendingEmail;
 			const hasAuth =
-				Boolean(email?.mailerOptions?.auth) &&
-				Boolean(email?.mailerOptions?.auth.password) &&
-				Boolean(email?.mailerOptions?.auth.username);
+				Boolean(envEmailConfig.auth ?? email?.mailerOptions?.auth) &&
+				Boolean(
+					envEmailConfig.auth.pass ?? email?.mailerOptions?.auth.password,
+				) &&
+				Boolean(
+					envEmailConfig.auth.user ?? email?.mailerOptions?.auth.username,
+				);
 			if (email?.mailerOptions && hasAuth) {
 				emailConfig.mailerOptions = {
 					auth: {
@@ -233,7 +249,7 @@ const configHandler = {
 		key: KeyConfig;
 		db: DbConfig;
 	} {
-		const envCoreConfig = cleanEnv(process.env, {
+		const partialEnvCoreConfig = cleanEnv(process.env, {
 			url: host({default: undefined}),
 			port: port({default: undefined}),
 			trustProxies: bool({default: false}),
@@ -248,6 +264,25 @@ const configHandler = {
 				},
 			}),
 		});
+
+		// Handle the configuration for sentry
+
+		/* eslint-disable @typescript-eslint/naming-convention */
+		const envSentryConf = cleanEnv(process.env, {
+			sentry: str({default: undefined}),
+			sentry_rate: num({default: undefined}),
+			sentry_tracing: bool({default: undefined}),
+		});
+		/* eslint-enable @typescript-eslint/naming-convention */
+
+		const envCoreConfig = {
+			...partialEnvCoreConfig,
+			sentry: {
+				dsn: envSentryConf.sentry,
+				rate: envSentryConf.sentry_rate,
+				tracing: envSentryConf.sentry_tracing,
+			},
+		};
 
 		const envDbConfig = cleanEnv(process.env, {
 			url: host({default: undefined}),
@@ -292,30 +327,44 @@ const configHandler = {
 		const keyConfig: KeyConfig = {
 			httpsCertOptions: {
 				key:
-					files.server?.httpsCertOptions?.key ??
-					envCoreConfig.httpsCertOptions?.key,
+					envCoreConfig.httpsCertOptions?.key ??
+					files.server?.httpsCertOptions?.key,
 				cert:
-					files.server?.httpsCertOptions?.cert ??
-					envCoreConfig.httpsCertOptions?.cert,
+					envCoreConfig.httpsCertOptions?.cert ??
+					files.server?.httpsCertOptions?.cert,
 				ca:
-					files.server?.httpsCertOptions?.ca ??
-					envCoreConfig.httpsCertOptions?.ca,
+					envCoreConfig.httpsCertOptions?.ca ??
+					files.server?.httpsCertOptions?.ca,
 				requestCert:
-					Boolean(files.server?.httpsCertOptions?.requestCert) ||
-					envCoreConfig.httpsCertOptions?.requestCert,
+					envCoreConfig.httpsCertOptions?.requestCert ??
+					Boolean(files.server?.httpsCertOptions?.requestCert),
 			},
 		};
 
 		const coreConfig = {
 			url: envCoreConfig.url ?? files.server?.url,
 			port: envCoreConfig.port ?? files.server?.port,
-			trustProxies: files.server?.trustProxies ?? envCoreConfig.trustProxies,
-			signups: files.server?.signups ?? envCoreConfig.signups,
-			apiOnly: files.server?.apiOnly ?? envCoreConfig.apiOnly,
+			trustProxies: envCoreConfig.trustProxies ?? files.server?.trustProxies,
+			signups: envCoreConfig.signups ?? files.server?.signups,
+			apiOnly: envCoreConfig.apiOnly ?? files.server?.apiOnly,
+			sentry: {
+				dsn: envCoreConfig.sentry.dsn ?? files.server?.sentry?.dsn,
+				rate:
+					envCoreConfig.sentry.rate ??
+					files.server?.sentry?.rate ??
+					process.env.NODE_ENV === 'dev'
+						? 1
+						: 0.2,
+				tracing:
+					envCoreConfig.sentry.tracing ??
+					files.server?.sentry?.tracing ??
+					false,
+			},
 		};
 		const emailConfig = this.verifyEmailer(envEmailConfig, files.email);
 		const dbConfig = {
 			url: envDbConfig.url ?? files.db?.url,
+			// These aren't implemented yet so... worthless :)
 			dbName: files.db?.dbName,
 			protocol: files.db?.protocol,
 			extraConfig: files.db?.extraConfig,
