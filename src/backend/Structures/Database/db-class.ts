@@ -20,11 +20,10 @@
  *
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 export interface Folderr {
 	bans: string[];
-	// eslint-disable-next-line node/prefer-global/buffer
+	// eslint-disable-next-line n/prefer-global/buffer
 	publicKeyJWT: Buffer;
 }
 
@@ -49,6 +48,9 @@ export interface User {
 	createdAt: Date;
 	pendingEmail?: string;
 	pendingEmailToken?: string;
+	privacy?: {
+		dataCollection?: boolean;
+	};
 }
 
 export interface Link {
@@ -111,7 +113,7 @@ export class DBClass {
 
 	/* ---- FOLDERR RELATED METHODS ---- */
 
-	// eslint-disable-next-line node/prefer-global/buffer
+	// eslint-disable-next-line n/prefer-global/buffer
 	async createFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method createFolderr is not implemented!',
@@ -158,7 +160,7 @@ export class DBClass {
 	async findUser(
 		query: Record<string, unknown>,
 		selector?: string,
-	): Promise<User | null | undefined> {
+	): Promise<User | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findUser is not implemented!',
 		);
@@ -194,7 +196,7 @@ export class DBClass {
 		query: Record<string, unknown>,
 		update: Record<string, unknown>,
 		selector?: string,
-	): Promise<User | undefined | null> {
+	): Promise<User | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findAndUpdateUser is not implemented!',
 		);
@@ -235,7 +237,7 @@ export class DBClass {
 
 	async findVerify(
 		query: Record<string, unknown>,
-	): Promise<PendingMember | undefined | null> {
+	): Promise<PendingMember | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findVerify is not implemented!',
 		);
@@ -293,7 +295,7 @@ export class DBClass {
 	async findFile(
 		query: Record<string, unknown>,
 		selector?: string,
-	): Promise<Upload | undefined | null> {
+	): Promise<Upload | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findFile is not implemented!',
 		);
@@ -301,7 +303,7 @@ export class DBClass {
 
 	async findAndDeleteFile(
 		query: Record<string, unknown>,
-	): Promise<Upload | undefined | null> {
+	): Promise<Upload | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findAndDeleteFile is not implemented!',
 		);
@@ -350,7 +352,7 @@ export class DBClass {
 	async findLink(
 		query: Record<string, unknown>,
 		selector?: string,
-	): Promise<Link | undefined | null> {
+	): Promise<Link | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findLink is not implemented!',
 		);
@@ -371,7 +373,7 @@ export class DBClass {
 
 	async findAndDeleteLink(
 		query: Record<string, unknown>,
-	): Promise<Link | undefined | null> {
+	): Promise<Link | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findAndDeleteLink is not implemented!',
 		);
@@ -409,7 +411,7 @@ export class DBClass {
 		options?: {
 			web?: boolean;
 		},
-	): Promise<Tokendb | undefined | null> {
+	): Promise<Tokendb | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findToken is not implemented!',
 		);
@@ -465,7 +467,7 @@ export class DBClass {
 
 	async findAdminNotify(
 		query: Record<string, unknown>,
-	): Promise<Notification | undefined | null> {
+	): Promise<Notification | undefined> {
 		throw new Error(
 			'DB > NOT IMPLEMENTED - Method findAdminNotify is not implemented!',
 		);
@@ -497,6 +499,6 @@ export class DBClass {
 	}
 }
 
-/* eslint-enable @typescript-eslint/no-unused-vars */
+/* eslint-enable @typescript-eslint/consistent-type-definitions */
 
 export default DBClass;

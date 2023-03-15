@@ -19,9 +19,10 @@
  *
  */
 
-import {Schema, model, Model, Document} from 'mongoose';
+import {Schema, model} from 'mongoose';
+import type {Tokendb} from '../Structures/Database/db-class';
 
-const jwtToken: Schema = new Schema({
+const jwtToken = new Schema({
 	id: {type: String, required: true, index: true},
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	userID: {type: String, required: true, index: true},
@@ -31,16 +32,7 @@ const jwtToken: Schema = new Schema({
 	description: {type: String, default: 'No description'},
 });
 
-export interface JwtTokenI extends Document {
-	id: string;
-	userID: string;
-	web?: boolean;
-	createdAt: Date;
-	expireAt?: Date;
-	description?: string;
-}
-
 jwtToken.index({expireAt: 1}, {expireAfterSeconds: 0});
 
-const mod: Model<JwtTokenI> = model<JwtTokenI>('token', jwtToken);
+const mod = model<Tokendb>('token', jwtToken);
 export default mod;

@@ -19,10 +19,11 @@
  *
  */
 
-import {Schema, model, Model, Document} from 'mongoose';
-import {Notification} from '../Structures/Database/db-class';
+import type {Model} from 'mongoose';
+import {Schema, model} from 'mongoose';
+import type {User} from '../Structures/Database/db-class';
 
-const User: Schema = new Schema({
+const userSchema = new Schema({
 	id: {type: String, required: true, index: true},
 	password: {type: String, required: true},
 	owner: {type: Boolean, default: false},
@@ -34,37 +35,25 @@ const User: Schema = new Schema({
 				id: {type: String},
 				title: {type: String},
 				notify: {type: String},
-				created: {type: Date, default: new Date()}
-			}
+				created: {type: Date, default: new Date()},
+			},
 		],
 		required: false,
-		default: []
+		default: [],
 	},
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	cURLs: {type: Array, default: []},
 	files: {type: Number, default: 0},
 	links: {type: Number, default: 0},
 	email: {type: String, required: true, index: true},
 	pendingEmail: {type: String},
 	pendingEmailToken: {type: String},
-	createdAt: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()},
+	privacy: {
+		dataCollection: {type: Boolean, default: false},
+	},
 });
 
-export interface UserI extends Document {
-	id: string;
-	password: string;
-	owner?: boolean;
-	username: string;
-	admin?: boolean;
-	notifs: Notification[];
-	cURLs: string[];
-	files: number;
-	links: number;
-	createdAt: Date;
-	email: string;
-	pendingEmail?: string;
-	pendingEmailToken?: string;
-}
-
-const mod: Model<UserI> = model<UserI>('user', User);
+const mod: Model<User> = model<User>('user', userSchema);
 
 export default mod;

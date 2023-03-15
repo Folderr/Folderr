@@ -19,22 +19,16 @@
  *
  */
 
-import {Schema, Model, model, Document} from 'mongoose';
+import {Schema, model} from 'mongoose';
+import type {Link} from '../Structures/Database/db-class';
 
-export interface Link extends Document {
-	link: string;
-	owner: string;
-	id: string;
-	createdAt: Date;
-}
-
-const ShortSchema: Schema<Link> = new Schema({
+const shortSchema = new Schema({
 	link: {type: String, required: true},
 	owner: {type: String, required: true},
 	id: {type: String, required: true, index: true},
-	createdAt: {type: Date, default: new Date()}
+	createdAt: {type: Date, default: new Date()},
 });
 
-const ShortModel: Model<Link> = model('short', ShortSchema);
+const shortModel = model<Link>('short', shortSchema);
 
-export default ShortModel;
+export default shortModel;

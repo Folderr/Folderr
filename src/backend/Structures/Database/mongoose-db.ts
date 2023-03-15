@@ -1,4 +1,3 @@
-/* eslint-disable node/prefer-global/process */
 /**
  * @license
  *
@@ -21,12 +20,12 @@
  */
 
 import {existsSync, promises as fs} from 'fs';
+import process from 'process';
 import mongoose from 'mongoose';
 import * as Schemas from '../../Schemas/index';
 import wlogger from '../winston-logger';
 import * as constants from '../constants/index';
-import {
-	DBClass,
+import type {
 	User,
 	Tokendb,
 	Link,
@@ -36,19 +35,20 @@ import {
 	Folderr,
 	Statistics,
 } from './db-class';
+import {DBClass} from './db-class';
 
 /**
  * @classdesc Handle all MongoDB operations.
  */
 export default class Mongoosedb extends DBClass {
 	#schemas: {
-		User: mongoose.Model<Schemas.UserI>;
-		Token: mongoose.Model<Schemas.Token>;
-		Link: mongoose.Model<Schemas.Link>;
-		PendingMember: mongoose.Model<Schemas.PendingMember>;
-		Upload: mongoose.Model<Schemas.Upload>;
-		AdminNotification: mongoose.Model<Schemas.AdminNotificationI>;
-		Folderr: mongoose.Model<Schemas.FolderrDB>;
+		User: mongoose.Model<User>;
+		Token: mongoose.Model<Tokendb>;
+		Link: mongoose.Model<Link>;
+		PendingMember: mongoose.Model<PendingMember>;
+		Upload: mongoose.Model<Upload>;
+		AdminNotification: mongoose.Model<Notification>;
+		Folderr: mongoose.Model<Folderr>;
 	};
 
 	#internals: {
@@ -165,7 +165,7 @@ export default class Mongoosedb extends DBClass {
 		return fldr;
 	}
 
-	// eslint-disable-next-line node/prefer-global/buffer
+	// eslint-disable-next-line n/prefer-global/buffer
 	async createFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
 		const fldrr = await this.#schemas.Folderr.findOne({});
 		if (fldrr) {
@@ -208,7 +208,8 @@ export default class Mongoosedb extends DBClass {
 		const users = await this.#schemas.User.countDocuments({}).exec();
 		const files = await this.#schemas.Upload.countDocuments({}).exec();
 		const links = await this.#schemas.Link.countDocuments({}).exec();
-		const bannedEmails = (await this.fetchFolderr()).bans.length;
+		const folderr = await this.fetchFolderr();
+		const bannedEmails = folderr.bans.length;
 		return {users, files, links, bannedEmails, whitelistedEmails: 0};
 	}
 
@@ -216,10 +217,10 @@ export default class Mongoosedb extends DBClass {
 	async findUser(
 		query: Record<string, unknown>,
 		selector?: string,
-	): Promise<User | null> {
+	): Promise<User | undefined> {
 		return selector
-			? this.#schemas.User.findOne(query, selector).lean().exec()
-			: this.#schemas.User.findOne(query).lean().exec();
+			? this.#schemas.User.findOne(query, selector).lean()
+			: this.#schemas.User.findOne(query).lean();
 	}
 
 	async findUsers(
@@ -281,7 +282,7 @@ export default class Mongoosedb extends DBClass {
 		query: Record<string, unknown>,
 		update: Record<string, unknown>,
 		selector?: string,
-	): Promise<User | null> {
+	): Promise<User | undefined> {
 		return selector
 			? this.#schemas.User.findOneAndUpdate(query, update, {
 					fields: selector,
@@ -348,7 +349,7 @@ export default class Mongoosedb extends DBClass {
 
 	async findVerify(
 		query: Record<string, unknown>,
-	): Promise<PendingMember | null> {
+	): Promise<PendingMember | undefined> {
 		return this.#schemas.PendingMember.findOne(query).lean().exec();
 	}
 
@@ -369,9 +370,7 @@ export default class Mongoosedb extends DBClass {
 		}
 
 		const reg = new RegExp(id);
-		await this.#schemas.AdminNotification.deleteOne({notify: reg})
-			.lean()
-			.exec();
+		await this.#schemas.AdminNotification.deleteOne({notify: reg}).exec();
 
 		return this.makeUser(
 			{
@@ -402,15 +401,13 @@ export default class Mongoosedb extends DBClass {
 
 	async denyUser(id: string): Promise<boolean> {
 		const reg = new RegExp(id);
-		await this.#schemas.AdminNotification.deleteOne({notify: reg})
-			.lean()
-			.exec();
-		const del = await this.#schemas.PendingMember.deleteOne({id}).lean().exec();
+		await this.#schemas.AdminNotification.deleteOne({notify: reg}).exec();
+		const del = await this.#schemas.PendingMember.deleteOne({id}).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 
 	async denySelf(id: string): Promise<boolean> {
-		const del = await this.#schemas.PendingMember.deleteOne({id}).lean().exec();
+		const del = await this.#schemas.PendingMember.deleteOne({id}).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 
@@ -438,7 +435,7 @@ export default class Mongoosedb extends DBClass {
 	async findFile(
 		query: Record<string, unknown>,
 		selector?: string,
-	): Promise<Upload | null> {
+	): Promise<Upload | undefined> {
 		return selector
 			? this.#schemas.Upload.findOne(query, selector).lean().exec()
 			: this.#schemas.Upload.findOne(query).lean().exec();
@@ -446,7 +443,7 @@ export default class Mongoosedb extends DBClass {
 
 	async findAndDeleteFile(
 		query: Record<string, unknown>,
-	): Promise<Upload | null> {
+	): Promise<Upload | undefined> {
 		return this.#schemas.Upload.findOneAndDelete(query).lean().exec();
 	}
 
@@ -535,7 +532,7 @@ export default class Mongoosedb extends DBClass {
 	async findLink(
 		query: Record<string, unknown>,
 		selector?: string,
-	): Promise<Link | null> {
+	): Promise<Link | undefined> {
 		return selector
 			? this.#schemas.Link.findOne(query, selector).lean().exec()
 			: this.#schemas.Link.findOne(query).lean().exec();
@@ -543,7 +540,7 @@ export default class Mongoosedb extends DBClass {
 
 	async findAndDeleteLink(
 		query: Record<string, unknown>,
-	): Promise<Link | null> {
+	): Promise<Link | undefined> {
 		return this.#schemas.Link.findOneAndDelete(query).lean().exec();
 	}
 
@@ -593,7 +590,7 @@ export default class Mongoosedb extends DBClass {
 		options?: {
 			web?: boolean;
 		},
-	): Promise<Tokendb | null> {
+	): Promise<Tokendb | undefined> {
 		return this.#schemas.Token.findOne({
 			id: tokenID,
 			// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -675,7 +672,7 @@ export default class Mongoosedb extends DBClass {
 
 	async findAdminNotify(
 		query: Record<string, unknown>,
-	): Promise<Notification | null> {
+	): Promise<Notification | undefined> {
 		return this.#schemas.AdminNotification.findOne(query).lean().exec();
 	}
 
