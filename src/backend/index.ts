@@ -92,7 +92,8 @@ process.on('beforeExit', (code) => {
 	console.log(`Exiting with code ${code}`);
 });
 
-process.on('exit', () => {
+process.on('exit', (code) => {
+	console.log(`Exiting with code ${code}`);
 	console.log('(Index) Exiting...');
 });
 void StartupHandler.startFolderr();

@@ -118,6 +118,14 @@ export default class Core {
 	};
 
 	constructor() {
+		this.logger = wlogger;
+		this.#requestIds = new Set();
+		this.#internals = {
+			serverClosed: false,
+			deleterShutdown: false,
+			noRequests: true,
+		};
+
 		// Init configs
 		const configs = Configurer.verifyFetch();
 		this.config = configs.core;
@@ -149,7 +157,6 @@ export default class Core {
 			this.#emailConfig?.mailerOptions,
 		);
 		this.codes = StatusCodes;
-		this.logger = wlogger;
 		this.app.decorate('wlogger', wlogger);
 		this.got = got.extend({
 			http2: true,
@@ -161,12 +168,6 @@ export default class Core {
 			silent: true,
 		});
 
-		this.#requestIds = new Set();
-		this.#internals = {
-			serverClosed: false,
-			deleterShutdown: false,
-			noRequests: true,
-		};
 		this.app.addContentTypeParser(
 			'text/plain',
 			{
@@ -277,7 +278,7 @@ export default class Core {
 					'error',
 					'HTTPS and/or HTTP/2 required in production. Shuting down',
 				);
-				this.shutdownServer();
+				this.shutdownServer('Core.initServer', 'No HTTPS Certificate');
 				throw new Error(
 					'HTTPS and/or HTTP/2 required in production. Shuting down',
 				);
@@ -593,7 +594,21 @@ export default class Core {
 		});
 	}
 
-	shutdownServer(): void {
+	shutdownServer(calledby?: string, reason?: string): void {
+		if (calledby) {
+			this.logger.info(`Shutdown called by ${calledby}`);
+			if (process.env.NODE_ENV !== 'dev') {
+				console.log(`Shutdown called by ${calledby}`);
+			}
+		}
+
+		if (reason) {
+			this.logger.info(`Shutting down because ${reason}`);
+			if (process.env.NODE_ENV !== 'dev') {
+				console.log(`Shutting down because ${reason}`);
+			}
+		}
+
 		if (this.#deleter?.connected && !this.#deleter.killed) {
 			this.#deleter.send({msg: 'stop'});
 			this.#deleter.on('exit', () => {
@@ -610,6 +625,7 @@ export default class Core {
 				});
 			}
 		} catch (error: unknown) {
+			Sentry.captureException(error);
 			wlogger.error(error);
 			console.log(error);
 		}
