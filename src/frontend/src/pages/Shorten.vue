@@ -41,7 +41,7 @@
                     class="p-4 ml-2"
                     v-bind:colorDisabled="!isLinkValid"
                 >Shorten It!</FButton>
-                <div v-if="shortenedLink" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-min p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
+                <div v-if="shortenedLink" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-auto max-w-lg sm:max-w-sm p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
                     {{shortenedLink}}
                     <button ref="copyButton" v-if="shortenedLink" @click="copy(shortenedLink)" class="ml-4 text-brand p-2 px-4 focus:outline-none focus:ring focus:ring-brand rounded-sm">
                         <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
