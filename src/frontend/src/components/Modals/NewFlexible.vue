@@ -15,7 +15,7 @@
 						'focus:ring-secondary-accent': !greenContinue,
 					}
 				]"
-				class="mt-4 mb-4 bg-[#393939] text-text p-4 w-4/5 xl:w-full placeholder-secondary-text focus:outline-none focus:ring rounded-sm font-input"
+				class="mt-4 border-none mb-4 bg-[#393939] text-text p-4 w-4/5 xl:w-full placeholder-secondary-text focus:outline-none focus:ring rounded-sm font-input"
 				v-bind:placeholder="placeholder"
 				v-bind:title="title"
 				v-bind:type="type"

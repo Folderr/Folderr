@@ -1,16 +1,49 @@
-import {AccountReturn} from '../../../types/user';
+import * as Sentry from '@sentry/vue';
+import type {AccountReturn} from '../../../types/user';
 
 type GenericFetchReturn<T = void> =
-	| {error: string | Error; success: false; response?: Response; output: null}
-	| {error: null; success: true; response?: Response; output?: T};
+	| {
+			error: string | Error;
+			success: false;
+			response?: Response;
+			output: undefined;
+	  }
+	| {error: undefined; success: true; response?: Response; output?: T};
 
 type UserReturn =
-	| {error: string | Error; user: null}
-	| {error: null; user: AccountReturn};
+	| {error: string | Error; user: undefined}
+	| {error: undefined; user: AccountReturn};
 
 type ArrayFetchReturn<T> =
-	| {error: string | Error; response?: Response; success: false; message: null}
-	| {error: null; success: true; response?: Response; message: T[]};
+	| {
+			error: string | Error;
+			response?: Response;
+			success: false;
+			message: undefined;
+	  }
+	| {error: undefined; success: true; response?: Response; message: T[]};
+
+function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
+	Sentry.captureException(error);
+	if (
+		error instanceof Error &&
+		error.message === 'Failed to fetch' &&
+		import.meta.env.DEV
+	) {
+		console.log(
+			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
+		);
+		console.log(error);
+	}
+
+	console.log(error);
+
+	return {
+		error: 'An unknown error occurred',
+		success: false,
+		output: undefined,
+	};
+}
 
 export async function login(
 	username: string,
@@ -31,34 +64,32 @@ export async function login(
 				console.log(response);
 			}
 
-			return {error: 'Bad Request', success: false, output: null};
+			return {error: 'Bad Request', success: false, output: undefined};
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: null};
+			return {error: 'Unauthorized', success: false, output: undefined};
 		}
 
 		if (/5\d{2}/.test(response.status.toString())) {
-			return {error: 'Internal Server Error', success: false, output: null};
+			return {
+				error: 'Internal Server Error',
+				success: false,
+				output: undefined,
+			};
 		}
 
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {success: true, error: null};
+			return {success: true, error: undefined};
 		}
 
-		return {success: false, error: 'An unknown error occurred', output: null};
+		return {
+			success: false,
+			error: 'An unknown error occurred',
+			output: undefined,
+		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-		}
-
-		return {error: 'An unknown error occurred', success: false, output: null};
+		return genericCatch(error);
 	}
 }
 
@@ -66,17 +97,17 @@ export async function fetchUser(): Promise<UserReturn> {
 	try {
 		const response = await fetch('/api/account');
 		if (response.status === 401 || response.status === 400) {
-			return {error: 'Unauthorized', user: null};
+			return {error: 'Unauthorized', user: undefined};
 		}
 
 		if (!/2\d{2}/.test(response.status.toString())) {
-			return {error: 'Request failed', user: null};
+			return {error: 'Request failed', user: undefined};
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const output: {code: number; message: AccountReturn} =
 			await response.json();
-		return {error: null, user: output.message};
+		return {error: undefined, user: output.message};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
@@ -88,7 +119,7 @@ export async function fetchUser(): Promise<UserReturn> {
 			);
 		}
 
-		return {error: 'An unknown error occurred', user: null};
+		return {error: 'An unknown error occurred', user: undefined};
 	}
 }
 
@@ -121,12 +152,24 @@ export async function updateInfo(
 			},
 		});
 
+		if (response.status === 226) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const output: {message: string; code: number} | undefined =
+				await response.json();
+			return {
+				error:
+					output?.message ?? 'Something you entered is in use by another user',
+				success: false,
+				output: undefined,
+			};
+		}
+
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {error: null, success: true};
+			return {error: undefined, success: true};
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: null};
+			return {error: 'Unauthorized', success: false, output: undefined};
 		}
 
 		if (response.status === 400) {
@@ -136,19 +179,7 @@ export async function updateInfo(
 			return {
 				error: output?.message ?? 'Bad Request',
 				success: false,
-				output: null,
-			};
-		}
-
-		if (response.status === 226) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
-				await response.json();
-			return {
-				error:
-					output?.message ?? 'Something you entered is in use by another user',
-				success: false,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -159,7 +190,7 @@ export async function updateInfo(
 			return {
 				error: output?.message ?? 'Method, resource, or action not implemented',
 				success: false,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -168,22 +199,14 @@ export async function updateInfo(
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, output: null};
+		return {
+			error: 'Unknown Response',
+			success: false,
+			response,
+			output: undefined,
+		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		console.log(error);
-
-		return {error: 'An unknown error occurred', success: false, output: null};
+		return genericCatch(error);
 	}
 }
 
@@ -195,7 +218,7 @@ export async function updatePassword(info: {
 		return {
 			success: false,
 			error: 'Passwords cannot be the same',
-			output: null,
+			output: undefined,
 		};
 	}
 
@@ -212,11 +235,11 @@ export async function updatePassword(info: {
 		});
 
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {error: null, success: true};
+			return {error: undefined, success: true};
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: null};
+			return {error: 'Unauthorized', success: false, output: undefined};
 		}
 
 		if (response.status === 400) {
@@ -226,19 +249,7 @@ export async function updatePassword(info: {
 			return {
 				error: output?.message ?? 'Bad Request',
 				success: false,
-				output: null,
-			};
-		}
-
-		if (response.status === 226) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
-				await response.json();
-			return {
-				error:
-					output?.message ?? 'Something you entered is in use by another user',
-				success: false,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -249,7 +260,7 @@ export async function updatePassword(info: {
 			return {
 				error: output?.message ?? 'Method, resource, or action not implemented',
 				success: false,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -258,22 +269,79 @@ export async function updatePassword(info: {
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, output: null};
+		return {
+			error: 'Unknown Response',
+			success: false,
+			response,
+			output: undefined,
+		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
+		return genericCatch(error);
+	}
+}
+
+type PrivacyUpdateOptions = {
+	dataCollection: boolean;
+};
+
+export async function updatePrivacy(
+	info: PrivacyUpdateOptions,
+): Promise<GenericFetchReturn> {
+	try {
+		const response = await fetch('/api/account', {
+			method: 'PATCH',
+			body: JSON.stringify({privacy: info}),
+			headers: {
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+			credentials: 'same-origin',
+		});
+
+		if (/2\d{2}/.test(response.status.toString())) {
+			return {error: undefined, success: true};
 		}
 
-		console.log(error);
+		if (response.status === 401) {
+			return {error: 'Unauthorized', success: false, output: undefined};
+		}
 
-		return {error: 'An unknown error occurred', success: false, output: null};
+		if (response.status === 400) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const output: {message: string; code: number} | undefined =
+				await response.json();
+			return {
+				error: output?.message ?? 'Bad Request',
+				success: false,
+				output: undefined,
+			};
+		}
+
+		if (response.status === 501) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const output: {message: string; code: number} | undefined =
+				await response.json();
+			return {
+				error: output?.message ?? 'Method, resource, or action not implemented',
+				success: false,
+				output: undefined,
+			};
+		}
+
+		if (import.meta.env.DEV) {
+			console.log('DEBUG Response from API/Update Account Password');
+			console.log(response);
+		}
+
+		return {
+			error: 'Unknown Response',
+			success: false,
+			response,
+			output: undefined,
+		};
+	} catch (error: unknown) {
+		return genericCatch(error);
 	}
 }
 
@@ -285,7 +353,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
-				error: null,
+				error: undefined,
 				success: true,
 			};
 		}
@@ -298,7 +366,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 				error: output?.message ?? 'Could not log out (likely developer error)',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -307,7 +375,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 				error: 'Unauthorized',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -319,7 +387,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 				error: output?.message ?? 'Could not log out (likely issue with host)',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -328,22 +396,14 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, output: null};
+		return {
+			error: 'Unknown Response',
+			success: false,
+			response,
+			output: undefined,
+		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		console.log(error);
-
-		return {error: 'An unknown error occurred', success: false, output: null};
+		return genericCatch(error);
 	}
 }
 
@@ -355,7 +415,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
-				error: null,
+				error: undefined,
 				success: true,
 			};
 		}
@@ -368,7 +428,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 				error: output?.message ?? 'Could not log out (likely developer error)',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -382,7 +442,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 					'Could not log out (likely issue with host/server)',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -391,22 +451,14 @@ export async function logout(): Promise<GenericFetchReturn> {
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, output: null};
+		return {
+			error: 'Unknown Response',
+			success: false,
+			response,
+			output: undefined,
+		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		console.log(error);
-
-		return {error: 'An unknown error occurred', success: false, output: null};
+		return genericCatch(error);
 	}
 }
 
@@ -426,7 +478,7 @@ export async function deleteAccount(
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
-				error: null,
+				error: undefined,
 				success: true,
 			};
 		}
@@ -441,7 +493,7 @@ export async function deleteAccount(
 					'Could not delete account (likely developer error)',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -450,7 +502,7 @@ export async function deleteAccount(
 				error: 'Unauthorized',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -462,7 +514,7 @@ export async function deleteAccount(
 				error: output?.message ?? 'Forbidden from deleting that account',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -476,7 +528,7 @@ export async function deleteAccount(
 					'Could not delete account (likely issue with server)',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -485,32 +537,24 @@ export async function deleteAccount(
 			console.log(response);
 		}
 
-		return {error: 'Unknown Response', success: false, response, output: null};
+		return {
+			error: 'Unknown Response',
+			success: false,
+			response,
+			output: undefined,
+		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		console.log(error);
-
-		return {error: 'An unknown error occurred', success: false, output: null};
+		return genericCatch(error);
 	}
 }
 
-export interface Token {
+export type Token = {
 	id: string;
 	userID: string;
 	web?: boolean;
 	created: number;
 	description: string;
-}
+};
 
 export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 	try {
@@ -528,7 +572,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 				error:
 					typeof body?.message === 'string' ? body?.message : 'Bad Request',
 				response,
-				message: null,
+				message: undefined,
 			};
 		}
 
@@ -537,7 +581,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 				success: false,
 				error:
 					typeof body?.message === 'string' ? body?.message : 'Unauthorized',
-				message: null,
+				message: undefined,
 			};
 		}
 
@@ -546,7 +590,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 				success: false,
 				error: 'A internal server occured',
 				response,
-				message: null,
+				message: undefined,
 			};
 		}
 
@@ -558,7 +602,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			return {
 				success: true,
 				message: body.message,
-				error: null,
+				error: undefined,
 			};
 		}
 
@@ -566,7 +610,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			success: false,
 			error: 'An unknown error occured',
 			response,
-			message: null,
+			message: undefined,
 		};
 	} catch (error: unknown) {
 		if (
@@ -584,7 +628,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			return {
 				success: false,
 				error,
-				message: null,
+				message: undefined,
 			};
 		}
 
@@ -592,7 +636,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			return {
 				success: false,
 				error,
-				message: null,
+				message: undefined,
 			};
 		}
 
@@ -601,7 +645,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 		return {
 			success: false,
 			error: 'An unknown error occured',
-			message: null,
+			message: undefined,
 		};
 	}
 }
@@ -625,7 +669,7 @@ export async function createToken(
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
-				error: null,
+				error: undefined,
 				success: true,
 				output: body?.message,
 			};
@@ -636,7 +680,7 @@ export async function createToken(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -645,7 +689,7 @@ export async function createToken(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -654,7 +698,7 @@ export async function createToken(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -662,43 +706,10 @@ export async function createToken(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			output: null,
+			output: undefined,
 		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		if (error instanceof Error) {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		if (typeof error === 'string') {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		console.log(error);
-
-		return {
-			success: false,
-			error: 'An unknown error occured',
-			output: null,
-		};
+		return genericCatch<string>(error);
 	}
 }
 
@@ -717,7 +728,7 @@ export async function revokeToken(
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
-				error: null,
+				error: undefined,
 				success: true,
 				output: body?.message,
 			};
@@ -728,7 +739,7 @@ export async function revokeToken(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -737,7 +748,7 @@ export async function revokeToken(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -746,7 +757,7 @@ export async function revokeToken(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -754,43 +765,10 @@ export async function revokeToken(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			output: null,
+			output: undefined,
 		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		if (error instanceof Error) {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		if (typeof error === 'string') {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		console.log(error);
-
-		return {
-			success: false,
-			error: 'An unknown error occured',
-			output: null,
-		};
+		return genericCatch(error);
 	}
 }
 
@@ -808,7 +786,7 @@ export async function uploadFile(
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
-				error: null,
+				error: undefined,
 				success: true,
 				output: await response.text(),
 			};
@@ -822,7 +800,7 @@ export async function uploadFile(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -831,7 +809,7 @@ export async function uploadFile(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -840,7 +818,7 @@ export async function uploadFile(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -849,43 +827,10 @@ export async function uploadFile(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			output: null,
+			output: undefined,
 		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		if (error instanceof Error) {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		if (typeof error === 'string') {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		console.log(error);
-
-		return {
-			success: false,
-			error: 'An unknown error occured',
-			output: null,
-		};
+		return genericCatch(error);
 	}
 }
 
@@ -906,7 +851,7 @@ export async function shortenLink(
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
-				error: null,
+				error: undefined,
 				success: true,
 				output: await response.text(),
 			};
@@ -920,7 +865,7 @@ export async function shortenLink(
 				error: body?.message ?? 'An internal server error occurred',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -929,7 +874,7 @@ export async function shortenLink(
 				error: body?.message ?? 'URL Not Accepted',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -938,7 +883,7 @@ export async function shortenLink(
 				error: body?.message ?? 'Unauthorized',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -947,7 +892,7 @@ export async function shortenLink(
 				error: body?.message ?? 'Bad Request',
 				success: false,
 				response,
-				output: null,
+				output: undefined,
 			};
 		}
 
@@ -957,42 +902,9 @@ export async function shortenLink(
 			error: body?.message ?? 'An unknown error occurred',
 			success: false,
 			response,
-			output: null,
+			output: undefined,
 		};
 	} catch (error: unknown) {
-		if (
-			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
-			import.meta.env.DEV
-		) {
-			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
-			);
-			console.log(error);
-		}
-
-		if (error instanceof Error) {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		if (typeof error === 'string') {
-			return {
-				success: false,
-				error,
-				output: null,
-			};
-		}
-
-		console.log(error);
-
-		return {
-			success: false,
-			error: 'An unknown error occured',
-			output: null,
-		};
+		return genericCatch(error);
 	}
 }

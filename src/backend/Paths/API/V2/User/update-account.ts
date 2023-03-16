@@ -32,15 +32,32 @@ type UpdateAccBody =
 			email: string;
 			username?: string;
 			password?: string;
+			privacy?: {
+				dataCollection: boolean;
+			};
 	  }
 	| {
 			username: string;
 			email?: string;
 			password?: string;
+			privacy?: {
+				dataCollection: boolean;
+			};
 	  }
 	| {
 			password: string;
 			email?: string;
+			username?: string;
+			privacy?: {
+				dataCollection: boolean;
+			};
+	  }
+	| {
+			password?: string;
+			email?: string;
+			privacy?: {
+				dataCollection: boolean;
+			};
 			username?: string;
 	  };
 
@@ -63,6 +80,13 @@ class UpdateAcc extends Path {
 						email: {type: 'string'},
 						password: {type: 'string'},
 						username: {type: 'string'},
+						privacy: {
+							type: 'object',
+							properties: {
+								dataCollection: {type: 'boolean'},
+							},
+							minProperties: 1,
+						},
 					},
 					minProperties: 1,
 					additionalProperties: false,
@@ -115,7 +139,18 @@ class UpdateAcc extends Path {
 			username?: string;
 			pendingEmail?: string;
 			pendingEmailToken?: string;
+			privacy?: {
+				dataCollection: boolean;
+			};
 		} = {};
+		// Handle data collection change
+		if (typeof request.body.privacy?.dataCollection === 'boolean') {
+			update.privacy = {
+				dataCollection: request.body.privacy.dataCollection,
+			};
+		}
+
+		// Password
 		if (
 			request.body.password &&
 			typeof request.body.password === 'string' &&
@@ -129,34 +164,63 @@ class UpdateAcc extends Path {
 			}
 		}
 
-		const newUsername = await this.handleUsername(
-			auth.username,
-			request.body.username,
-		);
+		// Username
+		if (request.body.username) {
+			const newUsername = await this.handleUsername(
+				auth.username,
+				request.body.username,
+			);
 
-		if (newUsername && typeof newUsername === 'string') {
-			update.username = newUsername;
-		} else if (typeof newUsername === 'object') {
-			return response.status(newUsername.httpCode).send(newUsername.message);
+			if (newUsername && typeof newUsername === 'string') {
+				update.username = newUsername;
+			} else if (typeof newUsername === 'object') {
+				return response.status(newUsername.httpCode).send(newUsername.message);
+			}
 		}
 
-		const emailUpdated = await this.handleEmailUpdate(
-			request,
-			auth.email,
-			auth.username,
-		);
-		if (emailUpdated && !emailUpdated.accepted) {
-			return response.status(emailUpdated.httpCode).send(emailUpdated.message);
-		}
+		// Email
+		if (request.body.email) {
+			const emailUpdated = await this.handleEmailUpdate(
+				request,
+				auth.email,
+				auth.username,
+			);
+			if (emailUpdated && !emailUpdated.accepted) {
+				return response
+					.status(emailUpdated.httpCode)
+					.send(emailUpdated.message);
+			}
 
-		if (emailUpdated?.accepted) {
-			update.pendingEmail = emailUpdated.pendingEmail;
-			update.pendingEmailToken = emailUpdated.pendingEmailToken;
+			if (emailUpdated?.accepted) {
+				update.pendingEmail = emailUpdated.pendingEmail;
+				update.pendingEmailToken = emailUpdated.pendingEmailToken;
+			}
 		}
 
 		try {
 			await this.core.db.updateUser({id: auth.id}, update);
+			await this.core.db.findUser({id: auth.id});
 		} catch (error: unknown) {
+			this.core.app.sentry.withScope((scope) => {
+				scope.addEventProcessor((event) => {
+					this.core.app.sentry.addRequestDataToEvent(event, request.raw, {
+						include: {
+							ip: false,
+							user: false,
+						},
+					});
+					return event;
+				});
+				if (auth.privacy?.dataCollection) {
+					scope.setUser({
+						id: auth.id,
+						username: auth.username,
+					});
+				}
+
+				this.core.app.sentry.captureException(error);
+			});
+
 			if (!(error instanceof Error)) {
 				if (process.env.DEBUG) {
 					this.core.logger.debug(error);
@@ -472,13 +536,17 @@ class UpdateAcc extends Path {
 		// Check the query and new_key are correct
 		if (
 			!request.body ||
-			(!request.body.username && !request.body.password && !request.body.email)
+			(!request.body.username &&
+				!request.body.password &&
+				!request.body.email &&
+				typeof request.body.privacy?.dataCollection !== 'boolean')
 		) {
 			return {
 				httpCode: this.codes.badReq,
 				message: {
 					code: this.codes.badReq,
-					message: 'BODY REQUIRES ONE OF password, username, OR email!',
+					message:
+						'BODY REQUIRES ONE OF password, username, privacy, OR email!',
 				},
 				failed: true,
 			};

@@ -1,6 +1,6 @@
-import {Notification} from '../backend/Structures/Database/db-class';
+import type {Notification} from '../backend/Structures/Database/db-class';
 
-export interface AccountReturn {
+export type AccountReturn = {
 	username: string;
 	id: string;
 	admin: boolean;
@@ -12,4 +12,7 @@ export interface AccountReturn {
 	pendingEmail?: string;
 	notifications: Notification[];
 	createdAt: number;
-}
+	privacy?: {
+		dataCollection?: boolean;
+	};
+};

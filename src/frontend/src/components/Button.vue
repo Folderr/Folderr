@@ -5,7 +5,6 @@ defineProps<{
 	buttonDisabled?: boolean;
 	onClick: () => any;
 	buttonTitle?: string;
-        parameters: any[]
 }>()
 </script>
 <template>

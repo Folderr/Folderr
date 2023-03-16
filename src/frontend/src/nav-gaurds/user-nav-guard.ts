@@ -25,6 +25,7 @@ export async function authGuard(
 				notifications: response.user.notifications,
 				owner: response.user.owner,
 				admin: response.user.admin,
+				privacy: response.user.privacy,
 			});
 		}
 

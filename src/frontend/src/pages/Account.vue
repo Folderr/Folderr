@@ -116,6 +116,11 @@
                             <button v-on:click="scrollToTop()">Account Info</button>
                         </li>
                         <li class="p-5 text-secondary-text" :class="[{
+                            'bg-[#303030]': activeSection == 'privacy'
+                        }]">
+                            <button v-on:click="privacydiv?.scrollIntoView({ behavior: 'smooth' })">Privacy</button>
+                        </li>
+                        <li class="p-5 text-secondary-text" :class="[{
                             'bg-[#303030]': activeSection == 'tokens'
                         }]">
                             <button v-on:click="tokendiv?.scrollIntoView({ behavior: 'smooth' })">Token Management</button>
@@ -178,12 +183,26 @@
                             v-model="email"
                             v-bind:disabled="emailerDisabled"
                             v-bind:placeholder="oldEmail"
-                            class="block font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg caret-brand"
+                            class="
+                                caret-brand
+                                block
+                                font-input
+                                mt-2
+                                mb-2
+                                bg-tertiary-bg
+                                border-none
+                                text-text
+                                p-4
+                                w-4/5 xl:w-3/5
+                                placeholder-secondary-text
+                                focus:valid:ring-brand
+                                focus:invalid:ring-secondary-accent-dark
+                                focus:ring focus:outline-none
+                                rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'opacity-50': emailerDisabled,
                                     'hover:cursor-not-allowed': emailerDisabled,
-                                    'border-secondary-accent': emailerDisabled
                                 }
                             ]"
                             autocomplete="email"
@@ -203,11 +222,24 @@
                             type="password"
                             label="Current password"
                             placeholder="Current Password"
-                            class="font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="
+                                caret-brand
+                                font-input
+                                mt-2
+                                mb-2
+                                bg-tertiary-bg
+                                block
+                                border-none
+                                text-text
+                                p-4
+                                w-4/5 xl:w-3/5
+                                placeholder-secondary-text
+                                focus:ring focus:outline-none
+                                rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': oldPasswordValid,
-                                    'focus:ring-secondary-accent': !oldPasswordValid
+                                    'focus:ring-secondary-accent-dark': !oldPasswordValid
                                 }
                             ]"
                             autocomplete="current-password"
@@ -226,7 +258,20 @@
                             v-model="password"
                             type="password"
                             placeholder="New Password"
-                            class="font-input mt-2 mb-2 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="
+                                caret-brand
+                                font-input
+                                mt-2
+                                mb-2
+                                block
+                                bg-tertiary-bg
+                                border-none
+                                text-text
+                                p-4
+                                w-4/5 xl:w-3/5
+                                placeholder-secondary-text
+                                focus:ring focus:outline-none
+                                rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': passwordValid,
@@ -265,7 +310,20 @@
                             v-model="passwordConfirm"
                             type="password"
                             placeholder="Confirm Password"
-                            class="block font-input mt-2 mb-4 bg-tertiary-bg text-text p-4 w-4/5 xl:w-3/5 placeholder-secondary-text focus:ring focus:outline-none rounded-lg max-w-lg"
+                            class="
+                                caret-brand
+                                font-input
+                                block
+                                mt-2
+                                mb-2
+                                bg-tertiary-bg
+                                border-none
+                                text-text
+                                p-4
+                                w-4/5 xl:w-3/5
+                                placeholder-secondary-text
+                                focus:ring focus:outline-none
+                                rounded-lg max-w-lg"
                             :class="[
                                 {
                                     'focus:ring-brand': confirmPasswordValid,
@@ -305,6 +363,20 @@
                             class="mt-2"
                         >Logout Everywhere</FButton>
                     </div>
+                </div>
+                <!-- Privacy Management -->
+                <div class="m-auto pt-10 text-justify w-5/6 md:w-1/2 font-info" ref="privacydiv">
+                    <hr class="border-brand" aria-hidden="true">
+                    <h1 class="text-text text-3xl bold lg:ml-20 pt-10 font-headline" id="privacy"><b>Privacy</b></h1>
+                    <h2 class="mt-5 text-secondary-text text-lg lg:ml-20">Manage your privacy settings on this instance</h2>
+                    <div class="lg:ml-20">
+                        <div class="flex">
+                            <input v-model="datacollection" id="datacollection" class="block text-brand m-4 border-brand ring-offset-gray-800 focus:ring-brand focus:ring-offset-gray-800 intermediate:ring-offset-gray-800 checked:ring-1 checked:ring-offset-gray-800 bg-tertiary-bg ring-brand checked:ring-brand checked:bg-brand rounded-sm" type="checkbox">
+                            <label for="dataCollection" class="block text-secondary-text text-md mt-2.5">Collect & share data with third-parties</label>
+                        </div>
+                        <FButton title="Save Privacy Choices" class="block" v-bind:onClick="updatePrivacy">Save Privacy choices</FButton>
+                    </div>
+                    
                 </div>
                 <!-- Token Management -->
                 <div class="m-auto pt-10 text-justify w-full md:w-1/2" ref="tokendiv">
@@ -355,10 +427,15 @@ import {useRouter} from 'vue-router';
 import { useStore } from 'vuex';
 import * as api from '../wrappers/api';
 import SuccessesErrors from "../components/Success-N-Error.vue"; // Success & Error component
+import { logout } from "../wrappers/api";
 const sne = ref<InstanceType<typeof SuccessesErrors> & {
     addError: (messaage: string, time?: number) => void,
     addSuccess: (message: string, time?: number) => void
 }>();
+
+const err = () => {
+    throw new Error('I\'m intentional!');
+}
 
 const url = computed(() => window.location.origin);
 
@@ -513,7 +590,6 @@ const confirmPasswordValid = computed(() => {
 
 const updatePassword = async() =>  {
     if (!isPasswordValid.value) {
-        const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/
         sne.value?.addError('Password invalid!');
         return;
     }
@@ -554,6 +630,35 @@ const updatePassword = async() =>  {
     }
 }
 
+// Privacy Stuff
+
+const datacollection = ref(), privacy = ref(), privacydiv = ref();
+
+const updatePrivacy = async() => {
+    const privacy = await api.updatePrivacy({dataCollection: datacollection.value});
+
+    if (privacy.success) {
+        sne.value?.addSuccess('Updated your privacy settings');
+        return;
+    }
+
+    if (privacy.error instanceof Error) {
+        if (import.meta.env.DEV && privacy.response) {
+            sne.value?.addError(privacy.error.message);
+            console.log('Debug Response from API/Logout (everywhere)');
+            console.log(privacy.response);
+        }
+        return;
+    }
+
+    sne.value?.addError(privacy.error);
+
+    if (import.meta.env.DEV && privacy.response) {
+        console.log('Debug Response from API/Logout (everywhere)');
+        console.log(privacy.response);
+    }
+}
+
 // Account related stuff
 const logoutEverywhere = async() => {
     const logout = await api.logoutEverywhere();
@@ -569,9 +674,10 @@ const logoutEverywhere = async() => {
             console.log('Debug Response from API/Logout (everywhere)');
             console.log(logout.response);
         }
+        return;
     }
 
-    sne.value?.addError(logout.error instanceof Error ? logout.error.message : logout.error);
+    sne.value?.addError(logout.error);
 
     if (import.meta.env.DEV && logout.response) {
         console.log('Debug Response from API/Logout (everywhere)');
@@ -660,7 +766,6 @@ const createToken = async(description: string) => {
             tokens.value = tokenRes.message;
         }
         tokenCreateModal();
-        console.log(tokenInfo);
         modals.tokens.showDetails = true;
         return;
     }
@@ -756,6 +861,7 @@ onMounted(async() => {
         loading.value = false;
         owner.value = store.state.user.owner
         admin.value = store.state.user.admin;
+        datacollection.value = store.state.user.privacy?.dataCollection
         const tokenRes = await api.getTokens();
         if (tokenRes.error) {
             sne.value?.addError(tokenRes.error instanceof Error ? tokenRes.error.message : tokenRes.error);
@@ -785,6 +891,7 @@ onMounted(async() => {
                 notifications: output.user.notifications,
                 owner: output.user.owner,
                 admin: output.user.admin,
+                privacy: output.user.privacy,
             });
             email.value = output.user.email;
             oldEmail.value = output.user.email;
@@ -793,19 +900,25 @@ onMounted(async() => {
             owner.value = output.user.owner;
             loading.value = false;
             admin.value = output.user.admin;
+            datacollection.value = output.user.privacy?.dataCollection;
         }
     }
     window.addEventListener('scroll', () => {
-        if (tokendiv.value) {
-            const height = tokendiv.value.offsetTop - tokendiv.value.offsetHeight;
-            if (window.scrollY > height) {
+        if (tokendiv.value && privacydiv.value) {
+            const height = tokendiv.value.offsetTop;
+            const privacyheight = privacydiv.value.offsetTop - privacydiv.value.offsetHeight - 100;
+            if(window.scrollY >= privacyheight) {
+                activeSection.value = 'privacy'
+            }
+            if (window.scrollY >= (tokendiv.value.offsetTop - 200)) {
                 activeSection.value = 'tokens';
             }
-            if (window.scrollY < height) {
+            if (window.scrollY < privacyheight) {
                 activeSection.value = 'account';
             }
         }
     })
     
+    console.log(store.state.user);
 })
 </script>
