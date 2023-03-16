@@ -456,8 +456,7 @@ class Utils {
 		validationToken: string,
 		userID: string,
 	): Promise<PendingMember | false> {
-		// eslint-disable-next-line @typescript-eslint/ban-types
-		const user: PendingMember | null = await this.#core.db.findVerify({
+		const user: PendingMember | undefined = await this.#core.db.findVerify({
 			id: userID,
 		});
 		if (!user) {

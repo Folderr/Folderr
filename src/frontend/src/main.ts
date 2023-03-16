@@ -26,6 +26,7 @@ const app = createApp(App);
 if (import.meta.env.VITE_SENTRY) {
 	let options: Record<string, any> = {
 		dsn: import.meta.env.VITE_SENTRY,
+		environment: import.meta.env.MODE,
 	};
 	if (import.meta.env.VITE_SENTRY_TRACING) {
 		const rate =
@@ -65,6 +66,22 @@ if (import.meta.env.VITE_SENTRY) {
 	Sentry.init({
 		app,
 		...options,
+	});
+	Sentry.addGlobalEventProcessor((event) => {
+		if (store.state.user?.userID) {
+			/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+			event.user = {
+				id: store.state.user.userID,
+				username: store.state.user?.username,
+			};
+			Sentry.setUser({
+				id: store.state.user.userID,
+				username: store.state.user.username,
+			});
+		}
+		/* eslint-enable @typescript-eslint/no-unsafe-assignment */
+
+		return event;
 	});
 }
 

@@ -29,6 +29,7 @@ module.exports = {
 			input: ['"Jetbrains Mono"', 'sans-serif'],
 		},
 	},
-	plugins: [],
+	// eslint-disable-next-line unicorn/prefer-module
+	plugins: [require('@tailwindcss/forms')],
 	content: ['src/**/*.vue', 'src/**/**/*.vue'],
 };

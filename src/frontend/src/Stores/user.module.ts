@@ -1,5 +1,7 @@
-import {Module} from 'vuex';
+import type {Module} from 'vuex';
+import {setUser} from '@sentry/vue';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface UserStore {
 	userID?: string;
 	username?: string;
@@ -13,6 +15,9 @@ export interface UserStore {
 	}>;
 	owner?: boolean;
 	admin?: boolean;
+	privacy?: {
+		dataCollection?: boolean;
+	};
 }
 
 const usermod: Module<UserStore, unknown> = {
@@ -26,6 +31,9 @@ const usermod: Module<UserStore, unknown> = {
 		notifications: [],
 		owner: false,
 		admin: false,
+		privacy: {
+			dataCollection: false,
+		},
 	}),
 	mutations: {
 		setUserinfo(state: UserStore, info: UserStore) {
@@ -36,6 +44,15 @@ const usermod: Module<UserStore, unknown> = {
 			state.owner = info.owner;
 			state.username = info.username;
 			state.admin = info.admin;
+			state.privacy = {
+				dataCollection: info.privacy?.dataCollection,
+			};
+			if (state.privacy.dataCollection) {
+				setUser({
+					id: info.userID,
+					username: info.username,
+				});
+			}
 		},
 		updateEmail(state: UserStore, email: string) {
 			state.email = email;

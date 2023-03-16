@@ -19,9 +19,10 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {AccountReturn} from '../../../../../types/user';
+import type {FastifyReply, FastifyRequest} from 'fastify';
+import type {Core} from '../../../../internals';
+import {Path} from '../../../../internals';
+import type {AccountReturn} from '../../../../../types/user';
 
 /**
  * @classdesc View the authorized users account
@@ -38,28 +39,29 @@ class Account extends Path {
 		this.options = {
 			schema: {
 				response: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					401: {
 						type: 'object',
 						properties: {
 							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: {type: 'number'},
+						},
+					},
+				},
+			},
 		};
 	}
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === 'string') {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: 'Authorization failed.',
 			});
 		}
 
@@ -75,7 +77,8 @@ class Account extends Path {
 			pendingEmail: auth.pendingEmail,
 			notifications: auth.notifs,
 			customUrls: auth.cURLs,
-			createdAt: Math.round(auth.createdAt.getTime() / 1000)
+			createdAt: Math.round(auth.createdAt.getTime() / 1000),
+			privacy: auth.privacy,
 		};
 		return response
 			.status(this.codes.ok)
