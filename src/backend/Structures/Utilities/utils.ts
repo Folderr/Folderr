@@ -294,7 +294,7 @@ class Utils {
 	async hashPass(password: string): Promise<string> {
 		// Minimum and max password lengths
 		const minPass = 8;
-		const maxPass = 64;
+		const maxPass = 256;
 		// If the password is not over min length
 		// If password does not match the regex completely
 		const match: boolean = this.#core.regexs.password.test(password);
