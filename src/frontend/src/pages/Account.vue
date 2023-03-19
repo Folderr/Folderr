@@ -246,7 +246,7 @@
                         >
                         <label for="newpassword"
                             class="block text-secondary-text text-md"
-                            title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
+                            title="Passwords must be between 8 and 256 characters, and must have either a lowercase or uppercase letter, and anything else."
                         >
                             New Password
                         </label>
@@ -278,7 +278,7 @@
                                     'focus:ring-secondary-accent': !passwordValid
                                 }
                             ]"
-                            title="Passwords must be between 8 and 64 characters, have at least one special character, one lowercase character, and one uppercase character"
+                            title="Passwords must be between 8 and 256 characters, and must have either a lowercase or uppercase letter, and anything else."
                             autocomplete="new-password"
                         >
                         <div class="bg-[#303030] rounded-lg w-max max-w-lg mb-4">
@@ -295,9 +295,7 @@
                                     />
                                 </DisclosureButton>
                                 <DisclosurePanel class="py-2 px-4 text-secondary-text">
-                                    Passwords need to be between 8 and 64 characters. They must have one special character, one lowercase character, and one uppercase character.
-                                    <br>
-                                    Folderr allows numbers to be used in passwords.
+                                    Passwords must be between 8 and 256 characters, and must have either a lowercase or uppercase letter, and anything else.
                                 </DisclosurePanel>
                             </Disclosure>
                         </div>
@@ -336,7 +334,7 @@
                             v-bind:buttonDisabled="!isPasswordValid"
                             v-bind:onClick="updatePassword"
                             buttontitle="Update Your Password"
-                            v-bind:colorDisabled="!confirmPasswordValid"
+                            v-bind:colorDisabled="!isPasswordValid"
                         >Update Password</FButton>
                     </div>
                     <div class="mt-10 lg:ml-20">
@@ -541,17 +539,18 @@ const updateInfo = async() => {
 
 const password = ref(''), passwordConfirm = ref(''), oldPassword = ref('');
 
+const passwordExp = /(?=.*[A-Za-z-_])(?=.*[\p{M}\p{Z}\p{P}]).{8,256}/u
+
 const isPasswordValid = computed(() => {
     let currentInvalid = true;
     let newInvalid = true;
     let match = false;
     const currentLength = oldPassword.value.length || 0;
     const newLength = password.value.length || 0;
-    if (8 <= currentLength && currentLength <= 64) {
+    if (8 <= currentLength && currentLength <= 256) {
         currentInvalid = false;
     }
-    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
-    if (8 <= newLength && newLength <= 64 && passwordExp.test(password.value)) {
+    if (8 <= newLength && newLength <= 256 && passwordExp.test(password.value)) {
         newInvalid = false;
     }
     if (password.value === passwordConfirm.value) {
@@ -562,7 +561,6 @@ const isPasswordValid = computed(() => {
 })
 
 const passwordValid = computed(() => {
-    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
     if (passwordExp.test(password.value)) {
         return true;
     }
@@ -571,7 +569,6 @@ const passwordValid = computed(() => {
 })
 
 const oldPasswordValid = computed(() => {
-    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
     if (passwordExp.test(oldPassword.value)) {
         return true;
     }
@@ -580,7 +577,6 @@ const oldPasswordValid = computed(() => {
 })
 
 const confirmPasswordValid = computed(() => {
-    const passwordExp = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
     if (passwordConfirm.value === password.value && passwordExp.test(passwordConfirm.value)) {
         return true;
     }
@@ -918,7 +914,5 @@ onMounted(async() => {
             }
         }
     })
-    
-    console.log(store.state.user);
 })
 </script>

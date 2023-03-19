@@ -12,12 +12,11 @@ class RegExpList {
 
 	readonly gitAheadBehind: RegExp;
 
-	// This is duee to the regex making the line have a length of 102. Max is 100
+	// This is due to the regex making the line have a length of 102. Max is 100
 	constructor() {
 		this.email =
 			/([\w.\-$%#!+/=^;&'*]{2,})?@[a-z\d$-_.+!*’(,;:@&=/]{2,}\.[a-z]{2,}(.[a-z]{2,})?/;
-		this.password =
-			/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)[#?!@$%^&*-_[\]].{8,64}$/;
+		this.password = /(?=.*[A-Za-z-_])(?=.*[\p{M}\p{Z}\p{P}]).{8,256}/u;
 		this.username = /\w{3,16}/;
 		this.url = /http(s)?:\/\/[a-z\d$-_.!’(,;:@&=/]{2,}\.[a-z]{2,}(.[a-z]{2,})?/;
 		this.gitAheadBehind = /ahead \d+|behind \d+/g;
