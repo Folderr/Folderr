@@ -23,7 +23,7 @@ import {existsSync, promises as fs} from 'fs';
 import process from 'process';
 import mongoose from 'mongoose';
 import * as Schemas from '../../Schemas/index';
-import wlogger from '../winston-logger';
+import logger from '../logger';
 import * as constants from '../constants/index';
 import type {
 	User,
@@ -80,7 +80,7 @@ export default class Mongoosedb extends DBClass {
 			await mongoose.connect(url);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				wlogger.error(
+				logger.error(
 					'[FATAL - DB] MongoDB connection error!\n' +
 						error.message +
 						'\n[FATAL] Folderr is unable to work without a database!' +
@@ -89,7 +89,7 @@ export default class Mongoosedb extends DBClass {
 				process.exit(1);
 			}
 
-			wlogger.error(
+			logger.error(
 				'[FATAL - DB] MongoDB connection error!' +
 					'\n[FATAL] Folderr is unable to work without a database!' +
 					'\nFolderr process terminated.',
@@ -99,7 +99,7 @@ export default class Mongoosedb extends DBClass {
 
 		this.#internals.connection.on('error', (error: Error) => {
 			if (process.env.NODE_ENV !== 'test') {
-				wlogger.error(
+				logger.error(
 					'[FATAL - DB] MongoDB connection error!\n' +
 						error.message +
 						'\n[FATAL] Folderr is unable to work without a database!' +
@@ -113,7 +113,7 @@ export default class Mongoosedb extends DBClass {
 				await mongoose.connect(url);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
-					wlogger.error(
+					logger.error(
 						'[FATAL - DB] MongoDB connection error!\n' +
 							error.message +
 							'\n[FATAL] Folderr is unable to work without a database!' +
@@ -122,18 +122,15 @@ export default class Mongoosedb extends DBClass {
 					process.exit(1);
 				}
 
-				wlogger.error(
-					'[FATAL - DB] MongoDB connection error!\n' +
-						'[FATAL] Folderr is unable to work without a database!\n' +
-						'Folderr process terminated.',
-				);
+				logger.fatal('Folderr is unable to work without a database!');
+				logger.info('Folderr process terminated');
 				process.exit(1);
 			}
 		});
 		/* eslint-enable unicorn/no-process-exit */
 		this.#internals.connection.once('open', async () => {
 			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
-			wlogger.log('startup', '[SYSTEM - DB] Connected to MongoDB!');
+			logger.startup('[SYSTEM - DB] Connected to MongoDB!');
 		});
 	}
 
@@ -513,13 +510,13 @@ export default class Mongoosedb extends DBClass {
 				await fs.unlink(file.path);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
-					wlogger.error(
+					logger.error(
 						`Database could not delete file ${file.path}. See error below.\n` +
 							`Error: ${error.message}`,
 					);
 				}
 
-				wlogger.error(
+				logger.error(
 					`Database could not delete file ${file.path}. Unknown Error`,
 				);
 			}

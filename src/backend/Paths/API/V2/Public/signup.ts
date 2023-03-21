@@ -22,7 +22,6 @@
 import type {FastifyRequest, FastifyReply} from 'fastify';
 import type {Core} from '../../../../internals';
 import {Path} from '../../../../internals';
-import wlogger from '../../../../Structures/winston-logger';
 import * as constants from '../../../../Structures/constants/index';
 
 /**
@@ -242,7 +241,9 @@ class Signup extends Path {
 		} catch (error: unknown) {
 			// Errors shouldnt happen here, so notify the console.. Also notify the user
 			if (error instanceof Error) {
-				wlogger.error(`[SIGNUP -  Create password] - ${error.message}`);
+				this.core.logger.error(
+					`[SIGNUP -  Create password] - ${error.message}`,
+				);
 				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
 					message: `${error.message}`,

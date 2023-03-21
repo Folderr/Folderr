@@ -27,7 +27,7 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 ) => {
 	if (!options.enabled) {
 		fastify.setErrorHandler((error, request, reply) => {
-			fastify.wlogger.error(error.message || error);
+			fastify.log.error(error.message || error);
 
 			return reply.status(fastify.codes.internalErr).send({
 				error: 'An internal unknown error has occurred',
@@ -38,7 +38,7 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	}
 
 	fastify.setErrorHandler((error, request, reply) => {
-		fastify.wlogger.error(error.message || error);
+		fastify.log.error(error.message || error);
 
 		Sentry.withScope((scope) => {
 			scope.addEventProcessor((event) => {
@@ -54,7 +54,7 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	});
 
 	if (process.env.DEBUG) {
-		fastify.wlogger.debug('Initiated Sentry plugin');
+		fastify.log.debug('Initiated Sentry plugin');
 	}
 
 	fastify.decorate('sentry', Sentry);

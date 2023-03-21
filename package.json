@@ -94,10 +94,11 @@
     "mongoose": "^7.0.2",
     "nodemailer": "^6.7.2",
     "pinia": "^2.0.33",
+    "pino": "^8.11.0",
+    "pino-pretty": "^10.0.0",
     "spdy": "^4.0.2",
     "uuid": "^8.3.2",
-    "vue": "^3.2.47",
-    "winston": "^3.3.3"
+    "vue": "^3.2.47"
   },
   "devDependencies": {
     "@iconify/types": "^1.1.0",

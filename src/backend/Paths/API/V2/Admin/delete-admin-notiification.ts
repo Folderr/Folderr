@@ -22,7 +22,6 @@
 import type {FastifyReply, FastifyRequest} from 'fastify';
 import type {Core} from '../../../../internals';
 import {Path} from '../../../../internals';
-import wlogger from '../../../../Structures/winston-logger';
 
 /**
  * @classdesc Delete an admin notification.
@@ -107,7 +106,7 @@ class DelAdminNotify extends Path {
 
 		// Remove the admin notification and tell the admin it was removed
 		await this.core.db.purgeAdminNotify({id: request.params.id});
-		wlogger.info(
+		this.core.logger.info(
 			`[SYSTEM] Admin notification ${notify.id} removed by ${auth.username}!`,
 		);
 		return response

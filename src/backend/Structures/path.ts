@@ -207,7 +207,7 @@ class Path {
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					if (process.env.DEBUG === 'true') {
-						this.core.logger.log('debug', error.message);
+						this.core.logger.debug(error.message);
 					}
 
 					return {
@@ -337,7 +337,7 @@ class Path {
 		}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file
 			.slice(1)
 			.replace(/\)$/, '')}\n  Severity: ${handled.severity ?? 'undefined'}`;
-		this.core.logger.log('fatal', formattedMessage);
+		this.core.logger.fatal(formattedMessage);
 		const out = error.stack
 			? error.stack.replace(/\n/g, '<br>')
 			: formattedMessage.replace(/\n/g, '<br>');
