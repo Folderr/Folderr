@@ -1,8 +1,7 @@
-/* eslint-disable prettier/prettier */
 import {acceptHMRUpdate, defineStore} from 'pinia';
 import {setUser} from '@sentry/vue';
 import * as api from '../wrappers/api';
-import type * as User from '../../../types/user';
+import type {AccountReturn} from '../../../types/user';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface UserStore {
@@ -49,7 +48,7 @@ export const useUserStore = defineStore('user', {
 				}
 			}
 		},
-		setUser(payload: User.AccountReturn) {
+		setUser(payload: AccountReturn) {
 			this.id = payload.id;
 			this.username = payload.username;
 			this.email = payload.email;
