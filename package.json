@@ -50,7 +50,7 @@
     "prettier": true
   },
   "engines": {
-    "node": ">=14 <=16"
+    "node": ">=16.19.1 <=18"
   },
   "repository": {
     "type": "git",
