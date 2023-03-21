@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/vue';
-import type * as SentryTypes from '@sentry/types';
 import {BrowserTracing} from '@sentry/tracing';
 import {createApp} from 'vue';
-import store from './store';
+import {createPinia} from 'pinia';
+import {useUserStore} from './stores/user';
 import router from './router';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
@@ -19,11 +19,29 @@ import App from './App.vue';
 
 import './index.css';
 
+const pinia = createPinia();
 const app = createApp(App);
+
+// The prefix "F" stands for Folderr.
+
+app.component('FNavbar', Navbar);
+app.component('FFooter', Footer);
+app.component('NavbarAuthenticated', NavbarAuthenticated);
+app.component('SuccessesErrors', SuccessNErrors);
+app.component('FButton', Button);
+
+// Initalize Modals
+app.component('FlexibleModal', FlexibleModal);
+app.component('NFlexibleModal', NewFlexible);
+
+app.use(router);
+app.use(pinia); // New, better store
+app.mount('#app');
 
 // Init sentry, if available.
 
 if (import.meta.env.VITE_SENTRY) {
+	const store = useUserStore();
 	let options: Record<string, any> = {
 		dsn: import.meta.env.VITE_SENTRY,
 		environment: import.meta.env.MODE,
@@ -68,35 +86,13 @@ if (import.meta.env.VITE_SENTRY) {
 		...options,
 	});
 	Sentry.addGlobalEventProcessor((event) => {
-		if (store.state.user?.userID) {
-			/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+		if (store.privacy.dataCollection && store.id && store.username) {
 			event.user = {
-				id: store.state.user.userID,
-				username: store.state.user?.username,
+				id: store.id,
+				username: store.username,
 			};
-			Sentry.setUser({
-				id: store.state.user.userID,
-				username: store.state.user.username,
-			});
 		}
-		/* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
 		return event;
 	});
 }
-
-// The prefix "F" stands for Folderr.
-
-app.component('FNavbar', Navbar);
-app.component('FFooter', Footer);
-app.component('NavbarAuthenticated', NavbarAuthenticated);
-app.component('SuccessesErrors', SuccessNErrors);
-app.component('FButton', Button);
-
-// Initalize Modals
-app.component('FlexibleModal', FlexibleModal);
-app.component('NFlexibleModal', NewFlexible);
-
-app.use(store);
-app.use(router);
-app.mount('#app');

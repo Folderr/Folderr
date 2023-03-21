@@ -75,14 +75,14 @@
 
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue';
-import {useStore} from 'vuex';
+import {useUserStore} from '../stores/user';
 import {useRouter} from 'vue-router';
 import {ClipboardCopyIcon, ClipboardCheckIcon, XIcon} from '@heroicons/vue/solid';
 import * as api from '../wrappers/api';
 import SuccessesErrors from "../components/Success-N-Error.vue";
 
 // Setup store & router
-const store = useStore();
+const store = useUserStore();
 const router = useRouter();
 
 // Setup components
@@ -99,20 +99,20 @@ const admin = ref(false);
 // Setup component
 
 onMounted(async() => {
-    if (store.state.user && store.state.user.userID) {
-        username.value = store.state.user.username;
+    if (store.username) {
+        username.value = store.username;
         loading.value = false;
-        admin.value = store.state.user.admin;
+        admin.value = store.admin;
         return;
     }
 
-    const output = await api.fetchUser();
-    if (output.error || !output.user) {
+    await store.loadUser();
+    if (!store.username) {
         return router.push('/404');
     }
-    username.value = output.user.username;
-    admin.value = output.user.admin;
+    username.value = store.username;
     loading.value = false;
+    admin.value = store.admin;
 })
 
 const copied = ref(false);

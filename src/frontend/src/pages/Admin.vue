@@ -52,13 +52,16 @@
 
 <script setup lang="ts">
 import {ref, reactive, onMounted} from 'vue';
-import { useStore } from 'vuex';
+import {useUserStore} from '../stores/user';
 import * as adminAPI from '../wrappers/admin-api';
 import NavbarAuthenticated from "../components/Navbar-Authenticated.vue";
 
-const store = useStore();
+const store = useUserStore();
 
-const username = ref(`${store.state.user.username}`);
+const username = ref(`${store.username}`);
+if (!username.value) {
+	store.loadUser();
+}
 
 onMounted(async () => {
 	const stats = await adminAPI.getStats();

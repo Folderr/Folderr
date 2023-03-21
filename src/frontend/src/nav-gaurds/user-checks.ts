@@ -1,6 +1,5 @@
 import type {RouteLocationNormalized} from 'vue-router';
-import * as api from '../wrappers/api';
-import store from '../store';
+import {useUserStore} from '../stores/user';
 
 export async function getUser(
 	to: RouteLocationNormalized,
@@ -10,20 +9,13 @@ export async function getUser(
 	}
 
 	try {
-		const response = await api.fetchUser();
+		const store = useUserStore();
+		if (!store.id) {
+			await store.loadUser();
+		}
 
-		if (response.user) {
-			store.commit('user/setUserinfo', {
-				email: response.user.email,
-				username: response.user.username,
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				userID: response.user.id,
-				createdAt: response.user.createdAt,
-				notifications: response.user.notifications,
-				owner: response.user.owner,
-				admin: response.user.admin,
-				privacy: response.user.privacy,
-			});
+		if (!store.id) {
+			return false;
 		}
 
 		return true;

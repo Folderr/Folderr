@@ -16,17 +16,15 @@
 
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useStore} from 'vuex';
+import {useUserStore} from '../stores/user';
 import NavbarAuthenticated from "../components/Navbar-Authenticated.vue";
 
-const store = useStore();
+const store = useUserStore();
 const username = ref('');
 const admin = ref(false);
 
-console.log(store.state.user);
-
-if (store.state.user.username) {
-  admin.value = store.state.user.admin;
-  username.value = store.state.user.username;
+if (store.username) {
+  admin.value = store.admin;
+  username.value = store.username;
 }
 </script>
