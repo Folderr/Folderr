@@ -10,7 +10,7 @@
     </div>
     <div v-if="oldUsername || oldEmail">
         <div class="bg-bg grow flex flex-col scroll-smooth" ref="top">
-            <NavbarAuthenticated v-bind:username="oldUsername" :admin="admin"/>
+            <NavbarAuthenticated/>
             <NFlexibleModal v-bind:hide="modals.deleteAccount" header="Delete Account Confirmation" v-bind:cancel="() => modals.deleteAccount = false" v-bind:cont="confirmDeleteAccount" continueText="Confirm" v-bind:showInput="false">
                 <p class="text-secondary-text mt-10">This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br></p>
                 <template #warning>
@@ -422,24 +422,19 @@ import {ref, reactive, computed, onMounted} from 'vue';
 import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, ChevronDownIcon, TrashIcon, DocumentDownloadIcon, EyeIcon, EyeOffIcon} from "@heroicons/vue/solid";
 import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
-import { useStore } from 'vuex';
+import {useUserStore} from '../stores/user';
 import * as api from '../wrappers/api';
 import SuccessesErrors from "../components/Success-N-Error.vue"; // Success & Error component
-import { logout } from "../wrappers/api";
 const sne = ref<InstanceType<typeof SuccessesErrors> & {
     addError: (messaage: string, time?: number) => void,
     addSuccess: (message: string, time?: number) => void
 }>();
 
-const err = () => {
-    throw new Error('I\'m intentional!');
-}
-
 const url = computed(() => window.location.origin);
 
 // Router & store
 const router = useRouter();
-const store = useStore();
+const store = useUserStore();
 
 // Element references
 
@@ -849,15 +844,15 @@ const copyShareXConfig = async () => {
 // Setup the component
 
 onMounted(async() => {
-    if (store.state.user && store.state.user.userID) {
-        username.value = store.state.user.username;
-        email.value = store.state.user.email;
-        oldUsername.value = store.state.user.username;
-        oldEmail.value = store.state.user.email;
+    if (store.username && store.id && store.email) {
+        username.value = store.username;
+        email.value = store.email;
+        oldUsername.value = store.username;
+        oldEmail.value = store.email;
         loading.value = false;
-        owner.value = store.state.user.owner
-        admin.value = store.state.user.admin;
-        datacollection.value = store.state.user.privacy?.dataCollection
+        owner.value = store.owner
+        admin.value = store.admin;
+        datacollection.value = store.privacy.dataCollection
         const tokenRes = await api.getTokens();
         if (tokenRes.error) {
             sne.value?.addError(tokenRes.error instanceof Error ? tokenRes.error.message : tokenRes.error);
@@ -867,8 +862,8 @@ onMounted(async() => {
             console.log(tokens);
         }
     } else {
-        const output = await api.fetchUser();
-        if (output.error || !output.user) {
+        await store.loadUser();
+        if (!store.email || !store.username) {
             router.push('/404');
         } else {
             const tokenRes = await api.getTokens();
@@ -879,29 +874,18 @@ onMounted(async() => {
             } else {
                 console.log(tokenRes);
             }
-            store.commit('user/setUserinfo', {
-                email: output.user.email,
-                username: output.user.username,
-                userID: output.user.id,
-                createdAt: output.user.createdAt,
-                notifications: output.user.notifications,
-                owner: output.user.owner,
-                admin: output.user.admin,
-                privacy: output.user.privacy,
-            });
-            email.value = output.user.email;
-            oldEmail.value = output.user.email;
-            username.value = output.user.username;
-            oldUsername.value = output.user.username;
-            owner.value = output.user.owner;
+            email.value = store.email;
+            oldEmail.value = store.email;
+            username.value = store.username;
+            oldUsername.value = store.username;
+            owner.value = store.owner;
             loading.value = false;
-            admin.value = output.user.admin;
-            datacollection.value = output.user.privacy?.dataCollection;
+            admin.value = store.admin;
+            datacollection.value = store.privacy.dataCollection;
         }
     }
     window.addEventListener('scroll', () => {
         if (tokendiv.value && privacydiv.value) {
-            const height = tokendiv.value.offsetTop;
             const privacyheight = privacydiv.value.offsetTop - privacydiv.value.offsetHeight - 100;
             if(window.scrollY >= privacyheight) {
                 activeSection.value = 'privacy'

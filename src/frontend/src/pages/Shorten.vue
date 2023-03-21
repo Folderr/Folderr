@@ -10,7 +10,7 @@
     </div>
     <div v-if="username">
         <div class="bg-bg grow flex flex-col min-h-screen">
-            <NavbarAuthenticated v-bind:username="username" :admin="admin"/>
+            <NavbarAuthenticated/>
             <SuccessesErrors ref="sne" />
             <div id="hero" :class="[
                 'm-auto',
@@ -41,7 +41,7 @@
                     class="p-4 ml-2"
                     v-bind:colorDisabled="!isLinkValid"
                 >Shorten It!</FButton>
-                <div v-if="shortenedLink" class="border-0 flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-auto max-w-lg sm:max-w-sm p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
+                <div v-if="shortenedLink" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-auto max-w-lg sm:max-w-sm p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
                     {{shortenedLink}}
                     <button ref="copyButton" v-if="shortenedLink" @click="copy(shortenedLink)" class="ml-4 text-brand p-2 px-4 focus:outline-none focus:ring focus:ring-brand rounded-sm">
                         <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
@@ -64,14 +64,14 @@
 </style>
 <script setup lang='ts'>
 import {onMounted, ref, computed} from 'vue';
-import {useStore} from 'vuex';
+import {useUserStore} from '../stores/user';
 import {useRouter} from 'vue-router';
 import {ClipboardCopyIcon, ClipboardCheckIcon, XIcon} from '@heroicons/vue/solid';
 import SuccessesErrors from "../components/Success-N-Error.vue";
 import * as api from '../wrappers/api';
 
 // Setup store & router
-const store = useStore();
+const store = useUserStore();
 const router = useRouter();
 
 // Setup components
@@ -89,20 +89,20 @@ const admin = ref(false);
 // Setup component
 
 onMounted(async() => {
-    if (store.state.user && store.state.user.userID) {
-        username.value = store.state.user.username;
+    if (store.username) {
+        username.value = store.username;
         loading.value = false;
-        admin.value = store.state.user.admin;
+        admin.value = store.admin;
         return;
     }
 
-    const output = await api.fetchUser();
-    if (output.error || !output.user) {
+    await store.loadUser();
+    if (!store.username) {
         return router.push('/404');
     }
-    username.value = output.user.username;
+    username.value = store.username;
     loading.value = false;
-    admin.value = output.user.admin;
+    admin.value = store.admin;
 })
 
 const copied = ref(false);

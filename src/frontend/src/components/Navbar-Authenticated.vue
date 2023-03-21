@@ -124,14 +124,15 @@
 import {ref} from 'vue';
 import * as api from '../wrappers/api';
 import { useRouter } from 'vue-router';
+import {useUserStore} from '../stores/user';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import {LogoutIcon, ChevronDownIcon, CogIcon, HomeIcon, UserIcon, FingerPrintIcon, UploadIcon, InformationCircleIcon, LinkIcon} from '@heroicons/vue/solid';
 const router = useRouter();
 
-const props = defineProps<{
-    username: string;
-    admin?: boolean;
-}>();
+const store = useUserStore();
+
+const username = ref(store.username || '');
+const admin = ref(store.admin);
 
 const emit = defineEmits<{
     (e: 'error', error: Error | string): void
@@ -147,6 +148,7 @@ const logout = async (): Promise<void> => {
     const output = await api.logout();
 
     if (output.success) {
+        store.clear();
         router.push('/');
         return;
     }
