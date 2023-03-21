@@ -423,6 +423,7 @@ import {ExclamationIcon, ClipboardCopyIcon, ClipboardCheckIcon, ChevronDownIcon,
 import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
 import {useUserStore} from '../stores/user';
+import {useTokens} from '../stores/tokens';
 import * as api from '../wrappers/api';
 import SuccessesErrors from "../components/Success-N-Error.vue"; // Success & Error component
 const sne = ref<InstanceType<typeof SuccessesErrors> & {
@@ -434,7 +435,8 @@ const url = computed(() => window.location.origin);
 
 // Router & store
 const router = useRouter();
-const store = useUserStore();
+const userStore = useUserStore();
+const tokenStore = useTokens();
 
 // Element references
 
@@ -504,9 +506,9 @@ const updateInfo = async() => {
             oldEmail.value = email.value;
             oldUsername.value = username.value;
             sne.value?.addSuccess('Information Updated!');
-            store.$patch({
-                email: info.email,
-                username: info.username,
+            userStore.$patch({
+                email: info.email ?? userStore.email,
+                username: info.username ?? userStore.username,
             });
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
@@ -627,14 +629,14 @@ const updatePassword = async() =>  {
 
 // Privacy Stuff
 
-const datacollection = ref(), privacy = ref(), privacydiv = ref();
+const datacollection = ref(), privacydiv = ref();
 
 const updatePrivacy = async() => {
     const privacy = await api.updatePrivacy({dataCollection: datacollection.value});
 
     if (privacy.success) {
         sne.value?.addSuccess('Updated your privacy settings');
-        store.$patch({
+        userStore.$patch({
             privacy: {
                 dataCollection: datacollection.value,
             },
@@ -665,7 +667,7 @@ const logoutEverywhere = async() => {
 
     if (logout.success) {
         router.push('/');
-        store.clear();
+        userStore.clear();
         return;
     }
 
@@ -704,7 +706,7 @@ const deleteAccount = async(confirmed: boolean) => {
     const deleted = await api.deleteAccount();
     if (deleted.success) {
         router.push('/farewell');
-        store.clear();
+        userStore.clear();
         return;
     }
 
@@ -763,9 +765,9 @@ const createToken = async(description: string) => {
         tokenInfo.token = apitoken.output;
         tokenInfo.description = description;
         sne.value?.addSuccess('Token Generated');
-        const tokenRes = await api.getTokens();
-        if (tokenRes && tokenRes.message) {
-            tokens.value = tokenRes.message;
+        await tokenStore.loadTokens();
+        if (tokenStore.tokens) {
+            tokens.value = tokenStore.tokens
         }
         tokenCreateModal();
         modals.tokens.showDetails = true;
@@ -785,6 +787,7 @@ const revokeToken = async(id: string) => {
         tokens.value = tokens.value.filter((token) => {
             return token.id !== id
         });
+        tokenStore.setTokens(tokens.value);
         return;
     }
 }
@@ -847,7 +850,6 @@ const copyShareXConfig = async () => {
        Body: 'MultipartFormData',
        FileFormName: 'Image'
     });
-    const bytes = new TextEncoder().encode(config);
     await navigator.clipboard.writeText(config);
     sne.value?.addSuccess('Copied Config!');
 }
@@ -855,44 +857,48 @@ const copyShareXConfig = async () => {
 // Setup the component
 
 onMounted(async() => {
-    if (store.username && store.id && store.email) {
-        username.value = store.username;
-        email.value = store.email;
-        oldUsername.value = store.username;
-        oldEmail.value = store.email;
+    if (userStore.username && userStore.id && userStore.email) {
+        username.value = userStore.username;
+        email.value = userStore.email;
+        oldUsername.value = userStore.username;
+        oldEmail.value = userStore.email;
         loading.value = false;
-        owner.value = store.owner
-        admin.value = store.admin;
-        datacollection.value = store.privacy.dataCollection
-        const tokenRes = await api.getTokens();
-        if (tokenRes.error) {
-            sne.value?.addError(tokenRes.error instanceof Error ? tokenRes.error.message : tokenRes.error);
-        } else if (Array.isArray(tokenRes.message) ) {
-            tokens.value = tokenRes.message;
+        owner.value = userStore.owner
+        admin.value = userStore.admin;
+        datacollection.value = userStore.privacy.dataCollection
+        if (tokenStore.tokens) {
+            tokens.value = tokenStore.tokens;
         } else {
-            console.log(tokens);
+            await tokenStore.loadTokens();
+            if (tokenStore.tokens) {
+                tokens.value = tokenStore.tokens;
+            } else {
+                tokens.value = [];
+            }
         }
     } else {
-        await store.loadUser();
-        if (!store.email || !store.username) {
+        await userStore.loadUser();
+        if (!userStore.email || !userStore.username) {
             router.push('/404');
         } else {
-            const tokenRes = await api.getTokens();
-            if (tokenRes.error) {
-                sne.value?.addError(tokenRes.error instanceof Error ? tokenRes.error.message : tokenRes.error);
-            } else if (Array.isArray(tokenRes.message) ) {
-                tokens.value = tokenRes.message;
+            if (tokenStore.tokens) {
+                tokens.value = tokenStore.tokens;
             } else {
-                console.log(tokenRes);
+                await tokenStore.loadTokens();
+                if (tokenStore.tokens) {
+                    tokens.value = tokenStore.tokens;
+                } else {
+                    tokens.value = [];
+                }
             }
-            email.value = store.email;
-            oldEmail.value = store.email;
-            username.value = store.username;
-            oldUsername.value = store.username;
-            owner.value = store.owner;
+            email.value = userStore.email;
+            oldEmail.value = userStore.email;
+            username.value = userStore.username;
+            oldUsername.value = userStore.username;
+            owner.value = userStore.owner;
             loading.value = false;
-            admin.value = store.admin;
-            datacollection.value = store.privacy.dataCollection;
+            admin.value = userStore.admin;
+            datacollection.value = userStore.privacy.dataCollection;
         }
     }
     window.addEventListener('scroll', () => {

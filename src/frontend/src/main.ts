@@ -36,7 +36,6 @@ app.component('NFlexibleModal', NewFlexible);
 
 app.use(router);
 app.use(pinia); // New, better store
-app.mount('#app');
 
 // Init sentry, if available.
 
@@ -96,3 +95,5 @@ if (import.meta.env.VITE_SENTRY) {
 		return event;
 	});
 }
+
+app.mount('#app');
