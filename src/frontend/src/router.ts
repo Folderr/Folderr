@@ -1,47 +1,40 @@
 import {createRouter, createWebHistory} from 'vue-router';
 
+// Navigation guards guards
+
 import * as userGuards from './nav-gaurds/user-nav-guard';
 import * as adminNavGuards from './nav-gaurds/admin-nav-guard';
 import * as userChecks from './nav-gaurds/user-checks';
 
-// Pages
-
-import Index from './pages/Index.vue';
-import NotFound from './pages/404.vue';
-import Account from './pages/Account.vue';
-import Upload from './pages/Upload.vue';
-import Shorten from './pages/Shorten.vue';
-import Admin from './pages/Admin.vue';
-
 const routes = [
 	{
 		path: '/',
-		component: Index,
+		component: import('./pages/Index.vue'),
 		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: '/account',
-		component: Account,
+		component: import('./pages/Account.vue'),
 		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: '/upload',
-		component: Upload,
+		component: import('./pages/Upload.vue'),
 		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: '/shorten',
-		component: Shorten,
+		component: import('./pages/Shorten.vue'),
 		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: '/admin',
-		component: Admin,
+		component: import('./pages/Admin.vue'),
 		beforeEnter: adminNavGuards.adminAuthGuard,
 	},
 	{
 		path: '/:pathMatch(.*)*',
-		component: NotFound,
+		component: import('./pages/404.vue'),
 		beforeEnter: userChecks.getUser,
 	},
 ];
