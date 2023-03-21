@@ -504,6 +504,10 @@ const updateInfo = async() => {
             oldEmail.value = email.value;
             oldUsername.value = username.value;
             sne.value?.addSuccess('Information Updated!');
+            store.$patch({
+                email: info.email,
+                username: info.username,
+            });
         } else {
             if (typeof updated.error === 'string' && updated.error.startsWith('Emailer not configured') ) {
                 email.value = oldEmail.value;
@@ -630,6 +634,11 @@ const updatePrivacy = async() => {
 
     if (privacy.success) {
         sne.value?.addSuccess('Updated your privacy settings');
+        store.$patch({
+            privacy: {
+                dataCollection: datacollection.value,
+            },
+        });
         return;
     }
 
@@ -656,6 +665,7 @@ const logoutEverywhere = async() => {
 
     if (logout.success) {
         router.push('/');
+        store.clear();
         return;
     }
 
@@ -694,6 +704,7 @@ const deleteAccount = async(confirmed: boolean) => {
     const deleted = await api.deleteAccount();
     if (deleted.success) {
         router.push('/farewell');
+        store.clear();
         return;
     }
 
