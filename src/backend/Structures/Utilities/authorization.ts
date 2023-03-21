@@ -27,7 +27,7 @@ import crypto from 'crypto';
 import {Buffer} from 'buffer';
 import jwt from 'jsonwebtoken';
 import type {Core} from '../../internals';
-import {wlogger} from '../../internals';
+import {logger} from '../../internals';
 import type {User} from '../Database/db-class';
 import AuthKeyHandler from '../../handlers/auth-key-handler';
 
@@ -59,7 +59,7 @@ export default class Authorization {
 				'You Need to Pass the Secret Key with an Environment Variable',
 			];
 			if (error instanceof Error && messages.includes(error.message)) {
-				this.#core.logger.log('error', error.message);
+				this.#core.logger.error(error.message);
 				await this.#core.Utils.sleep(1000);
 				this.#core.shutdownServer(
 					'Utils.init',
@@ -187,13 +187,13 @@ export default class Authorization {
 				return;
 			}
 
-			this.#core.logger.verbose(`[DB] Deleted ${del} Authorization Tokens`);
+			this.#core.logger.info(`[DB] Deleted ${del} Authorization Tokens`);
 			return true;
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				wlogger.debug(`Authorization/Revoke All Error: ${error.message}`);
+				logger.debug(`Authorization/Revoke All Error: ${error.message}`);
 			} else if (typeof error === 'string') {
-				wlogger.debug(`Authorization/Revoke All Error: ${error}`);
+				logger.debug(`Authorization/Revoke All Error: ${error}`);
 			}
 		}
 	}

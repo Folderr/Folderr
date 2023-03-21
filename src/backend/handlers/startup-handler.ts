@@ -15,7 +15,7 @@ export async function startFolderr(): Promise<void> {
 			core.logger.error(
 				'Folderr has deemed that you have not set up this instance!',
 			);
-			core.logger.notice('Folderr will exit as per protocol.');
+			core.logger.warn('Folderr will exit as per protocol.');
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(0);
 		} else {
@@ -40,7 +40,7 @@ export async function startFolderr(): Promise<void> {
 	try {
 		const listened = await core.listen();
 		if (listened) {
-			core.logger.log('ready', 'Service started and listening!');
+			core.logger.info('ready', 'Service started and listening!');
 		} else {
 			core.logger.error('[FATAL] UNABLE TO LISTEN TO PORT');
 			throw new Error('[FATAL] UNABLE TO LISTEN TO PORT');

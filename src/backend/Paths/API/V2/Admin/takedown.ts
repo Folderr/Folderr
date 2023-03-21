@@ -226,10 +226,7 @@ class Takedown extends Path {
 				});
 			}
 
-			this.core.logger.log(
-				'fatal',
-				`[PATH ${this.label}] Unknown fatal error!`,
-			);
+			this.core.logger.fatal(`[PATH ${this.label}] Unknown fatal error!`);
 
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.unkownError,

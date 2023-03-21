@@ -16,12 +16,7 @@ import fastifyStatic from '@fastify/static';
 import ratelimit from '@fastify/rate-limit';
 import fastifyCors from '@fastify/cors';
 import multipart from '@fastify/multipart';
-import type {
-	FastifyInstance,
-	FastifyReply,
-	FastifyRequest,
-	FastifyServerFactoryHandler,
-} from 'fastify';
+import type {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
 
 // Frontend stuff
 
@@ -30,9 +25,9 @@ import middie from '@fastify/middie';
 // Other imports
 import spdy from 'spdy';
 import got from 'got';
-import type winston from 'winston';
 import type {Got} from 'got';
 import * as Sentry from '@sentry/node';
+import type pino from 'pino';
 
 // Local files
 import Configurer from '../handlers/config-handler';
@@ -42,7 +37,6 @@ import {
 	Emailer,
 	Utils,
 	MongoDB,
-	wlogger,
 	Regexs,
 	codes as StatusCodes,
 } from '../internals';
@@ -54,6 +48,7 @@ import type {
 	KeyConfig,
 } from '../handlers/config-handler';
 import type {Path} from '../internals';
+import logger from './logger';
 
 // Local Fastify plugins
 import SentryPlugin from './plugins/sentry';
@@ -69,10 +64,16 @@ ee.on('fail', (code) => {
 });
 
 // Since we decorate the fastify instance we need to add that as a type.
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+interface LogOptions extends pino.LoggerOptions {
+	customLevels: {
+		startup: 35;
+	};
+}
 declare module 'fastify' {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface FastifyInstance {
-		wlogger: winston.Logger;
 		codes: typeof StatusCodes;
 	}
 }
@@ -84,7 +85,7 @@ export default class Core {
 
 	public readonly config: CoreConfig;
 
-	public readonly logger: winston.Logger;
+	public readonly logger: pino.Logger<LogOptions>;
 
 	public readonly emailer: Emailer;
 
@@ -118,7 +119,7 @@ export default class Core {
 	};
 
 	constructor() {
-		this.logger = wlogger;
+		this.logger = logger;
 		this.#requestIds = new Set();
 		this.#internals = {
 			serverClosed: false,
@@ -142,6 +143,7 @@ export default class Core {
 			trustProxy: this.config.trustProxies,
 			disableRequestLogging: true,
 			serverFactory: this.initServer(this.#keys),
+			logger: this.logger,
 		});
 		this.app.decorate('codes', StatusCodes);
 
@@ -157,7 +159,6 @@ export default class Core {
 			this.#emailConfig?.mailerOptions,
 		);
 		this.codes = StatusCodes;
-		this.app.decorate('wlogger', wlogger);
 		this.got = got.extend({
 			http2: true,
 			headers: {
@@ -265,17 +266,16 @@ export default class Core {
 						handler(request, response);
 					},
 				);
-				wlogger.log('prelisten', 'Initalized Server');
+				this.logger.info('prelisten', 'Initalized Server');
 				if (process.env.DEBUG) {
-					wlogger.log('debug', 'Using SPDY server');
+					this.logger.debug('debug', 'Using SPDY server');
 				}
 
 				return server;
 			}
 
 			if (process.env.NODE_ENV === 'production' && !this.config.trustProxies) {
-				wlogger.log(
-					'error',
+				this.logger.error(
 					'HTTPS and/or HTTP/2 required in production. Shuting down',
 				);
 				this.shutdownServer('Core.initServer', 'No HTTPS Certificate');
@@ -288,17 +288,17 @@ export default class Core {
 				handler(request, response);
 			});
 			if (process.env.DEBUG) {
-				wlogger.log('debug', 'Using HTTP server');
+				this.logger.debug('Using HTTP server');
 			}
 
-			wlogger.log('prelisten', 'Initalized Server');
+			this.logger.info('prelisten', 'Initalized Server');
 
 			return server;
 		};
 	}
 
 	async initDb(): Promise<void> {
-		wlogger.info('Init DB');
+		this.logger.info('Init DB');
 		// Again, neglecting this potential error to handle elsewhere
 		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/folderr');
 	}
@@ -330,8 +330,7 @@ export default class Core {
 
 						const method = endpoint.type.toUpperCase();
 
-						this.logger.log(
-							'startup',
+						this.logger.startup(
 							`API Path ${label} v${version} initialized with method ${method}!`,
 						);
 						count++;
@@ -455,14 +454,14 @@ export default class Core {
 				((typeof path.path === 'string' && path.path) || path.label) ?? base;
 			if (path.enabled) {
 				if (!path.label || !path.path) {
-					wlogger.error(
+					this.logger.error(
 						`Path ${endpointName} label or endpoint not found, fail init of Path.`,
 					);
 					continue;
 				}
 
 				if (!path.execute) {
-					wlogger.error(
+					this.logger.error(
 						`Path ${endpointName} executable found, fail init of Path.`,
 					);
 					continue;
@@ -471,8 +470,7 @@ export default class Core {
 				this.internalInitPath(path);
 
 				// eslint, this is a string. Do not mark this as max-len.
-				wlogger.log(
-					'startup',
+				this.logger.startup(
 					`Initalized path ${
 						path.label
 					} (${base}) with method ${path.type.toUpperCase()}`,
@@ -481,7 +479,7 @@ export default class Core {
 			}
 		}
 
-		wlogger.log('startup', `Initalized ${pathCount} paths`);
+		this.logger.startup(`Initalized ${pathCount} paths`);
 		return true;
 	}
 
@@ -571,17 +569,15 @@ export default class Core {
 			platform() === 'linux'
 		) {
 			ee.emit('fail', 13);
-			wlogger.error(
-				`[FATAL] Cannot listen to port ${this.config.port} as you are not root!`,
+			this.logger.fatal(
+				`Cannot listen to port ${this.config.port} as you are not root!`,
 			);
 			throw new Error(
 				`Cannot listen to port ${this.config.port} as you are not root!`,
 			);
 		}
 
-		if (process.env.DEBUG) {
-			wlogger.log('debug', 'Listen Port OK');
-		}
+		this.logger.debug('Listen Port OK');
 
 		return true;
 	}
@@ -626,46 +622,18 @@ export default class Core {
 			}
 		} catch (error: unknown) {
 			Sentry.captureException(error);
-			wlogger.error(error);
+			this.logger.error(error);
 			console.log(error);
 		}
 
 		if (this.#internals.serverClosed && this.#requestIds.size === 0) {
-			try {
-				wlogger.close();
-			} catch (error: unknown) {
-				if (error instanceof Error) {
-					console.log(`Logger shutdown error:\n${error.message}`);
-				}
-
-				console.log(
-					'Logger shutdown encountered an unkown error (result may be weird):\n',
-				);
-				console.log(error);
-			} finally {
-				// Silence unicorn.
-				// eslint-disable-next-line unicorn/no-process-exit
-				process.exit(0);
-			}
+			// eslint-disable-next-line unicorn/no-process-exit
+			process.exit(0);
 		}
 
 		ee.once('noRequests', () => {
-			try {
-				wlogger.close();
-			} catch (error: unknown) {
-				if (error instanceof Error) {
-					console.log(`Logger shutdown error:\n${error.message}`);
-				}
-
-				console.log(
-					'Logger shutdown encountered an unkown error (result may be weird):\n',
-				);
-				console.log(error);
-			} finally {
-				// Silence unicorn.
-				// eslint-disable-next-line unicorn/no-process-exit
-				process.exit(0);
-			}
+			// eslint-disable-next-line unicorn/no-process-exit
+			process.exit(0);
 		});
 	}
 

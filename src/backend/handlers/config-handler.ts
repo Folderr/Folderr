@@ -12,7 +12,7 @@ import {
 	email as envemail,
 	str,
 } from 'envalid';
-import {wlogger} from '../internals';
+import {logger} from '../internals';
 
 type CertOptions = {
 	key?: string;
@@ -568,7 +568,7 @@ const configHandler = {
 			if (exitEmit) {
 				process.emitWarning('Config Error (config-handler:366)');
 				console.log(error);
-				wlogger.error(error);
+				logger.error(error);
 				const ms = 500;
 				setTimeout(() => {
 					// This is the one time im going to tell unicorn to can it

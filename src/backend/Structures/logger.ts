@@ -1,58 +1,72 @@
-/**
- * @license
- *
- * Folderr is an open source image host. https://github.com/Folderr
- * Copyright (C) 2020 Folderr
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+import process from 'process';
+import pino from 'pino';
+import pretty from 'pino-pretty';
 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
-
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- */
-
-import wlogger from './winston-logger';
-
-/**
- * @author VoidNulll
- *
- * @classdesc Class to handle logging certain elements, allows for sending info to Discord webhooks.
- */
-class Logger {
-	/**
-	 * @desc Log something to Discord, or try to...
-	 *
-	 * @param type {string} The type of log it is logging;
-	 * @param information {string} The information to send with the log
-	 *
-	 * @return {void}
-	 */
-	log(type: string, information: string): any {
-		const base = `[${type}] - ${information}`;
-		if (type.startsWith('SECURITY WARN')) {
-			wlogger.log({
-				level: 'warn',
-				message: base.replace(/warn/i, ''),
-				private: true
-			});
-		} else if (
-			type.startsWith('SYSTEM INFO') ||
-			type.startsWith('SYSTEM NOTICE') ||
-			type === 'SYSTEM - SIGNUP'
-		) {
-			wlogger.log('info', base.replace('[SYSTEM INFO] - ', ''));
-		} else {
-			wlogger.log('verbose', base);
-		}
-	}
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export interface LogOptions extends pino.LoggerOptions {
+	customLevels: {
+		startup: 35;
+	};
 }
 
-export default Logger;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const transport = pino.transport({
+	targets: [
+		{
+			target: 'pino/file',
+			level: 'error',
+			options: {destination: 'logs/error.log'},
+		},
+		{
+			target: 'pino/file',
+			level: 'debug',
+			options: {destination: 'logs/debug.log'},
+		},
+		{
+			target: 'pino/file',
+			level: 'warn',
+			options: {destination: 'logs/warn.log'},
+		},
+		{
+			target: 'pino/file',
+			options: {destination: 'logs/all.log'},
+			level: 'trace',
+		},
+	],
+	levels: {startup: 35},
+	worker: {
+		autoEnd: true,
+	},
+	dedupe: true,
+});
+
+const options: LogOptions = {
+	level: process.env.DEBUG ? 'debug' : 'info',
+	redact: ['ip', 'token', 'Authorization'],
+	customLevels: {
+		startup: 35,
+	},
+};
+
+if (process.env.NODE_ENV !== 'dev') {
+	options.formatters = {
+		level(label) {
+			return {
+				level: label,
+			};
+		},
+	};
+}
+
+export default pino(
+	options,
+	process.env.NODE_ENV === 'dev'
+		? pretty({
+				customLevels: {
+					...pino.levels.values,
+					startup: 35,
+				},
+				minimumLevel: process.env.DEBUG ? 'debug' : 'info',
+		  })
+		: transport,
+);
