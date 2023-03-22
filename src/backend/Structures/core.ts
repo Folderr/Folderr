@@ -23,7 +23,8 @@ import type {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
 import middie from '@fastify/middie';
 
 // Other imports
-import spdy from 'spdy';
+import spdy from 'spdy'; // Fuck spdy
+import http2 from 'http2';
 import got from 'got';
 import type {Got} from 'got';
 import * as Sentry from '@sentry/node';
@@ -56,9 +57,9 @@ import SentryPlugin from './plugins/sentry';
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
 const ee = new EventEmitter();
-ee.on('fail', (code) => {
+ee.on('fail', (code: number) => {
 	setTimeout(() => {
-		// eslint-disable-next-line unicorn/no-process-exit
+		 
 		process.exit(code || 1); // Justification: Process may not exit if this is not called
 	}, 1000);
 });
@@ -186,7 +187,7 @@ export default class Core {
 		await this.app.register(SentryPlugin);
 
 		if (process.env.NODE_ENV !== 'dev') {
-			// eslint-disable-next-line @typescript-eslint/quotes
+			 
 			const defaultSrc = ["'self'"];
 			if (process.env.NODE_ENV !== 'production') {
 				defaultSrc.push('ws://localhost:*');
@@ -196,7 +197,7 @@ export default class Core {
 				contentSecurityPolicy: {
 					directives: {
 						defaultSrc,
-						// eslint-disable-next-line @typescript-eslint/quotes
+						 
 						scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
 					},
 				},
@@ -218,6 +219,9 @@ export default class Core {
 				files: 1,
 				fileSize: 10_000_000_000,
 			},
+		});
+		await this.app.register(fastifyStatic, {
+			root: join(process.cwd(), 'dist/src/frontend'),
 		});
 
 		if (process.env.DEBUG) {
@@ -267,9 +271,8 @@ export default class Core {
 					},
 				);
 				this.logger.info('prelisten', 'Initalized Server');
-				if (process.env.DEBUG) {
-					this.logger.debug('debug', 'Using SPDY server');
-				}
+				this.logger.debug('debug', 'Using SPDY server');
+				
 
 				return server;
 			}
@@ -287,9 +290,8 @@ export default class Core {
 			const server = http.createServer((request, response) => {
 				handler(request, response);
 			});
-			if (process.env.DEBUG) {
-				this.logger.debug('Using HTTP server');
-			}
+			this.logger.debug('Using HTTP server');
+			
 
 			this.logger.info('prelisten', 'Initalized Server');
 
@@ -485,12 +487,7 @@ export default class Core {
 
 	async initFrontend() {
 		if (process.env.NODE_ENV === 'production') {
-			await this.app.register(fastifyStatic, {
-				root: join(process.cwd(), 'dist/src/frontend'),
-			});
-			if (process.env.DEBUG) {
-				this.logger.debug('Using production build for frontend');
-			}
+			this.logger.debug('Using production build for frontend');
 
 			this.app.setNotFoundHandler(async (request, reply) => {
 				if (request.url.startsWith('/api')) {
@@ -520,12 +517,14 @@ export default class Core {
 		const vite = await import('vite');
 		await this.app.register(middie);
 		await this.app.after();
-		const server = await vite.createServer({
-			server: {
-				middlewareMode: true,
-			},
-			envDir: process.cwd(),
-		});
+		const server = await vite.createServer(
+			{server:
+				{
+					middlewareMode: true
+				},
+				envDir: process.cwd()
+			}
+		);
 		this.app.use((request, response, next) => {
 			if (request.url?.match(/^\/(api|image|i\/|v\/|video|file|f\/)/)) {
 				next();
@@ -613,7 +612,7 @@ export default class Core {
 		}
 
 		try {
-			if (!this.app || !this.app.close || !this.listening) {
+			if (!this.app?.close || !this.listening) {
 				this.#internals.serverClosed = true;
 			} else {
 				this.app.close(() => {
@@ -627,12 +626,12 @@ export default class Core {
 		}
 
 		if (this.#internals.serverClosed && this.#requestIds.size === 0) {
-			// eslint-disable-next-line unicorn/no-process-exit
+			 
 			process.exit(0);
 		}
 
 		ee.once('noRequests', () => {
-			// eslint-disable-next-line unicorn/no-process-exit
+			 
 			process.exit(0);
 		});
 	}

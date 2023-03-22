@@ -11,14 +11,17 @@
     "start": "node dist/src/backend/index.js",
     "setup": "node dist/scripts/setup.js",
     "dev": "ts-node-dev --trace-warnings -- src/backend/index.ts",
-    "test": "xo && node dist/src/backend/index.js",
-    "lint": "xo src/ scripts/ vite.config.ts",
-    "lint:fix": "xo --fix src/ scripts/ vite.config.ts",
+    "test": "eslint --ext .vue,.ts && node dist/src/backend/index.js",
+    "lint": "eslint --ext .vue,.ts src/ scripts/ vite.config.ts",
+    "lint:fix": "eslint --ext .vue,.ts --fix src/ scripts/ vite.config.ts",
     "installdev": "npm i -D && husky install"
   },
-  "xo": {
+  "eslintConfig": {
     "extends": [
-      "plugin:vue/vue3-recommended"
+      "plugin:vue/vue3-recommended",
+      "xo",
+      "xo-typescript",
+      "prettier"
     ],
     "parser": "vue-eslint-parser",
     "parserOptions": {
@@ -26,11 +29,9 @@
     },
     "plugins": [
       "optimize-regex",
-      "radar"
-    ],
-    "extensions": [
-      ".ts",
-      ".vue"
+      "prettier",
+      "unicorn",
+      "import"
     ],
     "rules": {
       "indent": "off",
@@ -46,8 +47,7 @@
       "no-underscore-dangle": "error",
       "unicorn/prefer-node-protocol": "off",
       "import/extensions": "off"
-    },
-    "prettier": true
+    }
   },
   "engines": {
     "node": ">=16.19.1 <=18"
@@ -79,10 +79,10 @@
     "@sentry/tracing": "^7.43.0",
     "@sentry/vue": "^7.43.0",
     "@tailwindcss/forms": "^0.5.3",
-    "ajv": "^8.6.2",
+    "ajv": "^8.12.0",
     "argon2": "^0.30.3",
     "envalid": "^7.3.1",
-    "fastify": "^4.12.0",
+    "fastify": "^4.15.0",
     "fastify-plugin": "^4.5.0",
     "got": "^11.8.2",
     "helmet": "^4.4.1",
@@ -101,6 +101,7 @@
     "vue": "^3.2.47"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^2.0.1",
     "@iconify/types": "^1.1.0",
     "@types/busboy": "^0.3.1",
     "@types/connect": "^3.4.35",
@@ -108,34 +109,34 @@
     "@types/jsonwebtoken": "^8.5.4",
     "@types/mime-types": "^2.1.0",
     "@types/moment-duration-format": "^2.2.3",
-    "@types/node": "^18.11.9",
+    "@types/node": "^18.15.5",
     "@types/nodemailer": "^6.4.4",
     "@types/spdy": "^3.4.5",
     "@types/uuid": "^8.3.1",
-    "@typescript-eslint/eslint-plugin": "^5.36.1",
-    "@typescript-eslint/parser": "^5.36.1",
     "@vitejs/plugin-vue": "^4.0.0",
     "autoprefixer": "^10.4.0",
-    "eslint-config-prettier": "^7.2.0",
+    "eslint": "^8.36.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-xo": "^0.43.1",
+    "eslint-config-xo-typescript": "^0.56.0",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-optimize-regex": "^1.2.1",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-radar": "^0.2.1",
-    "eslint-plugin-unicorn": "^40.1.0",
-    "eslint-plugin-vue": "^9.7.0",
+    "eslint-plugin-unicorn": "^46.0.0",
+    "eslint-plugin-vue": "^9.9.0",
     "husky": "^6.0.0",
     "lint-staged": "^11.0.0",
     "postcss": "^8.4.5",
-    "prettier": "2.3.1",
+    "prettier": "^2.8.6",
     "tailwindcss": "^3.2.7",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^4.9.5",
+    "typescript": "5.0.2",
     "vite": "^4.1.4",
     "vue-router": "^4.1.6",
-    "vue-tsc": "^1.2.0",
-    "xo": "^0.52.3"
+    "vue-tsc": "^1.2.0"
   },
   "lint-staged": {
-    "*.{ts,vue}": "xo --fix",
+    "*.{ts,vue}": "eslint --ext .vue,.ts --fix",
     "*.{md,yaml}": "prettier --write"
   }
 }
