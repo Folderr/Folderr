@@ -26,7 +26,7 @@ import Configurer from '../../handlers/config-handler';
 import type {Upload} from '../Database/db-class';
 import type DB from '../Database/db-class';
 import MongoDB from '../Database/mongoose-db';
-import {wlogger} from '../../internals';
+import {logger} from '../../internals';
 
 /**
  * @classdesc Handles deleting files
@@ -48,9 +48,11 @@ export default class DbQueue extends EventEmitter {
 		this.config = Configurer.verifyFetch().db;
 		this.db = new MongoDB();
 		this.db.init(this.config.url).catch((error) => {
-			wlogger.error('CANNOT RUN DBQueue - Database Error');
-			if (error instanceof Error && process.env.DEBUG) {
-				wlogger.debug(error.message);
+			logger.error('CANNOT RUN DBQueue - Database Error');
+
+			if (error instanceof Error) {
+				logger.debug(error.message);
+				throw error;
 			}
 
 			throw new Error('CANNOT RUN DBQueue - Database Error');
@@ -80,13 +82,13 @@ export default class DbQueue extends EventEmitter {
 				files = files.filter((fil) => fil.id !== file.id);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
-					wlogger.error(
+					logger.error(
 						// eslint-disable-next-line max-len
 						`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`,
 					);
 				}
 
-				wlogger.error(
+				logger.error(
 					`Database ran into an error while deleting file "${file.path}".`,
 				);
 			}
