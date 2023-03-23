@@ -5,8 +5,8 @@
 		}
 	],
 	"settings": {
-		"xo.enable": true,
-		"xo.format.enable": true,
+		"eslint.enable": true,
+		"eslint.format.enable": true,
 		"editor.insertSpaces": false,
 		"editor.quickSuggestions": {
 			"other": true,
