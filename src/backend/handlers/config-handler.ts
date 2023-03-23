@@ -252,9 +252,9 @@ const configHandler = {
 		const partialEnvCoreConfig = cleanEnv(process.env, {
 			url: host({default: undefined}),
 			port: port({default: undefined}),
-			trustProxies: bool({default: false}),
+			trustProxies: bool({default: undefined}),
 			signups: num({default: undefined}),
-			apiOnly: bool({default: false}),
+			apiOnly: bool({default: undefined}),
 			httpsCertOptions: json<KeyConfig['httpsCertOptions']>({
 				default: {
 					key: undefined,
@@ -571,8 +571,6 @@ const configHandler = {
 				logger.error(error);
 				const ms = 500;
 				setTimeout(() => {
-					// This is the one time im going to tell unicorn to can it
-					// eslint-disable-next-line unicorn/no-process-exit
 					process.exit(1);
 				}, ms);
 			} else {
