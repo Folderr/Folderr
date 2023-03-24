@@ -17,8 +17,6 @@ if (!fs.existsSync(dir)) {
 	fs.mkdirSync(dir);
 }
 
-console.log(join(dir, 'error.log'));
-
 // eslint-disable-next-line spaced-comment
 /*const transport = pino.transport({
 	targets: [

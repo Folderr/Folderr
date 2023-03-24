@@ -619,12 +619,14 @@ export default class Mongoosedb extends DBClass {
 			description?: string;
 		},
 	): Promise<Tokendb | undefined> {
+		const date = new Date();
+		date.setDate(date.getDate() + 2 * 7);
 		const tken = new this.#schemas.Token({
 			id: tokenID,
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web ?? false,
-			expireAt: options?.web ? 60 * 60 * 24 * 14 : undefined,
+			expireAt: options?.web ? date : undefined,
 			description: options?.description,
 		});
 		await tken.save();
