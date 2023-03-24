@@ -270,7 +270,7 @@ export default class Core {
 						handler(request, response);
 					},
 				);
-				this.logger.info('prelisten', 'Initalized Server');
+				this.logger.info('Initalized Server');
 				this.logger.debug('debug', 'Using SPDY server');
 				
 
@@ -293,7 +293,7 @@ export default class Core {
 			this.logger.debug('Using HTTP server');
 			
 
-			this.logger.info('prelisten', 'Initalized Server');
+			this.logger.info('Initalized Server');
 
 			return server;
 		};
