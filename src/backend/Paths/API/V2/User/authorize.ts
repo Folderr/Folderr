@@ -90,6 +90,7 @@ class Login extends Path {
 			const jwt = await this.core.Utils.authorization.genKeyWeb(auth.id);
 			const date = new Date();
 			date.setDate(date.getDate() + 2 * 7);
+			console.log(date);
 			return await response
 				.cookie('token', jwt, {
 					expires: date,
