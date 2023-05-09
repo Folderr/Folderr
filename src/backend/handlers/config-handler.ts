@@ -133,7 +133,7 @@ export type ActEmailConfig = {
 };
 
 export type EnvDbConfig = {
-	URL: string;
+	DB_URL: string;
 };
 
 export type EnvServerConfig = {
@@ -161,7 +161,7 @@ type EnvEmailConfig = {
 		USER?: string;
 	};
 	HOST?: string;
-	PORT?: number;
+	EMAIL_PORT?: number;
 	SECURE?: boolean;
 	REQUIRE_TLS?: boolean;
 	IGNORE_TLS?: boolean;
@@ -277,7 +277,7 @@ const configHandler = {
 							envEmailConfig.AUTH.PASS ?? email?.mailerOptions.auth.password,
 					},
 					host: envEmailConfig.HOST ?? email.mailerOptions.host,
-					port: envEmailConfig.PORT ?? email.mailerOptions.port,
+					port: envEmailConfig.EMAIL_PORT ?? email.mailerOptions.port,
 					secure: envEmailConfig.SECURE ?? email.mailerOptions.secure,
 					requireTLS:
 						envEmailConfig.REQUIRE_TLS ?? email.mailerOptions.requireTls,
@@ -328,7 +328,7 @@ const configHandler = {
 		};
 
 		const envDbConfig = cleanEnv(process.env, {
-			URL: host({default: undefined}),
+			DB_URL: host({default: undefined}),
 		});
 
 		const envEmailConfig = cleanEnv(process.env, {
@@ -336,7 +336,7 @@ const configHandler = {
 				{USER: string; PASS: string} | {USER: undefined; PASS: undefined}
 			>({default: {user: undefined, pass: undefined}}),
 			HOST: host({default: undefined}),
-			PORT: port({default: undefined}),
+			EMAIL_PORT: port({default: undefined}),
 			SECURE: bool({default: false}),
 			REQUIRE_TLS: bool({default: false}),
 			IGNORE_TLS: bool({default: false}),
@@ -404,7 +404,7 @@ const configHandler = {
 		};
 		const emailConfig = this.verifyEmailer(envEmailConfig, files.email);
 		const dbConfig = {
-			url: envDbConfig.URL ?? files.db?.url,
+			url: envDbConfig.DB_URL ?? files.db?.url,
 			// These aren't implemented yet so... worthless :)
 			dbName: files.db?.dbName,
 			protocol: files.db?.protocol,
@@ -444,7 +444,7 @@ const configHandler = {
 			missing.push('server/signups');
 		}
 
-		if (!env.db.URL) {
+		if (!env.db.DB_URL) {
 			missing.push('server/url');
 		}
 
@@ -498,7 +498,7 @@ const configHandler = {
 		}
 
 		if (
-			!(files?.db?.url ?? env?.db.URL) ||
+			!(files?.db?.url ?? env?.db.DB_URL) ||
 			typeof files?.db?.url !== 'string'
 		) {
 			missingConfigs.db.push('db/url - Must be a url string');
