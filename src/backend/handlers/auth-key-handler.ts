@@ -19,9 +19,9 @@ export default class AuthKeyHandler {
 
 	async fetchKeys(db: AbstractDB): Promise<void> {
 		try {
-			if (locations.keys === 'none' && process.env.privateKey) {
-				this.#privateKey = Buffer.from(process.env.privateKey);
-			} else if (locations.keys === 'none' && !process.env.privateKey) {
+			if (locations.keys === 'none' && process.env.PRIVATE_KEY) {
+				this.#privateKey = Buffer.from(process.env.PRIVATE_KEY);
+			} else if (locations.keys === 'none' && !process.env.PRIVATE_KEY) {
 				throw new Error(
 					'You Need to Pass the Secret Key with an Environment Variable',
 				);

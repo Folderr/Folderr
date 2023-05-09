@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import fs, {existsSync} from 'fs';
 import process from 'process';
 import {join} from 'path';
@@ -51,7 +52,7 @@ export type KeyOptions = {
 export type Options = {
 	port?: number;
 	url?: string;
-	db: DbConfig;
+	db: EnvDbConfig;
 	signups?: number;
 	apiOnly?: boolean;
 	trustProxies?: boolean;
@@ -94,19 +95,6 @@ export type EmailConfig = {
 	sendingEmail?: string;
 };
 
-type EnvEmailConfig = {
-	auth: {
-		pass?: string;
-		user?: string;
-	};
-	host?: string;
-	port?: number;
-	secure?: boolean;
-	requireTLS?: boolean;
-	ignoreTLS?: boolean;
-	sendingEmail?: string;
-};
-
 export type CoreConfig = {
 	port: number;
 	signups: number;
@@ -144,8 +132,68 @@ export type ActEmailConfig = {
 	sendingEmail?: string;
 };
 
+export type EnvDbConfig = {
+	URL: string;
+};
+
+export type EnvServerConfig = {
+	PORT: number;
+	SIGNUPS: number;
+	URL: string;
+	TRUST_PROXIES?: boolean;
+	API_ONLY?: boolean;
+	HTTPS_CERT_OPTIONS?: {
+		KEY?: string;
+		CERT?: string;
+		REQUEST_CERT?: boolean;
+		CA?: string[];
+	};
+	SENTRY?: {
+		DSN?: string;
+		TRACING?: boolean;
+		RATE?: number;
+	};
+};
+
+type EnvEmailConfig = {
+	AUTH: {
+		PASS?: string;
+		USER?: string;
+	};
+	HOST?: string;
+	PORT?: number;
+	SECURE?: boolean;
+	REQUIRE_TLS?: boolean;
+	IGNORE_TLS?: boolean;
+	SENDING_EMAIL?: string;
+};
+
+export type EnvCoreConfig = {
+	PORT: number;
+	SIGNUPS: number;
+	URL: string;
+	TRUST_PROXIES: boolean;
+	API_ONLY: boolean;
+	SENTRY: {
+		DSN?: string;
+		TRACING?: boolean;
+		RATE?: number;
+	};
+};
+
+export type EnvKeyLiteConfig = {
+	KEY?: string;
+	CERT?: string;
+	REQUEST_CERT?: boolean;
+	CA?: string[];
+};
+
+export type EnvKeyConfig = {
+	HTTPS_CERT_OPTIONS?: EnvKeyLiteConfig
+};
+
 const configHandler = {
-	fetchFiles(env: {server: CoreConfig; db: DbConfig; email: EnvEmailConfig}): {
+	fetchFiles(env: {server: EnvCoreConfig; db: EnvDbConfig; email: EnvEmailConfig}): {
 		server?: Record<string, unknown>;
 		db?: Record<string, unknown>;
 		email?: Record<string, unknown> | undefined | false;
@@ -211,31 +259,29 @@ const configHandler = {
 		const emailConfig: ActEmailConfig = {};
 		if (email ?? envEmailConfig) {
 			emailConfig.sendingEmail =
-				envEmailConfig.sendingEmail ?? email?.sendingEmail;
+				envEmailConfig.SENDING_EMAIL ?? email?.sendingEmail;
 			const hasAuth =
-				Boolean(envEmailConfig.auth ?? email?.mailerOptions?.auth) &&
+				Boolean(envEmailConfig.AUTH ?? email?.mailerOptions?.auth) &&
 				Boolean(
-					envEmailConfig.auth.pass ?? email?.mailerOptions?.auth.password,
+					envEmailConfig.AUTH.PASS ?? email?.mailerOptions?.auth.password,
 				) &&
 				Boolean(
-					envEmailConfig.auth.user ?? email?.mailerOptions?.auth.username,
+					envEmailConfig.AUTH.USER ?? email?.mailerOptions?.auth.username,
 				);
 			if (email?.mailerOptions && hasAuth) {
 				emailConfig.mailerOptions = {
 					auth: {
 						user:
-							envEmailConfig.auth.user ?? email?.mailerOptions.auth.username,
+							envEmailConfig.AUTH.USER ?? email?.mailerOptions.auth.username,
 						pass:
-							envEmailConfig.auth.pass ?? email?.mailerOptions.auth.password,
+							envEmailConfig.AUTH.PASS ?? email?.mailerOptions.auth.password,
 					},
-					host: envEmailConfig.host ?? email.mailerOptions.host,
-					port: envEmailConfig.port ?? email.mailerOptions.port,
-					secure: envEmailConfig.secure ?? email.mailerOptions.secure,
-					/* eslint-disable @typescript-eslint/naming-convention */
+					host: envEmailConfig.HOST ?? email.mailerOptions.host,
+					port: envEmailConfig.PORT ?? email.mailerOptions.port,
+					secure: envEmailConfig.SECURE ?? email.mailerOptions.secure,
 					requireTLS:
-						envEmailConfig.requireTLS ?? email.mailerOptions.requireTls,
-					ignoreTLS: envEmailConfig.ignoreTLS ?? email.mailerOptions.ignoreTls,
-					/* eslint-enable @typescript-eslint/naming-convention */
+						envEmailConfig.REQUIRE_TLS ?? email.mailerOptions.requireTls,
+					ignoreTLS: envEmailConfig.IGNORE_TLS ?? email.mailerOptions.ignoreTls,
 				};
 			}
 		}
@@ -250,57 +296,52 @@ const configHandler = {
 		db: DbConfig;
 	} {
 		const partialEnvCoreConfig = cleanEnv(process.env, {
-			url: host({default: undefined}),
-			port: port({default: undefined}),
-			trustProxies: bool({default: undefined}),
-			signups: num({default: undefined}),
-			apiOnly: bool({default: undefined}),
-			httpsCertOptions: json<KeyConfig['httpsCertOptions']>({
+			URL: host({default: undefined}),
+			PORT: port({default: undefined}),
+			TRUST_PROXIES: bool({default: undefined}),
+			SIGNUPS: num({default: undefined}),
+			API_ONLY: bool({default: undefined}),
+			HTTPS_CERT_OPTIONS: json<EnvKeyLiteConfig>({
 				default: {
-					key: undefined,
-					cert: undefined,
-					requestCert: undefined,
-					ca: undefined,
+					KEY: undefined,
+					CERT: undefined,
+					REQUEST_CERT: undefined,
+					CA: undefined,
 				},
 			}),
 		});
 
 		// Handle the configuration for sentry
 
-		/* eslint-disable @typescript-eslint/naming-convention */
 		const envSentryConf = cleanEnv(process.env, {
-			sentry: str({default: undefined}),
-			sentry_rate: num({default: undefined}),
-			sentry_tracing: bool({default: undefined}),
+			SENTRY: str({default: undefined}),
+			SENTRY_RATE: num({default: undefined}),
+			SENTRY_TRACING: bool({default: undefined}),
 		});
-		/* eslint-enable @typescript-eslint/naming-convention */
-
 		const envCoreConfig = {
 			...partialEnvCoreConfig,
-			sentry: {
-				dsn: envSentryConf.sentry,
-				rate: envSentryConf.sentry_rate,
-				tracing: envSentryConf.sentry_tracing,
+			SENTRY: {
+				DSN: envSentryConf.SENTRY,
+				RATE: envSentryConf.SENTRY_RATE,
+				TRACING: envSentryConf.SENTRY_TRACING,
 			},
 		};
 
 		const envDbConfig = cleanEnv(process.env, {
-			url: host({default: undefined}),
+			URL: host({default: undefined}),
 		});
 
-		/* eslint-disable @typescript-eslint/naming-convention */
 		const envEmailConfig = cleanEnv(process.env, {
-			auth: json<
-				{user: string; pass: string} | {user: undefined; pass: undefined}
+			AUTH: json<
+				{USER: string; PASS: string} | {USER: undefined; PASS: undefined}
 			>({default: {user: undefined, pass: undefined}}),
-			host: host({default: undefined}),
-			port: port({default: undefined}),
-			secure: bool({default: false}),
-			requireTLS: bool({default: false}),
-			ignoreTLS: bool({default: false}),
-			sendingEmail: envemail({default: undefined}),
+			HOST: host({default: undefined}),
+			PORT: port({default: undefined}),
+			SECURE: bool({default: false}),
+			REQUIRE_TLS: bool({default: false}),
+			IGNORE_TLS: bool({default: false}),
+			SENDING_EMAIL: envemail({default: undefined}),
 		});
-		/* eslint-enable @typescript-eslint/naming-convention */
 
 		const files = this.fetchFiles({
 			server: envCoreConfig,
@@ -327,43 +368,43 @@ const configHandler = {
 		const keyConfig: KeyConfig = {
 			httpsCertOptions: {
 				key:
-					envCoreConfig.httpsCertOptions?.key ??
+					envCoreConfig.HTTPS_CERT_OPTIONS?.KEY ??
 					files.server?.httpsCertOptions?.key,
 				cert:
-					envCoreConfig.httpsCertOptions?.cert ??
+					envCoreConfig.HTTPS_CERT_OPTIONS?.CERT ??
 					files.server?.httpsCertOptions?.cert,
 				ca:
-					envCoreConfig.httpsCertOptions?.ca ??
+					envCoreConfig.HTTPS_CERT_OPTIONS?.CA ??
 					files.server?.httpsCertOptions?.ca,
 				requestCert:
-					envCoreConfig.httpsCertOptions?.requestCert ??
+					envCoreConfig.HTTPS_CERT_OPTIONS?.REQUEST_CERT ??
 					Boolean(files.server?.httpsCertOptions?.requestCert),
 			},
 		};
 
 		const coreConfig = {
-			url: envCoreConfig.url ?? files.server?.url,
-			port: envCoreConfig.port ?? files.server?.port,
-			trustProxies: envCoreConfig.trustProxies ?? files.server?.trustProxies,
-			signups: envCoreConfig.signups ?? files.server?.signups,
-			apiOnly: envCoreConfig.apiOnly ?? files.server?.apiOnly,
+			url: envCoreConfig.URL ?? files.server?.url,
+			port: envCoreConfig.PORT ?? files.server?.port,
+			trustProxies: envCoreConfig.TRUST_PROXIES ?? files.server?.trustProxies,
+			signups: envCoreConfig.SIGNUPS ?? files.server?.signups,
+			apiOnly: envCoreConfig.API_ONLY ?? files.server?.apiOnly,
 			sentry: {
-				dsn: envCoreConfig.sentry.dsn ?? files.server?.sentry?.dsn,
+				dsn: envCoreConfig.SENTRY.DSN ?? files.server?.sentry?.dsn,
 				rate:
-					envCoreConfig.sentry.rate ??
+					envCoreConfig.SENTRY.RATE ??
 					files.server?.sentry?.rate ??
 					process.env.NODE_ENV === 'dev'
 						? 1
 						: 0.2,
 				tracing:
-					envCoreConfig.sentry.tracing ??
+					envCoreConfig.SENTRY.TRACING ??
 					files.server?.sentry?.tracing ??
 					false,
 			},
 		};
 		const emailConfig = this.verifyEmailer(envEmailConfig, files.email);
 		const dbConfig = {
-			url: envDbConfig.url ?? files.db?.url,
+			url: envDbConfig.URL ?? files.db?.url,
 			// These aren't implemented yet so... worthless :)
 			dbName: files.db?.dbName,
 			protocol: files.db?.protocol,
@@ -385,29 +426,29 @@ const configHandler = {
 	},
 
 	preCheckEnv(env: {
-		server: ServerConfig;
-		db: DbConfig;
+		server: EnvServerConfig;
+		db: EnvDbConfig;
 		email: EnvEmailConfig;
 	}): string[] {
 		const missing = [];
 
-		if (!env.server.port) {
+		if (!env.server.PORT) {
 			missing.push('server/port');
 		}
 
-		if (!env.server.url) {
+		if (!env.server.URL) {
 			missing.push('server/url');
 		}
 
-		if (!env.server.signups) {
+		if (!env.server.SIGNUPS) {
 			missing.push('server/signups');
 		}
 
-		if (!env.db.url) {
+		if (!env.db.URL) {
 			missing.push('server/url');
 		}
 
-		if (env.email?.sendingEmail && !env.email.auth) {
+		if (env.email?.SENDING_EMAIL && !env.email.AUTH) {
 			missing.push('email', 'email/auth');
 		}
 
@@ -421,9 +462,9 @@ const configHandler = {
 			email?: EmailConfig;
 		},
 		env?: {
-			server: ServerConfig;
-			db: DbConfig;
-			email?: EnvEmailConfig;
+			server: EnvServerConfig,
+			db: EnvDbConfig,
+			email: EnvEmailConfig
 		},
 	): true | void {
 		const missingConfigs = {
@@ -432,32 +473,32 @@ const configHandler = {
 		};
 
 		if (
-			!(files?.server?.port ?? env?.server.port) ||
+			!(files?.server?.port ?? env?.server.PORT) ||
 			typeof files?.server?.port !== 'number'
 		) {
 			missingConfigs.server.push('server/port - Must be a number');
 		}
 
 		if (
-			(!env?.server.signups &&
+			(!env?.server.SIGNUPS &&
 				!files?.server?.signups &&
 				files?.server?.signups !== 0) ||
 			(!files?.server?.signups && files?.server?.signups !== 0) ||
 			typeof files.server.signups !== 'number'
 		) {
-			console.log(env?.server.signups);
+			console.log(env?.server.SIGNUPS);
 			missingConfigs.server.push('server/signups - Must be a number');
 		}
 
 		if (
-			!(files?.server?.url ?? env?.server.url) ||
+			!(files?.server?.url ?? env?.server.URL) ||
 			typeof files?.server?.url !== 'string'
 		) {
 			missingConfigs.db.push('server/url - Must be a url string');
 		}
 
 		if (
-			!(files?.db?.url ?? env?.db.url) ||
+			!(files?.db?.url ?? env?.db.URL) ||
 			typeof files?.db?.url !== 'string'
 		) {
 			missingConfigs.db.push('db/url - Must be a url string');

@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/node';
 import Core from '../Structures/core';
 
 export async function startFolderr(): Promise<void> {
+	// Console.time('Startup');
 	const core = new Core();
 	try {
 		await core.initDb();
@@ -16,7 +17,6 @@ export async function startFolderr(): Promise<void> {
 				'Folderr has deemed that you have not set up this instance!',
 			);
 			core.logger.warn('Folderr will exit as per protocol.');
-			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(0);
 		} else {
 			Sentry.captureException(error);
@@ -33,14 +33,15 @@ export async function startFolderr(): Promise<void> {
 		throw new Error('[FATAL] Paths could not initalize');
 	}
 
-	await core.registerApis();
+	// Await core.registerApis();
+	await core.initAPI();
 
 	await core.initFrontend();
 
 	try {
 		const listened = await core.listen();
 		if (listened) {
-			core.logger.info('ready', 'Service started and listening!');
+			// Console.timeEnd('Startup');
 		} else {
 			core.logger.error('[FATAL] UNABLE TO LISTEN TO PORT');
 			throw new Error('[FATAL] UNABLE TO LISTEN TO PORT');

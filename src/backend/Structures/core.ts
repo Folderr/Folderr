@@ -270,9 +270,8 @@ export default class Core {
 						handler(request, response);
 					},
 				);
-				this.logger.info('Initalized Server');
-				this.logger.debug('debug', 'Using SPDY server');
-				
+				this.logger.debug('Using SPDY server');
+				this.logger.debug('Initalized Server');
 
 				return server;
 			}
@@ -291,16 +290,14 @@ export default class Core {
 				handler(request, response);
 			});
 			this.logger.debug('Using HTTP server');
-			
-
-			this.logger.info('Initalized Server');
+			this.logger.debug('Initalized Server');
 
 			return server;
 		};
 	}
 
 	async initDb(): Promise<void> {
-		this.logger.info('Init DB');
+		this.logger.debug('Init DB');
 		// Again, neglecting this potential error to handle elsewhere
 		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/folderr');
 	}
@@ -438,6 +435,75 @@ export default class Core {
 					app.get(path.path, path.execute.bind(path));
 				}
 			}
+		}
+	}
+
+	findPaths(dir: string): Array<Promise<{default: typeof Path}>> {
+		if (!require.main?.path) {
+			return [];
+		}
+
+		const paths: Array<Promise<{default: typeof Path}>> = [];
+		const apiitems = fs.readdirSync(dir);
+		for (const apiordir of apiitems) {
+			if (apiordir.startsWith('index')) continue;
+			if (apiordir.includes('.')) {
+				paths.push(
+					import(
+						join(dir, apiordir)
+					) as Promise<{default: typeof Path}>
+				);
+				continue;
+			}
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			paths.push(...this.findPaths(join(dir, apiordir)));
+		}
+
+		return paths;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	async initAPI(): Promise<void> {
+		let count = 0;
+		if (require.main?.path) {
+			const dir = fs.readdirSync(join(require.main?.path, 'Paths/API'));
+			const paths:
+				Array<{version: string, paths: Array<Promise<{default: typeof Path}>>}> = [];
+			for (const item of dir) {
+				if (!item.startsWith('V')) continue;
+
+				const output = this.findPaths(join(require.main.path, `Paths/API/${item}`));
+				paths.push({version: item, paths: output});
+
+			}
+			
+			paths.forEach(async value => {
+				const actpaths = await Promise.all(value.paths);
+				await this.app.register((instance, _options, done) => {
+					for (const pathimport of actpaths) {
+						// eslint-disable-next-line @typescript-eslint/naming-convention
+						const Endpoint = pathimport.default;
+						const endpoint = new Endpoint(this);
+						if (!endpoint.enabled) continue;
+						const {label} = endpoint;
+	
+						this.internalInitPath(endpoint, instance);
+	
+						this.logger.startup(
+							`Loaded ${label}` +
+							` ${value.version} with method ${endpoint.type}`
+						);
+						count++;
+					}
+	
+					this.logger.startup(`Loaded ${count} API Paths (${value.version})`);
+					done();
+				}, {
+					prefix: '/api'
+				});
+			})
+			
 		}
 	}
 
