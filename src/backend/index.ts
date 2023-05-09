@@ -7,15 +7,7 @@ import {RewriteFrames} from '@sentry/integrations';
 import yaml from 'js-yaml';
 import * as StartupHandler from './handlers/startup-handler';
 
-declare global {
-	// eslint-disable-next-line no-var
-	var rootdir: string;
-}
-
-// eslint-disable-next-line unicorn/prefer-module
-global.rootdir = __dirname || process.cwd();
-
-const configPath = join(global.rootdir, 'configs/server.yaml');
+const configPath = join(process.cwd(), 'configs/server.yaml');
 
 let dsn = env.SENTRY;
 let tracing = true;
@@ -44,8 +36,8 @@ type Config = {
 
 if (fs.existsSync(configPath)) {
 	const conf = yaml.load(configPath);
-	if (typeof conf === 'object' && conf) {
-		const actConf: Config = conf;
+	if (conf && typeof conf === 'object') {
+		const actConf = conf as Config;
 		if (actConf.sentry?.dsn && typeof actConf.sentry?.dsn === 'string') {
 			dsn = dsn ?? actConf.sentry?.dsn;
 		}
@@ -63,7 +55,7 @@ if (fs.existsSync(configPath)) {
 	}
 }
 
-const integrations: any[] = [new RewriteFrames({root: global.rootdir})];
+const integrations: any[] = [new RewriteFrames({root: process.cwd()})] as any[];
 
 if (tracing) {
 	integrations.push(
