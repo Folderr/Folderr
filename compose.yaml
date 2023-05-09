@@ -2,17 +2,26 @@ services:
   folderr:
     build:
       context: .
-    depends_on:
-      - mongo
+    environment:
+      - PRIVATE_KEY
+      - PORT
+      - URL
+      - TRUST_PROXIES
+      - SIGNUPS
+      - HTTPS_CERT_OPTIONS
+      - SENTRY
+      - SENTRY_RATE
+      - SENTRY_TRACING
+      - DB_URL
+      - AUTH
+      - HOST
+      - EMAIL_PORT
+      - SECURE
+      - IGNORE_TLS
+      - REQUIRE_TLS
     volumes:
       - folderr:/usr/fldrr/Files
       - keys:/usr/fldrr/internal
-  mongo:
-    image: mongo
-    restart: always
-    volumes:
-      - db-data:/data/mongodb
 volumes:
   folderr:
-  db-data:
   keys:
