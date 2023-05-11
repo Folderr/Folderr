@@ -20,7 +20,8 @@ class MuteStreamHandler {
 		this.stream = new Writable({
 			write: (chunk, encoding, callback) => {
 				if (!this.isMuted()) {
-					process.stdout.write(chunk, encoding);
+					// Why is it like this Node? Fuck off.
+					process.stdout.write(chunk as string | Uint8Array, encoding);
 				}
 
 				callback();
@@ -42,7 +43,7 @@ const rl = readline.createInterface({
 });
 
 async function getKeyLocation(redo?: boolean): Promise<string> {
-	if (process.env.publicKey && process.env.privateKey) {
+	if (process.env.PUBLIC_KEY && process.env.PRIVATE_KEY) {
 		return 'none';
 	}
 
@@ -242,23 +243,23 @@ async function keyGen(
 	core: Core,
 ): Promise<{privateKey: string; publicKey: string}> {
 	let keys: {privateKey: string; publicKey: string};
-	if (process.env.publicKey && process.env.privateKey) {
+	if (process.env.PUBLIC_KEY && process.env.PRIVATE_KEY) {
 		const crypto = await import('crypto');
 		try {
 			const data = crypto.publicEncrypt(
-				process.env.publicKey,
+				process.env.PUBLIC_KEY,
 				// eslint-disable-next-line prettier/prettier
 				Buffer.from('Hi! I\'m Folderr!'),
 			);
-			const decrypted = crypto.privateDecrypt(process.env.privateKey, data);
+			const decrypted = crypto.privateDecrypt(process.env.PRIVATE_KEY, data);
 			// eslint-disable-next-line prettier/prettier
 			if (decrypted.toString() !== 'Hi I\'m Folderr') {
 				throw new Error('Public key and private key do not match!');
 			}
 
 			keys = {
-				privateKey: process.env.privateKey,
-				publicKey: process.env.publicKey,
+				privateKey: process.env.PRIVATE_KEY,
+				publicKey: process.env.PUBLIC_KEY,
 			};
 		} catch (error: unknown) {
 			if (error instanceof Error) {
