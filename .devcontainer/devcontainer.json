@@ -1,0 +1,5 @@
+{
+	"dockerComposeFile": "../compose-dev.yaml",
+	"service": "folderr-dev",
+	"workspaceFolder": "/usr/fldrr"
+}
