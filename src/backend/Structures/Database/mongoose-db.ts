@@ -162,7 +162,6 @@ export default class Mongoosedb extends DBClass {
 		return fldr;
 	}
 
-	// eslint-disable-next-line n/prefer-global/buffer
 	async createFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
 		const fldrr = await this.#schemas.Folderr.findOne({});
 		if (fldrr) {
@@ -215,9 +214,9 @@ export default class Mongoosedb extends DBClass {
 		query: Record<string, unknown>,
 		selector?: string,
 	): Promise<User | undefined> {
-		return selector
-			? this.#schemas.User.findOne(query, selector).lean()
-			: this.#schemas.User.findOne(query).lean();
+		return (selector
+			? await this.#schemas.User.findOne(query, selector).lean().exec()
+			: await this.#schemas.User.findOne(query).lean().exec()) ?? undefined;
 	}
 
 	async findUsers(
@@ -280,18 +279,16 @@ export default class Mongoosedb extends DBClass {
 		update: Record<string, unknown>,
 		selector?: string,
 	): Promise<User | undefined> {
-		return selector
-			? this.#schemas.User.findOneAndUpdate(query, update, {
-					fields: selector,
-					new: true,
-			  })
-					.lean()
-					.exec()
-			: this.#schemas.User.findOneAndUpdate(query, update, {
-					new: true,
-			  })
-					.lean()
-					.exec();
+		if (selector) {
+			return (await this.#schemas.User.findOneAndUpdate(query, update, {
+				fields: selector,
+				new: true,
+		  }).lean().exec()) ?? undefined
+		}
+
+		return (await this.#schemas.User.findOneAndUpdate(query, update, {
+			new: true,
+		}).lean().exec()) ?? undefined;
 	}
 
 	async updateUser(
@@ -347,11 +344,10 @@ export default class Mongoosedb extends DBClass {
 	async findVerify(
 		query: Record<string, unknown>,
 	): Promise<PendingMember | undefined> {
-		return this.#schemas.PendingMember.findOne(query).lean().exec();
+		return (await this.#schemas.PendingMember.findOne(query).lean().exec()) ?? undefined;
 	}
 
 	async findVerifies(query: Record<string, unknown>): Promise<PendingMember[]> {
-		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return this.#schemas.PendingMember.find(query).lean().exec();
 	}
 
@@ -433,15 +429,15 @@ export default class Mongoosedb extends DBClass {
 		query: Record<string, unknown>,
 		selector?: string,
 	): Promise<Upload | undefined> {
-		return selector
-			? this.#schemas.Upload.findOne(query, selector).lean().exec()
-			: this.#schemas.Upload.findOne(query).lean().exec();
+		return (selector
+			? await this.#schemas.Upload.findOne(query, selector).lean().exec()
+			: await this.#schemas.Upload.findOne(query).lean().exec()) ?? undefined;
 	}
 
 	async findAndDeleteFile(
 		query: Record<string, unknown>,
 	): Promise<Upload | undefined> {
-		return this.#schemas.Upload.findOneAndDelete(query).lean().exec();
+		return (await this.#schemas.Upload.findOneAndDelete(query).lean().exec()) ?? undefined;
 	}
 
 	async findFiles(
@@ -530,15 +526,15 @@ export default class Mongoosedb extends DBClass {
 		query: Record<string, unknown>,
 		selector?: string,
 	): Promise<Link | undefined> {
-		return selector
-			? this.#schemas.Link.findOne(query, selector).lean().exec()
-			: this.#schemas.Link.findOne(query).lean().exec();
+		return (selector
+			? await this.#schemas.Link.findOne(query, selector).lean().exec()
+			: await this.#schemas.Link.findOne(query).lean().exec()) ?? undefined;
 	}
 
 	async findAndDeleteLink(
 		query: Record<string, unknown>,
 	): Promise<Link | undefined> {
-		return this.#schemas.Link.findOneAndDelete(query).lean().exec();
+		return (await this.#schemas.Link.findOneAndDelete(query).lean().exec() ?? undefined);
 	}
 
 	async findLinks(
@@ -588,14 +584,14 @@ export default class Mongoosedb extends DBClass {
 			web?: boolean;
 		},
 	): Promise<Tokendb | undefined> {
-		return this.#schemas.Token.findOne({
+		return (await this.#schemas.Token.findOne({
 			id: tokenID,
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web ?? false,
 		})
 			.lean<Tokendb>()
-			.exec();
+			.exec()) ?? undefined;
 	}
 
 	async findTokens(
@@ -672,13 +668,12 @@ export default class Mongoosedb extends DBClass {
 	async findAdminNotify(
 		query: Record<string, unknown>,
 	): Promise<Notification | undefined> {
-		return this.#schemas.AdminNotification.findOne(query).lean().exec();
+		return (await this.#schemas.AdminNotification.findOne(query).lean()) ?? undefined;
 	}
 
 	async findAdminNotifies(
 		query: Record<string, unknown>,
 	): Promise<Notification[]> {
-		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return this.#schemas.AdminNotification.find(query).lean().exec();
 	}
 

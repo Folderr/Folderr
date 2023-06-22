@@ -2,6 +2,7 @@ services:
   folderr:
     build:
       context: .
+      target: prod
     environment:
       - PRIVATE_KEY
       - PORT

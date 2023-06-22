@@ -1,14 +1,3 @@
-.git
-node_modules
-.gitignore
-.prettierignore
-.prettierrc.json
-folderr.code-workspace
-README.md
-vetur.config.js
+node_modules/
 logs/
-.vscode
-.husky
-.idea
-Files
-scripts
+Files/
