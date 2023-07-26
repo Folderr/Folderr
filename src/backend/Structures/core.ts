@@ -53,6 +53,7 @@ import logger from './logger';
 
 // Local Fastify plugins
 import SentryPlugin from './plugins/sentry';
+import { FoldCodes } from "./Utilities/fold-codes";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -76,8 +77,14 @@ declare module 'fastify' {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface FastifyInstance {
 		codes: typeof StatusCodes;
+		got: Got;
+		utils: Utils;
+		db: MongoDB
 	}
 }
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type importedApi = typeof Path | ((fastify: FastifyInstance, core: Core) => FastifyInstance)
 
 export default class Core {
 	public readonly db: MongoDB;
@@ -154,6 +161,8 @@ export default class Core {
 
 		this.regexs = new Regexs();
 		this.Utils = new Utils(this);
+		this.app.decorate('utils', this.Utils)
+		this.app.decorate('db', this.db)
 		this.emailer = new Emailer(
 			this,
 			this.#emailConfig?.sendingEmail,
@@ -166,6 +175,7 @@ export default class Core {
 				'User-Agent': `Folderr/${version} (github.com/Folderr/Folderr)`,
 			},
 		});
+		this.app.decorate('got', this.got)
 		this.#deleter = fork(join(process.cwd(), 'src/file-del-queue'), undefined, {
 			silent: true,
 		});
@@ -303,6 +313,7 @@ export default class Core {
 	}
 
 	async registerApis() {
+		this.logger.debug("Using fancy API register function")
 		for (const api of Object.values<{
 			version: string;
 			prefix: string;
@@ -438,12 +449,26 @@ export default class Core {
 		}
 	}
 
-	findPaths(dir: string): Array<Promise<{default: typeof Path}>> {
+	findPaths(dir: string): Array<Promise<{
+		default: importedApi,
+		type?: string;
+		label?: string;
+		url?: string;
+	}>> {
 		if (!require.main?.path) {
 			return [];
 		}
 
-		const paths: Array<Promise<{default: typeof Path}>> = [];
+		const paths: Array<
+			Promise<
+				{
+					default: importedApi
+					type?: string;
+					label?: string;
+					url?: string
+				}
+			>
+		> = [];
 		const apiitems = fs.readdirSync(dir);
 		for (const apiordir of apiitems) {
 			if (apiordir.startsWith('index')) continue;
@@ -451,7 +476,12 @@ export default class Core {
 				paths.push(
 					import(
 						join(dir, apiordir)
-					) as Promise<{default: typeof Path}>
+					) as Promise<{
+						default: importedApi,
+						type?: string,
+						label?: string,
+						url?: string
+					}>
 				);
 				continue;
 			}
@@ -465,11 +495,24 @@ export default class Core {
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async initAPI(): Promise<void> {
+		this.logger.debug("Using initAPI function")
 		let count = 0;
 		if (require.main?.path) {
 			const dir = fs.readdirSync(join(require.main?.path, 'Paths/API'));
 			const paths:
-				Array<{version: string, paths: Array<Promise<{default: typeof Path}>>}> = [];
+				Array<{
+					version: string,
+					paths: Array<
+						Promise<
+							{
+								default: importedApi,
+								type?: string,
+								label?: string,
+								url?: string
+							}
+						>
+					>
+				}> = [];
 			for (const item of dir) {
 				if (!item.startsWith('V')) continue;
 
@@ -482,17 +525,36 @@ export default class Core {
 				const actpaths = await Promise.all(value.paths);
 				await this.app.register((instance, _options, done) => {
 					for (const pathimport of actpaths) {
+						let label: string;
+						let endpointType: string;
+						let endUrl: string;
 						// eslint-disable-next-line @typescript-eslint/naming-convention
 						const Endpoint = pathimport.default;
-						const endpoint = new Endpoint(this);
-						if (!endpoint.enabled) continue;
-						const {label} = endpoint;
+						if (
+							Object.getOwnPropertyNames(Endpoint).includes('prototype')
+						) {
+							const endpoint = new (Endpoint as typeof Path)(this);
+							if (!endpoint.enabled) continue;
+							label = endpoint.label;
+							endpointType = endpoint.type
+							endUrl = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
 	
-						this.internalInitPath(endpoint, instance);
+							this.internalInitPath(endpoint, instance);
+						} else {
+							(
+								Endpoint as (
+									fastify: FastifyInstance, core: Core
+								) => FastifyInstance
+							)(instance, this)
+							endpointType = pathimport.type ?? "unknown";
+							label = pathimport.label ?? "unknown"
+							endUrl = pathimport.url ?? "Unknown"
+						}
 	
 						this.logger.startup(
 							`Loaded ${label}` +
-							` ${value.version} with method ${endpoint.type}`
+							` ${value.version} with method ${endpointType}` +
+							` with url /api${endUrl}`
 						);
 						count++;
 					}

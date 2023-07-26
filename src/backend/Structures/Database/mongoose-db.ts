@@ -58,6 +58,7 @@ export default class Mongoosedb extends DBClass {
 	constructor() {
 		super();
 
+		this.status = "offline"
 		this.#schemas = {
 			/* eslint-disable @typescript-eslint/naming-convention */
 			User: Schemas.User,
@@ -78,6 +79,9 @@ export default class Mongoosedb extends DBClass {
 		/* eslint-disable unicorn/no-process-exit */
 		try {
 			await mongoose.connect(url);
+			this.#internals.connection = mongoose.connection;
+			this.status = "ok"
+			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				logger.error(
@@ -113,6 +117,7 @@ export default class Mongoosedb extends DBClass {
 				await mongoose.connect(url);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
+					this.status = "offline"
 					logger.error(
 						'[FATAL - DB] MongoDB connection error!\n' +
 							error.message +
@@ -128,10 +133,6 @@ export default class Mongoosedb extends DBClass {
 			}
 		});
 		/* eslint-enable unicorn/no-process-exit */
-		this.#internals.connection.once('open', async () => {
-			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
-			logger.startup('[SYSTEM - DB] Connected to MongoDB!');
-		});
 	}
 
 	/* ---- FOLDERR RELATED METHODS ---- */
