@@ -101,6 +101,7 @@ export interface Upload {
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class DBClass {
+	public status!: string
 	constructor() {
 		if (this.constructor.name === 'DBClass') {
 			throw new Error('DBClass is abstract! You may not use it directly!');
