@@ -34,6 +34,7 @@ type EmailOptions = {
 		requireTLS?: boolean;
 		ignoreTLS?: boolean;
 	};
+	selfTest?: boolean // Default: true
 	sendingEmail?: string;
 };
 
@@ -91,8 +92,12 @@ export type EmailConfig = {
 		host: string;
 		requireTls?: boolean;
 		ignoreTls?: boolean;
+		tls?: {
+			rejectUnauthorized: boolean
+		}
 	};
 	sendingEmail?: string;
+	selfTest?: boolean // Default: true
 };
 
 export type CoreConfig = {
@@ -128,7 +133,11 @@ export type ActEmailConfig = {
 		host: string;
 		requireTLS?: boolean;
 		ignoreTLS?: boolean;
+		tls?: {
+			rejectUnauthorized: boolean
+		}
 	};
+	selfTest?: boolean // Default: true
 	sendingEmail?: string;
 };
 
@@ -166,6 +175,10 @@ type EnvEmailConfig = {
 	REQUIRE_TLS?: boolean;
 	IGNORE_TLS?: boolean;
 	SENDING_EMAIL?: string;
+	TLS?: {
+		REJECT_UNAUTHORIZED: boolean
+	},
+	SELF_TEST?: boolean
 };
 
 export type EnvCoreConfig = {
@@ -252,6 +265,7 @@ const configHandler = {
 		};
 	},
 
+	// eslint-disable-next-line complexity
 	verifyEmailer(
 		envEmailConfig: EnvEmailConfig,
 		email?: EmailConfig,
@@ -268,6 +282,8 @@ const configHandler = {
 				Boolean(
 					envEmailConfig.AUTH.USER ?? email?.mailerOptions?.auth.username,
 				);
+			emailConfig.selfTest = envEmailConfig.SELF_TEST ?? email?.selfTest ?? true
+				
 			if (email?.mailerOptions && hasAuth) {
 				emailConfig.mailerOptions = {
 					auth: {
@@ -283,6 +299,20 @@ const configHandler = {
 						envEmailConfig.REQUIRE_TLS ?? email.mailerOptions.requireTls,
 					ignoreTLS: envEmailConfig.IGNORE_TLS ?? email.mailerOptions.ignoreTls,
 				};
+			}
+
+			if (email?.mailerOptions?.tls ?? envEmailConfig.TLS) {
+				// @ts-expect-error Checks for auth above.
+				// Doesn't matter if auth doesn't exist or not.
+				emailConfig.mailerOptions = {
+					...emailConfig.mailerOptions,
+					tls: {
+						rejectUnauthorized:
+							envEmailConfig.TLS?.REJECT_UNAUTHORIZED ??
+							email?.mailerOptions?.tls?.rejectUnauthorized ??
+							false
+					}
+				}
 			}
 		}
 
@@ -341,6 +371,12 @@ const configHandler = {
 			REQUIRE_TLS: bool({default: false}),
 			IGNORE_TLS: bool({default: false}),
 			SENDING_EMAIL: envemail({default: undefined}),
+			TLS: json<EnvEmailConfig["TLS"] | undefined>(
+				{default: undefined}
+			),
+			SELF_TEST: json<EnvEmailConfig["SELF_TEST"] | undefined>(
+				{default: undefined}
+			)
 		});
 
 		const files = this.fetchFiles({
