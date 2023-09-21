@@ -167,6 +167,7 @@ export default class Core {
 			this,
 			this.#emailConfig?.sendingEmail,
 			this.#emailConfig?.mailerOptions,
+			this.#emailConfig?.selfTest
 		);
 		this.codes = StatusCodes;
 		this.got = got.extend({

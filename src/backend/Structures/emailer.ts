@@ -19,9 +19,9 @@
  *
  */
 
-import nodemailer, {SentMessageInfo} from 'nodemailer';
-import Mail from 'nodemailer/lib/mailer';
-import {Core} from '../internals';
+import nodemailer, {type SentMessageInfo} from 'nodemailer';
+import type Mail from 'nodemailer/lib/mailer';
+import {type Core} from '../internals';
 import * as constants from './constants/index';
 
 /**
@@ -34,11 +34,11 @@ import * as constants from './constants/index';
 export default class Emailer {
 	public active: boolean;
 
-	#core: Core;
-
 	private readonly mailer?: Mail;
 
 	private readonly email?: string;
+
+	#core: Core;
 
 	constructor(
 		core: Core,
@@ -51,13 +51,27 @@ export default class Emailer {
 			host: string;
 			port?: number;
 			secure?: boolean;
-		}
+		},
+		selfTest?: boolean
 	) {
 		this.#core = core;
-		this.active = Boolean(options);
+		this.active = Boolean(options?.auth.pass);
 		if (this.active) {
-			this.mailer = nodemailer.createTransport(options);
+			this.mailer = nodemailer.createTransport({
+				...options,
+				tls: {rejectUnauthorized: false} // Should be added to options
+			});
 			this.email = email;
+			if(selfTest) {
+				console.log('Self testing email...')
+				console.log('Sending email to', this.email)
+				void this.mailer.sendMail({
+					from: this.email,
+					to: this.email,
+					subject: 'Folderr Test Email',
+					text: "Testing Folderr SMTP abilities. If you got this email, it works."
+				})
+			}
 		}
 	}
 
@@ -69,14 +83,13 @@ export default class Emailer {
 		email: string,
 		verifyLink: string,
 		username: string
-	): Promise<null | SentMessageInfo> {
+	): Promise<undefined | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.VERIFY,
 				text: constants.TEMPLATES.EMAILER_TEXTS.verify(username, verifyLink),
-				priority: 'low'
 			});
 		}
 
@@ -88,7 +101,7 @@ export default class Emailer {
 		forgotLink: string,
 		username: string,
 		instanceLink: string
-	): Promise<null | SentMessageInfo> {
+	): Promise<undefined | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -111,7 +124,7 @@ export default class Emailer {
 		reason: string,
 		username: string,
 		instanceLink: string
-	): Promise<null | SentMessageInfo> {
+	): Promise<undefined | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -134,7 +147,7 @@ export default class Emailer {
 		reason: string,
 		username: string,
 		instanceLink: string
-	): Promise<null | SentMessageInfo> {
+	): Promise<undefined | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -156,7 +169,7 @@ export default class Emailer {
 		email: string,
 		confirmLink: string,
 		username: string
-	): Promise<null | SentMessageInfo> {
+	): Promise<undefined | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -186,7 +199,7 @@ export default class Emailer {
 			type: string;
 		},
 		instanceLink: string
-	): Promise<null | SentMessageInfo> {
+	): Promise<undefined | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
