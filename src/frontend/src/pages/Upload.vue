@@ -2,7 +2,10 @@
     <div v-if="loading">
         <div class="bg-bg h-screen flex flex-col ">
             <FNavbar />
-            <div id="hero" class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow">
+            <div
+                id="hero"
+                class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow"
+            >
                 <h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
             </div>
         </div>
@@ -10,9 +13,11 @@
     </div>
     <div v-if="username">
         <div class="bg-bg grow flex flex-col min-h-screen">
-            <NavbarAuthenticated v-bind:username="username" :admin="admin"/>
+            <NavbarAuthenticated :username="username" :admin="admin"/>
             <SuccessesErrors ref="sne" />
-            <div id="hero" :class="[
+            <div
+                id="hero"
+                :class="[
                 'm-auto',
                 'text-center',
                 'w-full',
@@ -23,42 +28,80 @@
             ]">
                 <h1 class="text-secondary-text text-3xl mb-8">Upload a File</h1>
                 <h1 v-if="file" class="text-brand text-xl mb-8">File: {{ file.name }}</h1>
-                <div v-if="canPreview" class="p-1 bg-brand rounded-lg border-2 border-tertiary-bg m-auto mb-8 text-center max-w-xl w-max">
-                    <img v-if="file?.type.startsWith('image')" class="m-auto" v-bind:src="filePreview">
-                    <video v-bind:src="filePreview" controls v-if="file?.type.startsWith('video')" class="m-auto">
-                        <source v-bind:src="filePreview" v-bind:type="file?.type">
+                <div
+                    v-if="canPreview"
+                    class="p-1  m-auto mb-8
+                        bg-tertiary-bg
+                        border-4 border-tertiary-bg text-center max-w-xl w-max">
+                    <img
+                        v-if="file?.type.startsWith('image')"
+                        class="m-auto"
+                        :src="filePreview"
+                    >
+                    <video
+                        v-if="file?.type.startsWith('video')"
+                        :src="filePreview"
+                        controls
+                        class="m-auto"
+                    >
+                        <source :src="filePreview" :type="file?.type">
                         Your browser can't play this video :(
                         <br>No preview for you
                     </video>
+                    <audio
+                        v-if="file?.type.startsWith('audio')"
+                        controls
+                        class="m-auto "
+                        :src="filePreview"
+                        :type="file?.type"
+                    >
+                        Your browser does not support this audio format :(
+                    </audio>
                 </div>
                 <input
                     ref="fileInput"
                     type="file"
-                    @input="pickFile"
                     hidden="true"
                     label="File upload input box, hidden from view"
+                    @input="pickFile"
                 >
-                <div v-if="link" class="flex justify-center flex-shrink items-center bg-tertiary-bg mx-auto w-min p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand">
+                <div
+                    v-if="link"
+                    class="
+                        flex justify-center flex-shrink
+                        items-center bg-tertiary-bg
+                        mx-auto w-min p-2 mb-8
+                        border-2 rounded-lg
+                        border-tertiary-bg text-brand
+                    ">
                     {{link}}
-                    <button v-if="link" @click="copy(link)" class="ml-4 text-brand p-2 px-4">
-                        <ClipboardCopyIcon v-if="!copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
-                        <ClipboardCheckIcon v-if="copied" class="h-5 w-5 text-brand-darkened hover:text-brand" aria-hidden="true"/>
+                    <button v-if="link" class="ml-4 text-brand p-2 px-4" @click="copy(link)">
+                        <ClipboardCopyIcon
+                            v-if="!copied"
+                            class="h-5 w-5 text-brand-darkened hover:text-brand"
+                            aria-hidden="true"
+                            />
+                        <ClipboardCheckIcon
+                            v-if="copied"
+                            class="h-5 w-5 text-brand-darkened hover:text-brand"
+                            aria-hidden="true"
+                            />
                     </button>
-                    <button v-if="link" @click="link = ''" class="text-brand pr-4">
+                    <button v-if="link" class="text-brand pr-4" @click="link = ''">
                         <XIcon class="text-brand hover:text-brand h-5 w-5" aria-hidden="true" />
                     </button>
                 </div>
                 <div class="flex justify-center">
                     <FButton
-                        v-bind:onClick="startSelection"
+                        :on-click="startSelection"
                         buttontitle="Pick a File to Upload"
                         class="px-4 p-2"
                     >Pick a file</FButton>
                     <FButton
-                        v-bind:onClick="upload"
+                        v-if="file"
+                        :on-click="upload"
                         buttontitle="Shorten the Link!"
                         class="p-2 ml-4"
-                        v-if="file"
                     >Upload!</FButton>
                 </div>
             </div>
@@ -66,12 +109,6 @@
         </div>
     </div>
 </template>
-
-<style>
-.active {
-    background-color: #282828;
-}
-</style>
 
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue';
@@ -86,10 +123,7 @@ const store = useUserStore();
 const router = useRouter();
 
 // Setup components
-const sne = ref<InstanceType<typeof SuccessesErrors> & {
-    addError: (messaage: string, time?: number) => void,
-    addSuccess: (message: string, time?: number) => void
-}>();
+const sne = ref();
 
 // Setup loading & user
 const loading = ref(true);
@@ -110,6 +144,7 @@ onMounted(async() => {
     if (!store.username) {
         return router.push('/404');
     }
+
     username.value = store.username;
     loading.value = false;
     admin.value = store.admin;
@@ -121,6 +156,7 @@ const copied = ref(false);
 const copy = async(text: string): Promise<void> => {
     await navigator.clipboard.writeText(text);
     copied.value = true;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     sne.value?.addSuccess("Copied!", 1000)
 }
 
@@ -128,24 +164,35 @@ const copy = async(text: string): Promise<void> => {
 
 const file = ref<File>();
 const filePreview = ref<string | undefined>('');
+const audioPreview = ref();
 const link = ref('');
 
 const canPreview = computed(() => {
-    if (file.value && (file.value.type.startsWith('image') || file.value.type.startsWith('video'))) {
+    console.log(file.value?.type)
+    if (
+        file.value && (
+            file.value.type.startsWith('image') ||
+            file.value.type.startsWith('video') ||
+            file.value.type.startsWith('audio'))
+    ) {
         return true;
     }
 
     return false;
 })
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const filePreviewURL = () => {
     if (!file.value) {
         return;
     }
 
-    let previewer = new FileReader();
+    const previewer = new FileReader();
     previewer.onload = (file => {
         filePreview.value = file.target?.result?.toString();
+        if (file.type.startsWith('audio')) {
+            audioPreview.value = file.target?.result
+        }
     })
     previewer.readAsDataURL(file.value);
 }
@@ -159,10 +206,10 @@ const startSelection = () => {
 const pickFile = () => {
     const files = fileInput.value?.files;
     console.log('hi');
-    if (files && files[0]) {
+    if (files?.[0]) {
         file.value = files[0];
         filePreviewURL();
-        return;
+        
     }
 }
 
@@ -172,6 +219,7 @@ const upload = async() => {
     if (!file.value) {
         return;
     }
+
     const form = new FormData();
     form.append('file', file.value);
 
@@ -185,28 +233,41 @@ const upload = async() => {
             if (fileInput.value) {
                 fileInput.value.value = '';
             }
+
             await copy(link.value);
         } else {
-            const err = uploaded.error instanceof Error ? uploaded.error.message : uploaded.error || 'Unknown Shorten Error'
+            const err = uploaded.error instanceof Error ?
+                uploaded.error.message :
+                uploaded.error ?? 'Unknown Upload Error'
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(err);
             console.log(uploaded.response);
         }
     } catch (error) {
         if (typeof error === 'string') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
             console.log(error);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error.message);
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError('Unknown Error Occured while uploading your file');
         console.log(error);
         console.log(typeof error);
-        return;
+        
     } 
 }
 </script>
+
+<style>
+.active {
+    background-color: #282828;
+}
+</style>
