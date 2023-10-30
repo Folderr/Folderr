@@ -172,7 +172,7 @@ class Signup extends Path {
 		try {
 			await this.core.emailer.verifyEmail(
 				userInfo.email,
-				`${url}/verify/${userInfo.id}/${validationToken.token}`,
+				`${url}/account/verify/${userInfo.id}/${validationToken.token}`,
 				userInfo.username,
 			);
 			await this.core.db.makeVerify(userInfo, validationToken.hash);

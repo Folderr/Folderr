@@ -363,7 +363,27 @@ class Utils {
 			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
 		// Combine, hash, and return the hashed and unhashed token
-		const token = `${userid}.${random}.${date}`;
+		const token = `${userid}-${random}-${date}`;
+		const hash = await argon2.hash(token, {timeCost: this.saltRounds});
+		return {token, hash};
+	}
+
+	async genWebValidationToken(): Promise<TokenReturn> {
+		// Generate random bytes, gen more random bytes
+		// Oh and get a base64 date in milliseconds
+		const r: string = crypto.randomBytes(this.byteSize).toString();
+		const random: string = crypto
+			.randomBytes(this.byteSize)
+			.toString('base64')
+			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
+		const userid = buffer.Buffer.from(r)
+			.toString('base64')
+			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
+		const date = buffer.Buffer.from(new Date().getUTCMilliseconds().toString())
+			.toString('base64')
+			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
+		// Combine, hash, and return the hashed and unhashed token
+		const token = `${random}`;
 		const hash = await argon2.hash(token, {timeCost: this.saltRounds});
 		return {token, hash};
 	}

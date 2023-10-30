@@ -14,6 +14,11 @@ const routes = [
 		beforeEnter: userGuards.authGuard,
 	},
 	{
+		path: '/signup',
+		component: () => import('./pages/Signup.vue'),
+		beforeEnter: userGuards.authGuard
+	},
+	{
 		path: '/account',
 		component: () => import('./pages/Account.vue'),
 		beforeEnter: userGuards.authGuard,

@@ -2,14 +2,17 @@
 import { ref, Ref } from 'vue'
 import { useRouter } from 'vue-router';
 import * as api from '../wrappers/api';
-import SuccessesErrors from '../components/Success-N-Error.vue';
-import { EyeIcon, EyeOffIcon } from '@heroicons/vue/solid';
+import type SuccessesErrors from '../components/Success-N-Error.vue';
+import { LoginIcon, CheckCircleIcon } from '@heroicons/vue/solid';
 
 // Initialize refs for the actual logging in.
-const username = ref(''), password = ref('');
-const loading = ref(false), signups = ref(false);
+const username = ref('');
+const password = ref('');
+const loading = ref(false);
+const signups = ref(false);
 
 const props = defineProps<{
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     sne?: InstanceType<typeof SuccessesErrors> & {
         addError: (messaage: string, time?: number) => void,
         addSuccess: (message: string, time?: number) => void
@@ -17,7 +20,8 @@ const props = defineProps<{
 }>();
 
 // Initialize refs
-const passw = ref<HTMLInputElement>(), loginBtn = ref<HTMLButtonElement>();
+const passw = ref<HTMLInputElement>();
+const loginBtn = ref<HTMLButtonElement>();
 const router = useRouter();
 
 const login = async() => {
@@ -27,13 +31,16 @@ const login = async() => {
 
     // Ensure the username & password are present.
     if (!username.value || !password.value) {
-        let missing = [];
+        const missing = [];
         if (!username.value) {
             missing.push('username');
         }
+
         if (!password.value) {
             missing.push('password');
         }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         props.sne?.addError(`Error: Missing ${missing.join(' & ')}`);
         return;
     }
@@ -42,14 +49,16 @@ const login = async() => {
     const output = await api.login(username.value, password.value);
     if (output.error) { // Oh no, login failed.
         if (typeof output.error === 'string') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             props.sne?.addError(output.error);
         }
 
         loading.value = false;
         return;
     }
+
     if (output.success) { // If we logged in, go to the account page.
-        router.push('/account');
+        return router.push('/account');
     }
 }
 
@@ -57,6 +66,7 @@ const jumpToPassword = () => { // Focuses to the password input
     if (password.value.length > 8) {
         loginBtn.value?.click()
     }
+
     passw.value?.focus();
 }
 
@@ -70,9 +80,78 @@ const jumpToLogin = () => { // Focuses on the login button
             <h1 class="text-text text-3xl mb-1 font-headline">login</h1>
             <p class="text-secondary-text mb-4 font-headline">welcome back!</p>
             <label for="identify" class="block text-text font-info">username or email</label>
-            <input v-on:keyup.enter="jumpToPassword()" id="identify" v-model="username" placeholder="your username or email" required class="block font-input focus:outline-none border-0 mb-4 text-brand p-4 pl-0 w-full border-brand-darkened border-b-2 placeholder-secondary-text bg-inherit hover:border-brand hover:placeholder-text focus:placeholder-secondary-text focus:border-brand" autocomplete="username">
+            <input
+                id="identify"
+                v-model="username"
+                placeholder="your username or email"
+                :disabled="loading"
+                required
+                class="
+                    block font-input
+                    focus:outline-none border-0
+                    mb-4 p-4 pl-0 w-full
+                    text-brand border-brand-darkened
+                    border-b-2 placeholder-secondary-text
+                    bg-inherit hover:border-brand
+                    hover:placeholder-text focus:placeholder-secondary-text
+                    focus:border-brand
+                "
+                :class="[{
+                    'cursor-wait': loading
+                }]"
+                autocomplete="username"
+                @keyup.enter="jumpToPassword()"
+            >
             <label for="password" class="block text-text font-info justify-center">password</label>
-            <input id="password" ref="passw" v-on:keyup.enter="jumpToLogin()" v-model="password" placeholder="your password" type="password" required class="block font-input border-0 focus:outline-none mb-4 text-brand p-4 pl-0 w-full border-brand-darkened border-b-2 placeholder-secondary-text bg-inherit hover:border-brand hover:placeholder-text focus:placeholder-secondary-text focus:border-brand" autocomplete="current-password">
-            <button ref="loginBtn" v-on:click="login()" class="font-info text-bg-old font-extrabold bg-brand border-2 p-4 border-brand hover:bg-brand-darkened hover:border-brand-darkened rounded-lg w-[100%] xl:w-80">Log In</button>
+            <input
+                id="password"
+                ref="passw"
+                v-model="password"
+                :disabled="loading"
+                placeholder="your password"
+                type="password"
+                required
+                class="
+                    block font-input
+                    border-0 focus:outline-none
+                    mb-4 p-4 pl-0 w-full
+                    text-brand border-brand-darkened
+                    border-b-2 placeholder-secondary-text
+                    bg-inherit hover:border-brand
+                    hover:placeholder-text focus:placeholder-secondary-text
+                    focus:border-brand
+                "
+                :class="[{
+                    'cursor-wait': loading
+                }]"
+                autocomplete="current-password"
+                @keyup.enter="jumpToLogin()"
+            >
+            <button
+                ref="loginBtn"
+                class="
+                    flex justify-center
+                    font-info text-bg-old
+                    font-extrabold bg-brand
+                    border-2 p-4 border-brand
+                    hover:bg-brand-darkened hover:border-brand-darkened
+                    rounded-lg w-[100%] xl:w-80
+                "
+                :class="[{
+                    'bg-disabled': loading,
+                    'border-disabled': loading,
+                    'cursor-wait': loading,
+                    'hover:bg-disabled': loading,
+                    'hover:border-disabled': loading,
+                }]"
+                @click="login()"
+                ><LoginIcon
+                    v-if="!loading"
+                    class="my-auto mr-2 w-5"
+                /><CheckCircleIcon
+                    v-if="loading"
+                    class="my-auto mr-2 w-5"
+                />{{loading ? 'Logging In' : 'Log In'}}
+            </button>
         </div>
 </template>

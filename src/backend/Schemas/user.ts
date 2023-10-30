@@ -48,6 +48,7 @@ const userSchema = new Schema({
 	email: {type: String, required: true, index: true},
 	pendingEmail: {type: String},
 	pendingEmailToken: {type: String},
+	tokenExpiresAt: {type: Date},
 	createdAt: {type: Date, default: new Date()},
 	privacy: {
 		dataCollection: {type: Boolean, default: false},

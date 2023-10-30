@@ -65,6 +65,6 @@
     "incremental": true,
     "composite": true
   },
-  "include": ["src/backend", "scripts/", "src/types", "src/frontend/src/shims-vue.d.ts", "vuex.d.ts", "package.json", "internal/locations.json"],
+  "include": ["src/backend", "scripts/", "src/types", "src/frontend/src/shims-vue.d.ts", "src/frontend/src/**/.ts", "vuex.d.ts", "package.json", "internal/locations.json"],
   "exclude": ["node_modules", "src/frontend"]
 }

@@ -48,6 +48,7 @@ export interface User {
 	createdAt: Date;
 	pendingEmail?: string;
 	pendingEmailToken?: string;
+	tokenExpiresAt?: Date
 	privacy?: {
 		dataCollection?: boolean;
 	};
