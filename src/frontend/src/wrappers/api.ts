@@ -45,6 +45,63 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 	};
 }
 
+export async function signup(
+	username: string,
+	password: string,
+	email: string
+) {
+	try {
+		const response = await fetch('/api/signup', {
+			method: 'POST',
+			body: JSON.stringify({
+				username,
+				password,
+				email
+			}),
+			credentials: 'same-origin',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (response.status === 400) {
+			if (import.meta.env.DEV) {
+				console.log('DEBUG Response');
+				console.log(response);
+			}
+
+			return {error: 'Bad Request', success: false, output: undefined};
+		}
+
+		if (response.status === 423) {
+			return {error: 'Signups Closed', success: false, output: undefined}
+		}
+
+		if (response.status === 401) {
+			return {error: 'Unauthorized', success: false, output: undefined};
+		}
+
+		if (/5\d{2}/.test(response.status.toString())) {
+			return {
+				error: 'Internal Server Error',
+				success: false,
+				output: undefined,
+			};
+		}
+
+		if (/2\d{2}/.test(response.status.toString())) {
+			return {success: true, error: undefined};
+		}
+
+		return {
+			success: false,
+			error: 'An unknown error occurred',
+			output: undefined,
+		};
+	} catch (error: unknown) {
+		return genericCatch(error)
+	}
+}
+
 export async function login(
 	username: string,
 	password: string,
@@ -181,6 +238,17 @@ export async function updateInfo(
 				success: false,
 				output: undefined,
 			};
+		}
+
+		if (response.status === 406) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const output: {message: string; code: number} | undefined =
+				await response.json();
+			return {
+				error: output?.message ?? 'Forbidden Action Attempted',
+				success: false,
+				output: undefined
+			}
 		}
 
 		if (response.status === 501) {

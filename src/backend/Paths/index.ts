@@ -3,3 +3,4 @@ export {default as Short} from './short';
 export {default as Images} from './image';
 export {default as Videos} from './video';
 export {default as Files} from './files';
+export {default as Confirm} from './confirm'

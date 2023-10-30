@@ -655,7 +655,7 @@ export default class Core {
 			}
 		);
 		this.app.use((request, response, next) => {
-			if (request.url?.match(/^\/(api|image|i\/|v\/|video|file|f|l|link\/)/)) {
+			if (request.url?.match(/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/)) {
 				next();
 			} else {
 				server.middlewares(request, response, next);

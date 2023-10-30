@@ -55,6 +55,7 @@ export const useUserStore = defineStore('user', {
 			this.createdAt = new Date(payload.createdAt);
 			this.notifications = payload.notifications;
 			this.admin = payload.admin;
+			this.owner = payload.owner;
 			if (payload.privacy?.dataCollection) {
 				// Typescript plz.
 				this.privacy = payload.privacy as {dataCollection: boolean};

@@ -10,9 +10,8 @@ defineProps<{
 <template>
 	<button
                 v-if="!type"
-                v-bind:title='buttonTitle'
-                v-bind:disabled="buttonDisabled"
-                @click="onClick"
+                :title='buttonTitle'
+                :disabled="buttonDisabled"
                 :class="[
                         {
                                 'hover:cursor-not-allowed': colorDisabled,
@@ -27,14 +26,14 @@ defineProps<{
                         },
                 ]"
                 class="px-8 rounded-sm p-2 border-2 font-semibold"
+                @click="onClick"
         >
 		<slot></slot>
 	</button>
         <button
                 v-else-if="type === 'neutral'"
-                v-bind:title='buttonTitle'
-                v-bind:disabled="buttonDisabled"
-                @click="onClick"
+                :title='buttonTitle'
+                :disabled="buttonDisabled"
                 :class="[
                         {
                                 'hover:cursor-not-allowed': colorDisabled,
@@ -49,22 +48,29 @@ defineProps<{
                         },
                 ]"
                 class="px-8 rounded-sm p-2 border-2 font-semibold"
+                @click="onClick"
         >
 		<slot></slot>
 	</button>
-	<button v-else v-bind:disabled="buttonDisabled" @click="onClick" :class="[
-        {
-                'hover:cursor-not-allowed': colorDisabled,
-                'bg-disabled-red': colorDisabled,
-                'border-disabled-red': colorDisabled,
-                'hover:border-secondary-accent': !colorDisabled,
-                'hover:bg-secondary-accent': !colorDisabled,
-                'border-secondary-accent-dark': !colorDisabled,
-                'bg-secondary-accent-dark': !colorDisabled,
-                'text-secondary-text': colorDisabled,
-                'text-text': !colorDisabled
-            },
-    ]" class="px-8 rounded-sm p-2 border-2 mt-2 font-semibold">
+	<button
+                v-else
+                :disabled="buttonDisabled"
+                :class="[
+                        {
+                                'hover:cursor-not-allowed': colorDisabled,
+                                'bg-disabled-red': colorDisabled,
+                                'border-disabled-red': colorDisabled,
+                                'hover:border-secondary-accent': !colorDisabled,
+                                'hover:bg-secondary-accent': !colorDisabled,
+                                'border-secondary-accent-dark': !colorDisabled,
+                                'bg-secondary-accent-dark': !colorDisabled,
+                                'text-secondary-text': colorDisabled,
+                                'text-text': !colorDisabled
+                        },
+                ]"
+                class="px-8 rounded-sm p-2 border-2 font-semibold"
+                @click="onClick"
+        >
 		<slot></slot>
 	</button>
 </template>

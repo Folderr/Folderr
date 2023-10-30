@@ -139,6 +139,7 @@ class UpdateAcc extends Path {
 			username?: string;
 			pendingEmail?: string;
 			pendingEmailToken?: string;
+			tokenExpiresAt?: Date
 			privacy?: {
 				dataCollection: boolean;
 			};
@@ -183,7 +184,7 @@ class UpdateAcc extends Path {
 			const emailUpdated = await this.handleEmailUpdate(
 				request,
 				auth.email,
-				auth.username,
+				auth,
 			);
 			if (emailUpdated && !emailUpdated.accepted) {
 				return response
@@ -194,6 +195,9 @@ class UpdateAcc extends Path {
 			if (emailUpdated?.accepted) {
 				update.pendingEmail = emailUpdated.pendingEmail;
 				update.pendingEmailToken = emailUpdated.pendingEmailToken;
+				const expires = new Date(Date.now())
+				expires.setDate(expires.getDate() + 2)
+				update.tokenExpiresAt = expires
 			}
 		}
 
@@ -324,7 +328,7 @@ class UpdateAcc extends Path {
 			Body: UpdateAccBody;
 		}>,
 		preEmail: string,
-		username: string,
+		authUser: User,
 	): Promise<
 		| {
 				accepted: true;
@@ -409,7 +413,7 @@ class UpdateAcc extends Path {
 					},
 				],
 			})) || (await this.core.db.findVerifies({email: request.body.email}));
-		if (user) {
+		if (user.length > 0) {
 			return {
 				httpCode: this.codes.used,
 				message: {
@@ -421,12 +425,13 @@ class UpdateAcc extends Path {
 		}
 
 		const url = await this.Utils.determineHomeURL(request);
-		const token = await this.Utils.genValidationToken();
+		const token = await this.Utils.genWebValidationToken();
+		console.log(token)
 		// Send confirmation email
 		await this.core.emailer.changeEmail(
 			request.body.email,
-			`${url}/account/confirm/${token.token}`,
-			username,
+			`${url}/confirm/${authUser.id}/${token.token}`,
+			authUser.username,
 		);
 		// Update
 		return {
@@ -552,7 +557,9 @@ class UpdateAcc extends Path {
 			};
 		}
 
-		if (
+		// We don't need to do this
+		// Who cares if an update is in progress? Just fuckin do it.
+		/* if (
 			request.body.email &&
 			auth.pendingEmail &&
 			auth.pendingEmail.length > 0
@@ -565,7 +572,7 @@ class UpdateAcc extends Path {
 				},
 				failed: true,
 			};
-		}
+		} */
 
 		return {failed: false, user: auth};
 	}

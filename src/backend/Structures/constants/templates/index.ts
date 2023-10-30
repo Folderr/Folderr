@@ -40,7 +40,7 @@ const EMAILER_TEXTS = {
 		return (
 			`Hello ${username},\n` +
 			`Here is a link to confirm your email change ${confirmLink}\n` +
-			'If you did not request an email change, please ignore this email.'
+			'If you did not request an email change, please ignore this email, it will expire in 48 hours.'
 		);
 	},
 	takedown(username: string, type: string, id: string, instanceLink: string) {
