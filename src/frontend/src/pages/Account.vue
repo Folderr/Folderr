@@ -572,7 +572,7 @@ for="newpassword"
                     <div class="lg:ml-20">
                         <div class="flex">
                             <input
-                                id="datacollection"
+                                id="dataCollection"
                                 v-model="datacollection"
                                 class="
                                     block m-4
@@ -1176,7 +1176,6 @@ const copySharexConfig = async () => {
 
 onMounted(async() => {
     if (userStore.username && userStore.id && userStore.email) {
-        console.log(userStore.owner);
         username.value = userStore.username;
         email.value = userStore.email;
         oldUsername.value = userStore.username;
