@@ -205,7 +205,6 @@ const startSelection = () => {
 
 const pickFile = () => {
     const files = fileInput.value?.files;
-    console.log('hi');
     if (files?.[0]) {
         file.value = files[0];
         filePreviewURL();
