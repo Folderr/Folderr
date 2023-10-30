@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router';
 import * as api from '../wrappers/api';
 import type SuccessesErrors from '../components/Success-N-Error.vue';
+import UInput from './Underline-Input.vue';
 import { passwordRegex, usernameRegex, emailRegex } from '../utils/regexs';
 
 // Initialize refs for the actual logging in.
@@ -23,10 +24,10 @@ const props = defineProps<{
 }>();
 
 // Initialize refs
-const passw = ref<HTMLInputElement>();
-    const signupBtn = ref<HTMLButtonElement>();
-    const emailEl = ref<HTMLInputElement>();
-    const passw2 = ref<HTMLInputElement>();
+const passw = ref();
+const signupBtn = ref<HTMLButtonElement>();
+const emailEl = ref();
+const passw2 = ref();
 const router = useRouter();
 
 const signup = async() => {
@@ -93,15 +94,18 @@ const signup = async() => {
 }
 
 const jumpToPassword = () => { // Focuses to the password input
-    passw.value?.focus();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    passw.value?.$el.focus();
 }
 
 const jumpToEmail = () => { // Focuses to the password input
-    emailEl.value?.focus();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    emailEl.value?.$el?.focus();
 }
 
 const jumpToRetype = () => {
-    passw2.value?.focus();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    passw2.value?.$el?.focus();
 }
 
 const jumpToLogin = () => { // Focuses on the login button
@@ -152,38 +156,19 @@ const isAllValid = computed(() => {
                 for="username"
                 class="block text-text font-info"
             >username</label>
-            <input
-                id="username"
-                v-model="username"
-                placeholder="your username"
-                pattern="[a-z0-9_]{3,16}"
-                :disabled="loading"
-                required
-                class="
-                    block font-input
-                    focus:outline-none border-0
-                    text-brand
-                    p-4 pl-0 w-full mb-1
-                    border-brand-darkened border-b-2
-                    placeholder-secondary-text bg-inherit
-                    hover:border-brand hover:placeholder-text
-                    focus:placeholder-secondary-text
-                "
-                :class="[
-                    {
-                        'focus:border-brand': isUsernameValid,
-                        'focus:border-secondary-accent': !isUsernameValid,
-                        'border-brand-darkened': isUsernameValid,
-                        'border-secondary-accent-dark': username.length > 0 && !isUsernameValid,
-                        'hover:border-secondary-accent': username.length > 0 && !isUsernameValid,
-                        'text-secondary-accent': username.length > 0 && !isUsernameValid,
-                        'mb-4': username.length === 0 || isAllValid,
-                        'cursor-wait': loading
-                    }
-                ]"
-                autocomplete="username"
-                @keyup.enter="jumpToEmail()"
-            >
+            <UInput
+                    v-model="username"
+                    placeholder="your username"
+                    pattern="[a-z0-9_]{3,16}"
+                    :disabled="loading"
+                    required
+                    :bottom-margin="username.length === 0 || isAllValid"
+                    :correct="isUsernameValid"
+                    :slightly-incorrect="!isUsernameValid"
+                    :incorrect="username.length > 0 && !isUsernameValid"
+                    autocomplete="username"
+                    @keyup.enter="jumpToEmail()"
+                />
             <p
                 v-if="(username.length > 0 && !isUsernameValid) && !isAllValid"
                 class="text-secondary-accent mb-4"
@@ -194,37 +179,19 @@ const isAllValid = computed(() => {
                 for="identify"
                 class="block text-text font-info"
             >email</label>
-            <input
+            <UInput 
                 id="identify"
                 ref="emailEl"
                 v-model="email"
                 placeholder="your email"
-                required
-                class="
-                    block font-input
-                    focus:outline-none border-0
-                    mb-1 p-4 pl-0 w-full
-                    text-brand border-brand-darkened
-                    border-b-2 placeholder-secondary-text
-                    bg-inherit hover:border-brand
-                    hover:placeholder-text focus:placeholder-secondary-text
-                    focus:border-brand
-                "
-                autocomplete="email"
+                required 
+                :correct="isEmailValid"
+                :incorrect="email.length > 0 && !isEmailValid"
+                :slightly-incorrect="!isEmailValid"
                 :disabled="loading"
-                :class="[
-                    {
-                        'focus:border-brand': isEmailValid,
-                        'focus:border-secondary-accent': !isEmailValid,
-                        'border-secondary-accent-dark': email.length > 0 && !isEmailValid,
-                        'hover:border-secondary-accent': email.length > 0 && !isEmailValid,
-                        'text-secondary-accent': email.length > 0 && !isEmailValid,
-                        'mb-4': email.length === 0 || isAllValid,
-                        'cursor-wait': loading
-                    }
-                ]"
+                :bottom-margin="email.length === 0 || isAllValid"
                 @keyup.enter="jumpToPassword()"
-            >
+            />
             <p
                 v-if="(email.length > 0 && !isEmailValid) && !isAllValid"
                 class="text-secondary-accent mb-4"
@@ -235,39 +202,21 @@ const isAllValid = computed(() => {
                 for="password"
                 class="block text-text font-info justify-center"
             >password</label>
-            <input
+            <UInput
                 id="password"
                 ref="passw"
                 v-model="password"
+                required
                 placeholder="your password"
                 type="password"
-                required
-                :disabled="loading"
-                class="
-                    block font-input
-                    border-0 focus:outline-none
-                    mb-1 p-4 pl-0 w-full
-                    text-brand border-brand-darkened
-                    border-b-2 placeholder-secondary-text
-                    bg-inherit hover:border-brand
-                    hover:placeholder-text focus:placeholder-secondary-text
-                    focus:border-brand
-                "
                 autocomplete="password"
-                :class="[
-                    {
-                        'focus:border-brand': isPasswordValid,
-                        'focus:border-secondary-accent': !isPasswordValid,
-                        'border-brand-darkened': password.length > 0 && isPasswordValid,
-                        'border-secondary-accent-dark': password.length > 0 && !isPasswordValid,
-                        'hover:border-secondary-accent': password.length > 0 && !isPasswordValid,
-                        'text-secondary-accent': password.length > 0 && !isPasswordValid,
-                        'mb-4': password.length === 0 || isAllValid,
-                        'cursor-wait': loading
-                    }
-                ]"
+                :disabled="loading"
+                :incorrect="password.length > 0 && !isPasswordValid"
+                :slightly-incorrect="!isPasswordValid"
+                :correct="isPasswordValid"
+                :bottom-margin="password.length === 0 || isAllValid"
                 @keyup.enter="jumpToRetype()"
-            >
+            />
             <p
                 v-if="(password.length > 0 && !isPasswordValid) && !isAllValid"
                 class="text-secondary-accent mb-4"
@@ -278,39 +227,21 @@ const isAllValid = computed(() => {
                 for="retype-password"
                 class="block text-text font-info justify-center"
             >re-type password</label>
-            <input
+            <UInput
                 id="retype-password"
                 ref="passw2"
                 v-model="repasswd"
-                placeholder="your password again"
                 type="password"
                 required
-                class="
-                    block font-input
-                    border-0 focus:outline-none
-                    mb-1 p-4 pl-0 w-full
-                    text-brand border-brand-darkened
-                    border-b-2
-                    placeholder-secondary-text bg-inherit
-                    hover:border-brand hover:placeholder-text
-                    focus:placeholder-secondary-text focus:border-brand
-                "
+                placeholder="your password again"
                 autocomplete="password"
+                :incorrect="repasswd.length > 0 && isRePasswordValid"
+                :slightly-incorrect="!isRePasswordValid"
+                :correct="isRePasswordValid"
+                :bottom-margin="repasswd.length === 0"
                 :disabled="loading"
-                :class="[
-                    {
-                        'focus:border-brand': isRePasswordValid,
-                        'focus:border-secondary-accent': !isRePasswordValid,
-                        'border-brand-darkened': repasswd.length > 0 && isRePasswordValid,
-                        'border-secondary-accent-dark': repasswd.length > 0 && !isRePasswordValid,
-                        'hover:border-secondary-accent': repasswd.length > 0 && !isRePasswordValid,
-                        'text-secondary-accent': repasswd.length > 0 && !isRePasswordValid,
-                        'mb-4': repasswd.length === 0,
-                        'cursor-wait': loading
-                    }
-                ]"
                 @keyup.enter="jumpToLogin()"
-            >
+                />
             <p
                 v-if="(
                     repasswd.length > 0 &&

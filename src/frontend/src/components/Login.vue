@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, Ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router';
 import * as api from '../wrappers/api';
-import type SuccessesErrors from '../components/Success-N-Error.vue';
+import type SuccessesErrors from './Success-N-Error.vue';
+import UInput from './Underline-Input.vue';
 import { LoginIcon, CheckCircleIcon } from '@heroicons/vue/solid';
 
 // Initialize refs for the actual logging in.
@@ -80,53 +81,30 @@ const jumpToLogin = () => { // Focuses on the login button
             <h1 class="text-text text-3xl mb-1 font-headline">login</h1>
             <p class="text-secondary-text mb-4 font-headline">welcome back!</p>
             <label for="identify" class="block text-text font-info">username or email</label>
-            <input
+            <UInput
                 id="identify"
                 v-model="username"
+                required
                 placeholder="your username or email"
                 :disabled="loading"
-                required
-                class="
-                    block font-input
-                    focus:outline-none border-0
-                    mb-4 p-4 pl-0 w-full
-                    text-brand border-brand-darkened
-                    border-b-2 placeholder-secondary-text
-                    bg-inherit hover:border-brand
-                    hover:placeholder-text focus:placeholder-secondary-text
-                    focus:border-brand
-                "
-                :class="[{
-                    'cursor-wait': loading
-                }]"
                 autocomplete="username"
+                :correct="true"
+                :bottom-margin="true"
                 @keyup.enter="jumpToPassword()"
-            >
+                />
             <label for="password" class="block text-text font-info justify-center">password</label>
-            <input
+            <UInput
                 id="password"
-                ref="passw"
                 v-model="password"
-                :disabled="loading"
-                placeholder="your password"
-                type="password"
                 required
-                class="
-                    block font-input
-                    border-0 focus:outline-none
-                    mb-4 p-4 pl-0 w-full
-                    text-brand border-brand-darkened
-                    border-b-2 placeholder-secondary-text
-                    bg-inherit hover:border-brand
-                    hover:placeholder-text focus:placeholder-secondary-text
-                    focus:border-brand
-                "
-                :class="[{
-                    'cursor-wait': loading
-                }]"
+                placeholder="your password"
+                :disabled="loading"
                 autocomplete="current-password"
+                type="password"
+                :correct="true"
+                :bottom-margin="true"
                 @keyup.enter="jumpToLogin()"
-            >
+                />
             <button
                 ref="loginBtn"
                 class="
