@@ -8,8 +8,9 @@
     // "checkJs": true,                       /* Report errors in .js files. */
     "jsx": "preserve",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
     // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
-    "sourceMap": true,                     /* Generates corresponding '.map' file. */
+    "sourceMap": false,                     /* Generates corresponding '.map' file. */
     "inlineSources": true,
+    "inlineSourceMap": true,
     "sourceRoot": "/",
     // "outFile": "./src",                    /* Concatenate and emit output to single file. */
     "outDir": "./dist",                        /* Redirect output structure to the directory. */
@@ -63,7 +64,7 @@
     "lib": ["ES2022", "DOM"],
     // "types": [],
     "incremental": true,
-    "composite": true
+    "declaration": false
   },
   "include": ["src/backend", "scripts/", "src/types", "src/frontend/src/shims-vue.d.ts", "src/frontend/src/**/.ts", "vuex.d.ts", "package.json", "internal/locations.json"],
   "exclude": ["node_modules", "src/frontend"]
