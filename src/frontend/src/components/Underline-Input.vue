@@ -24,12 +24,11 @@
                 'cursor-wait': disabled ?? false
             }
         ]"
-        @input="$emit('update:modelValue', $event.target?.value)"
+        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         @keyup.enter="jump"
     >
 </template>
 <script setup lang="ts">
-import { emit } from "process";
 
 defineProps<{
 	disabled?: boolean
