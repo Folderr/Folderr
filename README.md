@@ -17,9 +17,9 @@ Table of contents, with 2 options:
 This is a real quick getting started for the development versions of folderr.
 
 Quick start guide moved to:
-- [https://folderr.net/guides/folderr/getting-started](Our documentation site)
-- [https://github.com/Folderr/Docs/blob/master/Guides/Folderr/2.0.0/getting-started.md](Our Github Docs Repo) or
-- [https://git.folderr.net/Folderr/Docs/src/branch/master/Guides/Folderr/2.0.0/getting-started.md](Our Git Docs Repo)
+- [Our documentation site](https://folderr.net/guides/folderr/getting-started) or
+- [Our Github Docs Repo](https://github.com/Folderr/Docs/blob/master/Guides/Folderr/2.0.0/getting-started.md) or
+- [Our Git Docs Repo](https://git.folderr.net/Folderr/Docs/src/branch/master/Guides/Folderr/2.0.0/getting-started.md)
 
 ### Docker
 
