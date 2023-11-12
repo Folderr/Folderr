@@ -84,21 +84,23 @@ export default class Mongoosedb extends DBClass {
 			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
 		} catch (error: unknown) {
 			if (error instanceof Error) {
+				if (error.message.startsWith('Folderr DB Entry Not Found') && !process.env.setup) {
+					logger.error(
+						'[FATAL - DB] MongoDB connection error!\n' +
+							error.message +
+							'\n[FATAL] Folderr is unable to work without a database!' +
+							'\nFolderr process terminated.',
+					);
+					process.exit(1);
+				}
+			} else {
 				logger.error(
-					'[FATAL - DB] MongoDB connection error!\n' +
-						error.message +
+					'[FATAL - DB] MongoDB connection error!' +
 						'\n[FATAL] Folderr is unable to work without a database!' +
 						'\nFolderr process terminated.',
 				);
 				process.exit(1);
 			}
-
-			logger.error(
-				'[FATAL - DB] MongoDB connection error!' +
-					'\n[FATAL] Folderr is unable to work without a database!' +
-					'\nFolderr process terminated.',
-			);
-			process.exit(1);
 		}
 
 		this.#internals.connection.on('error', (error: Error) => {
