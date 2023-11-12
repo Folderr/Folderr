@@ -25,7 +25,7 @@
 
 import crypto from 'crypto';
 import {Buffer} from 'buffer';
-import jwt from 'jsonwebtoken';
+import jwt, {Algorithm} from 'jsonwebtoken';
 import type {Core} from '../../internals';
 import {logger} from '../../internals';
 import type {User} from '../Database/db-class';
@@ -35,6 +35,9 @@ import AuthKeyHandler from '../../handlers/auth-key-handler';
  * @classdesc Handle token authorization.
  */
 export default class Authorization {
+
+	#algorithms: Algorithm[];
+
 	#keyHandler: AuthKeyHandler;
 
 	#privKey!: Buffer;
@@ -46,6 +49,14 @@ export default class Authorization {
 	constructor(core: Core) {
 		this.#keyHandler = new AuthKeyHandler();
 		this.#core = core;
+		this.#algorithms = [
+			'RS256',
+			'RS384',
+			'RS512',
+			'PS256',
+			'PS384',
+			'PS512'
+		]
 	}
 
 	async init(): Promise<void> {
@@ -87,7 +98,7 @@ export default class Authorization {
 		try {
 			const result = jwt.verify(token, this.#pubKey, {
 				issuer: 'folderr',
-				algorithms: ['RS512'],
+				algorithms: this.#algorithms,
 			});
 			if (!result || typeof result === 'string' || !result.jti) {
 				return;
@@ -160,7 +171,7 @@ export default class Authorization {
 		try {
 			const result = jwt.verify(token, this.#pubKey, {
 				issuer: 'folderr',
-				algorithms: ['RS512'],
+				algorithms: this.#algorithms,
 			});
 			if (!result || typeof result === 'string' || !result.jti) {
 				return;
@@ -205,7 +216,7 @@ export default class Authorization {
 			expiresIn: '14d',
 			issuer: 'folderr',
 			jwtid: id,
-			algorithm: 'RS512',
+			algorithm: 'PS256',
 		})}`;
 	}
 
@@ -215,7 +226,7 @@ export default class Authorization {
 		return jwt.sign({id: userID}, this.#privKey, {
 			issuer: 'folderr',
 			jwtid: id,
-			algorithm: 'RS512',
+			algorithm: 'PS256',
 		});
 	}
 
@@ -236,7 +247,7 @@ export default class Authorization {
 					issuer: 'folderr',
 					jwtid: id,
 					expiresIn: '1h',
-					algorithm: 'RS512',
+					algorithm: 'PS256',
 				},
 			),
 			id,
