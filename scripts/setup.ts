@@ -316,6 +316,7 @@ async function keyGen(
 
 	const keysConfigured = locations.keyConfigured;
 	const core = new Core();
+	process.env.setup = 'true';
 	await core.initDb();
 	try {
 		const folderr = await core.db.fetchFolderr();
