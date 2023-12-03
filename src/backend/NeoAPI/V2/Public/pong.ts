@@ -5,18 +5,18 @@ import type {FastifyInstance} from 'fastify'
 
 export const name = 'INFO';
 
-// end path will be formatted something like "/api/v2/"
+// End path will be formatted something like "/api/v2/"
 export const path = '/';
 export const rewrites = '/';
 export const enabled = true;
 
 export function route(fastify: FastifyInstance, core: Core) {
-	console.log(fastify.prefix);
 	fastify.route({
 		method: 'GET',
 		url: path,
 		schema: {
 			response: {
+				/* eslint-disable @typescript-eslint/naming-convention */
 				200: {
 					type: 'object',
 					properties: {
@@ -25,15 +25,17 @@ export function route(fastify: FastifyInstance, core: Core) {
 								version: {type: 'string'},
 								node_version: {type: 'string'},
 								online_since: {type: 'number'},
-								message: {type: 'pong'}
+								message: {type: 'string'}
 							}
 						},
+						/* eslint-enable @typescript-eslint/naming-convention */
 						code: {type: 'number'}
 					}
 				}
 			}
 		},
-		handler: function(request, reply) {
+		handler(request, reply) {
+			/* eslint-disable @typescript-eslint/naming-convention */
 			const out: {
 				message: {
 					version: string;
@@ -51,6 +53,7 @@ export function route(fastify: FastifyInstance, core: Core) {
 				},
 				code: this.codes.ok
 			};
+			/* eslint-enable @typescript-eslint/naming-convention */
 			return reply.status(fastify.codes.ok).send(out);
 		}
 	});
