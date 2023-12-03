@@ -82,7 +82,7 @@ class Path {
 	 * @prop {Object} Utils The Folderr utilities
 	 *
 	 * @prop {Object} eHandler The error handler for this path.
-	 * @prop {Number} _fatalErrors=0 Private. The amount of fatal errors this path has encountered.
+	 * @prop {Number} fatalErrors=0 Private. The amount of fatal errors this path has encountered.
 	 */
 	constructor(core: Core) {
 		this.label = 'label'; // Label for the path.
@@ -127,15 +127,14 @@ class Path {
 
 	async checkAuth(request: FastifyRequest): Promise<User | void> {
 		if (
-			request.headers.authorization &&
-			typeof request.headers.authorization === 'string'
+			request.headers.authorization
 		) {
 			return this.Utils.authorization.verifyAccount(
 				request.headers.authorization,
 			);
 		}
 
-		if (request.cookies.token && typeof request.cookies.token === 'string') {
+		if (request.cookies.token) {
 			return this.Utils.authorization.verifyAccount(request.cookies.token, {
 				web: true,
 			});
@@ -144,8 +143,7 @@ class Path {
 
 	async checkAuthAdmin(request: FastifyRequest): Promise<User | void> {
 		if (
-			request.headers.authorization &&
-			typeof request.headers.authorization === 'string'
+			request.headers.authorization
 		) {
 			return this.Utils.authorization.verifyAccount(
 				request.headers.authorization,
@@ -155,7 +153,7 @@ class Path {
 			);
 		}
 
-		if (request.cookies.token && typeof request.cookies.token === 'string') {
+		if (request.cookies.token) {
 			return this.Utils.authorization.verifyAccount(request.cookies.token, {
 				web: true,
 				fn: (user) => Boolean(user.admin),
@@ -295,8 +293,9 @@ class Path {
 	/**
 	 * @desc Handle uncaught errors.
 	 *
-	 * @param {Object<Error>} err The error that occurred
+	 * @param {Object<Error>} error The error that occurred
 	 * @param {FastifyReply} response Express response that is with the error
+	 * @param {String} [uuid] The request UUID
 	 * @param {Object} [options]
 	 * @param {Boolean} [options.noIncrease] Whether or not to increase the fatal errors
 	 * @param {Boolean} [options.noResponse] Whether or not to send a response to the res.

@@ -24,7 +24,6 @@ import middie from '@fastify/middie';
 
 // Other imports
 import spdy from 'spdy'; // Fuck spdy
-import http2 from 'http2';
 import got from 'got';
 import type {Got} from 'got';
 import * as Sentry from '@sentry/node';
@@ -53,7 +52,6 @@ import logger from './logger';
 
 // Local Fastify plugins
 import SentryPlugin from './plugins/sentry';
-import { FoldCodes } from "./Utilities/fold-codes";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -112,7 +110,7 @@ export default class Core {
 
 	#deleter: ChildProcess;
 
-	#keys: KeyConfig;
+	readonly #keys: KeyConfig;
 
 	#emailConfig: ActEmailConfig;
 
@@ -236,16 +234,16 @@ export default class Core {
 		});
 
 		if (process.env.DEBUG) {
-			this.app.addHook('onRequest', (request, reply, done) => {
+			this.app.addHook('onRequest', (request, _, done) => {
 				this.logger.debug(`URL: ${request.url}`);
 				this.logger.debug(`Is 404: ${request.is404.toString()}`);
 
 				done();
 			});
-			this.app.addHook('onResponse', async (request, reply) => {
+			this.app.addHook('onResponse', async (_, reply) => {
 				this.logger.debug(`Status: ${reply.raw.statusCode}`);
 			});
-			this.app.addHook('preValidation', (request, reply, done) => {
+			this.app.addHook('preValidation', (request, _, done) => {
 				this.logger.debug('Validation:');
 				this.logger.debug(
 					`Content-Type: ${request.headers['content-type'] ?? 'N/A'}`,
@@ -522,7 +520,7 @@ export default class Core {
 
 			}
 			
-			paths.forEach(async value => {
+			for (const value of paths) {
 				const actpaths = await Promise.all(value.paths);
 				await this.app.register((instance, _options, done) => {
 					for (const pathimport of actpaths) {
@@ -565,8 +563,8 @@ export default class Core {
 				}, {
 					prefix: '/api'
 				});
-			})
-			
+			}
+
 		}
 	}
 
@@ -773,11 +771,5 @@ export default class Core {
 		}
 
 		return output;
-	}
-
-	addRequestId(id: string): boolean {
-		this.#requestIds.add(id);
-		this.#internals.noRequests = false;
-		return this.#requestIds.has(id);
 	}
 }

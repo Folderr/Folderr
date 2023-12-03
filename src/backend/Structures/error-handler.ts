@@ -46,7 +46,7 @@ class ErrorHandler {
 	/**
 	 * @desc Handle a paths error when it arises
 	 *
-	 * @param {Object} err The error object
+	 * @param {Object} error The error object
 	 * @param {String} [severity] String on how severe the error is
 	 * @returns {{severity: String, culprit: String, file: String, message: String}}
 	 */

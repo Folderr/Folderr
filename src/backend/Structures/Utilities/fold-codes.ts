@@ -131,5 +131,3 @@ export const FoldCodes: FoldCodesI = {
 	bannedEmail: 1060,
 	emailSent: 1061
 };
-
-export default FoldCodesI;
