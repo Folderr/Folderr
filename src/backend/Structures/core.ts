@@ -108,6 +108,8 @@ export default class Core {
 
 	public listening: boolean;
 
+	#rewritten: string[];
+
 	#deleter: ChildProcess;
 
 	readonly #keys: KeyConfig;
@@ -132,6 +134,9 @@ export default class Core {
 			deleterShutdown: false,
 			noRequests: true,
 		};
+
+		// for new paths rewritten under "NeoAPI" Folder
+		this.#rewritten = [];
 
 		// Init configs
 		const configs = Configurer.verifyFetch();
@@ -310,11 +315,13 @@ export default class Core {
 		const basedir = 'src/backend/NeoAPI';
 		const dirs = fs.readdirSync(basedir);
 		const fullPaths: {prefix: string; dirs: string[]}[] = [];
+		// Find all the files!
 		for (const dir of dirs) {
 			const children = fs.readdirSync(basedir + `/${dir}`);
 			for (const child of children) {
 				if (child.endsWith('.ts') || child.endsWith('.js')) continue;
 				let files = fs.readdirSync(basedir + `/${dir}/` + child).map(file => `/${basedir}/${dir}/${child}/${file}`) as string[];
+				// the index file contains metadata about the subfolder like the API prefix
 				files = files.filter(file => !file.match('index'));
 				const {prefix} = await import(process.cwd() + `/${basedir}/` + dir + `/${child}` + '/index.ts');
 				console.log(prefix);
@@ -324,7 +331,19 @@ export default class Core {
 		for (const files of fullPaths) {
 			this.app.register(async(instance, opts) => {
 					for (const file of files.dirs) {
-						const imported: {name: string, path: string, route: ((fastify: FastifyInstance, core: Core) => any)} = await import(process.cwd() + `/${file}`);
+						const imported: {
+							name: string;
+							path: string;
+							route: ((fastify: FastifyInstance, core: Core) => any);
+							rewrites?: string
+							enabled: boolean
+						} = await import(process.cwd() + `/${file}`);
+						if (!imported.enabled) continue;
+						// In the event that the file rewrites older legacy code, disable it.
+						if (imported.rewrites && imported.rewrites.length > 0) {
+							this.#rewritten.push(imported.rewrites);
+						}
+
 						imported.route(instance, this);
 					}
 				},
@@ -362,6 +381,12 @@ export default class Core {
 							!endpoint.enabled ||
 							(endpoint.label.startsWith('DEBUG') && !process.env.DEBUG)
 						) {
+							continue;
+						}
+
+						// In the event that the API is rewritten by newer non-legacy code, skip the legacy code.
+						const path = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
+						if (this.#rewritten.includes(path)) {
 							continue;
 						}
 
@@ -564,6 +589,10 @@ export default class Core {
 						) {
 							const endpoint = new (Endpoint as typeof Path)(this);
 							if (!endpoint.enabled) continue;
+							// In the event that the API is rewritten by newer non-legacy code, skip the legacy code.
+							if (this.#rewritten.includes(endpoint.path)) {
+								continue;
+							}
 							label = endpoint.label;
 							endpointType = endpoint.type
 							endUrl = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path

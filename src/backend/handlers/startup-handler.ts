@@ -33,12 +33,13 @@ export async function startFolderr(): Promise<void> {
 		throw new Error('[FATAL] Paths could not initalize');
 	}
 
+	// init new APIs before anything else.
+	await core.registerNewAPI();
+
 	// Await core.registerApis();
 	await core.initAPI();
 
 	await core.initFrontend();
-
-	core.registerNewAPI();
 
 	try {
 		const listened = await core.listen();
