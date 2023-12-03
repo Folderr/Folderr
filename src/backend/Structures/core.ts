@@ -77,7 +77,7 @@ declare module 'fastify' {
 		codes: typeof StatusCodes;
 		got: Got;
 		utils: Utils;
-		db: MongoDB
+		db: MongoDB;
 	}
 }
 
@@ -590,7 +590,8 @@ export default class Core {
 							const endpoint = new (Endpoint as typeof Path)(this);
 							if (!endpoint.enabled) continue;
 							// In the event that the API is rewritten by newer non-legacy code, skip the legacy code.
-							if (this.#rewritten.includes(endpoint.path)) {
+							const path = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
+							if (this.#rewritten.includes(path)) {
 								continue;
 							}
 							label = endpoint.label;
