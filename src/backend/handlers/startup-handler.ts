@@ -38,6 +38,8 @@ export async function startFolderr(): Promise<void> {
 
 	await core.initFrontend();
 
+	core.registerNewAPI();
+
 	try {
 		const listened = await core.listen();
 		if (listened) {

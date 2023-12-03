@@ -305,6 +305,36 @@ export default class Core {
 		};
 	}
 
+	async registerNewAPI() {
+		this.logger.debug("Automatically loading new APIs");
+		const basedir = 'src/backend/NeoAPI';
+		const dirs = fs.readdirSync(basedir);
+		const fullPaths: {prefix: string; dirs: string[]}[] = [];
+		for (const dir of dirs) {
+			const children = fs.readdirSync(basedir + `/${dir}`);
+			for (const child of children) {
+				if (child.endsWith('.ts') || child.endsWith('.js')) continue;
+				let files = fs.readdirSync(basedir + `/${dir}/` + child).map(file => `/${basedir}/${dir}/${child}/${file}`) as string[];
+				files = files.filter(file => !file.match('index'));
+				const {prefix} = await import(process.cwd() + `/${basedir}/` + dir + `/${child}` + '/index.ts');
+				console.log(prefix);
+				fullPaths.push({prefix, dirs: files})
+			}
+		}
+		for (const files of fullPaths) {
+			this.app.register(async(instance, opts) => {
+					for (const file of files.dirs) {
+						const imported: {name: string, path: string, route: ((fastify: FastifyInstance, core: Core) => any)} = await import(process.cwd() + `/${file}`);
+						imported.route(instance, this);
+					}
+				},
+				{
+					prefix: `/api${files.prefix}`
+				}
+			)
+		}
+	}
+
 	async initDb(): Promise<void> {
 		this.logger.debug('Init DB');
 		// Again, neglecting this potential error to handle elsewhere
