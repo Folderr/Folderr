@@ -4,18 +4,17 @@ import type {FastifyInstance} from 'fastify'
 
 export const name = 'INFO';
 
-// end path will be formatted something like "/api/v2/info"
+// End path will be formatted something like "/api/v2/info"
 export const path = '/example';
 
 export const enabled = true;
 
 export function route(fastify: FastifyInstance, core: Core) {
-	console.log(fastify.prefix);
 	fastify.route({
 		method: 'GET',
 		url: path,
-		handler: function(request, reply) {
-			reply.send({ message: "Hello World" });
+		async handler(request, reply) {
+			await reply.send({ message: "Hello World" });
 		}
 	})
 }

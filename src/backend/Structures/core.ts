@@ -108,19 +108,19 @@ export default class Core {
 
 	public listening: boolean;
 
-	#rewritten: string[];
+	readonly #rewritten: string[];
 
-	#deleter: ChildProcess;
+	readonly #deleter: ChildProcess;
 
 	readonly #keys: KeyConfig;
 
-	#emailConfig: ActEmailConfig;
+	readonly #emailConfig: ActEmailConfig;
 
-	#dbConfig: DbConfig;
+	readonly #dbConfig: DbConfig;
 
-	#requestIds: Set<string>;
+	readonly #requestIds: Set<string>;
 
-	#internals: {
+	readonly #internals: {
 		serverClosed: Error | boolean;
 		deleterShutdown: boolean;
 		noRequests: boolean;
@@ -135,7 +135,7 @@ export default class Core {
 			noRequests: true,
 		};
 
-		// for new paths rewritten under "NeoAPI" Folder
+		// For new paths rewritten under "NeoAPI" Folder
 		this.#rewritten = [];
 
 		// Init configs
@@ -310,48 +310,69 @@ export default class Core {
 		};
 	}
 
-	async registerNewAPI() {
+	async registerNewApi() {
 		this.logger.debug("Automatically loading new APIs");
 		const basedir = 'src/backend/NeoAPI';
 		const dirs = fs.readdirSync(basedir);
-		const fullPaths: {prefix: string; dirs: string[]}[] = [];
+		const fullPaths: Array<{prefix: string; dirs: string[]}> = [];
 		// Find all the files!
 		for (const dir of dirs) {
 			const children = fs.readdirSync(basedir + `/${dir}`);
 			for (const child of children) {
 				if (child.endsWith('.ts') || child.endsWith('.js')) continue;
-				let files = fs.readdirSync(basedir + `/${dir}/` + child).map(file => `/${basedir}/${dir}/${child}/${file}`) as string[];
-				// the index file contains metadata about the subfolder like the API prefix
-				files = files.filter(file => !file.match('index'));
-				const {prefix} = await import(process.cwd() + `/${basedir}/` + dir + `/${child}` + '/index.ts');
-				console.log(prefix);
-				fullPaths.push({prefix, dirs: files})
+				let files = fs.
+					readdirSync(basedir + `/${dir}/` + child).
+					map(file => `/${basedir}/${dir}/${child}/${file}`) ;
+				// The index file contains metadata about the subfolder like the API prefix
+				files = files.filter(file => !(/index/.exec(file)));
+				// eslint-disable-next-line max-len
+				// eslint-disable-next-line no-await-in-loop, @typescript-eslint/no-unsafe-assignment
+				const {prefix} = await import(
+					`${process.cwd()}/${basedir}/${dir}/${child}/index.ts`
+				);
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				fullPaths.push({prefix, dirs: files});
 			}
 		}
+
+		const promises: any[] = [];
+
+
 		for (const files of fullPaths) {
-			this.app.register(async(instance, opts) => {
+			promises.push(
+				this.app.register(async(instance, opts) => {
+					const inits: Array<Promise<any>> = [];
 					for (const file of files.dirs) {
-						const imported: {
-							name: string;
-							path: string;
-							route: ((fastify: FastifyInstance, core: Core) => any);
-							rewrites?: string
-							enabled: boolean
-						} = await import(process.cwd() + `/${file}`);
-						if (!imported.enabled) continue;
-						// In the event that the file rewrites older legacy code, disable it.
-						if (imported.rewrites && imported.rewrites.length > 0) {
-							this.#rewritten.push(imported.rewrites);
+						const setup = async() => {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+							const imported: {
+								name: string;
+								path: string;
+								route: ((fastify: FastifyInstance, core: Core) => any);
+								rewrites?: string
+								enabled: boolean
+							} = await import(process.cwd() + `/${file}`);
+							if (!imported.enabled) return;
+							// In the event that the file rewrites older legacy code, disable it.
+							if (imported.rewrites && imported.rewrites.length > 0) {
+								this.#rewritten.push(imported.rewrites);
+							}
+
+							imported.route(instance, this);
 						}
 
-						imported.route(instance, this);
+						inits.push(setup());
 					}
+
+					await Promise.all(inits);
 				},
 				{
 					prefix: `/api${files.prefix}`
-				}
-			)
+				})
+			);
 		}
+
+		await Promise.all(promises);
 	}
 
 	async initDb(): Promise<void> {
@@ -384,7 +405,8 @@ export default class Core {
 							continue;
 						}
 
-						// In the event that the API is rewritten by newer non-legacy code, skip the legacy code.
+						// In the event that the API is rewritten by newer non-legacy code,
+						// skip the legacy code.
 						const path = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
 						if (this.#rewritten.includes(path)) {
 							continue;
@@ -540,7 +562,7 @@ export default class Core {
 				continue;
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
 			paths.push(...this.findPaths(join(dir, apiordir)));
 		}
 
@@ -575,9 +597,12 @@ export default class Core {
 
 			}
 			
+			const promises: any[] = []
 			for (const value of paths) {
+				// eslint-disable-next-line no-await-in-loop
 				const actpaths = await Promise.all(value.paths);
-				await this.app.register((instance, _options, done) => {
+				// eslint-disable-next-line @typescript-eslint/no-loop-func
+				promises.push(this.app.register((instance, _options, done) => {
 					for (const pathimport of actpaths) {
 						let label: string;
 						let endpointType: string;
@@ -586,45 +611,50 @@ export default class Core {
 						const Endpoint = pathimport.default;
 						if (
 							Object.getOwnPropertyNames(Endpoint).includes('prototype')
-						) {
+							) {
 							const endpoint = new (Endpoint as typeof Path)(this);
 							if (!endpoint.enabled) continue;
-							// In the event that the API is rewritten by newer non-legacy code, skip the legacy code.
-							const path = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
+							// In the event that the API is rewritten by newer non-legacy code,
+							// skip the legacy code.
+							const path = Array.isArray(endpoint.path) ?
+								endpoint.path[0] :
+								endpoint.path
 							if (this.#rewritten.includes(path)) {
 								continue;
 							}
+
 							label = endpoint.label;
 							endpointType = endpoint.type
 							endUrl = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
-	
+
 							this.internalInitPath(endpoint, instance);
 						} else {
 							(
 								Endpoint as (
 									fastify: FastifyInstance, core: Core
-								) => FastifyInstance
-							)(instance, this)
+									) => FastifyInstance
+									)(instance, this)
 							endpointType = pathimport.type ?? "unknown";
 							label = pathimport.label ?? "unknown"
 							endUrl = pathimport.url ?? "Unknown"
 						}
-	
+
 						this.logger.startup(
 							`Loaded ${label}` +
 							` ${value.version} with method ${endpointType}` +
 							` with url /api${endUrl}`
-						);
+							);
 						count++;
 					}
-	
+
 					this.logger.startup(`Loaded ${count} API Paths (${value.version})`);
 					done();
-				}, {
+					}, {
 					prefix: '/api'
-				});
+				}));
 			}
 
+			await Promise.all(promises);
 		}
 	}
 
