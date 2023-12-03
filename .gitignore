@@ -16,3 +16,4 @@ internal/*
 .env
 
 # ignore fleet code editor files
+.fleet
