@@ -7,6 +7,8 @@ export const name = 'INFO';
 // end path will be formatted something like "/api/v2/info"
 export const path = '/example';
 
+export const enabled = true;
+
 export function route(fastify: FastifyInstance, core: Core) {
 	console.log(fastify.prefix);
 	fastify.route({
