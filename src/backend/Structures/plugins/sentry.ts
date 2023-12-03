@@ -26,7 +26,7 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	options,
 ) => {
 	if (!options.enabled) {
-		fastify.setErrorHandler((error, request, reply) => {
+		fastify.setErrorHandler((error, _, reply) => {
 			fastify.log.error(error.message || error);
 
 			return reply.status(fastify.codes.internalErr).send({
@@ -64,7 +64,7 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	}
 
 	fastify.decorateRequest('transaction', undefined);
-	fastify.addHook('onRequest', (request, reply, done) => {
+	fastify.addHook('onRequest', (request, _, done) => {
 		// Create a new request scope.
 		const hub = Sentry.getCurrentHub();
 

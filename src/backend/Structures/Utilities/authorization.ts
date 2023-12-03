@@ -36,7 +36,7 @@ import AuthKeyHandler from '../../handlers/auth-key-handler';
  */
 export default class Authorization {
 
-	#algorithms: Algorithm[];
+	readonly #algorithms: Algorithm[];
 
 	#keyHandler: AuthKeyHandler;
 
@@ -266,18 +266,12 @@ export default class Authorization {
 		const out = jwt.verify(message.token, this.#privKey, {
 			issuer: 'folderr',
 		});
-		if (
-			out &&
+		return !!(out &&
 			typeof out === 'object' &&
 			out.jti === id &&
 			out.url === url &&
 			out.mirrorURL === mirrorURL &&
-			message.res === 'Mirror Operational'
-		) {
-			return true;
-		}
-
-		return false;
+			message.res === 'Mirror Operational');
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention

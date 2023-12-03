@@ -122,18 +122,6 @@ class Utils {
 	toString(): string {
 		return '[Core Utils]';
 	}
-
-	/**
-	 * @desc Returns a random number between min (inclusive) and max (exclusive)
-	 *
-	 * @generator
-	 *
-	 * @returns {number}
-	 */
-	genRandomNum(): number {
-		return Math.random() * 9;
-	}
-
 	/**
 	 * @desc Wait for a certain time
 	 * - Async/wait only
@@ -176,30 +164,6 @@ class Utils {
 		});
 	}
 
-	verifyKeyMatch(keys: {
-		private: buffer.Buffer | string;
-		public: buffer.Buffer | string;
-	}): boolean {
-		const testdata = buffer.Buffer.from('I am a test!');
-		let decrypted;
-		try {
-			const encrypted = crypto.publicEncrypt(keys.public, testdata);
-			decrypted = crypto.privateDecrypt(keys.private, encrypted);
-		} catch {
-			return false;
-		}
-
-		if (!decrypted) {
-			return false;
-		}
-
-		if (decrypted.toString() === testdata.toString()) {
-			return true;
-		}
-
-		return false;
-	}
-
 	/**
 	 * @desc Generate a user ID
 	 * @generator
@@ -229,7 +193,6 @@ class Utils {
 	}
 
 	/**
-	 * @param {String} [version] The version of uuid to generate
 	 *
 	 * Generate a ID using uuid
 	 */
@@ -242,18 +205,14 @@ class Utils {
 			return true;
 		}
 
-		if (version === 4 && uuid.version(id) === 4 && uuid.validate(id)) {
-			return true;
-		}
+		return version === 4 && uuid.version(id) === 4 && uuid.validate(id);
 
-		return false;
+
 	}
 
 	/**
 	 * @desc Generate a ID
 	 * @generator
-	 *
-	 * @param {object[]} things The things to avoid generating a duplicate ID for
 	 *
 	 * @returns {Promise<string>}
 	 */
@@ -324,7 +283,6 @@ class Utils {
 	 * @generator
 	 * @async
 	 *
-	 * @param {Object[]} notifs The notifications IDs to ignore
 	 * @returns {Promise<string|Promise<*>>}
 	 */
 	// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -376,10 +334,7 @@ class Utils {
 			.randomBytes(this.byteSize)
 			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
-		const userid = buffer.Buffer.from(r)
-			.toString('base64')
-			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
-		const date = buffer.Buffer.from(new Date().getUTCMilliseconds().toString())
+		buffer.Buffer.from(r)
 			.toString('base64')
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, '_');
 		// Combine, hash, and return the hashed and unhashed token
@@ -392,7 +347,7 @@ class Utils {
 	 * @desc Authenticate a user using password and username
 	 * @async
 	 *
-	 * @param {Request} req The express request.
+	 * @param {Request} request The request.
 	 * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
 	 *
 	 * @returns {Promise<boolean>}
@@ -444,7 +399,7 @@ class Utils {
 
 	/**
 	 * @desc Determines if the user allows insecuce requests
-	 * @param req ExpressJS request
+	 * @param request Fastify request
 	 *
 	 * @returns {boolean}
 	 */
@@ -457,11 +412,9 @@ class Utils {
 			return false;
 		}
 
-		if (request.cookies.i !== 't') {
-			return false;
-		}
+		return request.cookies.i === 't';
 
-		return true;
+
 	}
 
 	/**
@@ -501,11 +454,7 @@ class Utils {
 				return false;
 			}
 
-			if (test.body.message.res === 'Pong! Mirror Operational!') {
-				return true;
-			}
-
-			return false;
+			return test.body.message.res === 'Pong! Mirror Operational!';
 		} catch {
 			return false;
 		}

@@ -20,7 +20,6 @@
  */
 
 import {EventEmitter} from 'events';
-import process from 'process';
 import type {DbConfig} from '../../handlers/config-handler';
 import Configurer from '../../handlers/config-handler';
 import type {Upload} from '../Database/db-class';
