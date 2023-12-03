@@ -3,7 +3,9 @@ import type Core from '../../../Structures/core';
 import pkg from '../../../../../package.json';
 import type {FastifyInstance} from 'fastify'
 
-export const name = 'INFO';
+// We have a name here for in case we decide to map these
+
+export const name = 'Service Info';
 
 // End path will be formatted something like "/api/v2/"
 export const path = '/';
@@ -57,5 +59,6 @@ export function route(fastify: FastifyInstance, core: Core) {
 			return reply.status(fastify.codes.ok).send(out);
 		}
 	});
-	core.logger.startup(`Initialized NEW API Pong with method GET with path /api/`);
+	core.logger.startup(`Initialized NEW API ${name} with method GET with path /api/`);
+	core.logger.info(`New API ${name} rewrites (and replaces) old endpoint /api${rewrites}`);
 }
