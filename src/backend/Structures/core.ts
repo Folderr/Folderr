@@ -742,12 +742,16 @@ export default class Core {
 				envDir: process.cwd()
 			}
 		);
+    const publicPaths = fs.readdirSync("./src/frontend/public");
 		this.app.use((request, response, next) => {
-			if (request.url?.match(/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/)) {
-				next();
-			} else {
-				server.middlewares(request, response, next);
-			}
+        const strippedUrl = request.url?.slice(1, request.url.length) || "";
+        if (publicPaths.includes(strippedUrl)) {
+            server.middlewares(request, response, next);
+        } else if (request.url?.match(/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/)) {
+				    next();
+			  } else {
+				    server.middlewares(request, response, next);
+			  }
 		});
 		this.app.setNotFoundHandler(async (request, reply) => {
 			if (request.url.startsWith('/api')) {
