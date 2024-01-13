@@ -313,8 +313,10 @@ export default class Core {
 	async registerNewApi() {
 		this.logger.debug("Automatically loading new APIs");
 		let basedir = 'src/backend/NeoAPI';
+    let extension = '.ts'
     if (process.env.NODE_ENV !== 'dev') {
         basedir = `dist/${basedir}`;
+        extension = '.js';
     }
 		const dirs = fs.readdirSync(basedir);
 		const fullPaths: Array<{prefix: string; dirs: string[]}> = [];
@@ -331,7 +333,7 @@ export default class Core {
 				// eslint-disable-next-line max-len
 				// eslint-disable-next-line no-await-in-loop, @typescript-eslint/no-unsafe-assignment
 				const {prefix} = await import(
-					`${process.cwd()}/${basedir}/${dir}/${child}/index.ts`
+					  `${process.cwd()}/${basedir}/${dir}/${child}/index${extension}`
 				);
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				fullPaths.push({prefix, dirs: files});
