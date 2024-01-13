@@ -312,7 +312,10 @@ export default class Core {
 
 	async registerNewApi() {
 		this.logger.debug("Automatically loading new APIs");
-		const basedir = 'src/backend/NeoAPI';
+		let basedir = 'src/backend/NeoAPI';
+    if (process.env.NODE_ENV !== 'dev') {
+        basedir = `dist/${basedir}`;
+    }
 		const dirs = fs.readdirSync(basedir);
 		const fullPaths: Array<{prefix: string; dirs: string[]}> = [];
 		// Find all the files!
