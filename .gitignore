@@ -15,4 +15,7 @@ internal/*
 # Ignore .env
 .env
 
-# ignore fleet code editor files
+# ignore jetbrains IDEs
+
+.idea/
+.fleet/
