@@ -461,9 +461,13 @@ class Utils {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	async determineHomeURL(request: FastifyRequest): Promise<string> {
+	async determineHomeURL(request: FastifyRequest<{
+		Headers: {
+			preferredURL?: string
+		}
+	}>): Promise<string> {
 		const protocol = `${request.protocol || 'http'}://`;
-		let host = request.hostname;
+		let host = request.headers.preferredURL;
 		if (!host) {
 			host = this.#core.config.url;
 		}
