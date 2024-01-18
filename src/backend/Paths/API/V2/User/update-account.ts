@@ -123,6 +123,9 @@ class UpdateAcc extends Path {
 	async execute(
 		request: FastifyRequest<{
 			Body: UpdateAccBody;
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply,
 	) {

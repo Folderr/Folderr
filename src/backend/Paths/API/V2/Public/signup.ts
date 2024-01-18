@@ -155,7 +155,11 @@ class Signup extends Path {
 			hash: string;
 			token: string;
 		},
-		request: FastifyRequest,
+		request: FastifyRequest<{
+			Headers: {
+				preferredURL?: string;
+			}
+		}>,
 		response: FastifyReply,
 	): Promise<{
 		httpCode: 500 | 201;
@@ -212,6 +216,9 @@ class Signup extends Path {
 				password: string;
 				username: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply,
 	) {

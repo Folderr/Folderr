@@ -19,10 +19,10 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {Upload} from '../../../../Structures/Database/db-class';
-import {RequestGallery} from '../../../../../types/fastify-request-types';
+import {type FastifyReply, type FastifyRequest} from 'fastify';
+import {type Core, Path} from '../../../../internals';
+import {type Upload} from '../../../../Structures/Database/db-class';
+import {type RequestGallery} from '../../../../../types/fastify-request-types';
 
 /**
  * @classdesc Send users their files
@@ -46,6 +46,7 @@ class Files extends Path {
 					}
 				},
 				response: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					'4xx': {
 						type: 'object',
 						properties: {
@@ -53,6 +54,7 @@ class Files extends Path {
 							code: {type: 'number'}
 						}
 					},
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					200: {
 						type: 'object',
 						properties: {
@@ -68,6 +70,9 @@ class Files extends Path {
 	async execute(
 		request: FastifyRequest<{
 			Querystring: RequestGallery;
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {

@@ -80,6 +80,9 @@ class Ban extends Path {
 			Params: {
 				id: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply,
 	): Promise<FastifyReply> {

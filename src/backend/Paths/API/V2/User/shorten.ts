@@ -66,6 +66,9 @@ class Shorten extends Path {
 			Body: {
 				url: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply,
 	) {
@@ -80,7 +83,6 @@ class Shorten extends Path {
 		try {
 			const url = new URL(request.body.url);
 			await this.core.got.get(url.toString());
-			// eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
 		} catch (error: any) {
 			/* eslint-disable @typescript-eslint/no-unsafe-call */
 			if (

@@ -80,6 +80,9 @@ class Takedown extends Path {
 				type: string;
 				id: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 	): Promise<{
 		httpCode: 406 | 200;
@@ -134,6 +137,9 @@ class Takedown extends Path {
 				type: string;
 				id: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 	): Promise<{
 		httpCode: 406 | 200;
@@ -187,6 +193,9 @@ class Takedown extends Path {
 				type: string;
 				id: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply,
 	) {

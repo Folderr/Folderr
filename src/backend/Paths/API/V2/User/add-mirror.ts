@@ -102,6 +102,9 @@ class MirrorAdd extends Path {
 			Body: {
 				url: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply,
 	): Promise<FastifyReply> {
@@ -169,7 +172,7 @@ class MirrorAdd extends Path {
 			});
 		}
 
-		if (!r || !r.body) {
+		if (!r?.body) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.mirrorReject,
 				message: 'Mirror failed Validation',
