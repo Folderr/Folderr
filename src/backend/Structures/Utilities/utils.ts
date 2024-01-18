@@ -470,6 +470,8 @@ class Utils {
 		let host = request.headers.preferredURL;
 		if (!host) {
 			host = this.#core.config.url;
+			if (host?.includes('://')) host = host.split('://')[1];
+			return `${protocol}${host}`;
 		}
 
 		try {
