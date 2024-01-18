@@ -326,6 +326,9 @@ class UpdateAcc extends Path {
 	private async handleEmailUpdate(
 		request: FastifyRequest<{
 			Body: UpdateAccBody;
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		preEmail: string,
 		authUser: User,

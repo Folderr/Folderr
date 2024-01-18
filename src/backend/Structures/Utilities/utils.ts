@@ -462,7 +462,7 @@ class Utils {
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async determineHomeURL(request: FastifyRequest<{
-		Headers: {
+		Headers?: {
 			preferredURL?: string
 		}
 	}>): Promise<string> {
