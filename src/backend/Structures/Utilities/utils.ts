@@ -97,7 +97,7 @@ class Utils {
 
 	public foldCodes: FoldCodesI;
 
-	#core: Core;
+	readonly #core: Core;
 
 	/**
 	 * @constructor
@@ -122,6 +122,7 @@ class Utils {
 	toString(): string {
 		return '[Core Utils]';
 	}
+
 	/**
 	 * @desc Wait for a certain time
 	 * - Async/wait only
@@ -450,7 +451,7 @@ class Utils {
 				responseType: 'json',
 				parseJson: mirrorparse,
 			});
-			if (!test || !test.body) {
+			if (!test?.body) {
 				return false;
 			}
 
@@ -461,25 +462,35 @@ class Utils {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	async determineHomeURL(request: FastifyRequest<{
-		Headers?: {
-			preferredURL?: string
-		}
-	}>): Promise<string> {
+	async determineHomeURL(request: FastifyRequest): Promise<string> {
 		const protocol = `${request.protocol || 'http'}://`;
-		let host = request.headers.preferredURL;
+		let host;
+
+		// In the event of a correctly formatted hostname, set host to it
+		if (request.hostname?.split('.').length > 1) {
+			host = request.hostname;
+		}
+
 		if (!host) {
 			host = this.#core.config.url;
 			if (host?.includes('://')) host = host.split('://')[1];
 			return `${protocol}${host}`;
 		}
 
+		if (host === this.#core.config.url.split('://')[1]) {
+			return `${this.#core.config.url}`;
+		}
+
 		try {
 			const test = await this.#core.got.get<ApiResponse>(
-				`${this.#core.config.url}/api`,
+				`${this.#core.config.url}/api/`,
 				{
 					responseType: 'json',
 					parseJson: apiparse,
+					timeout: { // 2 second timeout should do the trick.
+						request: 2000
+					}
+					
 				},
 			);
 			if (!test) {
