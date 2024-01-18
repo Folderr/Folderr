@@ -19,10 +19,10 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {Link} from '../../../../Structures/Database/db-class';
-import {RequestGallery} from '../../../../../types/fastify-request-types';
+import {type FastifyReply, type FastifyRequest} from 'fastify';
+import {type Core, Path} from '../../../../internals';
+import {type Link} from '../../../../Structures/Database/db-class';
+import {type RequestGallery} from '../../../../../types/fastify-request-types';
 
 /**
  * @classdesc Allow a user to access their links
@@ -46,6 +46,7 @@ class Links extends Path {
 					}
 				},
 				response: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					'4xx': {
 						type: 'object',
 						properties: {
@@ -53,6 +54,7 @@ class Links extends Path {
 							code: {type: 'number'}
 						}
 					},
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					200: {
 						type: 'object',
 						properties: {
@@ -68,6 +70,9 @@ class Links extends Path {
 	async execute(
 		request: FastifyRequest<{
 			Querystring: RequestGallery;
+			Headers: {
+				preferredURL?: string;
+			}
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
@@ -120,6 +125,7 @@ class Links extends Path {
 		url = url.replace(/\/$/g, '');
 		const aShorts = shorts.map((short: Link) => ({
 			id: short.id,
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			points_to: short.link,
 			created: Math.round(short.createdAt.getTime() / 1000),
 			link: `${url}/${short.id}`
