@@ -71,7 +71,11 @@ class Image extends Path {
 	}
 	/* eslint-enable @typescript-eslint/naming-convention */
 
-	async execute(request: FastifyRequest, response: FastifyReply) {
+	async execute(request: FastifyRequest<{
+		Headers: {
+			preferredURL?: string;
+		}
+	}>, response: FastifyReply) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
@@ -82,7 +86,7 @@ class Image extends Path {
 
 		const file = await request.file();
 
-		if (!file || !file.file) {
+		if (!file?.file) {
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.noFile,
 				message: 'File not found!',

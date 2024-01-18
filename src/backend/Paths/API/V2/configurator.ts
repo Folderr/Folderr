@@ -63,6 +63,9 @@ class ShareXConfigurator extends Path {
 			Body: {
 				token: string;
 			};
+			Headers: {
+				preferredURL?: string;
+			}
 			Querystring: {
 				d?: string;
 			};
