@@ -1,3 +1,8 @@
 {
-    "vetur.format.options.useTabs": true
+  "vetur.format.options.useTabs": true,
+  "eslint.enable": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
