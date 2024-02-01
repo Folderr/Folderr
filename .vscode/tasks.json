@@ -1,23 +1,30 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "npm",
-			"script": "build",
-			"group": "build",
-			"problemMatcher": [
-				"$tsc"
-			],
-			"label": "npm: build",
-			"detail": "npm run build:backend && npm run build:frontend"
-		},
-		{
-			"type": "npm",
-			"script": "build:backend",
-			"group": "build",
-			"problemMatcher": [],
-			"label": "npm: build:backend",
-			"detail": "tsc --skipLibCheck"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$tsc"],
+      "label": "npm: build",
+      "detail": "npm run build:backend && npm run build:frontend"
+    },
+    {
+      "type": "npm",
+      "script": "build:backend",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build:backend",
+      "detail": "tsc --skipLibCheck"
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "label": "Dev Server",
+      "detail": "ts-node-dev --trace-warnings -- src/backend/index.ts"
+    }
+  ]
 }
