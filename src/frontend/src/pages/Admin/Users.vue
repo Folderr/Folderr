@@ -10,11 +10,38 @@
 			<div class="lg:mt-20 mx-auto w-full text-text">
 				<div class="flex justify-between grow mx-10">
 					<div class="flex space-x-10">
-						<h1 class="text-secondary-text w-fit text-xl font-bold">
+						<h1
+							class="text-secondary-text w-fit text-xl font-bold my-auto"
+						>
 							User Moderation & Management
 						</h1>
 						<!-- Impl filtering of user types -->
-						<FilterIcon class="h-7 text-secondary-text" />
+						<div>
+							<Listbox v-model="filter">
+								<ListboxButton
+									class="flex grow my-auto text-secondary-text"
+									><FilterIcon
+										class="p-2 rounded-lg bg-bg-old h-10 mr-2"
+									/>
+									<p
+										class="my-auto p-2 bg-bg-old rounded-lg text-brand"
+									>
+										{{ filter.toLowerCase() }}
+									</p></ListboxButton
+								>
+								<ListboxOptions
+									class="absolute mt-2 p-2 bg-bg-old rounded-lg"
+								>
+									<ListboxOption
+										v-for="option in filters"
+										:key="option"
+										:value="option"
+										class="mt-1 text-secondary-text hover:text-text"
+										>{{ option }}</ListboxOption
+									>
+								</ListboxOptions>
+							</Listbox>
+						</div>
 					</div>
 				</div>
 
@@ -96,7 +123,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
+import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
+import {
+	Listbox,
+	ListboxButton,
+	ListboxOptions,
+	ListboxOption,
+} from "@headlessui/vue";
 import { useUserStore } from "../../stores/user";
 import * as adminAPI from "../../wrappers/admin-api";
 import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
@@ -112,6 +146,36 @@ import {
 	FilterIcon,
 } from "@heroicons/vue/solid";
 
+const filters = ["Users", "Verifying Users", "Banned Emails"];
+const filter = ref(filters[0]);
+
+// When the filter changes lets do the appropriate calls for the filter
+
+watch(filter, async (value, oldValue) => {
+	if (value === "Users") {
+		const users = await adminAPI.getUsers();
+
+		// Handle errors later
+
+		if (users.success && users.output && Array.isArray(users.output)) {
+			userList.value = users.output.map((user) => {
+				return {
+					username: user.username,
+					email: user.email,
+					statistics: { files: user.files, links: user.links },
+					role: user.title || "User",
+				};
+			});
+		}
+	} else if (value === "Verifying Users") {
+		const users = await adminAPI.getVerifyingUsers();
+
+		if (users.success && users.output) {
+			console.log(users.output);
+		}
+	}
+});
+
 const store = useUserStore();
 
 type FilteredUsers = {
@@ -123,6 +187,14 @@ type FilteredUsers = {
 	};
 	role: string;
 };
+
+type VerifyingUsers = {
+	username: string;
+	id: string;
+	token: string;
+};
+
+const verifyingUsers = ref<VerifyingUsers[]>();
 
 const userList = ref<FilteredUsers[]>();
 

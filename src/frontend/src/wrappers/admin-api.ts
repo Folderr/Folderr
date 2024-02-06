@@ -154,3 +154,59 @@ export async function getUsers(): Promise<
 // TODO: (User Moderation) Ban user, Warn user, Delete user
 // TODO: (Verification) Revoke user, Accept user
 // TODO: getVerifyingUsers, getBannedEmails
+
+type Notification = {
+	id: string;
+	title: string;
+	notify: string;
+	createdAt: Date;
+};
+
+export async function getVerifyingUsers(): Promise<
+	GenericFetchReturn<Notification[]>
+> {
+	try {
+		const response = await fetch("/api/notifications?admin=true", {
+			credentials: "same-origin",
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const json: { code: number; message: string | any } | undefined =
+			await response.json();
+		if (!json?.code) {
+			throw Error(`Unexpected Error: ${response.statusText}`);
+		}
+
+		if (response.status !== 200) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				default:
+					throw Error(`Unexpected Error ${json.code}`);
+			}
+		}
+
+		if (json?.message) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				default:
+					if (Array.isArray(json.message)) {
+						return {
+							error: undefined,
+							success: true,
+							response,
+							output: (json.message as Notification[]).filter(
+								(notification) =>
+									notification.title === "New user signup!"
+							),
+						};
+					}
+			}
+		}
+
+		throw Error(`Unexpected Output: ${response.statusText}`);
+	} catch (error: unknown) {
+		return genericCatch(error);
+	}
+}
