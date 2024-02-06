@@ -19,18 +19,18 @@
  *
  */
 
-import {join} from 'path';
-import process from 'process';
+import { join } from "path";
+import process from "process";
 import type {
 	FastifyRequest,
 	FastifyReply,
 	RouteShorthandOptions,
-} from 'fastify';
-import * as Sentry from '@sentry/node';
-import type {RequestGallery} from '../../types/fastify-request-types';
-import type {Core, Codes} from '../internals';
-import {ErrorHandler, codes} from '../internals';
-import type {User} from './Database/db-class';
+} from "fastify";
+import * as Sentry from "@sentry/node";
+import type { RequestGallery } from "../../types/fastify-request-types";
+import type { Core, Codes } from "../internals";
+import { ErrorHandler, codes } from "../internals";
+import type { User } from "./Database/db-class";
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -57,7 +57,7 @@ class Path {
 	public readonly core: Core;
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	public Utils: Core['Utils'];
+	public Utils: Core["Utils"];
 	// Fuck doing all of that, I want to focus on the frontend.
 
 	public locked: boolean;
@@ -85,9 +85,9 @@ class Path {
 	 * @prop {Number} fatalErrors=0 Private. The amount of fatal errors this path has encountered.
 	 */
 	constructor(core: Core) {
-		this.label = 'label'; // Label for the path.
-		this.path = ''; // The path to server for
-		this.type = 'get'; // What type of request it needs
+		this.label = "label"; // Label for the path.
+		this.path = ""; // The path to server for
+		this.type = "get"; // What type of request it needs
 		this.enabled = true;
 		this.lean = false;
 		this.secureOnly = false;
@@ -107,7 +107,9 @@ class Path {
 	 * @returns {string}
 	 */
 	toString(): string {
-		return `[Path ${typeof this.path === 'string' ? this.path : this.path[0]}]`;
+		return `[Path ${
+			typeof this.path === "string" ? this.path : this.path[0]
+		}]`;
 	}
 
 	/**
@@ -120,52 +122,57 @@ class Path {
 	 */
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply | void> {
-		throw new Error('Not implemented!');
+		throw new Error("Not implemented!");
 	}
 
 	async checkAuth(request: FastifyRequest): Promise<User | void> {
-		if (
-			request.headers.authorization
-		) {
+		if (request.headers.authorization) {
 			return this.Utils.authorization.verifyAccount(
-				request.headers.authorization,
+				request.headers.authorization
 			);
 		}
 
 		if (request.cookies.token) {
-			return this.Utils.authorization.verifyAccount(request.cookies.token, {
-				web: true,
-			});
+			return this.Utils.authorization.verifyAccount(
+				request.cookies.token,
+				{
+					web: true,
+				}
+			);
 		}
 	}
 
 	async checkAuthAdmin(request: FastifyRequest): Promise<User | void> {
-		if (
-			request.headers.authorization
-		) {
+		if (request.headers.authorization) {
 			return this.Utils.authorization.verifyAccount(
 				request.headers.authorization,
 				{
 					fn: (user) => Boolean(user.admin),
-				},
+				}
 			);
 		}
 
 		if (request.cookies.token) {
-			return this.Utils.authorization.verifyAccount(request.cookies.token, {
-				web: true,
-				fn: (user) => Boolean(user.admin),
-			});
+			return this.Utils.authorization.verifyAccount(
+				request.cookies.token,
+				{
+					web: true,
+					fn: (user) => Boolean(user.admin),
+				}
+			);
 		}
 	}
 
+	/**
+	 * Generates a query for things like images, links, etc. Not suitable for user queries. For that use generateGenericQuery
+	 */
 	generatePageQuery(
 		request: FastifyRequest<{
 			Querystring?: RequestGallery;
 		}>,
-		owner: string,
+		owner: string
 	):
 		| {
 				httpCode: 406;
@@ -174,8 +181,8 @@ class Path {
 		  }
 		| {
 				query: {
-					$gt?: {created: Date};
-					$lt?: {created: Date};
+					$gt?: { created: Date };
+					$lt?: { created: Date };
 					owner: string;
 				};
 				options: {
@@ -185,26 +192,26 @@ class Path {
 				errored: boolean;
 		  } {
 		const query: {
-			$gt?: {created: Date};
-			$lt?: {created: Date};
+			$gt?: { created: Date };
+			$lt?: { created: Date };
 			owner: string;
-		} = {owner};
+		} = { owner };
 		const options: {
 			sort?: Record<string, unknown>;
 			limit?: number;
-		} = request.query?.gallery ? {sort: {created: -1}} : {};
+		} = request.query?.gallery ? { sort: { created: -1 } } : {};
 		const limits = {
 			max: 20,
 			middle: 15,
 			min: 10,
 		};
 		let limit = request.query?.limit;
-		if (typeof limit === 'string') {
+		if (typeof limit === "string") {
 			try {
 				limit = Number(limit);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
-					if (process.env.DEBUG === 'true') {
+					if (process.env.DEBUG === "true") {
 						this.core.logger.debug(error.message);
 					}
 
@@ -212,7 +219,7 @@ class Path {
 						httpCode: this.codes.notAccepted,
 						json: {
 							code: this.Utils.foldCodes.unkownError,
-							message: 'An unknown error has occured!',
+							message: "An unknown error has occured!",
 						},
 						errored: true,
 					};
@@ -220,7 +227,7 @@ class Path {
 			}
 		}
 
-		if (request.query?.gallery && limit && typeof limit === 'number') {
+		if (request.query?.gallery && limit && typeof limit === "number") {
 			if (limit >= limits.max) {
 				options.limit = limits.max;
 			} else if (limit >= limits.middle) {
@@ -238,46 +245,140 @@ class Path {
 
 		if (request.query?.before) {
 			if (request.query.before instanceof Date) {
-				query.$lt = {created: request.query.before};
-			} else if (typeof request.query.before === 'number') {
-				query.$lt = {created: new Date(request.query.before)};
+				query.$lt = { created: request.query.before };
+			} else if (typeof request.query.before === "number") {
+				query.$lt = { created: new Date(request.query.before) };
 			}
 		}
 
 		if (request.query?.after) {
 			if (request.query.after instanceof Date) {
-				query.$gt = {created: request.query.after};
-			} else if (typeof request.query.after === 'number') {
-				query.$gt = {created: new Date(request.query.after)};
+				query.$gt = { created: request.query.after };
+			} else if (typeof request.query.after === "number") {
+				query.$gt = { created: new Date(request.query.after) };
 			}
 		}
 
-		return {query, options, errored: false};
+		return { query, options, errored: false };
+	}
+
+	/**
+	 * Generates a query for things like users Not suitable for object queries. For that use generatePageQuery
+	 */
+	generateGenericQuery(
+		request: FastifyRequest<{
+			Querystring?: RequestGallery;
+		}>
+	):
+		| {
+				httpCode: 406;
+				json: Record<string, string | number>;
+				errored: boolean;
+		  }
+		| {
+				query: {
+					$gt?: { created: Date };
+					$lt?: { created: Date };
+				};
+				options: {
+					sort?: Record<string, unknown>;
+					limit?: number;
+				};
+				errored: boolean;
+		  } {
+		const query: {
+			$gt?: { created: Date };
+			$lt?: { created: Date };
+		} = {};
+		const options: {
+			sort?: Record<string, unknown>;
+			limit?: number;
+		} = request.query?.gallery ? { sort: { created: -1 } } : {};
+		const limits = {
+			max: 20,
+			middle: 15,
+			min: 10,
+		};
+		let limit = request.query?.limit;
+		if (typeof limit === "string") {
+			try {
+				limit = Number(limit);
+			} catch (error: unknown) {
+				if (error instanceof Error) {
+					if (process.env.DEBUG === "true") {
+						this.core.logger.debug(error.message);
+					}
+
+					return {
+						httpCode: this.codes.notAccepted,
+						json: {
+							code: this.Utils.foldCodes.unkownError,
+							message: "An unknown error has occured!",
+						},
+						errored: true,
+					};
+				}
+			}
+		}
+
+		if (request.query?.gallery && limit && typeof limit === "number") {
+			if (limit >= limits.max) {
+				options.limit = limits.max;
+			} else if (limit >= limits.middle) {
+				options.limit = limits.max;
+			} else if (limit >= limits.min && limit < limits.middle) {
+				options.limit = limits.min;
+			} else if (limit <= limits.min) {
+				options.limit = limits.min;
+			} else {
+				options.limit = limits.min;
+			}
+		} else {
+			options.limit = 20;
+		}
+
+		if (request.query?.before) {
+			if (request.query.before instanceof Date) {
+				query.$lt = { created: request.query.before };
+			} else if (typeof request.query.before === "number") {
+				query.$lt = { created: new Date(request.query.before) };
+			}
+		}
+
+		if (request.query?.after) {
+			if (request.query.after instanceof Date) {
+				query.$gt = { created: request.query.after };
+			} else if (typeof request.query.after === "number") {
+				query.$gt = { created: new Date(request.query.after) };
+			}
+		}
+
+		return { query, options, errored: false };
 	}
 
 	async preHandler(
 		request: FastifyRequest,
 		response: FastifyReply,
-		done: () => void,
+		done: () => void
 	): Promise<FastifyReply | void> {
 		// If path is not enabled, and it is not lean... end the endpoint here
 		if (this.locked && !this.lean) {
-			if (!request.url.includes('/api')) {
+			if (!request.url.includes("/api")) {
 				return response
 					.status(this.codes.locked)
-					.sendFile(join(process.cwd(), '/Frontend/locked.html'));
+					.sendFile(join(process.cwd(), "/Frontend/locked.html"));
 			}
 
 			return response.status(this.codes.locked).send({
 				code: this.Utils.foldCodes.locked,
-				message: 'Endpoint locked!',
+				message: "Endpoint locked!",
 			});
 		}
 
-		if (this.secureOnly && request.protocol !== 'https') {
+		if (this.secureOnly && request.protocol !== "https") {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.securityError,
-				message: 'Endpoint needs to be secure!',
+				message: "Endpoint needs to be secure!",
 			});
 		}
 
@@ -310,17 +411,17 @@ class Path {
 		options?: {
 			noIncrease: boolean;
 			noResponse: boolean;
-		},
+		}
 	): FastifyReply | void {
-		const ops = options ?? {noIncrease: false, noResponse: false};
+		const ops = options ?? { noIncrease: false, noResponse: false };
 		let severity;
 		const errorFromatted = error.message;
-		if (!errorFromatted.startsWith('[ERROR]') && !ops.noIncrease) {
+		if (!errorFromatted.startsWith("[ERROR]") && !ops.noIncrease) {
 			if (this.fatalErrors > 2) {
-				severity = 'fatal';
+				severity = "fatal";
 			} else {
 				this.fatalErrors++;
-				severity = '[fatal]';
+				severity = "[fatal]";
 			}
 		}
 
@@ -335,11 +436,13 @@ class Path {
 			handled.message
 		}\n  Culprit: ${handled.culprit}\n  File: file://${handled.file
 			.slice(1)
-			.replace(/\)$/, '')}\n  Severity: ${handled.severity ?? 'undefined'}`;
+			.replace(/\)$/, "")}\n  Severity: ${
+			handled.severity ?? "undefined"
+		}`;
 		this.core.logger.fatal(formattedMessage);
 		const out = error.stack
-			? error.stack.replace(/\n/g, '<br>')
-			: formattedMessage.replace(/\n/g, '<br>');
+			? error.stack.replace(/\n/g, "<br>")
+			: formattedMessage.replace(/\n/g, "<br>");
 		if (ops.noResponse) {
 			if (uuid) {
 				this.core.removeRequestId(uuid);
