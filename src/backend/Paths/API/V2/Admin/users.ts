@@ -19,11 +19,11 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {User} from '../../../../Structures/Database/db-class';
-import type {RequestGallery} from '../../../../../types/fastify-request-types';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import { Path } from "../../../../internals";
+import type { User } from "../../../../Structures/Database/db-class";
+import type { RequestGallery } from "../../../../../types/fastify-request-types";
 
 /**
  * @classdesc Shows users to admins
@@ -31,33 +31,33 @@ import type {RequestGallery} from '../../../../../types/fastify-request-types';
 class Users extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin View Users';
-		this.path = '/admin/users';
+		this.label = "API/Admin View Users";
+		this.path = "/admin/users";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					500: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'array'},
-							code: {type: 'number'},
+							message: { type: "array" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -70,19 +70,17 @@ class Users extends Path {
 		request: FastifyRequest<{
 			Querystring: RequestGallery;
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
-		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin),
-		);
-		if (!auth || typeof auth === 'string') {
+		const auth = await this.checkAuthAdmin(request);
+		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
-		const generated = this.generatePageQuery(request, auth.id);
+		const generated = this.generateGenericQuery(request);
 		if (generated.errored) {
 			const genType = generated as unknown as {
 				httpCode: number;
@@ -92,11 +90,10 @@ class Users extends Path {
 			return response.status(genType.httpCode).send(genType.json);
 		}
 
-		const {query, options} = generated as unknown as {
+		const { query, options } = generated as unknown as {
 			query: {
-				$gt?: {created: Date};
-				$lt?: {created: Date};
-				owner: string;
+				$gt?: { created: Date };
+				$lt?: { created: Date };
 			};
 			options: {
 				sort?: Record<string, unknown>;
@@ -123,9 +120,10 @@ class Users extends Path {
 		}> = users.map((user: User) => ({
 			title:
 				!user.admin && !user.owner
-					? ''
-					: (user.admin && 'admin') ?? (user.owner && 'first'),
+					? "User"
+					: (user.owner && "owner") ?? "admin",
 			username: user.username,
+			email: user.email,
 			files: user.files,
 			links: user.links,
 			id: user.id,
@@ -133,7 +131,7 @@ class Users extends Path {
 		}));
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: array});
+			.send({ code: this.codes.ok, message: array });
 	}
 }
 
