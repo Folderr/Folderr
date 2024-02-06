@@ -1,46 +1,156 @@
-type GenericFetchReturn<T = void> =
-	| {error: string | Error; success: false; response?: Response; output: null}
-	| {error: null; success: true; response?: Response; output?: T};
+import * as Sentry from "@sentry/vue";
 
-interface Stats {
+function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
+	Sentry.captureException(error);
+	if (
+		error instanceof Error &&
+		error.message === "Failed to fetch" &&
+		import.meta.env.DEV
+	) {
+		console.log(
+			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+		);
+		console.log(error);
+	}
+
+	console.log(error);
+
+	return {
+		error: "An unknown error occurred",
+		success: false,
+		output: undefined,
+	};
+}
+
+type GenericFetchReturn<T = void> =
+	| {
+			error: string | Error;
+			success: false;
+			response?: Response;
+			output: undefined;
+	  }
+	| { error: undefined; success: true; response?: Response; output?: T };
+
+type Stats = {
 	users: number;
 	links: number;
 	files: number;
 	bannedEmails: number;
 	whitelistedEmails: number;
-}
+};
 
 export async function getStats(): Promise<GenericFetchReturn<Stats>> {
 	try {
-		const response = await fetch('/api/admin/statistics', {
-			method: 'GET',
-			credentials: 'same-origin',
+		const response = await fetch("/api/admin/statistics", {
+			method: "GET",
+			credentials: "same-origin",
 		});
 
 		if (response.status === 401) {
-			console.log('Hi from AdminAPI Wrapper L14');
-			return {error: 'Unauthorized', success: false, output: null};
+			console.log("Hi from AdminAPI Wrapper L14");
+			return { error: "Unauthorized", success: false, output: undefined };
 		}
 
-		console.log('Hi from AdminAPI Wrapper L18');
+		console.log("Hi from AdminAPI Wrapper L18");
 		const output: {
 			code: number;
 			message: Stats;
-		} = (await response.json()) as {code: number; message: Stats};
-		return {error: null, success: true, output: output.message};
+		} = (await response.json()) as { code: number; message: Stats };
+		return { error: undefined, success: true, output: output.message };
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
+			error.message === "Failed to fetch" &&
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
 			);
 		}
 
 		console.log(error);
-		console.log('Hi from AdminAPI Wrapper L32');
-		return {error: 'An unknown error occurred', success: false, output: null};
+		console.log("Hi from AdminAPI Wrapper L32");
+		return {
+			error: "An unknown error occurred",
+			success: false,
+			output: undefined,
+		};
 	}
 }
+
+export type AdminUsersReturn = {
+	title: string;
+	links: number;
+	files: number;
+	id: string;
+	email: string;
+	username: string;
+	created: number;
+};
+
+export async function getUsers(): Promise<
+	GenericFetchReturn<AdminUsersReturn[] | string>
+> {
+	try {
+		const response = await fetch("/api/admin/users", {
+			credentials: "same-origin",
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const json:
+			| { code: number; message: string | AdminUsersReturn[] }
+			| undefined = await response.json();
+
+		if (!json?.code) {
+			throw Error(`Unexpected Error: ${response.statusText}`);
+		}
+
+		if (response.status !== 200) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				case "object":
+					if (!Array.isArray(json.message)) {
+						throw Error(`Unexpected Error: ${json.code}`);
+					}
+
+					break;
+				default:
+					throw Error(`Unexpected Error ${json.code}`);
+			}
+		}
+
+		const dbNotFound = 1054;
+
+		if (json.code === dbNotFound) {
+			return {
+				error: undefined,
+				success: true,
+				response,
+				output: json?.message ?? "No users found",
+			};
+		}
+
+		if (json?.message) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				default:
+					return {
+						error: undefined,
+						success: true,
+						response,
+						output: json?.message,
+					};
+			}
+		}
+
+		throw Error(`Unexpected Output: ${response.statusText}`);
+	} catch (error: unknown) {
+		return genericCatch(error);
+	}
+}
+
+// TODO: (User Moderation) Ban user, Warn user, Delete user
+// TODO: (Verification) Revoke user, Accept user
+// TODO: getVerifyingUsers, getBannedEmails
