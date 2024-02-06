@@ -23,40 +23,39 @@
  * @file Handles all token authorization in Folderr
  */
 
-import crypto from 'crypto';
-import {Buffer} from 'buffer';
-import jwt, {Algorithm} from 'jsonwebtoken';
-import type {Core} from '../../internals';
-import {logger} from '../../internals';
-import type {User} from '../Database/db-class';
-import AuthKeyHandler from '../../handlers/auth-key-handler';
+import crypto from "crypto";
+import { Buffer } from "buffer";
+import jwt, { type Algorithm } from "jsonwebtoken";
+import type { Core } from "../../internals";
+import { logger } from "../../internals";
+import type { User } from "../Database/db-class";
+import AuthKeyHandler from "../../handlers/auth-key-handler";
 
 /**
  * @classdesc Handle token authorization.
  */
 export default class Authorization {
-
 	readonly #algorithms: Algorithm[];
 
-	#keyHandler: AuthKeyHandler;
+	readonly #keyHandler: AuthKeyHandler;
 
 	#privKey!: Buffer;
 
 	#pubKey!: Buffer;
 
-	#core: Core;
+	readonly #core: Core;
 
 	constructor(core: Core) {
 		this.#keyHandler = new AuthKeyHandler();
 		this.#core = core;
 		this.#algorithms = [
-			'RS256',
-			'RS384',
-			'RS512',
-			'PS256',
-			'PS384',
-			'PS512'
-		]
+			"RS256",
+			"RS384",
+			"RS512",
+			"PS256",
+			"PS384",
+			"PS512",
+		];
 	}
 
 	async init(): Promise<void> {
@@ -65,16 +64,16 @@ export default class Authorization {
 		} catch (error: unknown) {
 			console.log((error as Error).message);
 			const messages = [
-				'Private and Public Keys Do Not Match.',
-				'Unable to fetch keys',
-				'You Need to Pass the Secret Key with an Environment Variable',
+				"Private and Public Keys Do Not Match.",
+				"Unable to fetch keys",
+				"You Need to Pass the Secret Key with an Environment Variable",
 			];
 			if (error instanceof Error && messages.includes(error.message)) {
 				this.#core.logger.error(error.message);
 				await this.#core.Utils.sleep(1000);
 				this.#core.shutdownServer(
-					'Utils.init',
-					'Utility initialization failed',
+					"Utils.init",
+					"Utility initialization failed"
 				);
 			}
 
@@ -83,7 +82,7 @@ export default class Authorization {
 		}
 
 		if (!this.#keyHandler.publicKey || !this.#keyHandler.privateKey) {
-			throw new Error('The Key Handler could not find the keys!');
+			throw new Error("The Key Handler could not find the keys!");
 		}
 
 		this.#pubKey = this.#keyHandler.publicKey;
@@ -91,22 +90,26 @@ export default class Authorization {
 	}
 
 	public async verify(token: string, web?: boolean): Promise<string | void> {
-		if (web ?? token.startsWith('Bearer: ')) {
+		if (web ?? token.startsWith("Bearer: ")) {
 			token = token.slice(8);
 		}
 
 		try {
 			const result = jwt.verify(token, this.#pubKey, {
-				issuer: 'folderr',
+				issuer: "folderr",
 				algorithms: this.#algorithms,
 			});
-			if (!result || typeof result === 'string' || !result.jti) {
+			if (!result || typeof result === "string" || !result.jti) {
 				return;
 			}
 
-			const verify = await this.#core.db.findToken(result.jti, result.id, {
-				web,
-			});
+			const verify = await this.#core.db.findToken(
+				result.jti,
+				result.id,
+				{
+					web,
+				}
+			);
 			if (!verify) {
 				return;
 			}
@@ -115,7 +118,7 @@ export default class Authorization {
 		} catch (error: unknown) {
 			if (
 				error instanceof Error &&
-				error.message !== 'JsonWebTokenError: invalid signature'
+				error.message !== "JsonWebTokenError: invalid signature"
 			) {
 				console.log(error);
 			}
@@ -127,7 +130,7 @@ export default class Authorization {
 		options?: {
 			fn?: (args0: User) => boolean;
 			web?: boolean;
-		},
+		}
 	): Promise<User | void> {
 		if (!token) {
 			return;
@@ -143,7 +146,7 @@ export default class Authorization {
 				return;
 			}
 
-			const user = await this.#core.db.findUser({id});
+			const user = await this.#core.db.findUser({ id });
 			if (!user) {
 				return;
 			}
@@ -153,14 +156,16 @@ export default class Authorization {
 			}
 
 			return user;
-		} catch {}
+		} catch (error: unknown) {
+			this.#core.logger.error(error);
+		}
 	}
 
 	public async revoke(
 		token: string,
-		web?: boolean,
+		web?: boolean
 	): Promise<boolean | void | 404> {
-		if (token.startsWith('Bearer: ')) {
+		if (token.startsWith("Bearer: ")) {
 			web = true;
 		}
 
@@ -170,16 +175,20 @@ export default class Authorization {
 
 		try {
 			const result = jwt.verify(token, this.#pubKey, {
-				issuer: 'folderr',
+				issuer: "folderr",
 				algorithms: this.#algorithms,
 			});
-			if (!result || typeof result === 'string' || !result.jti) {
+			if (!result || typeof result === "string" || !result.jti) {
 				return;
 			}
 
-			const verifyDb = await this.#core.db.purgeToken(result.jti, result.id, {
-				web,
-			});
+			const verifyDb = await this.#core.db.purgeToken(
+				result.jti,
+				result.id,
+				{
+					web,
+				}
+			);
 			if (!verifyDb) {
 				return 404;
 			}
@@ -190,7 +199,7 @@ export default class Authorization {
 
 	public async revokeAll(
 		userID: string,
-		web?: boolean,
+		web?: boolean
 	): Promise<boolean | void> {
 		try {
 			const del = await this.#core.db.purgeTokens(userID, web);
@@ -202,8 +211,10 @@ export default class Authorization {
 			return true;
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				logger.debug(`Authorization/Revoke All Error: ${error.message}`);
-			} else if (typeof error === 'string') {
+				logger.debug(
+					`Authorization/Revoke All Error: ${error.message}`
+				);
+			} else if (typeof error === "string") {
 				logger.debug(`Authorization/Revoke All Error: ${error}`);
 			}
 		}
@@ -211,29 +222,29 @@ export default class Authorization {
 
 	async genKeyWeb(userID: string): Promise<string> {
 		const id = this.genID();
-		await this.#core.db.makeToken(id, userID, {web: true});
-		return `Bearer: ${jwt.sign({id: userID}, this.#privKey, {
-			expiresIn: '14d',
-			issuer: 'folderr',
+		await this.#core.db.makeToken(id, userID, { web: true });
+		return `Bearer: ${jwt.sign({ id: userID }, this.#privKey, {
+			expiresIn: "14d",
+			issuer: "folderr",
 			jwtid: id,
-			algorithm: 'PS256',
+			algorithm: "PS256",
 		})}`;
 	}
 
 	async genKey(userID: string, description?: string): Promise<string> {
 		const id = this.genID();
-		await this.#core.db.makeToken(id, userID, {web: false, description});
-		return jwt.sign({id: userID}, this.#privKey, {
-			issuer: 'folderr',
+		await this.#core.db.makeToken(id, userID, { web: false, description });
+		return jwt.sign({ id: userID }, this.#privKey, {
+			issuer: "folderr",
 			jwtid: id,
-			algorithm: 'PS256',
+			algorithm: "PS256",
 		});
 	}
 
 	async genMirrorKey(
 		url: string,
-		mirrorURL: string,
-	): Promise<{key: string; id: string}> {
+		mirrorURL: string
+	): Promise<{ key: string; id: string }> {
 		const id = this.genID();
 		return {
 			key: jwt.sign(
@@ -244,11 +255,11 @@ export default class Authorization {
 				},
 				this.#privKey,
 				{
-					issuer: 'folderr',
+					issuer: "folderr",
 					jwtid: id,
-					expiresIn: '1h',
-					algorithm: 'PS256',
-				},
+					expiresIn: "1h",
+					algorithm: "PS256",
+				}
 			),
 			id,
 		};
@@ -261,24 +272,26 @@ export default class Authorization {
 		},
 		id: string,
 		url: string,
-		mirrorURL: string,
+		mirrorURL: string
 	): boolean {
 		const out = jwt.verify(message.token, this.#privKey, {
-			issuer: 'folderr',
+			issuer: "folderr",
 		});
-		return !!(out &&
-			typeof out === 'object' &&
-			out.jti === id &&
-			out.url === url &&
-			out.mirrorURL === mirrorURL &&
-			message.res === 'Mirror Operational');
+		return Boolean(
+			out &&
+				typeof out === "object" &&
+				out.jti === id &&
+				out.url === url &&
+				out.mirrorURL === mirrorURL &&
+				message.res === "Mirror Operational"
+		);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private genID(): string {
 		return `${
-			crypto.randomBytes(10).toString('hex') +
-			Buffer.from(new Date().toString()).toString('base64').slice(0, 8)
+			crypto.randomBytes(10).toString("hex") +
+			Buffer.from(new Date().toString()).toString("base64").slice(0, 8)
 		}`;
 	}
 }
