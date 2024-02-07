@@ -1,64 +1,63 @@
 // Node modules
-import {join} from 'path';
-import {platform} from 'os';
-import {EventEmitter} from 'events';
-import http from 'http';
-import {fork} from 'child_process';
-import fs from 'fs';
-import process from 'process';
-import type {ChildProcess} from 'child_process';
+import { join } from "path";
+import { platform } from "os";
+import { EventEmitter } from "events";
+import http from "http";
+import { fork } from "child_process";
+import fs from "fs";
+import process from "process";
+import type { ChildProcess } from "child_process";
 
 // Fastify imports
-import fastify from 'fastify';
-import cookie from '@fastify/cookie';
-import helmet from '@fastify/helmet';
-import fastifyStatic from '@fastify/static';
-import ratelimit from '@fastify/rate-limit';
-import fastifyCors from '@fastify/cors';
-import multipart from '@fastify/multipart';
-import type {FastifyInstance, FastifyServerFactoryHandler} from 'fastify';
+import fastify from "fastify";
+import cookie from "@fastify/cookie";
+import helmet from "@fastify/helmet";
+import fastifyStatic from "@fastify/static";
+import ratelimit from "@fastify/rate-limit";
+import fastifyCors from "@fastify/cors";
+import multipart from "@fastify/multipart";
+import type { FastifyInstance, FastifyServerFactoryHandler } from "fastify";
 
 // Frontend stuff
 
-import middie from '@fastify/middie';
+import middie from "@fastify/middie";
 
 // Other imports
-import spdy from 'spdy'; // Fuck spdy
-import got from 'got';
-import type {Got} from 'got';
-import * as Sentry from '@sentry/node';
-import type pino from 'pino';
+import spdy from "spdy"; // Fuck spdy
+import got from "got";
+import type { Got } from "got";
+import * as Sentry from "@sentry/node";
+import type pino from "pino";
 
 // Local files
-import Configurer from '../handlers/config-handler';
-import * as endpointsImport from '../Paths/index';
-import * as APIs from '../Paths/API/index';
+import Configurer from "../handlers/config-handler";
+import * as endpointsImport from "../Paths/index";
+import * as APIs from "../Paths/API/index";
 import {
 	Emailer,
 	Utils,
 	MongoDB,
 	Regexs,
 	codes as StatusCodes,
-} from '../internals';
-import {version} from '../../../package.json';
+} from "../internals";
+import { version } from "../../../package.json";
 import type {
 	CoreConfig,
 	DbConfig,
 	ActEmailConfig,
 	KeyConfig,
-} from '../handlers/config-handler';
-import type {Path} from '../internals';
-import logger from './logger';
+} from "../handlers/config-handler";
+import type { Path } from "../internals";
+import logger from "./logger";
 
 // Local Fastify plugins
-import SentryPlugin from './plugins/sentry';
+import SentryPlugin from "./plugins/sentry";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
 const ee = new EventEmitter();
-ee.on('fail', (code: number) => {
+ee.on("fail", (code: number) => {
 	setTimeout(() => {
-		 
 		process.exit(code || 1); // Justification: Process may not exit if this is not called
 	}, 1000);
 });
@@ -71,7 +70,7 @@ interface LogOptions extends pino.LoggerOptions {
 		startup: 35;
 	};
 }
-declare module 'fastify' {
+declare module "fastify" {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface FastifyInstance {
 		codes: typeof StatusCodes;
@@ -82,7 +81,9 @@ declare module 'fastify' {
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-type importedApi = typeof Path | ((fastify: FastifyInstance, core: Core) => FastifyInstance)
+type importedApi =
+	| typeof Path
+	| ((fastify: FastifyInstance, core: Core) => FastifyInstance);
 
 export default class Core {
 	public readonly db: MongoDB;
@@ -147,7 +148,8 @@ export default class Core {
 
 		// Init app
 		this.httpsEnabled = Boolean(
-			this.#keys.httpsCertOptions?.cert && this.#keys.httpsCertOptions?.key,
+			this.#keys.httpsCertOptions?.cert &&
+				this.#keys.httpsCertOptions?.key
 		);
 
 		this.app = fastify({
@@ -156,7 +158,7 @@ export default class Core {
 			serverFactory: this.initServer(this.#keys),
 			logger: this.logger,
 		});
-		this.app.decorate('codes', StatusCodes);
+		this.app.decorate("codes", StatusCodes);
 
 		// Init db
 		this.db = new MongoDB(); // Time to abuse Node. :)
@@ -164,8 +166,8 @@ export default class Core {
 
 		this.regexs = new Regexs();
 		this.Utils = new Utils(this);
-		this.app.decorate('utils', this.Utils)
-		this.app.decorate('db', this.db)
+		this.app.decorate("utils", this.Utils);
+		this.app.decorate("db", this.db);
 		this.emailer = new Emailer(
 			this,
 			this.#emailConfig?.sendingEmail,
@@ -176,21 +178,25 @@ export default class Core {
 		this.got = got.extend({
 			http2: true,
 			headers: {
-				'User-Agent': `Folderr/${version} (github.com/Folderr/Folderr)`,
+				"User-Agent": `Folderr/${version} (github.com/Folderr/Folderr)`,
 			},
 		});
-		this.app.decorate('got', this.got)
-		this.#deleter = fork(join(process.cwd(), 'src/file-del-queue'), undefined, {
-			silent: true,
-		});
+		this.app.decorate("got", this.got);
+		this.#deleter = fork(
+			join(process.cwd(), "src/file-del-queue"),
+			undefined,
+			{
+				silent: true,
+			}
+		);
 
 		this.app.addContentTypeParser(
-			'text/plain',
+			"text/plain",
 			{
-				parseAs: 'string',
+				parseAs: "string",
 			},
 			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
-			(_request, body, done) => done(null, body),
+			(_request, body, done) => done(null, body)
 		);
 	}
 
@@ -200,31 +206,30 @@ export default class Core {
 		// Enable Sentry tracing
 		await this.app.register(SentryPlugin);
 
-		if (process.env.NODE_ENV !== 'dev') {
-			 
+		if (process.env.NODE_ENV !== "dev") {
 			const defaultSrc = ["'self'"];
-			if (process.env.NODE_ENV !== 'production') {
-				defaultSrc.push('ws://localhost:*');
+			if (process.env.NODE_ENV !== "production") {
+				defaultSrc.push("ws://localhost:*");
 			}
 
 			await this.app.register(helmet, {
 				contentSecurityPolicy: {
 					directives: {
 						defaultSrc,
-						 
-						scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+
+						scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
 					},
 				},
 			});
 		}
 
 		await this.app.register(ratelimit, {
-			max: process.env.NODE_ENV === 'dev' ? 100 : 20,
-			timeWindow: '10s',
+			max: process.env.NODE_ENV === "dev" ? 100 : 20,
+			timeWindow: "10s",
 		});
 
 		await this.app.register(fastifyCors, {
-			origin: '*',
+			origin: "*",
 		});
 
 		await this.app.register(multipart, {
@@ -235,23 +240,23 @@ export default class Core {
 			},
 		});
 		await this.app.register(fastifyStatic, {
-			root: join(process.cwd(), 'dist/src/frontend'),
+			root: join(process.cwd(), "dist/src/frontend"),
 		});
 
 		if (process.env.DEBUG) {
-			this.app.addHook('onRequest', (request, _, done) => {
+			this.app.addHook("onRequest", (request, _, done) => {
 				this.logger.debug(`URL: ${request.url}`);
 				this.logger.debug(`Is 404: ${request.is404.toString()}`);
 
 				done();
 			});
-			this.app.addHook('onResponse', async (_, reply) => {
+			this.app.addHook("onResponse", async (_, reply) => {
 				this.logger.debug(`Status: ${reply.raw.statusCode}`);
 			});
-			this.app.addHook('preValidation', (request, _, done) => {
-				this.logger.debug('Validation:');
+			this.app.addHook("preValidation", (request, _, done) => {
+				this.logger.debug("Validation:");
 				this.logger.debug(
-					`Content-Type: ${request.headers['content-type'] ?? 'N/A'}`,
+					`Content-Type: ${request.headers["content-type"] ?? "N/A"}`
 				);
 				done();
 			});
@@ -259,7 +264,7 @@ export default class Core {
 	}
 
 	addDeleter(userID: string): void {
-		this.#deleter.send({message: 'add', data: userID});
+		this.#deleter.send({ message: "add", data: userID });
 	}
 
 	async initAuthorization() {
@@ -267,7 +272,7 @@ export default class Core {
 	}
 
 	initServer(
-		keys: KeyConfig,
+		keys: KeyConfig
 	): (handler: FastifyServerFactoryHandler) => http.Server {
 		return (handler: FastifyServerFactoryHandler) => {
 			if (keys.httpsCertOptions?.key && keys.httpsCertOptions?.cert) {
@@ -277,34 +282,37 @@ export default class Core {
 						cert: fs.readFileSync(keys.httpsCertOptions.cert),
 						key: fs.readFileSync(keys.httpsCertOptions.key),
 						spdy: {
-							protocols: ['h2', 'http/1.1'],
+							protocols: ["h2", "http/1.1"],
 						},
 					},
 					(request, response) => {
 						handler(request, response);
-					},
+					}
 				);
-				this.logger.debug('Using SPDY server');
-				this.logger.debug('Initalized Server');
+				this.logger.debug("Using SPDY server");
+				this.logger.debug("Initalized Server");
 
 				return server;
 			}
 
-			if (process.env.NODE_ENV === 'production' && !this.config.trustProxies) {
+			if (
+				process.env.NODE_ENV === "production" &&
+				!this.config.trustProxies
+			) {
 				this.logger.error(
-					'HTTPS and/or HTTP/2 required in production. Shuting down',
+					"HTTPS and/or HTTP/2 required in production. Shuting down"
 				);
-				this.shutdownServer('Core.initServer', 'No HTTPS Certificate');
+				this.shutdownServer("Core.initServer", "No HTTPS Certificate");
 				throw new Error(
-					'HTTPS and/or HTTP/2 required in production. Shuting down',
+					"HTTPS and/or HTTP/2 required in production. Shuting down"
 				);
 			}
 
 			const server = http.createServer((request, response) => {
 				handler(request, response);
 			});
-			this.logger.debug('Using HTTP server');
-			this.logger.debug('Initalized Server');
+			this.logger.debug("Using HTTP server");
+			this.logger.debug("Initalized Server");
 
 			return server;
 		};
@@ -312,68 +320,77 @@ export default class Core {
 
 	async registerNewApi() {
 		this.logger.debug("Automatically loading new APIs");
-		let basedir = 'src/backend/NeoAPI';
-    let extension = '.ts'
-    if (process.env.NODE_ENV !== 'dev') {
-        basedir = `dist/${basedir}`;
-        extension = '.js';
-    }
+		let basedir = "src/backend/NeoAPI";
+		let extension = ".ts";
+		if (process.env.NODE_ENV !== "dev") {
+			basedir = `dist/${basedir}`;
+			extension = ".js";
+		}
+
 		const dirs = fs.readdirSync(basedir);
-		const fullPaths: Array<{prefix: string; dirs: string[]}> = [];
+		const fullPaths: Array<{ prefix: string; dirs: string[] }> = [];
 		// Find all the files!
 		for (const dir of dirs) {
 			const children = fs.readdirSync(basedir + `/${dir}`);
 			for (const child of children) {
-				if (child.endsWith('.ts') || child.endsWith('.js')) continue;
-				let files = fs.
-					readdirSync(basedir + `/${dir}/` + child).
-					map(file => `/${basedir}/${dir}/${child}/${file}`) ;
+				if (child.endsWith(".ts") || child.endsWith(".js")) continue;
+				let files = fs
+					.readdirSync(basedir + `/${dir}/` + child)
+					.map((file) => `/${basedir}/${dir}/${child}/${file}`);
 				// The index file contains metadata about the subfolder like the API prefix
-				files = files.filter(file => !(/index/.exec(file)));
+				files = files.filter((file) => !/index/.exec(file));
 				// eslint-disable-next-line max-len
 				// eslint-disable-next-line no-await-in-loop, @typescript-eslint/no-unsafe-assignment
-				const {prefix} = await import(
-					  `${process.cwd()}/${basedir}/${dir}/${child}/index${extension}`
+				const { prefix } = await import(
+					`${process.cwd()}/${basedir}/${dir}/${child}/index${extension}`
 				);
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				fullPaths.push({prefix, dirs: files});
+				fullPaths.push({ prefix, dirs: files });
 			}
 		}
 
 		const promises: any[] = [];
 
-
 		for (const files of fullPaths) {
+			console.log(files.prefix);
 			promises.push(
-				this.app.register(async(instance, opts) => {
-					const inits: Array<Promise<any>> = [];
-					for (const file of files.dirs) {
-						const setup = async() => {
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-							const imported: {
-								name: string;
-								path: string;
-								route: ((fastify: FastifyInstance, core: Core) => any);
-								rewrites?: string
-								enabled: boolean
-							} = await import(process.cwd() + `/${file}`);
-							if (!imported.enabled) return;
-							// In the event that the file rewrites older legacy code, disable it.
-							if (imported.rewrites && imported.rewrites.length > 0) {
-								this.#rewritten.push(imported.rewrites);
-							}
+				this.app.register(
+					async (instance, opts) => {
+						const inits: Array<Promise<any>> = [];
+						for (const file of files.dirs) {
+							const setup = async () => {
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+								const imported: {
+									name: string;
+									path: string;
+									route: (
+										fastify: FastifyInstance,
+										core: Core
+									) => any;
+									rewrites?: string;
+									enabled: boolean;
+								} = await import(process.cwd() + `/${file}`);
+								if (!imported.enabled) return;
+								// In the event that the file rewrites older legacy code, disable it.
+								if (
+									imported.rewrites &&
+									imported.rewrites.length > 0
+								) {
+									this.#rewritten.push(imported.rewrites);
+								}
 
-							imported.route(instance, this);
+								imported.route(instance, this);
+							};
+
+							inits.push(setup());
 						}
 
-						inits.push(setup());
+						await Promise.all(inits);
+					},
+					{
+						prefix: `/api${files.prefix}`,
 					}
-
-					await Promise.all(inits);
-				},
-				{
-					prefix: `/api${files.prefix}`
-				})
+				)
 			);
 		}
 
@@ -381,19 +398,21 @@ export default class Core {
 	}
 
 	async initDb(): Promise<void> {
-		this.logger.debug('Init DB');
+		this.logger.debug("Init DB");
 		// Again, neglecting this potential error to handle elsewhere
-		return this.db.init(this.#dbConfig.url || 'mongodb://localhost/folderr');
+		return this.db.init(
+			this.#dbConfig.url || "mongodb://localhost/folderr"
+		);
 	}
 
 	async registerApis() {
-		this.logger.debug("Using fancy API register function")
+		this.logger.debug("Using fancy API register function");
 		for (const api of Object.values<{
 			version: string;
 			prefix: string;
 			endpoints: Record<string, typeof Path>;
 		}>(APIs)) {
-			const {version} = api;
+			const { version } = api;
 			let count = 0;
 
 			void this.app.register(
@@ -405,14 +424,17 @@ export default class Core {
 						const label = endpoint.label;
 						if (
 							!endpoint.enabled ||
-							(endpoint.label.startsWith('DEBUG') && !process.env.DEBUG)
+							(endpoint.label.startsWith("DEBUG") &&
+								!process.env.DEBUG)
 						) {
 							continue;
 						}
 
 						// In the event that the API is rewritten by newer non-legacy code,
 						// skip the legacy code.
-						const path = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
+						const path = Array.isArray(endpoint.path)
+							? endpoint.path[0]
+							: endpoint.path;
 						if (this.#rewritten.includes(path)) {
 							continue;
 						}
@@ -422,18 +444,20 @@ export default class Core {
 						const method = endpoint.type.toUpperCase();
 
 						this.logger.startup(
-							`API Path ${label} v${version} initialized with method ${method}!`,
+							`API Path ${label} v${version} initialized with method ${method}!`
 						);
 						count++;
 					}
 
-					this.logger.info(`${count} API v${version} initialized paths`);
+					this.logger.info(
+						`${count} API v${version} initialized paths`
+					);
 
 					done();
 				},
 				{
 					prefix: api.prefix,
-				},
+				}
 			);
 		}
 	}
@@ -442,11 +466,15 @@ export default class Core {
 		const app = instance;
 
 		switch (path.type) {
-			case 'post': {
+			case "post": {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {
 						if (path.options) {
-							app.post(url, path.options, path.execute.bind(path));
+							app.post(
+								url,
+								path.options,
+								path.execute.bind(path)
+							);
 							continue;
 						}
 
@@ -454,7 +482,11 @@ export default class Core {
 					}
 				} else {
 					if (path.options) {
-						app.post(path.path, path.options, path.execute.bind(path));
+						app.post(
+							path.path,
+							path.options,
+							path.execute.bind(path)
+						);
 						break;
 					}
 
@@ -464,11 +496,15 @@ export default class Core {
 				break;
 			}
 
-			case 'delete': {
+			case "delete": {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {
 						if (path.options) {
-							app.delete(url, path.options, path.execute.bind(path));
+							app.delete(
+								url,
+								path.options,
+								path.execute.bind(path)
+							);
 							continue;
 						}
 
@@ -476,7 +512,11 @@ export default class Core {
 					}
 				} else {
 					if (path.options) {
-						app.delete(path.path, path.options, path.execute.bind(path));
+						app.delete(
+							path.path,
+							path.options,
+							path.execute.bind(path)
+						);
 						break;
 					}
 
@@ -486,11 +526,15 @@ export default class Core {
 				break;
 			}
 
-			case 'patch': {
+			case "patch": {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {
 						if (path.options) {
-							app.patch(url, path.options, path.execute.bind(path));
+							app.patch(
+								url,
+								path.options,
+								path.execute.bind(path)
+							);
 							continue;
 						}
 
@@ -498,7 +542,11 @@ export default class Core {
 					}
 				} else {
 					if (path.options) {
-						app.patch(path.path, path.options, path.execute.bind(path));
+						app.patch(
+							path.path,
+							path.options,
+							path.execute.bind(path)
+						);
 						break;
 					}
 
@@ -520,7 +568,11 @@ export default class Core {
 					}
 				} else {
 					if (path.options) {
-						app.get(path.path, path.options, path.execute.bind(path));
+						app.get(
+							path.path,
+							path.options,
+							path.execute.bind(path)
+						);
 						break;
 					}
 
@@ -530,43 +582,40 @@ export default class Core {
 		}
 	}
 
-	findPaths(dir: string): Array<Promise<{
-		default: importedApi,
-		type?: string;
-		label?: string;
-		url?: string;
-	}>> {
+	findPaths(dir: string): Array<
+		Promise<{
+			default: importedApi;
+			type?: string;
+			label?: string;
+			url?: string;
+		}>
+	> {
 		if (!require.main?.path) {
 			return [];
 		}
 
 		const paths: Array<
-			Promise<
-				{
-					default: importedApi
-					type?: string;
-					label?: string;
-					url?: string
-				}
-			>
+			Promise<{
+				default: importedApi;
+				type?: string;
+				label?: string;
+				url?: string;
+			}>
 		> = [];
 		const apiitems = fs.readdirSync(dir);
 		for (const apiordir of apiitems) {
-			if (apiordir.startsWith('index')) continue;
-			if (apiordir.includes('.')) {
+			if (apiordir.startsWith("index")) continue;
+			if (apiordir.includes(".")) {
 				paths.push(
-					import(
-						join(dir, apiordir)
-					) as Promise<{
-						default: importedApi,
-						type?: string,
-						label?: string,
-						url?: string
+					import(join(dir, apiordir)) as Promise<{
+						default: importedApi;
+						type?: string;
+						label?: string;
+						url?: string;
 					}>
 				);
 				continue;
 			}
-
 
 			paths.push(...this.findPaths(join(dir, apiordir)));
 		}
@@ -576,87 +625,98 @@ export default class Core {
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async initAPI(): Promise<void> {
-		this.logger.debug("Using initAPI function")
+		this.logger.debug("Using initAPI function");
 		let count = 0;
 		if (require.main?.path) {
-			const dir = fs.readdirSync(join(require.main?.path, 'Paths/API'));
-			const paths:
-				Array<{
-					version: string,
-					paths: Array<
-						Promise<
-							{
-								default: importedApi,
-								type?: string,
-								label?: string,
-								url?: string
-							}
-						>
-					>
-				}> = [];
+			const dir = fs.readdirSync(join(require.main?.path, "Paths/API"));
+			const paths: Array<{
+				version: string;
+				paths: Array<
+					Promise<{
+						default: importedApi;
+						type?: string;
+						label?: string;
+						url?: string;
+					}>
+				>;
+			}> = [];
 			for (const item of dir) {
-				if (!item.startsWith('V')) continue;
+				if (!item.startsWith("V")) continue;
 
-				const output = this.findPaths(join(require.main.path, `Paths/API/${item}`));
-				paths.push({version: item, paths: output});
-
+				const output = this.findPaths(
+					join(require.main.path, `Paths/API/${item}`)
+				);
+				paths.push({ version: item, paths: output });
 			}
-			
-			const promises: any[] = []
+
+			const promises: any[] = [];
 			for (const value of paths) {
 				// eslint-disable-next-line no-await-in-loop
 				const actpaths = await Promise.all(value.paths);
-				// eslint-disable-next-line @typescript-eslint/no-loop-func
-				promises.push(this.app.register((instance, _options, done) => {
-					for (const pathimport of actpaths) {
-						let label: string;
-						let endpointType: string;
-						let endUrl: string;
-						// eslint-disable-next-line @typescript-eslint/naming-convention
-						const Endpoint = pathimport.default;
-						if (
-							Object.getOwnPropertyNames(Endpoint).includes('prototype')
-							) {
-							const endpoint = new (Endpoint as typeof Path)(this);
-							if (!endpoint.enabled) continue;
-							// In the event that the API is rewritten by newer non-legacy code,
-							// skip the legacy code.
-							const path = Array.isArray(endpoint.path) ?
-								endpoint.path[0] :
-								endpoint.path
-							if (this.#rewritten.includes(path)) {
-								continue;
+
+				promises.push(
+					this.app.register(
+						(instance, _options, done) => {
+							for (const pathimport of actpaths) {
+								let label: string;
+								let endpointType: string;
+								let endUrl: string;
+								// eslint-disable-next-line @typescript-eslint/naming-convention
+								const Endpoint = pathimport.default;
+								if (
+									Object.getOwnPropertyNames(
+										Endpoint
+									).includes("prototype")
+								) {
+									const endpoint =
+										new (Endpoint as typeof Path)(this);
+									if (!endpoint.enabled) continue;
+									// In the event that the API is rewritten by newer non-legacy code,
+									// skip the legacy code.
+									const path = Array.isArray(endpoint.path)
+										? endpoint.path[0]
+										: endpoint.path;
+									if (this.#rewritten.includes(path)) {
+										continue;
+									}
+
+									label = endpoint.label;
+									endpointType = endpoint.type;
+									endUrl = Array.isArray(endpoint.path)
+										? endpoint.path[0]
+										: endpoint.path;
+
+									this.internalInitPath(endpoint, instance);
+								} else {
+									(
+										Endpoint as (
+											fastify: FastifyInstance,
+											core: Core
+										) => FastifyInstance
+									)(instance, this);
+									endpointType = pathimport.type ?? "unknown";
+									label = pathimport.label ?? "unknown";
+									endUrl = pathimport.url ?? "Unknown";
+								}
+
+								this.logger.startup(
+									`Loaded ${label}` +
+										` ${value.version} with method ${endpointType}` +
+										` with url /api${endUrl}`
+								);
+								count++;
 							}
 
-							label = endpoint.label;
-							endpointType = endpoint.type
-							endUrl = Array.isArray(endpoint.path) ? endpoint.path[0] : endpoint.path
-
-							this.internalInitPath(endpoint, instance);
-						} else {
-							(
-								Endpoint as (
-									fastify: FastifyInstance, core: Core
-									) => FastifyInstance
-									)(instance, this)
-							endpointType = pathimport.type ?? "unknown";
-							label = pathimport.label ?? "unknown"
-							endUrl = pathimport.url ?? "Unknown"
-						}
-
-						this.logger.startup(
-							`Loaded ${label}` +
-							` ${value.version} with method ${endpointType}` +
-							` with url /api${endUrl}`
+							this.logger.startup(
+								`Loaded ${count} API Paths (${value.version})`
 							);
-						count++;
-					}
-
-					this.logger.startup(`Loaded ${count} API Paths (${value.version})`);
-					done();
-					}, {
-					prefix: '/api'
-				}));
+							done();
+						},
+						{
+							prefix: "/api",
+						}
+					)
+				);
 			}
 
 			await Promise.all(promises);
@@ -667,7 +727,10 @@ export default class Core {
 		let pathCount = 0;
 		for (const endpoint in endpoints) {
 			// This works TS, trust me.
-			if (endpoint.toLowerCase().startsWith('debug') && !process.env.DEBUG) {
+			if (
+				endpoint.toLowerCase().startsWith("debug") &&
+				!process.env.DEBUG
+			) {
 				continue;
 			}
 
@@ -675,18 +738,19 @@ export default class Core {
 			const ActualEndpoint = endpoints[endpoint];
 			const path = new ActualEndpoint(this);
 			const endpointName =
-				((typeof path.path === 'string' && path.path) || path.label) ?? base;
+				((typeof path.path === "string" && path.path) || path.label) ??
+				base;
 			if (path.enabled) {
 				if (!path.label || !path.path) {
 					this.logger.error(
-						`Path ${endpointName} label or endpoint not found, fail init of Path.`,
+						`Path ${endpointName} label or endpoint not found, fail init of Path.`
 					);
 					continue;
 				}
 
 				if (!path.execute) {
 					this.logger.error(
-						`Path ${endpointName} executable found, fail init of Path.`,
+						`Path ${endpointName} executable found, fail init of Path.`
 					);
 					continue;
 				}
@@ -697,7 +761,7 @@ export default class Core {
 				this.logger.startup(
 					`Initalized path ${
 						path.label
-					} (${base}) with method ${path.type.toUpperCase()}`,
+					} (${base}) with method ${path.type.toUpperCase()}`
 				);
 				pathCount++;
 			}
@@ -708,23 +772,23 @@ export default class Core {
 	}
 
 	async initFrontend() {
-		if (process.env.NODE_ENV === 'production') {
-			this.logger.debug('Using production build for frontend');
+		if (process.env.NODE_ENV === "production") {
+			this.logger.debug("Using production build for frontend");
 
 			this.app.setNotFoundHandler(async (request, reply) => {
-				if (request.url.startsWith('/api')) {
+				if (request.url.startsWith("/api")) {
 					return reply.status(404).send({
-						code: '404',
+						code: "404",
 						message: `${request.method}: ${request.url} Not Found`,
 					});
 				}
 
 				if (!this.config.apiOnly) {
-					return reply.sendFile('index.html');
+					return reply.sendFile("index.html");
 				}
 
 				return reply.status(404).send({
-					code: '404',
+					code: "404",
 					message: `${request.method}: ${request.url} Not Found`,
 				});
 			});
@@ -733,55 +797,57 @@ export default class Core {
 		}
 
 		if (process.env.DEBUG) {
-			this.logger.debug('Using Development Vite server for frontend');
+			this.logger.debug("Using Development Vite server for frontend");
 		}
 
-		const vite = await import('vite');
+		const vite = await import("vite");
 		await this.app.register(middie);
 		await this.app.after();
-		const server = await vite.createServer(
-			{server:
-				{
-					middlewareMode: true
-				},
-				envDir: process.cwd()
-			}
-		);
-    const publicPaths = fs.readdirSync("./src/frontend/public");
+		const server = await vite.createServer({
+			server: {
+				middlewareMode: true,
+			},
+			envDir: process.cwd(),
+		});
+		const publicPaths = fs.readdirSync("./src/frontend/public");
 		this.app.use((request, response, next) => {
-        const strippedUrl = request.url?.slice(1, request.url.length) || "";
-        if (publicPaths.includes(strippedUrl)) {
-            server.middlewares(request, response, next);
-        } else if (request.url?.match(/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/)) {
-				    next();
-			  } else {
-				    server.middlewares(request, response, next);
-			  }
+			const strippedUrl = request.url?.slice(1, request.url.length) || "";
+			if (publicPaths.includes(strippedUrl)) {
+				server.middlewares(request, response, next);
+			} else if (
+				request.url?.match(
+					/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/
+				)
+			) {
+				next();
+			} else {
+				server.middlewares(request, response, next);
+			}
 		});
 		this.app.setNotFoundHandler(async (request, reply) => {
-			if (request.url.startsWith('/api')) {
+			if (request.url.startsWith("/api")) {
 				return reply.status(404).send({
-					code: '404',
+					code: "404",
 					message: `${request.method}: ${request.url} Not Found`,
 				});
 			}
 
 			if (!this.config.apiOnly) {
-				return reply.sendFile('index.html');
+				return reply.sendFile("index.html");
 			}
 
 			return reply.status(404).send({
-				code: '404',
+				code: "404",
 				message: `${request.method}: ${request.url} Not Found`,
 			});
 		});
 
 		this.app.addContentTypeParser(
-			'text/json',
-			{parseAs: 'string'},
-			this.app.getDefaultJsonParser('ignore', 'ignore'),
+			"text/json",
+			{ parseAs: "string" },
+			this.app.getDefaultJsonParser("ignore", "ignore")
 		);
-		return 'development';
+		return "development";
 	}
 
 	checkPorts(): boolean {
@@ -791,18 +857,18 @@ export default class Core {
 			process.getuid &&
 			process.getuid() !== linuxRootUid &&
 			this.config.port < linuxRootPorts &&
-			platform() === 'linux'
+			platform() === "linux"
 		) {
-			ee.emit('fail', 13);
+			ee.emit("fail", 13);
 			this.logger.fatal(
-				`Cannot listen to port ${this.config.port} as you are not root!`,
+				`Cannot listen to port ${this.config.port} as you are not root!`
 			);
 			throw new Error(
-				`Cannot listen to port ${this.config.port} as you are not root!`,
+				`Cannot listen to port ${this.config.port} as you are not root!`
 			);
 		}
 
-		this.logger.debug('Listen Port OK');
+		this.logger.debug("Listen Port OK");
 
 		return true;
 	}
@@ -811,28 +877,28 @@ export default class Core {
 		this.checkPorts();
 		return this.app.listen({
 			port: this.config.port,
-			host: process.env.DOCKER === 'true' ? '0.0.0.0' : 'localhost',
+			host: process.env.DOCKER === "true" ? "0.0.0.0" : "localhost",
 		});
 	}
 
 	shutdownServer(calledby?: string, reason?: string): void {
 		if (calledby) {
 			this.logger.info(`Shutdown called by ${calledby}`);
-			if (process.env.NODE_ENV !== 'dev') {
+			if (process.env.NODE_ENV !== "dev") {
 				console.log(`Shutdown called by ${calledby}`);
 			}
 		}
 
 		if (reason) {
 			this.logger.info(`Shutting down because ${reason}`);
-			if (process.env.NODE_ENV !== 'dev') {
+			if (process.env.NODE_ENV !== "dev") {
 				console.log(`Shutting down because ${reason}`);
 			}
 		}
 
 		if (this.#deleter?.connected && !this.#deleter.killed) {
-			this.#deleter.send({msg: 'stop'});
-			this.#deleter.on('exit', () => {
+			this.#deleter.send({ msg: "stop" });
+			this.#deleter.on("exit", () => {
 				this.#internals.deleterShutdown = true;
 			});
 		}
@@ -852,12 +918,10 @@ export default class Core {
 		}
 
 		if (this.#internals.serverClosed && this.#requestIds.size === 0) {
-			 
 			process.exit(0);
 		}
 
-		ee.once('noRequests', () => {
-			 
+		ee.once("noRequests", () => {
 			process.exit(0);
 		});
 	}
@@ -866,7 +930,7 @@ export default class Core {
 		const output = this.#requestIds.delete(id);
 		if (this.#requestIds.size === 0) {
 			this.#internals.noRequests = true;
-			ee.emit('noRequests');
+			ee.emit("noRequests");
 		}
 
 		return output;
