@@ -14,10 +14,10 @@ defineProps<{ active?: string }>();
 				<li>
 					<a
 						href="/admin/users"
-						class="flex font-bold text-lg hover:text-secondary-bg hover:bg-brand-darkened rounded-lg p-2"
+						class="flex font-bold text-lg hover:text-secondary-bg rounded-lg p-2"
 						:class="
 							active && active === 'user'
-								? 'text-white hover:text-secondary-bg hover:bg-brand-darkened'
+								? 'text-white hover:text-secondary-bg hover:bg-brand-darkened bg-tertiary-bg'
 								: 'text-secondary-text hover:text-text hover:bg-tertiary-bg'
 						"
 						>User Management</a

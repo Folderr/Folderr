@@ -10,34 +10,31 @@
 			<div class="lg:mt-20 mx-auto w-full text-text max-h-full">
 				<div class="flex justify-between grow mx-10">
 					<div class="flex space-x-10">
-						<h1
-							class="text-secondary-text w-fit text-xl font-bold my-auto"
-						>
-							User Moderation & Management
-						</h1>
 						<!-- Impl filtering of user types -->
 						<div>
 							<Listbox v-model="filter">
+								<!-- eslint-disable max-len -->
 								<ListboxButton
-									class="flex grow my-auto text-secondary-text"
+									class="flex grow my-auto text-secondary-text p-2 rounded-lg bg-bg-old"
 									><FilterIcon
-										class="p-2 rounded-lg bg-bg-old h-10 mr-2"
+										class="rounded-lg h-7 my-auto"
 									/>
-									<p
-										class="my-auto p-2 bg-bg-old rounded-lg text-brand"
+									<h1
+										class="font-bold my-auto text-xl p-2 bg-bg-old rounded-lg text-brand"
 									>
-										{{ filter.toLowerCase() }}
-									</p></ListboxButton
-								>
+										<!-- eslint-enable max-len -->
+										{{ filter }} Management
+									</h1>
+								</ListboxButton>
 								<ListboxOptions
-									class="absolute mt-2 p-2 bg-bg-old rounded-lg"
+									class="absolute mt-2 p-2 bg-bg-old rounded-lg w-64"
 								>
 									<ListboxOption
 										v-for="option in filters"
 										:key="option"
 										:value="option"
 										class="mt-1 text-secondary-text hover:text-text"
-										>{{ option }}</ListboxOption
+										>{{ option }} Management</ListboxOption
 									>
 								</ListboxOptions>
 							</Listbox>
@@ -203,6 +200,7 @@ import {
 	DocumentIcon,
 	LinkIcon,
 	FilterIcon,
+	ChevronDownIcon,
 } from "@heroicons/vue/solid";
 
 const filters = ["Users", "Verifying Users", "Banned Emails"];
