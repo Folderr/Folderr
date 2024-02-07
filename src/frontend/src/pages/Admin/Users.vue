@@ -6,8 +6,8 @@
 			class="bg-bg-old"
 		/>
 		<div class="flex h-full">
-			<AdminSidebar />
-			<div class="lg:mt-20 mx-auto w-full text-text">
+			<AdminSidebar active="user" />
+			<div class="lg:mt-20 mx-auto w-full text-text max-h-full">
 				<div class="flex justify-between grow mx-10">
 					<div class="flex space-x-10">
 						<h1
@@ -46,7 +46,59 @@
 				</div>
 
 				<div
-					v-if="userList && userList.length >= 0"
+					v-if="
+						verifyingUsers &&
+						verifyingUsers.length > 0 &&
+						filter === 'Verifying Users'
+					"
+					class="mx-10 grid grid-cols-2 md:grid-cols-3 grid-flow-dense mt-10 gap-4"
+				>
+					<h2 class="w-fit">Profile</h2>
+					<h2 class="hidden md:block w-fit">Email</h2>
+					<h2>Actions</h2>
+					<ul
+						v-for="user of verifyingUsers"
+						:key="user.username"
+						class="grid grid-cols-subgrid col-span-2 md:col-span-3 text-secondary-text"
+					>
+						<li class="my-auto py-4 w-fit">
+							{{ user.username }}
+						</li>
+						<li class="hidden md:flex my-auto py-4">
+							<MailIcon class="h-5 my-auto mr-2 text-brand" />
+							{{ user.email }}
+						</li>
+						<li class="flex space-x-2 h-fit my-auto py-4">
+							<AdminButton
+								class="hidden md:block"
+								:on-click="() => false"
+								><div class="flex">
+									<FlagIcon class="h-5 my-auto mr-1" />
+									Accept
+								</div></AdminButton
+							>
+
+							<AdminButton
+								class="hidden md:block"
+								:on-click="() => false"
+								type="red"
+								><div class="flex">
+									<TrashIcon class="h-5 my-auto mr-1" />
+									Deny
+								</div></AdminButton
+							>
+							<AdminButton
+								class="md:hidden"
+								:on-click="() => false"
+								>Actions & Info</AdminButton
+							>
+						</li>
+					</ul>
+				</div>
+				<div
+					v-if="
+						userList && userList.length >= 0 && filter === 'Users'
+					"
 					class="mx-10 grid grid-cols-2 md:grid-cols-5 grid-flow-dense mt-10 gap-4"
 				>
 					<h2 class="w-fit">Profile</h2>
@@ -116,7 +168,13 @@
 						</li>
 					</ul>
 				</div>
-				<div v-else>No Users Found</div>
+				<div
+					v-else
+					class="mx-auto font-bold text-4xl w-fit text-secondary-text my-20"
+				>
+					No Users Found Under
+					<span class="text-brand">{{ filter }}</span>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -124,7 +182,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
 import {
 	Listbox,
 	ListboxButton,
@@ -149,6 +206,10 @@ import {
 const filters = ["Users", "Verifying Users", "Banned Emails"];
 const filter = ref(filters[0]);
 
+const verifyingUsers = ref<VerifyingUsers[]>();
+
+const userList = ref<FilteredUsers[]>();
+
 // When the filter changes lets do the appropriate calls for the filter
 
 watch(filter, async (value, oldValue) => {
@@ -171,7 +232,7 @@ watch(filter, async (value, oldValue) => {
 		const users = await adminAPI.getVerifyingUsers();
 
 		if (users.success && users.output) {
-			console.log(users.output);
+			verifyingUsers.value = users.output;
 		}
 	}
 });
@@ -191,12 +252,9 @@ type FilteredUsers = {
 type VerifyingUsers = {
 	username: string;
 	id: string;
-	token: string;
+	email: string;
+	createdAt: Date;
 };
-
-const verifyingUsers = ref<VerifyingUsers[]>();
-
-const userList = ref<FilteredUsers[]>();
 
 const username = ref(`${store.username}`);
 
