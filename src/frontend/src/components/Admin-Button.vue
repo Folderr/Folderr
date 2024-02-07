@@ -18,7 +18,7 @@ defineProps<{
 					(!type || type != 'red') && !buttonDisabled,
 				'text-text hover:bg-secondary-accent hover:border-secondary-accent':
 					type && type === 'red' && !buttonDisabled,
-				'bg-secondary-accent-dark border-secondary-accent':
+				'bg-secondary-accent-dark border-secondary-accent-dark':
 					type && type === 'red' && !buttonDisabled,
 				'text-secondary-bg':
 					(!type || type != 'red') && !buttonDisabled,

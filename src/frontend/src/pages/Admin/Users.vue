@@ -45,14 +45,16 @@
 					</div>
 				</div>
 
+				<!-- eslint-disable max-len -->
 				<div
 					v-if="
 						verifyingUsers &&
 						verifyingUsers.length > 0 &&
 						filter === 'Verifying Users'
 					"
-					class="mx-10 grid grid-cols-2 md:grid-cols-3 grid-flow-dense mt-10 gap-4"
+					class="mx-10 md:mx-auto grid grid-cols-2 md:grid-cols-3 grid-flow-dense w-fit mt-10 gap-x-24 lg:gap-x-32 2xl:gap-x-96"
 				>
+					<!-- eslint-enable max-len -->
 					<h2 class="w-fit">Profile</h2>
 					<h2 class="hidden md:block w-fit">Email</h2>
 					<h2>Actions</h2>
@@ -96,7 +98,7 @@
 					</ul>
 				</div>
 				<div
-					v-if="
+					v-else-if="
 						userList && userList.length >= 0 && filter === 'Users'
 					"
 					class="mx-10 grid grid-cols-2 md:grid-cols-5 grid-flow-dense mt-10 gap-4"

@@ -263,10 +263,11 @@ const isAllValid = computed(() => {
 			Valid Password
 		</p>
 		<p v-if="isAllValid" class="text-brand mb-4">All items are valid</p>
+		<!-- eslint-disable max-len -->
 		<button
 			ref="signupBtn"
 			:disabled="loading"
-			class="flex justify-center font-info font-extrabold text-bg-old bg-brand border-2 p-4 border-brand hover:bg-brand-darkened hover:border-brand-darkened rounded-lg w-[100%] xl:w-80"
+			class="flex justify-center font-info font-extrabold text-bg-old bg-brand border-2 p-4 border-brand hover:bg-brand-darkened hover:border-brand-darkened rounded-lg w-full xl:w-80"
 			:class="[
 				{
 					'bg-disabled': loading,
@@ -278,6 +279,7 @@ const isAllValid = computed(() => {
 			]"
 			@click="signup()"
 		>
+			<!-- eslint-enable max-len -->
 			<UserAddIcon
 				v-if="!loading"
 				class="w-5 my-auto mr-2"
