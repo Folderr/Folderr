@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-const active = ref("");
+defineProps<{ active?: string }>();
 </script>
 
 <!-- eslint-disable max-len -->
@@ -10,11 +10,16 @@ const active = ref("");
 		<div
 			class="overflow-y-auto py-4 px-3 flex flex-col grow sticky bg-bg-old"
 		>
-			<ul class="space-y-2">
+			<ul class="space-y-2 mt-14">
 				<li>
 					<a
 						href="/admin/users"
-						class="flex text-white font-bold text-lg hover:text-secondary-bg hover:bg-brand-darkened rounded p-2"
+						class="flex font-bold text-lg hover:text-secondary-bg hover:bg-brand-darkened rounded-lg p-2"
+						:class="
+							active && active === 'user'
+								? 'text-white hover:text-secondary-bg hover:bg-brand-darkened'
+								: 'text-secondary-text hover:text-text hover:bg-tertiary-bg'
+						"
 						>User Management</a
 					>
 				</li>

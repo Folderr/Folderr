@@ -153,21 +153,24 @@ export async function getUsers(): Promise<
 
 // TODO: (User Moderation) Ban user, Warn user, Delete user
 // TODO: (Verification) Revoke user, Accept user
-// TODO: getVerifyingUsers, getBannedEmails
+// TODO: getBannedEmails
 
-type Notification = {
+type VerifyingUser = {
 	id: string;
-	title: string;
-	notify: string;
+	username: string;
+	email: string;
 	createdAt: Date;
 };
 
 export async function getVerifyingUsers(): Promise<
-	GenericFetchReturn<Notification[]>
+	GenericFetchReturn<VerifyingUser[]>
 > {
 	try {
-		const response = await fetch("/api/notifications?admin=true", {
+		const response = await fetch("/api/admin/verifying-users", {
 			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json",
+			},
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -196,10 +199,7 @@ export async function getVerifyingUsers(): Promise<
 							error: undefined,
 							success: true,
 							response,
-							output: (json.message as Notification[]).filter(
-								(notification) =>
-									notification.title === "New user signup!"
-							),
+							output: json.message,
 						};
 					}
 			}
