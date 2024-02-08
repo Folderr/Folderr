@@ -19,10 +19,10 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {User} from '../../../../Structures/Database/db-class';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import { Path } from "../../../../internals";
+import type { User } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Administrators verify accounts via this endpoint
@@ -30,36 +30,35 @@ import type {User} from '../../../../Structures/Database/db-class';
 class VerifyAccount extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin Verify New Account';
+		this.label = "API/Admin Verify New Account";
 
-		this.path = '/admin/verify';
-		this.type = 'post';
+		this.path = "/admin/verify";
+		this.type = "post";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						token: {type: 'string'},
-						userid: {type: 'string'},
+						id: { type: "string" },
 					},
-					required: ['token', 'userid'],
+					required: ["id"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					201: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -71,47 +70,42 @@ class VerifyAccount extends Path {
 	async execute(
 		request: FastifyRequest<{
 			Body: {
-				token: string;
-				userid: string;
+				id: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
 		// Handle authorization
-		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin),
-		);
-		if (!auth || typeof auth === 'string') {
-			return response.status(this.codes.unauth).send({
-				code: this.codes.unauth,
-				message: 'Authorization failed.',
+		const newAuth = await this.Utils.checkAuth(request, true);
+		if (newAuth.code !== 200) {
+			return response.status(newAuth.code).send({
+				code: newAuth.code,
+				message: "Authorization failed.",
 			});
 		}
 
+		const auth = newAuth.user;
+
 		// Look for the user
-		const user = await this.Utils.findVerifying(
-			request.body.token,
-			request.body.userid,
-		);
+		const user = await this.core.db.findVerify({ id: request.body.id });
 		if (!user) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.dbNotFound,
-				message: 'User not found!',
+				message: "User not found!",
 			});
 		}
 
 		// Remove the user from verifying schema and add them to the actual user base
-		const {username, id} = user;
-		await this.core.db.verifyUser(id);
+		await this.core.db.verifyUser(user.id);
 
 		// Alert the console and the admin that the user was verified
 		this.core.logger.info(
 			// eslint-disable-next-line max-len
-			`User account ${username} (${id}) granted by administrator ${auth.username} (${auth.id})`,
+			`User account ${user.username} (${user.id}) granted by administrator ${auth.username} (${auth.id})`
 		);
 		return response
 			.status(this.codes.created)
-			.send({code: this.codes.ok, message: 'OK'});
+			.send({ code: this.codes.ok, message: "OK" });
 	}
 }
 
