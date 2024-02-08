@@ -1,5 +1,14 @@
 import * as Sentry from "@sentry/vue";
 
+const httpCodes = {
+	unauthorization: 401,
+	forbidden: 403,
+	notFound: 404,
+	notAccepted: 406,
+	created: 201,
+	ok: 200,
+};
+
 function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 	Sentry.captureException(error);
 	if (
@@ -11,6 +20,16 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
 		);
 		console.log(error);
+	}
+
+	if (error instanceof Error) {
+		if (error.message.includes("Authorization failed")) {
+			return {
+				error: "Authorization failed",
+				success: false,
+				output: undefined,
+			};
+		}
 	}
 
 	console.log(error);
@@ -46,9 +65,23 @@ export async function getStats(): Promise<GenericFetchReturn<Stats>> {
 			credentials: "same-origin",
 		});
 
-		if (response.status === 401) {
-			console.log("Hi from AdminAPI Wrapper L14");
-			return { error: "Unauthorized", success: false, output: undefined };
+		switch (response.status) {
+			case httpCodes.forbidden:
+				return {
+					error: "Access Denied",
+					output: undefined,
+					response,
+					success: false,
+				};
+			case httpCodes.unauthorization:
+				return {
+					error: "Authorization Failed",
+					output: undefined,
+					response,
+					success: false,
+				};
+			default:
+				break;
 		}
 
 		console.log("Hi from AdminAPI Wrapper L18");
@@ -95,6 +128,24 @@ export async function getUsers(): Promise<
 		const response = await fetch("/api/admin/users", {
 			credentials: "same-origin",
 		});
+		switch (response.status) {
+			case httpCodes.forbidden:
+				return {
+					error: "Access Denied",
+					output: undefined,
+					response,
+					success: false,
+				};
+			case httpCodes.unauthorization:
+				return {
+					error: "Authorization Failed",
+					output: undefined,
+					response,
+					success: false,
+				};
+			default:
+				break;
+		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json:
@@ -105,7 +156,7 @@ export async function getUsers(): Promise<
 			throw Error(`Unexpected Error: ${response.statusText}`);
 		}
 
-		if (response.status !== 200) {
+		if (response.status !== httpCodes.ok) {
 			switch (typeof json?.message) {
 				case "string":
 					throw Error(`Error: ${json.code} ${json.message}`);
@@ -172,6 +223,24 @@ export async function getVerifyingUsers(): Promise<
 				"Content-Type": "application/json",
 			},
 		});
+		switch (response.status) {
+			case httpCodes.forbidden:
+				return {
+					error: "Access Denied",
+					output: undefined,
+					response,
+					success: false,
+				};
+			case httpCodes.unauthorization:
+				return {
+					error: "Authorization Failed",
+					output: undefined,
+					response,
+					success: false,
+				};
+			default:
+				break;
+		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
@@ -202,6 +271,166 @@ export async function getVerifyingUsers(): Promise<
 							output: json.message,
 						};
 					}
+			}
+		}
+
+		throw Error(`Unexpected Output: ${response.statusText}`);
+	} catch (error: unknown) {
+		return genericCatch(error);
+	}
+}
+
+export async function denyAccount(
+	id: string
+): Promise<GenericFetchReturn<string>> {
+	const body = JSON.stringify({ id });
+	console.log(body);
+	try {
+		const response = await fetch("/api/admin/verify", {
+			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body,
+			method: "DELETE",
+		});
+
+		if (response.status === httpCodes.notAccepted) {
+			return {
+				error: "Verifying User Not Found",
+				success: false,
+				response,
+				output: undefined,
+			};
+		}
+
+		switch (response.status) {
+			case httpCodes.forbidden:
+				return {
+					error: "Access Denied",
+					output: undefined,
+					response,
+					success: false,
+				};
+			case httpCodes.unauthorization:
+				return {
+					error: "Authorization Failed",
+					output: undefined,
+					response,
+					success: false,
+				};
+			default:
+				break;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const json: { code: number; message: string | any } | undefined =
+			await response.json();
+		if (!json?.code) {
+			throw Error(`Unexpected Error: ${response.statusText}`);
+		}
+
+		if (response.status !== httpCodes.ok) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				default:
+					throw Error(`Unexpected Error ${json.code}`);
+			}
+		}
+
+		if (json?.message) {
+			switch (typeof json?.message) {
+				case "string":
+					return {
+						error: undefined,
+						success: true,
+						response,
+						output: json.message,
+					};
+
+				default:
+					throw Error(`Error: ${json.code} ${json.message}`);
+			}
+		}
+
+		throw Error(`Unexpected Output: ${response.statusText}`);
+	} catch (error: unknown) {
+		return genericCatch(error);
+	}
+}
+
+export async function acceptAccount(
+	id: string
+): Promise<GenericFetchReturn<string>> {
+	const body = JSON.stringify({ id });
+	console.log(body);
+	try {
+		const response = await fetch("/api/admin/verify", {
+			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body,
+			method: "POST",
+		});
+
+		if (response.status === httpCodes.notAccepted) {
+			return {
+				error: "Verifying User Not Found",
+				success: false,
+				response,
+				output: undefined,
+			};
+		}
+
+		switch (response.status) {
+			case httpCodes.forbidden:
+				return {
+					error: "Access Denied",
+					output: undefined,
+					response,
+					success: false,
+				};
+			case httpCodes.unauthorization:
+				return {
+					error: "Authorization Failed",
+					output: undefined,
+					response,
+					success: false,
+				};
+			default:
+				break;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const json: { code: number; message: string | any } | undefined =
+			await response.json();
+		if (!json?.code) {
+			throw Error(`Unexpected Error: ${response.statusText}`);
+		}
+
+		if (response.status !== httpCodes.created) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				default:
+					throw Error(`Unexpected Error ${json.code}`);
+			}
+		}
+
+		if (json?.message) {
+			switch (typeof json?.message) {
+				case "string":
+					return {
+						error: undefined,
+						success: true,
+						response,
+						output: json.message,
+					};
+
+				default:
+					throw Error(`Error: ${json.code} ${json.message}`);
 			}
 		}
 

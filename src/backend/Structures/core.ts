@@ -352,7 +352,6 @@ export default class Core {
 		const promises: any[] = [];
 
 		for (const files of fullPaths) {
-			console.log(files.prefix);
 			promises.push(
 				this.app.register(
 					async (instance, opts) => {
@@ -371,7 +370,7 @@ export default class Core {
 									enabled: boolean;
 								} = await import(process.cwd() + `/${file}`);
 								if (!imported.enabled) return;
-								// In the event that the file rewrites older legacy code, disable it.
+								// In the event that the file rewrites older legacy code, disable it
 								if (
 									imported.rewrites &&
 									imported.rewrites.length > 0
