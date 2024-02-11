@@ -1,10 +1,8 @@
-import type {RouteLocationNormalized} from 'vue-router';
-import {useUserStore} from '../stores/user';
+import type { RouteLocationNormalized } from "vue-router";
+import { useUserStore } from "../stores/user";
 
-export async function adminAuthGuard(
-	to: RouteLocationNormalized,
-): Promise<string | boolean | Error> {
-	if (to.name === 'NotFound') {
+export async function adminAuthGuard(to: RouteLocationNormalized) {
+	if (to.name === "NotFound" || to.name === "NotFoundWild") {
 		return true;
 	}
 
@@ -15,7 +13,7 @@ export async function adminAuthGuard(
 		}
 
 		if (!store.id || !store.admin) {
-			return '/404';
+			return { name: "NotFound" };
 		}
 
 		return true;

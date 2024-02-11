@@ -1,10 +1,10 @@
-import type {RouteLocationNormalized} from 'vue-router';
-import {useUserStore} from '../stores/user';
+import type { RouteLocationNormalized } from "vue-router";
+import { useUserStore } from "../stores/user";
 
 export async function getUser(
-	to: RouteLocationNormalized,
+	to: RouteLocationNormalized
 ): Promise<string | boolean | Error> {
-	if (to.name === 'NotFound') {
+	if (to.name === "NotFoundWild" || to.name === "NotFound") {
 		return true;
 	}
 
