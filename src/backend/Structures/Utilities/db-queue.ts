@@ -19,13 +19,15 @@
  *
  */
 
-import {EventEmitter} from 'events';
-import type {DbConfig} from '../../handlers/config-handler';
-import Configurer from '../../handlers/config-handler';
-import type {Upload} from '../Database/db-class';
-import type DB from '../Database/db-class';
-import MongoDB from '../Database/mongoose-db';
-import {logger} from '../../internals';
+import { EventEmitter } from "events";
+import type { DbConfig } from "../../handlers/config-handler";
+import Configurer from "../../handlers/config-handler";
+import type { Upload } from "../Database/db-class";
+import type DB from "../Database/db-class";
+import MongoDB from "../Database/mongoose-db";
+import { logger } from "../../internals";
+import fsPromises from "node:fs/promises";
+import fs from "node:fs";
 
 /**
  * @classdesc Handles deleting files
@@ -35,85 +37,112 @@ export default class DbQueue extends EventEmitter {
 
 	private readonly config: DbConfig;
 
-	private readonly db: DB;
+	readonly #db: DB;
 
-	private readonly loopBound: () => Promise<void>;
+	readonly #loopBound: () => Promise<void>;
 
-	private readonly queue: Set<string>;
+	readonly #queue: Set<string>;
 
-	constructor() {
+	constructor(db?: DB) {
 		super();
 		this.onGoing = true;
 		this.config = Configurer.verifyFetch().db;
-		this.db = new MongoDB();
-		this.db.init(this.config.url).catch((error) => {
-			logger.error('CANNOT RUN DBQueue - Database Error');
+		this.#db = db ?? new MongoDB();
+		if (!db) {
+			this.#db.init(this.config.url).catch((error) => {
+				logger.error("CANNOT RUN DBQueue - Database Error");
 
-			if (error instanceof Error) {
-				logger.debug(error.message);
-				throw error;
-			}
+				if (error instanceof Error) {
+					logger.debug(error.message);
+					throw error;
+				}
 
-			throw new Error('CANNOT RUN DBQueue - Database Error');
-		});
-		this.loopBound = this.loop.bind(this);
-		this.on('start', this.loopBound);
-		this.queue = new Set();
+				throw new Error("CANNOT RUN DBQueue - Database Error");
+			});
+		}
+
+		this.#loopBound = this.loop.bind(this);
+		this.on("start", this.#loopBound);
+		this.#queue = new Set();
 	}
 
 	add(id: string): boolean {
-		this.queue.add(id);
+		this.#queue.add(id);
 		if (!this.onGoing) {
 			this.onGoing = true;
-			this.emit('start');
+			this.emit("start");
 			return true;
 		}
 
 		return true;
 	}
 
+	/**
+	 * New method to remove all files
+	 * @param {Upload[]} files What files to delete
+	 * @param {string} userID The user to delete
+	 */
+	async newRemoveFiles(files: Upload[], userID: string): Promise<void> {
+		const deletions: Array<Promise<void>> = [];
+		files.forEach((file) => {
+			if (fs.existsSync(file.path)) {
+				deletions.push(fs.promises.unlink(file.path));
+			}
+		});
+		await Promise.all(deletions);
+		await this.#db.purgeFiles({ owner: userID }, files.length);
+		await this.#db.purgeUser(userID);
+	}
+
+	/**
+	 *
+	 * @param files A list of files to delete. Requires values id and path
+	 *
+	 * @deprecated Deprecated in favor of newRemoveFiles
+	 */
 	async removeFiles(files: Upload[]): Promise<void> {
 		for (const file of files) {
 			try {
 				// Await is needed for this loops functioning
 				// eslint-disable-next-line no-await-in-loop
-				await this.db.purgeFile({id: file.id});
+				await this.#db.purgeFile({ id: file.id });
 				files = files.filter((fil) => fil.id !== file.id);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					logger.error(
 						// eslint-disable-next-line max-len
-						`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`,
+						`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`
 					);
 				}
 
 				logger.error(
-					`Database ran into an error while deleting file "${file.path}".`,
+					`Database ran into an error while deleting file "${file.path}".`
 				);
 			}
 		}
 	}
 
 	private async loop(): Promise<void> {
-		if (this.queue.size === 0) {
+		if (this.#queue.size === 0) {
 			this.onGoing = false;
-			this.emit('stopped');
+			this.emit("stopped");
 			return;
 		}
 
-		for (const value of this.queue.values()) {
-			// Await is needed here, also eslint, yes this is checked
-			/* eslint-disable no-await-in-loop */
-			const files = await this.db.findFiles(
-				{owner: value},
-				{selector: 'id, path'},
+		this.#queue.forEach(async (value) => {
+			const files = await this.#db.findFiles(
+				{ owner: value },
+				{ selector: "id, path" }
 			);
 			if (files.length > 0) {
-				await this.removeFiles(files); /* eslint-enable no-await-in-loop */
-				this.queue.delete(value);
+				await this.newRemoveFiles(files, value);
+				this.#queue.delete(value);
+			} else {
+				await this.#db.purgeUser(value);
+				this.#queue.delete(value);
 			}
-		}
+		});
 
-		return this.loopBound();
+		return this.#loopBound();
 	}
 }

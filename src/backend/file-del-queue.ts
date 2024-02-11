@@ -23,35 +23,40 @@
  * @fileoverview Handle the database file deletion queue
  */
 
-import process from 'process';
-import DbQueue from './Structures/Utilities/db-queue';
+import process from "process";
+import DbQueue from "./Structures/Utilities/db-queue";
+import { logger } from "./internals";
 
 const queuer = new DbQueue();
 
 let stopped = false;
 
-process.on('message', ({msg, data}) => {
-	if (msg === 'add' && !stopped) {
+process.env.NODE_ENV = "production";
+logger.info("HEY");
+if (process.send) process.send("Hello World");
+
+process.on("message", ({ msg, data }) => {
+	if (msg === "add" && !stopped && typeof data === "string") {
 		queuer.add(data);
 	} else
 		switch (msg) {
-			case 'check': {
+			case "check": {
 				if (process.send) {
-					process.send({msg: {onGoing: queuer.onGoing, stopped}});
+					process.send({ msg: { onGoing: queuer.onGoing, stopped } });
 				}
 
 				break;
 			}
 
-			case 'shutdown': {
-				queuer.once('stopped', () => {
+			case "shutdown": {
+				queuer.once("stopped", () => {
 					process.exit(1);
 				});
 
 				break;
 			}
 
-			case 'stop': {
+			case "stop": {
 				stopped = true;
 
 				break;

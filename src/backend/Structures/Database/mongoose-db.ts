@@ -357,6 +357,15 @@ export default class Mongoosedb extends DBClass {
 		return user;
 	}
 
+	async markUserForDeletion(id: string): Promise<boolean> {
+		const account = await this.#schemas.User.updateOne(
+			{ id },
+			{ $set: { markedForDeletion: true } }
+		);
+
+		return account.modifiedCount === 1;
+	}
+
 	async purgeUser(id: string): Promise<{ account: boolean; links: boolean }> {
 		const [account, links] = await Promise.all([
 			this.#schemas.User.deleteOne({ id }).exec(),
@@ -544,6 +553,12 @@ export default class Mongoosedb extends DBClass {
 		return file;
 	}
 
+	/**
+	 * Deletes a file from the database and the disk.
+	 * If deleting files en masse, use db.purgeFiles
+	 * @param query What file to remove
+	 * @returns Whether or not the file was deleted
+	 */
 	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
 		const file = await this.#schemas.Upload.findOneAndDelete(query, {
 			projection: "path",
@@ -572,6 +587,24 @@ export default class Mongoosedb extends DBClass {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Delete a massive amount of file records
+	 * @param {Object} query The database query to match files to remove
+	 * @param {number} [expectedDeletions] How many files to delete
+	 * @returns Whether or not the deletion was successful
+	 */
+	async purgeFiles(
+		query: Record<string, unknown>,
+		expectedDeletions?: number
+	): Promise<boolean> {
+		const files = await this.#schemas.Upload.deleteMany(query)
+			.lean()
+			.exec();
+		return expectedDeletions
+			? files.deletedCount === expectedDeletions
+			: files.acknowledged;
 	}
 
 	/* ---- LINK RELATED METHODS ---- */

@@ -30,7 +30,15 @@ import * as Sentry from "@sentry/node";
 import type pino from "pino";
 
 // Local files
+// Handlers
 import Configurer from "../handlers/config-handler";
+import type {
+	CoreConfig,
+	DbConfig,
+	ActEmailConfig,
+	KeyConfig,
+} from "../handlers/config-handler";
+// Structs, classes
 import * as endpointsImport from "../Paths/index";
 import * as APIs from "../Paths/API/index";
 import {
@@ -41,13 +49,11 @@ import {
 	codes as StatusCodes,
 } from "../internals";
 import { version } from "../../../package.json";
-import type {
-	CoreConfig,
-	DbConfig,
-	ActEmailConfig,
-	KeyConfig,
-} from "../handlers/config-handler";
+import DelQueue from "./Utilities/db-queue";
+
 import type { Path } from "../internals";
+
+// Other utilities
 import logger from "./logger";
 
 // Local Fastify plugins
@@ -85,6 +91,16 @@ type importedApi =
 	| typeof Path
 	| ((fastify: FastifyInstance, core: Core) => FastifyInstance);
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const isTSNode = Boolean(process.env.TS_NODE_DEV);
+
+if (isTSNode && process.env.NODE_ENV !== "dev") {
+	logger.fatal(
+		"Running in ts-node-dev while not being in dev mode is not supported"
+	);
+	process.exit(1);
+}
+
 export default class Core {
 	public readonly db: MongoDB;
 
@@ -111,7 +127,7 @@ export default class Core {
 
 	readonly #rewritten: string[];
 
-	readonly #deleter: ChildProcess;
+	readonly #deleter: ChildProcess | DelQueue;
 
 	readonly #keys: KeyConfig;
 
@@ -182,13 +198,9 @@ export default class Core {
 			},
 		});
 		this.app.decorate("got", this.got);
-		this.#deleter = fork(
-			join(process.cwd(), "src/file-del-queue"),
-			undefined,
-			{
-				silent: true,
-			}
-		);
+
+		// User Account Deleter
+		this.#deleter = this.initDeleter();
 
 		this.app.addContentTypeParser(
 			"text/plain",
@@ -264,6 +276,11 @@ export default class Core {
 	}
 
 	addDeleter(userID: string): void {
+		if (this.#deleter instanceof DelQueue) {
+			this.#deleter.add(userID);
+			return;
+		}
+
 		this.#deleter.send({ message: "add", data: userID });
 	}
 
@@ -810,7 +827,7 @@ export default class Core {
 		});
 		const publicPaths = fs.readdirSync("./src/frontend/public");
 		this.app.use((request, response, next) => {
-			const strippedUrl = request.url?.slice(1, request.url.length) || "";
+			const strippedUrl = request.url?.slice(1, request.url.length) ?? "";
 			if (publicPaths.includes(strippedUrl)) {
 				server.middlewares(request, response, next);
 			} else if (
@@ -895,7 +912,11 @@ export default class Core {
 			}
 		}
 
-		if (this.#deleter?.connected && !this.#deleter.killed) {
+		if (
+			!(this.#deleter instanceof DelQueue) &&
+			this.#deleter?.connected &&
+			!this.#deleter.killed
+		) {
 			this.#deleter.send({ msg: "stop" });
 			this.#deleter.on("exit", () => {
 				this.#internals.deleterShutdown = true;
@@ -933,5 +954,46 @@ export default class Core {
 		}
 
 		return output;
+	}
+
+	private initDeleter(): ChildProcess | DelQueue {
+		// One quick note: It would seem that TS-Node and IPC don't play well,
+		// which Folderr NEEDS to properly handle user deletion
+		if (isTSNode && process.env.NODE_ENV === "dev") {
+			return new DelQueue(this.db);
+		}
+
+		const deleterModule = "dist/src/backend/file-del-queue";
+		const deleter = fork(deleterModule);
+
+		// Let's make this play nice.
+		deleter.on("error", (error: Error) => {
+			this.logger.fatal(error);
+		});
+
+		deleter.on("close", (data) => {
+			if (typeof data === "number") {
+				this.logger.error(`Deleter closed with code ${data}`);
+			} else {
+				this.logger.error("Deleter closed with unknown exit code");
+			}
+		});
+		deleter.on("message", (data) => {
+			this.logger.info(data);
+		});
+
+		deleter.on("exit", (message) => {
+			if (typeof message === "number") {
+				this.logger.warn(`Deleter exited with code ${message}`);
+			} else {
+				this.logger.fatal("Deleter exited with unknown exit code");
+			}
+		});
+
+		if (deleter.connected) {
+			deleter.send({ msg: "check" });
+		}
+
+		return deleter;
 	}
 }
