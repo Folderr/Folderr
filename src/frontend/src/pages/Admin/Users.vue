@@ -8,37 +8,43 @@
 		<div class="flex h-full">
 			<AdminSidebar active="user" />
 			<div class="lg:mt-20 mx-auto w-full text-text max-h-full">
-				<div class="flex justify-between grow mx-10">
-					<div class="flex space-x-10">
-						<!-- Impl filtering of user types -->
-						<div>
-							<Listbox v-model="filter">
-								<!-- eslint-disable max-len -->
-								<ListboxButton
-									class="flex grow my-auto text-secondary-text p-2 rounded-lg bg-bg-old"
-									><FilterIcon
-										class="rounded-lg h-7 my-auto"
-									/>
-									<h1
-										class="font-bold my-auto text-xl p-2 bg-bg-old rounded-lg text-brand"
-									>
-										<!-- eslint-enable max-len -->
-										{{ filter }} Management
-									</h1>
-								</ListboxButton>
-								<ListboxOptions
-									class="absolute mt-2 p-2 bg-bg-old rounded-lg w-64"
+				<div
+					class="flex justify-between mx-5 md:mx-10"
+					:class="{
+						'md:mx-32': filter === 'Verifying Users',
+					}"
+				>
+					<!-- Impl filtering of user types -->
+					<div>
+						<Listbox v-model="filter">
+							<!-- eslint-disable max-len -->
+							<ListboxButton
+								class="flex grow my-auto text-secondary-text p-2 rounded-lg bg-bg-old"
+								><FilterIcon class="rounded-lg h-7 my-auto" />
+								<h1
+									class="font-bold my-auto text-xl p-2 bg-bg-old rounded-lg text-brand"
 								>
-									<ListboxOption
-										v-for="option in filters"
-										:key="option"
-										:value="option"
-										class="mt-1 text-secondary-text hover:text-text"
-										>{{ option }} Management</ListboxOption
-									>
-								</ListboxOptions>
-							</Listbox>
-						</div>
+									<!-- eslint-enable max-len -->
+									{{ filter }} Management
+								</h1>
+							</ListboxButton>
+							<ListboxOptions
+								class="absolute mt-2 p-2 bg-bg-old rounded-lg w-64"
+							>
+								<ListboxOption
+									v-for="option in filters"
+									:key="option"
+									:value="option"
+									class="mt-1 text-secondary-text hover:text-text"
+									>{{ option }} Management</ListboxOption
+								>
+							</ListboxOptions>
+						</Listbox>
+					</div>
+					<div
+						class="flex text-secondary-text w-64 p-2 px-8 border-b-2 border-brand h-fit"
+					>
+						<p>Search...</p>
 					</div>
 				</div>
 
@@ -49,37 +55,37 @@
 						verifyingUsers.length > 0 &&
 						filter === 'Verifying Users'
 					"
-					class="mx-10 md:mx-auto grid grid-cols-2 md:grid-cols-3 grid-flow-dense w-fit mt-10 gap-x-24 lg:gap-x-32 2xl:gap-x-96"
+					class="mx-10 lg:mx-32 justify-center grid grid-cols-2 md:grid-cols-3 grid-flow-dense mt-10"
 				>
 					<!-- eslint-enable max-len -->
-					<h2 class="w-fit">Profile</h2>
-					<h2 class="hidden md:block w-fit">Email</h2>
+					<h2 class="">Profile</h2>
+					<h2 class="hidden md:block">Email</h2>
 					<h2>Actions</h2>
 					<ul
 						v-for="user of verifyingUsers"
 						:key="user.username"
 						class="grid grid-cols-subgrid col-span-2 md:col-span-3 text-secondary-text"
 					>
-						<li class="my-auto py-4 w-fit">
+						<li class="my-auto py-4">
 							{{ user.username }}
 						</li>
 						<li class="hidden md:flex my-auto py-4">
 							<MailIcon class="h-5 my-auto mr-2 text-brand" />
 							{{ user.email }}
 						</li>
-						<li class="flex space-x-2 h-fit my-auto py-4">
+						<li class="flex space-x-2 h-fit my-auto">
 							<AdminButton
 								class="hidden md:block"
-								:on-click="() => false"
+								:on-click="() => acceptUser(user.id)"
 								><div class="flex">
-									<FlagIcon class="h-5 my-auto mr-1" />
+									<UserAddIcon class="h-5 my-auto mr-1" />
 									Accept
 								</div></AdminButton
 							>
 
 							<AdminButton
 								class="hidden md:block"
-								:on-click="() => false"
+								:on-click="() => denyUser(user.id)"
 								type="red"
 								><div class="flex">
 									<TrashIcon class="h-5 my-auto mr-1" />
@@ -98,7 +104,7 @@
 					v-else-if="
 						userList && userList.length >= 0 && filter === 'Users'
 					"
-					class="mx-10 grid grid-cols-2 md:grid-cols-5 grid-flow-dense mt-10 gap-4"
+					class="mx-10 grid grid-cols-2 md:grid-cols-5 grid-flow-dense mt-10 gap-x-4"
 				>
 					<h2 class="w-fit">Profile</h2>
 					<h2 class="hidden md:block w-fit">Email</h2>
@@ -142,7 +148,7 @@
 							<AdminButton
 								class="hidden md:block"
 								:button-disabled="user.role === 'owner'"
-								:on-click="() => false"
+								:on-click="() => deleteUser(user.id)"
 								type="red"
 								><div class="flex">
 									<TrashIcon class="h-5 my-auto mr-1" />
@@ -200,7 +206,7 @@ import {
 	DocumentIcon,
 	LinkIcon,
 	FilterIcon,
-	ChevronDownIcon,
+	UserAddIcon,
 } from "@heroicons/vue/solid";
 
 const filters = ["Users", "Verifying Users", "Banned Emails"];
@@ -225,6 +231,7 @@ watch(filter, async (value, oldValue) => {
 					email: user.email,
 					statistics: { files: user.files, links: user.links },
 					role: user.title || "User",
+					id: user.id,
 				};
 			});
 		}
@@ -237,6 +244,59 @@ watch(filter, async (value, oldValue) => {
 	}
 });
 
+async function denyUser(id: string) {
+	const output = await adminAPI.denyAccount(id);
+	if (output.error ?? !output.success) {
+		console.log(output.error ?? "Unknown Error");
+		return;
+	}
+
+	verifyingUsers.value = verifyingUsers.value?.filter(
+		(user) => user.id !== id
+	);
+	console.log(output.output);
+}
+
+async function acceptUser(id: string) {
+	const output = await adminAPI.acceptAccount(id);
+	if (output.error ?? !output.success) {
+		console.log(output.error ?? "Unknown Error");
+		return;
+	}
+
+	const user = verifyingUsers.value?.find((user) => user.id === id);
+
+	verifyingUsers.value = verifyingUsers.value?.filter(
+		(user) => user.id !== id
+	);
+	if (user) {
+		userList.value?.push({
+			username: user.username,
+			email: user.email,
+			statistics: {
+				files: 0,
+				links: 0,
+			},
+			role: "User",
+			id: user.id,
+		});
+	}
+
+	console.log(output.output);
+}
+
+async function deleteUser(id: string) {
+	const output = await adminAPI.deleteAccount(id);
+	if (output.error ?? !output.success) {
+		console.log(output.error ?? "Unknown Error");
+		return;
+	}
+
+	userList.value = userList.value?.filter((user) => user.id !== id);
+
+	console.log(output.output);
+}
+
 const store = useUserStore();
 
 type FilteredUsers = {
@@ -247,6 +307,7 @@ type FilteredUsers = {
 		links: number;
 	};
 	role: string;
+	id: string;
 };
 
 type VerifyingUsers = {
@@ -275,6 +336,7 @@ onMounted(async () => {
 				email: user.email,
 				statistics: { files: user.files, links: user.links },
 				role: user.title || "User",
+				id: user.id,
 			};
 		});
 	}
