@@ -9,6 +9,29 @@ const httpCodes = {
 	ok: 200,
 };
 
+function checkAuthenticationError(
+	response: Response
+): GenericFetchReturn<undefined> | undefined {
+	switch (response.status) {
+		case httpCodes.forbidden:
+			return {
+				error: "Access Denied",
+				output: undefined,
+				response,
+				success: false,
+			};
+		case httpCodes.unauthorization:
+			return {
+				error: "Authorization Failed",
+				output: undefined,
+				response,
+				success: false,
+			};
+		default:
+			return undefined;
+	}
+}
+
 function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 	Sentry.captureException(error);
 	if (
@@ -64,24 +87,9 @@ export async function getStats(): Promise<GenericFetchReturn<Stats>> {
 			method: "GET",
 			credentials: "same-origin",
 		});
-
-		switch (response.status) {
-			case httpCodes.forbidden:
-				return {
-					error: "Access Denied",
-					output: undefined,
-					response,
-					success: false,
-				};
-			case httpCodes.unauthorization:
-				return {
-					error: "Authorization Failed",
-					output: undefined,
-					response,
-					success: false,
-				};
-			default:
-				break;
+		const check = checkAuthenticationError(response);
+		if (check) {
+			return check;
 		}
 
 		console.log("Hi from AdminAPI Wrapper L18");
@@ -128,23 +136,9 @@ export async function getUsers(): Promise<
 		const response = await fetch("/api/admin/users", {
 			credentials: "same-origin",
 		});
-		switch (response.status) {
-			case httpCodes.forbidden:
-				return {
-					error: "Access Denied",
-					output: undefined,
-					response,
-					success: false,
-				};
-			case httpCodes.unauthorization:
-				return {
-					error: "Authorization Failed",
-					output: undefined,
-					response,
-					success: false,
-				};
-			default:
-				break;
+		const check = checkAuthenticationError(response);
+		if (check) {
+			return check;
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -203,8 +197,7 @@ export async function getUsers(): Promise<
 }
 
 // TODO: (User Moderation) Ban user, Warn user, Delete user
-// TODO: (Verification) Revoke user, Accept user
-// TODO: getBannedEmails
+// TODO: getBans, unbanEmail
 
 type VerifyingUser = {
 	id: string;
@@ -223,23 +216,9 @@ export async function getVerifyingUsers(): Promise<
 				"Content-Type": "application/json",
 			},
 		});
-		switch (response.status) {
-			case httpCodes.forbidden:
-				return {
-					error: "Access Denied",
-					output: undefined,
-					response,
-					success: false,
-				};
-			case httpCodes.unauthorization:
-				return {
-					error: "Authorization Failed",
-					output: undefined,
-					response,
-					success: false,
-				};
-			default:
-				break;
+		const check = checkAuthenticationError(response);
+		if (check) {
+			return check;
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -294,7 +273,6 @@ export async function denyAccount(
 			body,
 			method: "DELETE",
 		});
-
 		if (response.status === httpCodes.notAccepted) {
 			return {
 				error: "Verifying User Not Found",
@@ -304,23 +282,9 @@ export async function denyAccount(
 			};
 		}
 
-		switch (response.status) {
-			case httpCodes.forbidden:
-				return {
-					error: "Access Denied",
-					output: undefined,
-					response,
-					success: false,
-				};
-			case httpCodes.unauthorization:
-				return {
-					error: "Authorization Failed",
-					output: undefined,
-					response,
-					success: false,
-				};
-			default:
-				break;
+		const check = checkAuthenticationError(response);
+		if (check) {
+			return check;
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -364,7 +328,6 @@ export async function acceptAccount(
 	id: string
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ id });
-	console.log(body);
 	try {
 		const response = await fetch("/api/admin/verify", {
 			credentials: "same-origin",
@@ -384,23 +347,9 @@ export async function acceptAccount(
 			};
 		}
 
-		switch (response.status) {
-			case httpCodes.forbidden:
-				return {
-					error: "Access Denied",
-					output: undefined,
-					response,
-					success: false,
-				};
-			case httpCodes.unauthorization:
-				return {
-					error: "Authorization Failed",
-					output: undefined,
-					response,
-					success: false,
-				};
-			default:
-				break;
+		const check = checkAuthenticationError(response);
+		if (check) {
+			return check;
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -411,6 +360,81 @@ export async function acceptAccount(
 		}
 
 		if (response.status !== httpCodes.created) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				default:
+					throw Error(`Unexpected Error ${json.code}`);
+			}
+		}
+
+		if (json?.message) {
+			switch (typeof json?.message) {
+				case "string":
+					return {
+						error: undefined,
+						success: true,
+						response,
+						output: json.message,
+					};
+
+				default:
+					throw Error(`Error: ${json.code} ${json.message}`);
+			}
+		}
+
+		throw Error(`Unexpected Output: ${response.statusText}`);
+	} catch (error: unknown) {
+		return genericCatch(error);
+	}
+}
+
+export async function deleteAccount(id: string) {
+	try {
+		const response = await fetch(`/api/account?userid=${id}`, {
+			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			method: "DELETE",
+		});
+
+		if (response.status === httpCodes.notFound) {
+			return {
+				error: "User Not Found",
+				success: false,
+				response,
+				output: undefined,
+			};
+		}
+
+		if (response.status === httpCodes.forbidden) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const json: { code: number; message: string } | undefined =
+				await response.json();
+			return {
+				error:
+					json?.message ??
+					"You are not authorized to perform that action",
+				success: false,
+				output: undefined,
+				response,
+			};
+		}
+
+		const check = checkAuthenticationError(response);
+		if (check) {
+			return check;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const json: { code: number; message: string | any } | undefined =
+			await response.json();
+		if (!json?.code) {
+			throw Error(`Unexpected Error: ${response.statusText}`);
+		}
+
+		if (response.status !== httpCodes.ok) {
 			switch (typeof json?.message) {
 				case "string":
 					throw Error(`Error: ${json.code} ${json.message}`);
