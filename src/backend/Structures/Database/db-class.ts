@@ -51,6 +51,7 @@ export interface User {
 	privacy?: {
 		dataCollection?: boolean;
 	};
+	markedForDeletion?: boolean;
 }
 
 export interface Link {
@@ -231,6 +232,12 @@ export class DBClass {
 		);
 	}
 
+	async markUserForDeletion(id: string): Promise<boolean> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method markUserForDeletion is not implemented!"
+		);
+	}
+
 	async purgeUser(
 		id: string
 	): Promise<{ account: boolean; links: boolean } | undefined> {
@@ -348,9 +355,30 @@ export class DBClass {
 		);
 	}
 
+	/**
+	 * Deletes a file from the database and the disk.
+	 * If deleting files en masse, use db.purgeFiles
+	 * @param query What file to remove
+	 * @returns Whether or not the file was deleted
+	 */
 	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeFile is not implemented!"
+		);
+	}
+
+	/**
+	 * Delete a massive amount of file records
+	 * @param {Object} query The database query to match files to remove
+	 * @param {number} [expectedDeletions] How many files to delete
+	 * @returns Whether or not the deletion was successful
+	 */
+	async purgeFiles(
+		query: Record<string, unknown>,
+		expectedDeletions?: number
+	): Promise<boolean> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method purgeFiles is not implemented!"
 		);
 	}
 
