@@ -921,6 +921,10 @@ export default class Core {
 			this.#deleter.on("exit", () => {
 				this.#internals.deleterShutdown = true;
 			});
+		} else if (this.#deleter instanceof DelQueue) {
+			if (!this.#deleter.onGoing) {
+				this.#internals.deleterShutdown = true;
+			}
 		}
 
 		try {
@@ -937,12 +941,25 @@ export default class Core {
 			console.log(error);
 		}
 
-		if (this.#internals.serverClosed && this.#requestIds.size === 0) {
+		if (
+			this.#internals.serverClosed &&
+			this.#requestIds.size === 0 &&
+			this.#internals.deleterShutdown
+		) {
 			process.exit(0);
 		}
 
 		ee.once("noRequests", () => {
-			process.exit(0);
+			if (this.#internals.deleterShutdown) {
+				process.exit(0);
+			}
+
+			if (this.#deleter instanceof DelQueue) {
+				this.#deleter.once("stopped", () => {
+					this.#internals.deleterShutdown = true;
+					process.exit(0);
+				});
+			}
 		});
 	}
 
