@@ -82,7 +82,10 @@ export default class DbQueue extends EventEmitter {
 	 * @param {Upload[]} files What files to delete
 	 * @param {string} userID The user to delete
 	 */
-	async newRemoveFiles(files: Upload[], userID: string): Promise<void> {
+	private async newRemoveFiles(
+		files: Upload[],
+		userID: string
+	): Promise<void> {
 		const deletions: Array<Promise<void>> = [];
 		files.forEach((file) => {
 			if (fs.existsSync(file.path)) {
@@ -100,7 +103,7 @@ export default class DbQueue extends EventEmitter {
 	 *
 	 * @deprecated Deprecated in favor of newRemoveFiles
 	 */
-	async removeFiles(files: Upload[]): Promise<void> {
+	private async removeFiles(files: Upload[]): Promise<void> {
 		for (const file of files) {
 			try {
 				// Await is needed for this loops functioning
