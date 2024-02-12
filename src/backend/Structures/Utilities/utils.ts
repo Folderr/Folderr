@@ -127,13 +127,17 @@ class Utils {
 		let account: User | void;
 		if (request.headers.authorization) {
 			account = await this.authorization.verifyAccount(
-				request.headers.token
+				request.headers.token,
+				{
+					fn: (user) => !user.markedForDeletion,
+				}
 			);
 		} else if (request.cookies.token) {
 			account = await this.authorization.verifyAccount(
 				request.cookies.token,
 				{
 					web: true,
+					fn: (user) => !user.markedForDeletion,
 				}
 			);
 		} else {
@@ -415,6 +419,7 @@ class Utils {
 
 		const user = await this.#core.db.findUser({
 			username: request.headers.username,
+			markedForDeletion: false,
 		});
 		if (!user) {
 			return false;

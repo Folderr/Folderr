@@ -130,7 +130,10 @@ class Path {
 	async checkAuth(request: FastifyRequest): Promise<User | void> {
 		if (request.headers.authorization) {
 			return this.Utils.authorization.verifyAccount(
-				request.headers.authorization
+				request.headers.authorization,
+				{
+					fn: (user) => !user.markedForDeletion,
+				}
 			);
 		}
 
@@ -139,6 +142,7 @@ class Path {
 				request.cookies.token,
 				{
 					web: true,
+					fn: (user) => !user.markedForDeletion,
 				}
 			);
 		}
@@ -149,7 +153,8 @@ class Path {
 			return this.Utils.authorization.verifyAccount(
 				request.headers.authorization,
 				{
-					fn: (user) => Boolean(user.admin),
+					fn: (user) =>
+						Boolean(user.admin) && !user.markedForDeletion,
 				}
 			);
 		}
@@ -159,14 +164,16 @@ class Path {
 				request.cookies.token,
 				{
 					web: true,
-					fn: (user) => Boolean(user.admin),
+					fn: (user) =>
+						Boolean(user.admin) && !user.markedForDeletion,
 				}
 			);
 		}
 	}
 
 	/**
-	 * Generates a query for things like images, links, etc. Not suitable for user queries. For that use generateGenericQuery
+	 * Generates a query for things like images, links, etc.
+	 * Not suitable for user queries. For that use generateGenericQuery
 	 */
 	generatePageQuery(
 		request: FastifyRequest<{
