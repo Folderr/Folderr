@@ -95,6 +95,7 @@ export default class DbQueue extends EventEmitter {
 		await Promise.all(deletions);
 		await this.#db.purgeFiles({ owner: userID }, files.length);
 		await this.#db.purgeUser(userID);
+		await this.#db.purgeTokens(userID);
 	}
 
 	/**
@@ -142,6 +143,7 @@ export default class DbQueue extends EventEmitter {
 				this.#queue.delete(value);
 			} else {
 				await this.#db.purgeUser(value);
+				await this.#db.purgeTokens(value);
 				this.#queue.delete(value);
 			}
 		});
