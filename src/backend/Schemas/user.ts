@@ -19,42 +19,43 @@
  *
  */
 
-import type {Model} from 'mongoose';
-import {Schema, model} from 'mongoose';
-import type {User} from '../Structures/Database/db-class';
+import type { Model } from "mongoose";
+import { Schema, model } from "mongoose";
+import type { User } from "../Structures/Database/db-class";
 
 const userSchema = new Schema({
-	id: {type: String, required: true, index: true},
-	password: {type: String, required: true},
-	owner: {type: Boolean, default: false},
-	username: {type: String, required: true},
-	admin: {type: Boolean, default: false},
+	id: { type: String, required: true, index: true },
+	password: { type: String, required: true },
+	owner: { type: Boolean, default: false },
+	username: { type: String, required: true },
+	admin: { type: Boolean, default: false },
 	notifs: {
 		type: [
 			{
-				id: {type: String},
-				title: {type: String},
-				notify: {type: String},
-				created: {type: Date, default: new Date()},
+				id: { type: String },
+				title: { type: String },
+				notify: { type: String },
+				created: { type: Date, default: new Date() },
 			},
 		],
 		required: false,
 		default: [],
 	},
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	cURLs: {type: Array, default: []},
-	files: {type: Number, default: 0},
-	links: {type: Number, default: 0},
-	email: {type: String, required: true, index: true},
-	pendingEmail: {type: String},
-	pendingEmailToken: {type: String},
-	tokenExpiresAt: {type: Date},
-	createdAt: {type: Date, default: new Date()},
+	cURLs: { type: Array, default: [] },
+	files: { type: Number, default: 0 },
+	links: { type: Number, default: 0 },
+	email: { type: String, required: true, index: true },
+	pendingEmail: { type: String },
+	pendingEmailToken: { type: String },
+	tokenExpiresAt: { type: Date },
+	createdAt: { type: Date, default: new Date() },
 	privacy: {
-		dataCollection: {type: Boolean, default: false},
+		dataCollection: { type: Boolean, default: false },
 	},
+	markedForDeletion: { type: Boolean, default: false },
 });
 
-const mod: Model<User> = model<User>('user', userSchema);
+const mod: Model<User> = model<User>("user", userSchema);
 
 export default mod;
