@@ -37,7 +37,7 @@
     "@fastify/multipart": "^7.5.0",
     "@fastify/rate-limit": "^8.0.0",
     "@fastify/static": "^6.9.0",
-    "@headlessui/vue": "^1.6.7",
+    "@headlessui/vue": "^1.7.19",
     "@heroicons/vue": "^1.0.5",
     "@iconify/icons-codicon": "^1.2.13",
     "@iconify/vue": "^3.2.1",
