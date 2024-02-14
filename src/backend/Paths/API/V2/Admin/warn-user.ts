@@ -22,7 +22,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { Core } from "../../../../internals";
 import Path from "../../../../Structures/path";
-import type { User } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Warn a user
@@ -86,17 +85,15 @@ class WarnUser extends Path {
 		}>,
 		response: FastifyReply
 	) {
-		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
-		);
-		if (!auth) {
-			return response.status(this.codes.unauth).send({
-				code: this.codes.unauth,
+		const newAuth = await this.Utils.checkAuth(request, true);
+		if (newAuth.code !== this.core.codes.ok) {
+			return response.status(newAuth.code).send({
+				code: newAuth.code,
 				message: "Authorization failed.",
 			});
 		}
 
-		if (!/^\d+$/.test(request.params.id)) {
+		if (!this.Utils.validateUuid(request.params.id, 4)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: "Requirements missing or invalid!",
@@ -105,7 +102,7 @@ class WarnUser extends Path {
 
 		const user = await this.core.db.findUser({ id: request.params.id });
 		if (!user) {
-			return response.status(this.codes.notAccepted).send({
+			return response.status(this.codes.notFound).send({
 				code: this.Utils.foldCodes.dbNotFound,
 				message: "User not found!",
 			});

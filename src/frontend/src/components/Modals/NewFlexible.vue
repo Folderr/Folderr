@@ -58,7 +58,7 @@ interface Props {
 	greenContinue?: boolean;
 
 	// Related to the input box
-	showInput: false
+	showInput: boolean
 	needInput?: boolean;
 	type?: string;
 	title?: string;
