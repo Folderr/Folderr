@@ -666,9 +666,11 @@ const reasonDemote = async (
 		sne.value.addSuccess(`Demoted ${user.username}`);
 	}
 
-	userList.value = userList.value?.filter(
-		(localUser) => localUser.id !== user.id
-	);
+	const index = userList.value?.indexOf(user);
+	if (userList.value && index) {
+		userList.value[index].role = "user";
+	}
+
 	cancelReason();
 
 	if (selectedUser.value) {
@@ -825,6 +827,16 @@ async function denyUser(id: string): Promise<boolean | Error> {
 
 async function promoteUser(id: string): Promise<boolean | Error> {
 	// To impl
+	const user = userList.value?.find((user) => user.id === id);
+	if (!user) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(`User not found with id ${id}`);
+		}
+
+		throw new Error("User Not Found");
+	}
+
 	const output = await managementAPI.promoteUserToAdmin(id);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
@@ -834,7 +846,7 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 				sne.value.addError(output.error.message);
 			}
 
-			return output.error;
+			throw output.error;
 		}
 
 		if (sne.value) {
@@ -842,12 +854,19 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 			sne.value.addError(output.error);
 		}
 
-		return new Error(output.error ?? "Unknown Error");
+		throw new Error(output.error ?? "Unknown Error");
 	}
 
-	verifyingUsers.value = verifyingUsers.value?.filter(
-		(user) => user.id !== id
-	);
+	if (sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addSuccess(`Promoted ${user.username} to Admin`);
+	}
+
+	const index = userList.value?.indexOf(user);
+	if (userList.value && index) {
+		userList.value[index].role = "admin";
+	}
+
 	if (selectedUser.value) {
 		closeUserDialog();
 	}
