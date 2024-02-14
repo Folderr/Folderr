@@ -463,7 +463,15 @@ const reasonDelete = async (
 	user: FilteredUsers,
 	reason: string | undefined
 ) => {
-	if (!reason) return;
+	if (!reason) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value?.addError(`Need a reason for that.`);
+		}
+
+		return;
+	}
+
 	const result = await deleteUser(user.id, reason);
 	if (result instanceof Error && sne.value) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -472,11 +480,21 @@ const reasonDelete = async (
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addSuccess(`Deleted User ${user.username}`);
 	}
+
+	cancelReason();
 };
 
 const setReasonWarn = (userid: string) => {
 	const user = userList.value?.find((user) => user.id === userid);
-	if (!user) return;
+	if (!user) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value?.addError(`User not found ${userid}`);
+		}
+
+		return;
+	}
+
 	reason.value = {
 		reasonFor: `to warn ${user.username}`,
 		async continue(reason) {
@@ -489,7 +507,15 @@ const reasonWarn = async (
 	user: FilteredUsers,
 	localReason: string | undefined
 ) => {
-	if (typeof localReason === "undefined") return;
+	if (!localReason) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value?.addError(`Need a reason for that.`);
+		}
+
+		return;
+	}
+
 	const result = await warnUser(user.id, localReason);
 	if (result instanceof Error && sne.value) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -499,12 +525,20 @@ const reasonWarn = async (
 		sne.value.addSuccess(`Warned User ${user.username}`);
 	}
 
-	reason.value = undefined;
+	cancelReason();
 };
 
 const setReasonBan = (userid: string) => {
 	const user = userList.value?.find((user) => user.id === userid);
-	if (!user) return;
+	if (!user) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value?.addError(`User not found ${userid}`);
+		}
+
+		return;
+	}
+
 	reason.value = {
 		reasonFor: `to ban ${user.username}`,
 		continue: async (reason) => reasonBan(user, reason),
@@ -512,13 +546,29 @@ const setReasonBan = (userid: string) => {
 };
 
 const reasonBan = async (user: FilteredUsers, reason: string | undefined) => {
-	if (!reason) return;
+	if (!reason) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value?.addError(`Need a reason for that.`);
+		}
+
+		return;
+	}
+
 	return false; // Need to impl
 };
 
 const setReasonDemote = (userid: string) => {
 	const user = userList.value?.find((user) => user.id === userid);
-	if (!user) return;
+	if (!user) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value?.addError(`User not found ${userid}`);
+		}
+
+		return;
+	}
+
 	reason.value = {
 		reasonFor: `to demote ${user.username}`,
 		continue: async (reason) => reasonDemote(user, reason),
@@ -529,7 +579,15 @@ const reasonDemote = async (
 	user: FilteredUsers,
 	reason: string | undefined
 ) => {
-	if (!reason) return;
+	if (!reason) {
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value?.addError(`Need a reason for that.`);
+		}
+
+		return;
+	}
+
 	return false; // Need to impl
 };
 
