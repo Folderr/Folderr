@@ -94,7 +94,7 @@ class Ban extends Path {
 			});
 		}
 
-		if (!/^\d+$/.test(request.params.id)) {
+		if (!this.Utils.validateUuid(request.params.id, 4)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: "Missing requirements",
@@ -103,7 +103,7 @@ class Ban extends Path {
 
 		const user = await this.core.db.findUser({ id: request.params.id });
 		if (!user) {
-			return response.status(this.codes.badReq).send({
+			return response.status(this.codes.notFound).send({
 				code: this.Utils.foldCodes.dbNotFound,
 				message: "User not found!",
 			});

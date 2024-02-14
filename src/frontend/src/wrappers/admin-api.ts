@@ -551,3 +551,89 @@ export async function warnUser(id: string, reason: string) {
 		return genericCatch(error);
 	}
 }
+
+export async function banUser(id: string, reason: string) {
+	const body = JSON.stringify({ reason });
+	try {
+		const response = await fetch(`/api/admin/ban/${id}`, {
+			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body,
+			method: "POST",
+		});
+
+		if (response.status === httpCodes.notFound) {
+			return {
+				error: "User Not Found",
+				success: false,
+				response,
+				output: undefined,
+			};
+		}
+
+		if (response.status === httpCodes.notAccepted) {
+			return {
+				error: "Ban Failed",
+				success: false,
+				response,
+				output: undefined,
+			};
+		}
+
+		if (response.status === httpCodes.forbidden) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const json: { code: number; message: string } | undefined =
+				await response.json();
+			return {
+				error:
+					json?.message ??
+					"You are not authorized to perform that action",
+				success: false,
+				output: undefined,
+				response,
+			};
+		}
+
+		const check = checkAuthenticationError(response);
+		if (check) {
+			return check;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const json: { code: number; message: string | any } | undefined =
+			await response.json();
+		if (!json?.code) {
+			throw Error(`Unexpected Error: ${response.statusText}`);
+		}
+
+		if (response.status !== httpCodes.ok) {
+			switch (typeof json?.message) {
+				case "string":
+					throw Error(`Error: ${json.code} ${json.message}`);
+				default:
+					throw Error(`Unexpected Error ${json.code}`);
+			}
+		}
+
+		if (json?.message) {
+			switch (typeof json?.message) {
+				case "string":
+					return {
+						error: undefined,
+						success: true,
+						response,
+						output: json.message,
+					};
+
+				default:
+					throw Error(`Error: ${json.code} ${json.message}`);
+			}
+		}
+
+		throw Error(`Unexpected Output: ${response.statusText}`);
+	} catch (error: unknown) {
+		return genericCatch(error);
+	}
+}
