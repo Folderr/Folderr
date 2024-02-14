@@ -2,14 +2,14 @@
 	<div class="bg-bg h-screen flex flex-col">
 		<!-- Modal for Reason -->
 		<FlexibleModal
-			v-if="reason"
-			:hide="Boolean(reason.reasonFor)"
-			:header="`What is Your Reason ${reason.reasonFor}?`"
+			v-if="localReason"
+			:hide="Boolean(localReason.reasonFor)"
+			:header="`What is Your Reason ${localReason.reasonFor}?`"
 			:cancel="cancelReason"
 			:cont="
 				(input) => {
-					if (!reason) return;
-					reason.continue(input);
+					if (!localReason) return;
+					localReason.continue(input);
 				}
 			"
 			continue-text="Confirm"
@@ -444,16 +444,16 @@ type ReasonModal = {
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
 const sne = ref<InstanceType<typeof SuccessNError>>();
-const reason = ref<ReasonModal>();
+const localReason = ref<ReasonModal>();
 
 const cancelReason = () => {
-	reason.value = undefined;
+	localReason.value = undefined;
 };
 
 const setReasonDelete = (userid: string) => {
 	const user = userList.value?.find((user) => user.id === userid);
 	if (!user) return;
-	reason.value = {
+	localReason.value = {
 		reasonFor: `to delete ${user.username}`,
 		continue: async (text) => reasonDelete(user, text),
 	};
@@ -472,13 +472,36 @@ const reasonDelete = async (
 		return;
 	}
 
+	const output = await adminAPI.deleteAccount(user.id, reason);
+	if (output.error ?? !output.success) {
+		if (output.error instanceof Error && sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error.message);
+		} else if (sne.value && !(output.error instanceof Error)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error ?? "Unknown Error");
+		}
+	} else if (sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addSuccess(`Deleted ${user.username}`);
+	}
+
+	userList.value = userList.value?.filter(
+		(localUser) => localUser.id !== user.id
+	);
+
+	if (selectedUser.value) {
+		closeUserDialog();
+	}
+
+	await loadUsers();
 	const result = await deleteUser(user.id, reason);
 	if (result instanceof Error && sne.value) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addError(result.message);
 	} else if (sne.value) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-		sne.value.addSuccess(`Deleted User ${user.username}`);
+		sne.value.addSuccess(`Deleted ${user.username}`);
 	}
 
 	cancelReason();
@@ -495,7 +518,7 @@ const setReasonWarn = (userid: string) => {
 		return;
 	}
 
-	reason.value = {
+	localReason.value = {
 		reasonFor: `to warn ${user.username}`,
 		async continue(reason) {
 			await reasonWarn(user, reason);
@@ -516,16 +539,25 @@ const reasonWarn = async (
 		return;
 	}
 
-	const result = await warnUser(user.id, localReason);
-	if (result instanceof Error && sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-		sne.value.addError(result.message);
+	const output = await adminAPI.warnUser(user.id, localReason);
+	if (output.error ?? !output.success) {
+		if (output.error instanceof Error && sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error.message);
+		} else if (sne.value && !(output.error instanceof Error)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error ?? "Unknown Error");
+		}
 	} else if (sne.value) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-		sne.value.addSuccess(`Warned User ${user.username}`);
+		sne.value.addSuccess(`Warned ${user.username}`);
 	}
 
 	cancelReason();
+
+	if (selectedUser.value) {
+		closeUserDialog();
+	}
 };
 
 const setReasonBan = (userid: string) => {
@@ -539,7 +571,7 @@ const setReasonBan = (userid: string) => {
 		return;
 	}
 
-	reason.value = {
+	localReason.value = {
 		reasonFor: `to ban ${user.username}`,
 		continue: async (reason) => reasonBan(user, reason),
 	};
@@ -555,7 +587,30 @@ const reasonBan = async (user: FilteredUsers, reason: string | undefined) => {
 		return;
 	}
 
-	return false; // Need to impl
+	const output = await adminAPI.banUser(user.id, reason);
+	if (output.error ?? !output.success) {
+		if (output.error instanceof Error && sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error.message);
+		} else if (sne.value && !(output.error instanceof Error)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error ?? "Unknown Error");
+		}
+	} else if (sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addSuccess(`Banned ${user.username}`);
+	}
+
+	userList.value = userList.value?.filter(
+		(localUser) => localUser.id !== user.id
+	);
+	cancelReason();
+
+	if (selectedUser.value) {
+		closeUserDialog();
+	}
+
+	await loadUsers();
 };
 
 const setReasonDemote = (userid: string) => {
@@ -569,7 +624,7 @@ const setReasonDemote = (userid: string) => {
 		return;
 	}
 
-	reason.value = {
+	localReason.value = {
 		reasonFor: `to demote ${user.username}`,
 		continue: async (reason) => reasonDemote(user, reason),
 	};
@@ -790,32 +845,6 @@ async function deleteUser(
 
 	if (output.success) {
 		console.log(output.output);
-		return true;
-	}
-
-	return false;
-}
-
-async function warnUser(id: string, reason: string): Promise<boolean | Error> {
-	const output = await adminAPI.warnUser(id, reason);
-	if (output.error ?? !output.success) {
-		console.log(output.error ?? "Unknown Error");
-		if (output.error instanceof Error) {
-			return output.error;
-		}
-
-		return new Error(output.error ?? "Unknown Error");
-	}
-
-	userList.value = userList.value?.filter((user) => user.id !== id);
-
-	if (selectedUser.value) {
-		closeUserDialog();
-	}
-
-	await loadUsers();
-
-	if (output.success) {
 		return true;
 	}
 
