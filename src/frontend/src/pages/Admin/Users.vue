@@ -112,7 +112,11 @@
 									store.owner &&
 									selectedUser.user.role !== 'admin'
 								"
-								:on-click="() => false"
+								:on-click="
+									() =>
+										selectedUser &&
+										promoteUser(selectedUser.user.id)
+								"
 								class="flex align-middle"
 								><ShieldCheckIcon
 									class="h-5 align-middle mr-1"
@@ -124,7 +128,11 @@
 									store.owner &&
 									selectedUser.user.role == 'admin'
 								"
-								:on-click="() => setReasonDemote"
+								:on-click="
+									() =>
+										selectedUser &&
+										setReasonDemote(selectedUser?.user.id)
+								"
 								type="red"
 								class="flex align-middle"
 								><ShieldExclamationIcon
@@ -415,6 +423,7 @@ import {
 } from "@headlessui/vue";
 import { useUserStore } from "../../stores/user";
 import * as adminAPI from "../../wrappers/admin-api";
+import * as managementAPI from "../../wrappers/management-api";
 import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
 import AdminSidebar from "../../components/Admin-Sidebar.vue";
 import AdminButton from "../../components/Admin-Button.vue";
@@ -643,7 +652,30 @@ const reasonDemote = async (
 		return;
 	}
 
-	return false; // Need to impl
+	const output = await managementAPI.demoteUserToAdmin(user.id, reason);
+	if (output.error ?? !output.success) {
+		if (output.error instanceof Error && sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error.message);
+		} else if (sne.value && !(output.error instanceof Error)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error ?? "Unknown Error");
+		}
+	} else if (sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addSuccess(`Demoted ${user.username}`);
+	}
+
+	userList.value = userList.value?.filter(
+		(localUser) => localUser.id !== user.id
+	);
+	cancelReason();
+
+	if (selectedUser.value) {
+		closeUserDialog();
+	}
+
+	await loadUsers();
 };
 
 // User Info Modal
@@ -765,7 +797,17 @@ async function denyUser(id: string): Promise<boolean | Error> {
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
+			if (sne.value) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+				sne.value.addError(output.error.message);
+			}
+
 			return output.error;
+		}
+
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error);
 		}
 
 		return new Error(output.error ?? "Unknown Error");
@@ -778,19 +820,60 @@ async function denyUser(id: string): Promise<boolean | Error> {
 		closeUserDialog();
 	}
 
-	if (output.success) {
-		console.log(output.output);
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
-async function acceptUser(id: string) {
+async function promoteUser(id: string): Promise<boolean | Error> {
+	// To impl
+	const output = await managementAPI.promoteUserToAdmin(id);
+	if (output.error ?? !output.success) {
+		console.log(output.error ?? "Unknown Error");
+		if (output.error instanceof Error) {
+			if (sne.value) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+				sne.value.addError(output.error.message);
+			}
+
+			return output.error;
+		}
+
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error);
+		}
+
+		return new Error(output.error ?? "Unknown Error");
+	}
+
+	verifyingUsers.value = verifyingUsers.value?.filter(
+		(user) => user.id !== id
+	);
+	if (selectedUser.value) {
+		closeUserDialog();
+	}
+
+	return true;
+}
+
+async function acceptUser(id: string): Promise<boolean | Error> {
 	const output = await adminAPI.acceptAccount(id);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
-		return;
+		if (output.error instanceof Error) {
+			if (sne.value) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+				sne.value.addError(output.error.message);
+			}
+
+			return output.error;
+		}
+
+		if (sne.value) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			sne.value.addError(output.error);
+		}
+
+		return new Error(output.error ?? "Unknown Error");
 	}
 
 	const user = verifyingUsers.value?.find((user) => user.id === id);
@@ -819,6 +902,7 @@ async function acceptUser(id: string) {
 	await loadVerifyingUsers();
 
 	console.log(output.output);
+	return true;
 }
 
 async function deleteUser(
