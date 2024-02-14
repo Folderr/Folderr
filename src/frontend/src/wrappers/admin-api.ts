@@ -389,13 +389,15 @@ export async function acceptAccount(
 	}
 }
 
-export async function deleteAccount(id: string) {
+export async function deleteAccount(id: string, reason: string) {
+	const body = JSON.stringify({ reason });
 	try {
 		const response = await fetch(`/api/account?userid=${id}`, {
 			credentials: "same-origin",
 			headers: {
 				"Content-Type": "application/json",
 			},
+			body,
 			method: "DELETE",
 		});
 
