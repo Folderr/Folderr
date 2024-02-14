@@ -1,5 +1,26 @@
 <template>
 	<div class="bg-bg h-screen flex flex-col">
+		<!-- Modal for Reason -->
+		<FlexibleModal
+			v-if="reason"
+			:hide="Boolean(reason.reasonFor)"
+			:header="`What is Your Reason ${reason.reasonFor}?`"
+			:cancel="cancelReason"
+			:cont="
+				(input) => {
+					if (!reason) return;
+					reason.continue(input);
+				}
+			"
+			continue-text="Confirm"
+			:show-input="true"
+			:need-input="true"
+		>
+			<p class="text-secondary-text">
+				<!-- eslint-disable-next-line max-len-->
+				Please provide a reason
+			</p></FlexibleModal
+		>
 		<!-- Modal For Selected User -->
 		<Dialog
 			:open="selectedUser !== undefined"
@@ -16,92 +37,127 @@
 				<DialogPanel
 					class="m-5 bg-bg-old text-text w-full md:w-fit p-10 rounded flex flex-col"
 				>
-					<button class="ml-auto w-fit" :onClick="closeUserDialog">
-						X
-					</button>
-					<DialogTitle class="text-brand font-bold text-lg"
-						>User Info</DialogTitle
+					<div class="flex justify-between w-full">
+						<DialogTitle class="text-brand font-bold text-xl"
+							>User Info</DialogTitle
+						>
+						<button class="w-fit" :onClick="closeUserDialog">
+							<span class="sr-only">Close User Info Modal</span>
+							<XIcon class="h-5 text-white" />
+						</button>
+					</div>
+					<DialogDescription class="mb-4 text-secondary-text"
+						>Showing information for
+						{{ selectedUser?.user.username }}</DialogDescription
 					>
-					<div class="grid grid-cols-2 w-fit gap-x-4 gap-y-2">
+
+					<!-- User Info -->
+					<div
+						class="grid grid-cols-2 grid-flow-row-dense w-fit gap-x-4 gap-y-2"
+					>
 						<h2>Username</h2>
-						<p class="text-secondary-text">
+						<p class="text-secondary-text w-fit">
 							{{ selectedUser?.user.username }}
 						</p>
 						<h2>Email</h2>
-						<p class="text-secondary-text">
+						<p class="text-secondary-text w-fit">
 							{{ selectedUser?.user.email }}
 						</p>
-						<h2 v-if="selectedUser?.type === 'User'">Statistics</h2>
+						<h2 v-if="selectedUser?.type === 'User'" class="w-fit">
+							Statistics
+						</h2>
 						<p
 							v-if="selectedUser?.type === 'User'"
-							class="text-secondary-text flex"
+							class="text-secondary-text flex w-fit"
 						>
 							<DocumentIcon class="h-5 mr-2 text-brand my-auto" />
 							{{ selectedUser.user.statistics.files }} files,
 							<LinkIcon class="h-5 mx-2 text-brand my-auto" />
 							{{ selectedUser.user.statistics.links }} links
 						</p>
-						<h2 v-if="selectedUser?.type === 'User'">Role</h2>
+						<h2 v-if="selectedUser?.type === 'User'" class="w-fit">
+							Role
+						</h2>
 						<p
 							v-if="selectedUser?.type === 'User'"
-							class="text-secondary-text flex"
+							class="text-secondary-text flex w-fit"
 						>
 							{{
 								selectedUser.user.role[0].toUpperCase() +
 								selectedUser.user.role.slice(1)
 							}}
 						</p>
-						<h2>Actions</h2>
+						<h2 class="w-fit">Actions</h2>
 						<div
 							v-if="
 								selectedUser?.type === 'User' &&
 								canModifyUser(selectedUser.user)
 							"
-							class="grid-cols-2 grid gap-y-4 gap-x-2 w-fit"
+							class="grid-cols-2 grid gap-y-2 gap-x-2 w-fit"
 						>
-							<AdminButton :on-click="() => false"
-								><div class="flex">
-									<FlagIcon class="h-5 my-auto mr-1" />
-									Warn
-								</div></AdminButton
+							<AdminButton
+								:on-click="
+									() =>
+										setReasonWarn(
+											// @ts-expect-error, we've checked this
+											selectedUser?.user.id
+										)
+								"
+								class="flex align-middle"
+								><FlagIcon class="h-5 align-middle mr-1" />
+								<p>Warn</p></AdminButton
 							>
 							<AdminButton
-								v-if="store.owner"
+								v-if="
+									store.owner &&
+									selectedUser.user.role !== 'admin'
+								"
 								:on-click="() => false"
-								><div class="flex">
-									<ShieldCheckIcon class="h-5 my-auto mr-1" />
-									Promote
-								</div>
+								class="flex align-middle"
+								><ShieldCheckIcon
+									class="h-5 align-middle mr-1"
+								/>
+								<p>Promote</p>
 							</AdminButton>
 							<AdminButton
-								v-if="store.owner"
-								:on-click="() => false"
+								v-if="
+									store.owner &&
+									selectedUser.user.role == 'admin'
+								"
+								:on-click="() => setReasonDemote"
 								type="red"
-								><div class="flex">
-									<ShieldExclamationIcon
-										class="h-5 my-auto mr-1"
-									/>
-									Demote
-								</div>
+								class="flex align-middle"
+								><ShieldExclamationIcon
+									class="h-5 my-auto mr-1"
+								/>
+								<p>Demote</p>
 							</AdminButton>
 							<AdminButton
 								:on-click="
 									async () => {
-										// @ts-expect-error, we've checked this
-										await deleteUser(selectedUser?.user.id);
+										await setReasonDelete(
+											// @ts-expect-error, we've checked this
+											selectedUser?.user.id
+										);
 									}
 								"
 								type="red"
-								><div class="flex">
-									<TrashIcon class="h-5 my-auto mr-1" />
-									Delete
-								</div></AdminButton
+								class="flex align-middle"
+								><TrashIcon class="h-5 align-middle mr-1" />
+								<p class="flex">Delete</p></AdminButton
 							>
-							<AdminButton :on-click="() => false" type="red"
-								><div class="flex">
-									<BanIcon class="h-5 my-auto mr-1" />
-									Ban
-								</div></AdminButton
+							<AdminButton
+								:on-click="
+									() =>
+										setReasonBan(
+											// @ts-expect-error, we've checked this
+											selectedUser?.user.id
+										)
+								"
+								type="red"
+								class="flex align-middle"
+								><BanIcon class="h-5 align-middle mr-1" />
+								<p>Ban</p></AdminButton
 							>
 						</div>
 						<div
@@ -114,10 +170,9 @@
 										selectedUser &&
 										acceptUser(selectedUser.user.id)
 								"
-								><div class="flex">
-									<UserAddIcon class="h-5 my-auto mr-1" />
-									Accept
-								</div></AdminButton
+								class="flex align-middle"
+								><UserAddIcon class="h-5 align-middle mr-1" />
+								<p>Accept</p></AdminButton
 							>
 
 							<AdminButton
@@ -127,10 +182,9 @@
 										denyUser(selectedUser.user.id)
 								"
 								type="red"
-								><div class="flex">
-									<TrashIcon class="h-5 my-auto mr-1" />
-									Deny
-								</div></AdminButton
+								class="flex"
+								><TrashIcon class="h-5 my-auto mr-1" />
+								<p>Deny</p></AdminButton
 							>
 						</div>
 						<div v-else class="text-secondary-text">
@@ -141,13 +195,18 @@
 				</DialogPanel>
 			</div>
 		</Dialog>
+		<!-- Navbar -->
 		<NavbarAuthenticated
 			:username="username"
 			:admin="true"
 			class="bg-bg-old"
 		/>
+		<SuccessNError ref="sne" />
+		<!-- Begin content -->
 		<div class="flex h-full">
+			<!-- Sidebar -->
 			<AdminSidebar active="user" />
+			<!-- Filter & "Search Bar" (aesthetics only atm) -->
 			<div class="mt-5 lg:mt-20 mx-auto w-full text-text max-h-full">
 				<div
 					class="flex justify-between mx-5 md:mx-10"
@@ -196,6 +255,8 @@
 				</div>
 
 				<!-- eslint-disable max-len -->
+				<!-- Grid of users & their headers (for determing what info you're viewing) -->
+				<!-- Verifying Users -->
 				<div
 					v-if="
 						verifyingUsers &&
@@ -249,6 +310,7 @@
 						</li>
 					</ul>
 				</div>
+				<!-- Users -->
 				<!-- eslint-disable max-len -->
 				<div
 					v-else-if="
@@ -291,7 +353,7 @@
 							<AdminButton
 								class="hidden lg:block"
 								:button-disabled="user.role === 'owner'"
-								:on-click="() => false"
+								:on-click="() => setReasonWarn(user.id)"
 								><div class="flex">
 									<FlagIcon class="h-5 my-auto mr-1" />
 									Warn
@@ -301,7 +363,7 @@
 							<AdminButton
 								class="hidden lg:block"
 								:button-disabled="user.role === 'owner'"
-								:on-click="() => deleteUser(user.id)"
+								:on-click="() => setReasonDelete(user.id)"
 								type="red"
 								><div class="flex">
 									<TrashIcon class="h-5 my-auto mr-1" />
@@ -347,10 +409,8 @@ import {
 	ListboxOptions,
 	ListboxOption,
 	Dialog,
-	DisclosurePanel,
 	DialogTitle,
 	DialogDescription,
-	DialogBackdrop,
 	DialogPanel,
 } from "@headlessui/vue";
 import { useUserStore } from "../../stores/user";
@@ -358,6 +418,8 @@ import * as adminAPI from "../../wrappers/admin-api";
 import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
 import AdminSidebar from "../../components/Admin-Sidebar.vue";
 import AdminButton from "../../components/Admin-Button.vue";
+import FlexibleModal from "../../components/Modals/NewFlexible.vue";
+import SuccessNError from "../../components/Success-N-Error.vue";
 import {
 	BanIcon,
 	FlagIcon,
@@ -369,29 +431,109 @@ import {
 	UserAddIcon,
 	ShieldCheckIcon,
 	ShieldExclamationIcon,
+	XIcon,
 } from "@heroicons/vue/solid";
 
-const filters = ["Users", "Verifying Users", "Banned Emails"];
-const filter = ref(filters[0]);
+// Reason modal
+type ReasonModal = {
+	reasonFor: string;
+	needInput?: boolean;
+	greenConfirm?: boolean;
+	continue: (text: string | undefined) => any;
+};
 
-type FilteredUsers = {
-	username: string;
-	email: string;
-	statistics: {
-		files: number;
-		links: number;
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
+const sne = ref<InstanceType<typeof SuccessNError>>();
+const reason = ref<ReasonModal>();
+
+const cancelReason = () => {
+	reason.value = undefined;
+};
+
+const setReasonDelete = (userid: string) => {
+	const user = userList.value?.find((user) => user.id === userid);
+	if (!user) return;
+	reason.value = {
+		reasonFor: `to delete ${user.username}`,
+		continue: async (text) => reasonDelete(user, text),
 	};
-	role: string;
-	id: string;
 };
 
-type VerifyingUsers = {
-	username: string;
-	id: string;
-	email: string;
-	createdAt: Date;
+const reasonDelete = async (
+	user: FilteredUsers,
+	reason: string | undefined
+) => {
+	if (!reason) return;
+	const result = await deleteUser(user.id, reason);
+	if (result instanceof Error && sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addError(result.message);
+	} else if (sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addSuccess(`Deleted User ${user.username}`);
+	}
 };
 
+const setReasonWarn = (userid: string) => {
+	const user = userList.value?.find((user) => user.id === userid);
+	if (!user) return;
+	reason.value = {
+		reasonFor: `to warn ${user.username}`,
+		async continue(reason) {
+			await reasonWarn(user, reason);
+		},
+	};
+};
+
+const reasonWarn = async (
+	user: FilteredUsers,
+	localReason: string | undefined
+) => {
+	if (typeof localReason === "undefined") return;
+	const result = await warnUser(user.id, localReason);
+	if (result instanceof Error && sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addError(result.message);
+	} else if (sne.value) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		sne.value.addSuccess(`Warned User ${user.username}`);
+	}
+
+	reason.value = undefined;
+};
+
+const setReasonBan = (userid: string) => {
+	const user = userList.value?.find((user) => user.id === userid);
+	if (!user) return;
+	reason.value = {
+		reasonFor: `to ban ${user.username}`,
+		continue: async (reason) => reasonBan(user, reason),
+	};
+};
+
+const reasonBan = async (user: FilteredUsers, reason: string | undefined) => {
+	if (!reason) return;
+	return false; // Need to impl
+};
+
+const setReasonDemote = (userid: string) => {
+	const user = userList.value?.find((user) => user.id === userid);
+	if (!user) return;
+	reason.value = {
+		reasonFor: `to demote ${user.username}`,
+		continue: async (reason) => reasonDemote(user, reason),
+	};
+};
+
+const reasonDemote = async (
+	user: FilteredUsers,
+	reason: string | undefined
+) => {
+	if (!reason) return;
+	return false; // Need to impl
+};
+
+// User Info Modal
 type UserSelectionTypeText = "User" | "Verifying";
 type UserType = FilteredUsers | VerifyingUsers;
 
@@ -442,13 +584,13 @@ const closeUserDialog = () => {
 	selectedUser.value = undefined;
 };
 
-const verifyingUsers = ref<VerifyingUsers[]>();
-
-const userList = ref<FilteredUsers[]>();
+// Filters
+const filters = ["Users", "Verifying Users", "Banned Emails"];
+const filter = ref(filters[0]);
 
 // When the filter changes lets do the appropriate calls for the filter
 
-watch(filter, async (value, oldValue) => {
+watch(filter, async (value) => {
 	if (value === "Users") {
 		await loadUsers();
 	} else if (value === "Verifying Users") {
@@ -456,11 +598,64 @@ watch(filter, async (value, oldValue) => {
 	}
 });
 
-async function denyUser(id: string) {
+// Users & Verifying Users
+type FilteredUsers = {
+	username: string;
+	email: string;
+	statistics: {
+		files: number;
+		links: number;
+	};
+	role: string;
+	id: string;
+};
+
+type VerifyingUsers = {
+	username: string;
+	id: string;
+	email: string;
+	createdAt: Date;
+};
+
+const verifyingUsers = ref<VerifyingUsers[]>();
+
+const userList = ref<FilteredUsers[]>();
+
+const loadVerifyingUsers = async () => {
+	const users = await adminAPI.getVerifyingUsers();
+
+	if (users.success && users.output) {
+		verifyingUsers.value = users.output;
+	}
+};
+
+const loadUsers = async () => {
+	const users = await adminAPI.getUsers();
+
+	// Handle errors later
+
+	if (users.success && users.output && Array.isArray(users.output)) {
+		userList.value = users.output.map((user) => {
+			return {
+				username: user.username,
+				email: user.email,
+				statistics: { files: user.files, links: user.links },
+				role: user.title || "User",
+				id: user.id,
+			};
+		});
+	}
+};
+
+async function denyUser(id: string): Promise<boolean | Error> {
 	const output = await adminAPI.denyAccount(id);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
-		return;
+		if (output.error instanceof Error) {
+			return output.error;
+		}
+
+		return new Error(output.error ?? "Unknown Error");
 	}
 
 	verifyingUsers.value = verifyingUsers.value?.filter(
@@ -470,7 +665,12 @@ async function denyUser(id: string) {
 		closeUserDialog();
 	}
 
-	console.log(output.output);
+	if (output.success) {
+		console.log(output.output);
+		return true;
+	}
+
+	return false;
 }
 
 async function acceptUser(id: string) {
@@ -508,11 +708,18 @@ async function acceptUser(id: string) {
 	console.log(output.output);
 }
 
-async function deleteUser(id: string) {
+async function deleteUser(
+	id: string,
+	reason?: string
+): Promise<boolean | Error> {
 	const output = await adminAPI.deleteAccount(id);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
-		return;
+		if (output.error instanceof Error) {
+			return output.error;
+		}
+
+		return new Error(output.error ?? "Unknown Error");
 	}
 
 	userList.value = userList.value?.filter((user) => user.id !== id);
@@ -523,38 +730,43 @@ async function deleteUser(id: string) {
 
 	await loadUsers();
 
-	console.log(output.output);
+	if (output.success) {
+		console.log(output.output);
+		return true;
+	}
+
+	return false;
+}
+
+async function warnUser(id: string, reason: string): Promise<boolean | Error> {
+	const output = await adminAPI.warnUser(id, reason);
+	if (output.error ?? !output.success) {
+		console.log(output.error ?? "Unknown Error");
+		if (output.error instanceof Error) {
+			return output.error;
+		}
+
+		return new Error(output.error ?? "Unknown Error");
+	}
+
+	userList.value = userList.value?.filter((user) => user.id !== id);
+
+	if (selectedUser.value) {
+		closeUserDialog();
+	}
+
+	await loadUsers();
+
+	if (output.success) {
+		return true;
+	}
+
+	return false;
 }
 
 const store = useUserStore();
 
 const username = ref(`${store.username}`);
-
-const loadVerifyingUsers = async () => {
-	const users = await adminAPI.getVerifyingUsers();
-
-	if (users.success && users.output) {
-		verifyingUsers.value = users.output;
-	}
-};
-
-const loadUsers = async () => {
-	const users = await adminAPI.getUsers();
-
-	// Handle errors later
-
-	if (users.success && users.output && Array.isArray(users.output)) {
-		userList.value = users.output.map((user) => {
-			return {
-				username: user.username,
-				email: user.email,
-				statistics: { files: user.files, links: user.links },
-				role: user.title || "User",
-				id: user.id,
-			};
-		});
-	}
-};
 
 onMounted(async () => {
 	if (!username.value) {
