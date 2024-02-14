@@ -19,9 +19,9 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Have a user delete their file
@@ -29,33 +29,33 @@ import {Path} from '../../../../internals';
 class DeleteFile extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API Delete Image';
-		this.path = '/file/:id';
-		this.type = 'delete';
+		this.label = "API Delete Image";
+		this.path = "/file/:id";
+		this.type = "delete";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'},
+						id: { type: "string" },
 					},
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -70,20 +70,20 @@ class DeleteFile extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
 		if (!request.params.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing File ID!',
+				message: "Missing File ID!",
 			});
 		}
 
@@ -94,14 +94,14 @@ class DeleteFile extends Path {
 		if (!file) {
 			return response.status(this.codes.notFound).send({
 				code: this.Utils.foldCodes.dbNotFound,
-				message: 'File not found!',
+				message: "File not found!",
 			});
 		}
 
-		await this.core.db.purgeFile({id: file.id, owner: auth.id});
+		await this.core.db.purgeFile({ id: file.id, owner: auth.id });
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: 'OK'});
+			.send({ code: this.codes.ok, message: "OK" });
 	}
 }
 

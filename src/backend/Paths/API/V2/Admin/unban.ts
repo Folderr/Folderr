@@ -19,9 +19,10 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {User} from '../../../../Structures/Database/db-class';
+import { type FastifyRequest, type FastifyReply } from "fastify";
+import { type Core } from "../../../../internals";
+import { type User } from "../../../../Structures/Database/db-class";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Unbans a email from the service
@@ -29,36 +30,36 @@ import {User} from '../../../../Structures/Database/db-class';
 class Unban extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin Unban';
+		this.label = "API/Admin Unban";
 
-		this.path = '/admin/ban';
-		this.type = 'delete';
+		this.path = "/admin/ban";
+		this.type = "delete";
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						email: {type: 'string'}
+						email: { type: "string" },
 					},
-					required: ['email']
+					required: ["email"],
 				},
 				response: {
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -76,14 +77,14 @@ class Unban extends Path {
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: "Authorization failed.",
 			});
 		}
 
 		if (this.core.emailer.validateEmail(request.body.email)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing or invalid requirements'
+				message: "Missing or invalid requirements",
 			});
 		}
 
@@ -91,12 +92,12 @@ class Unban extends Path {
 		if (unban) {
 			return response
 				.status(this.codes.ok)
-				.send({code: this.codes.ok, message: 'OK'});
+				.send({ code: this.codes.ok, message: "OK" });
 		}
 
 		return response.status(this.codes.notAccepted).send({
 			code: this.codes.notAccepted,
-			message: 'UNBAN FAILED'
+			message: "UNBAN FAILED",
 		});
 	}
 }

@@ -19,10 +19,11 @@
  *
  */
 
-import {createReadStream} from 'fs';
-import mime from 'mime-types';
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../internals';
+import { createReadStream } from "fs";
+import mime from "mime-types";
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../internals";
+import Path from "../Structures/path";
 
 /**
  * @classdesc Allow images to be accessed over the web
@@ -30,21 +31,21 @@ import {Core, Path} from '../internals';
 class Images extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Get image by id';
-		this.path = ['/image/:id', '/i/:id'];
+		this.label = "Get image by id";
+		this.path = ["/image/:id", "/i/:id"];
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'},
+						id: { type: "string" },
 					},
-					required: ['id'],
+					required: ["id"],
 				},
 				response: {
-					'4xx': {
-						type: 'string',
+					"4xx": {
+						type: "string",
 					},
 				},
 			},
@@ -60,46 +61,54 @@ class Images extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply | void> {
-		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).send('Missing image ID');
+		if (!request.params?.id) {
+			return response.status(this.codes.badReq).send("Missing image ID");
 		}
 
-		if (!request.params.id.includes('.')) {
-			return response.status(this.codes.badReq).send('Missing file extension!');
+		if (!request.params.id.includes(".")) {
+			return response
+				.status(this.codes.badReq)
+				.send("Missing file extension!");
 		}
 
-		const parts = request.params.id.split('.');
+		const parts = request.params.id.split(".");
 		if (!parts[1]) {
-			return response.status(this.codes.badReq).send('Missing file extension!');
+			return response
+				.status(this.codes.badReq)
+				.send("Missing file extension!");
 		}
 
 		const image = await this.core.db.findFile(
-			{id: parts[0], type: 'image'},
-			'type path owner',
+			{ id: parts[0], type: "image" },
+			"type path owner"
 		);
 		if (image) {
-			const owner = await this.core.db.findUser({id: image.owner});
+			const owner = await this.core.db.findUser({ id: image.owner });
 			if (!owner) {
 				this.core.addDeleter(image.owner);
-				return response.status(this.codes.notFound).send('404 Not Found');
+				return response
+					.status(this.codes.notFound)
+					.send("404 Not Found");
 			}
 		}
 
-		if (!image || (image?.type && image.type !== 'image')) {
-			return response.status(this.codes.notFound).send('404 Not Found');
+		if (!image || (image?.type && image.type !== "image")) {
+			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
 		let content = mime.contentType(image.path);
-		const array = image.path.split('.');
+		const array = image.path.split(".");
 		if (array[array.length - 1] !== parts[1]) {
 			return response.status(this.codes.internalErr);
 		}
 
 		if (!content) {
-			console.log('Image not found!');
-			return response.status(this.codes.notFound).send('Image type not found!');
+			console.log("Image not found!");
+			return response
+				.status(this.codes.notFound)
+				.send("Image type not found!");
 		}
 
 		if (content === image.path) {
@@ -107,7 +116,7 @@ class Images extends Path {
 		}
 
 		return response
-			.header('Content-Type', content)
+			.header("Content-Type", content)
 			.status(200)
 			.send(createReadStream(image.path));
 

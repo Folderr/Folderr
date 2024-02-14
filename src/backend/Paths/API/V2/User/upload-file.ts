@@ -19,19 +19,19 @@
  *
  */
 
-import process from 'process';
-import {join} from 'path';
-import {createWriteStream} from 'fs';
-import {promisify} from 'util';
-import {pipeline} from 'stream';
-import {unlink} from 'fs/promises';
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import process from "process";
+import { join } from "path";
+import { createWriteStream } from "fs";
+import { promisify } from "util";
+import { pipeline } from "stream";
+import { unlink } from "fs/promises";
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 const pump = promisify(pipeline);
 
-const dir = join(process.cwd(), './Files/');
+const dir = join(process.cwd(), "./Files/");
 
 /**
  * @classdesc Upload a file
@@ -39,31 +39,31 @@ const dir = join(process.cwd(), './Files/');
 class Image extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API Upload File';
-		this.path = '/file';
-		this.type = 'post';
+		this.label = "API Upload File";
+		this.path = "/file";
+		this.type = "post";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					500: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'string',
+						type: "string",
 					},
 				},
 			},
@@ -71,16 +71,19 @@ class Image extends Path {
 	}
 	/* eslint-enable @typescript-eslint/naming-convention */
 
-	async execute(request: FastifyRequest<{
-		Headers: {
-			preferredURL?: string;
-		}
-	}>, response: FastifyReply) {
+	async execute(
+		request: FastifyRequest<{
+			Headers: {
+				preferredURL?: string;
+			};
+		}>,
+		response: FastifyReply
+	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -89,11 +92,11 @@ class Image extends Path {
 		if (!file?.file) {
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.noFile,
-				message: 'File not found!',
+				message: "File not found!",
 			});
 		}
 
-		const ext = file.filename.split('.');
+		const ext = file.filename.split(".");
 		const fext = ext[ext.length - 1];
 		const name = await this.Utils.genID();
 
@@ -101,12 +104,13 @@ class Image extends Path {
 			await pump(file.file, createWriteStream(`${dir}/${name}.${fext}`));
 		} catch (error: unknown) {
 			if (
-				error instanceof this.core.app.multipartErrors.RequestFileTooLargeError
+				error instanceof
+				this.core.app.multipartErrors.RequestFileTooLargeError
 			) {
 				await unlink(`${dir}/${name}.${fext}`);
 				return response.status(this.codes.badReq).send({
 					code: this.Utils.foldCodes.fileSizeLimit,
-					message: 'File is over size. Max size is 1GB',
+					message: "File is over size. Max size is 1GB",
 				});
 			}
 
@@ -122,7 +126,7 @@ class Image extends Path {
 			await unlink(`${dir}/${name}.${fext}`);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.fileSizeLimit,
-				message: 'File is over size. Max size is 1GB',
+				message: "File is over size. Max size is 1GB",
 			});
 		}
 
@@ -130,15 +134,15 @@ class Image extends Path {
 			await unlink(`${dir}/${name}.${fext}`);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.fileMimeError,
-				message: 'Invalid file!',
+				message: "Invalid file!",
 			});
 		}
 
-		let type = 'image';
-		if (file.mimetype.startsWith('video')) {
-			type = 'video';
-		} else if (!file.mimetype.startsWith('image')) {
-			type = 'file';
+		let type = "image";
+		if (file.mimetype.startsWith("video")) {
+			type = "video";
+		} else if (!file.mimetype.startsWith("image")) {
+			type = "file";
 		}
 
 		try {
@@ -147,7 +151,10 @@ class Image extends Path {
 					generic: type,
 					mimetype: file.mimetype,
 				}),
-				this.core.db.updateUser({id: auth.id}, {$inc: {files: 1}}),
+				this.core.db.updateUser(
+					{ id: auth.id },
+					{ $inc: { files: 1 } }
+				),
 			]);
 		} catch (error: unknown) {
 			console.log(error);
@@ -157,12 +164,14 @@ class Image extends Path {
 			.status(this.codes.ok)
 			.send(
 				`${
-					typeof request.headers?.responseURL === 'string' &&
+					typeof request.headers?.responseURL === "string" &&
 					auth.cURLs.includes(request.headers.responseURL) &&
-					(await this.Utils.testMirrorURL(request.headers.responseURL!))
+					(await this.Utils.testMirrorURL(
+						request.headers.responseURL!
+					))
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${name}.${fext}`,
+				}/${type[0]}/${name}.${fext}`
 			);
 	}
 }

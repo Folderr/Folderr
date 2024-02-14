@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Allow the user to delete a token they have created
@@ -28,42 +29,42 @@ import {Core, Path} from '../../../../internals';
 class DeleteToken extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Delete API Token';
-		this.path = '/account/token/:id';
-		this.type = 'delete';
+		this.label = "API/User Delete API Token";
+		this.path = "/account/token/:id";
+		this.type = "delete";
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'}
+						id: { type: "string" },
 					},
-					required: ['id']
+					required: ["id"],
 				},
 				querystring: {
-					type: 'object',
+					type: "object",
 					properties: {
-						web: {type: 'boolean'}
-					}
+						web: { type: "boolean" },
+					},
 				},
 				response: {
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -79,38 +80,41 @@ class DeleteToken extends Path {
 		response: FastifyReply
 	): Promise<FastifyReply> {
 		const auth = request.cookies?.token
-			? await this.Utils.authorization.verifyAccount(request.cookies.token, {
-					web: true
-			  })
+			? await this.Utils.authorization.verifyAccount(
+					request.cookies.token,
+					{
+						web: true,
+					}
+			  )
 			: await this.Utils.authPassword(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
-				message: 'Authorization failed',
-				code: this.codes.unauth
+				message: "Authorization failed",
+				code: this.codes.unauth,
 			});
 		}
 
 		if (!request.params?.id || /^\d+$/.test(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing or invalid token ID!'
+				message: "Missing or invalid token ID!",
 			});
 		}
 
 		const web = Boolean(request.query?.web) || false;
 		const del = await this.core.db.purgeToken(request.params.id, auth.id, {
-			web
+			web,
 		});
 		if (!del) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.codes.badReq,
-				message: 'Token not deleted/found!'
+				message: "Token not deleted/found!",
 			});
 		}
 
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK'
+			message: "OK",
 		});
 	}
 }

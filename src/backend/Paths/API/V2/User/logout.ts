@@ -19,32 +19,33 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 class Logout extends Path {
-	#sameSite: 'strict' | undefined;
+	readonly #sameSite: "strict" | undefined;
 
-	#secure: boolean;
+	readonly #secure: boolean;
 
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Logout';
-		this.path = '/logout';
+		this.label = "Logout";
+		this.path = "/logout";
 		this.enabled = true;
 		this.options = {
 			schema: {
 				querystring: {
 					everywhere: {
-						type: 'boolean'
-					}
-				}
-			}
+						type: "boolean",
+					},
+				},
+			},
 		};
 
-		this.#sameSite = 'strict';
+		this.#sameSite = "strict";
 		this.#secure = true;
-		if (process.env.NODE_ENV === 'dev') {
+		if (process.env.NODE_ENV === "dev") {
 			this.#secure = false;
 			this.#sameSite = undefined;
 		}
@@ -67,36 +68,40 @@ class Logout extends Path {
 			if (!auth) {
 				return response
 					.status(this.codes.unauth)
-					.send({message: 'Unauthorized', code: this.codes.unauth});
+					.send({ message: "Unauthorized", code: this.codes.unauth });
 			}
 
-			const revoked = await this.Utils.authorization.revokeAll(auth.id, true);
+			const revoked = await this.Utils.authorization.revokeAll(
+				auth.id,
+				true
+			);
 			if (!revoked) {
-				return response
-					.status(this.codes.internalErr)
-					.send({message: 'Could not logout', code: this.codes.internalErr});
+				return response.status(this.codes.internalErr).send({
+					message: "Could not logout",
+					code: this.codes.internalErr,
+				});
 			}
 
-			console.log('Hi');
+			console.log("Hi");
 
 			if (request.cookies.token) {
 				return response
-					.clearCookie('token', {
+					.clearCookie("token", {
 						sameSite: this.#sameSite,
 						httpOnly: true,
-						secure: this.#secure
+						secure: this.#secure,
 					})
 					.status(this.codes.ok)
-					.send({messsage: 'Logged out', code: this.codes.ok});
+					.send({ messsage: "Logged out", code: this.codes.ok });
 			}
 
 			return response
 				.status(this.codes.ok)
-				.send({message: 'Logged out', code: this.codes.ok});
+				.send({ message: "Logged out", code: this.codes.ok });
 		}
 
 		if (!request.cookies.token) {
-			return response.redirect('/');
+			return response.redirect("/");
 		}
 
 		const revoked = await this.Utils.authorization.revoke(
@@ -104,19 +109,20 @@ class Logout extends Path {
 			true
 		);
 		if (!revoked) {
-			return response
-				.status(this.codes.internalErr)
-				.send({message: 'Could not logout', code: this.codes.internalErr});
+			return response.status(this.codes.internalErr).send({
+				message: "Could not logout",
+				code: this.codes.internalErr,
+			});
 		}
 
 		return response
-			.clearCookie('token', {
+			.clearCookie("token", {
 				sameSite: this.#sameSite,
 				httpOnly: true,
-				secure: this.#secure
+				secure: this.#secure,
 			})
 			.status(this.codes.ok)
-			.send({message: 'Logged out', code: this.codes.ok});
+			.send({ message: "Logged out", code: this.codes.ok });
 	}
 }
 

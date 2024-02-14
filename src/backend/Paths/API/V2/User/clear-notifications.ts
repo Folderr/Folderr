@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Clear the authorized users notifications
@@ -28,30 +29,30 @@ import {Core, Path} from '../../../../internals';
 class ClearNotifs extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Clear Notifications';
-		this.path = '/notifications';
+		this.label = "API/User Clear Notifications";
+		this.path = "/notifications";
 		this.reqAuth = true;
 
-		this.type = 'delete';
+		this.type = "delete";
 		this.options = {
 			schema: {
 				response: {
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -64,15 +65,15 @@ class ClearNotifs extends Path {
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: "Authorization failed.",
 			});
 		}
 
 		// Clear the notifications and tell the user that happened
-		await this.core.db.updateUser({id: auth.id}, {notifs: []});
+		await this.core.db.updateUser({ id: auth.id }, { notifs: [] });
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: 'OK'});
+			.send({ code: this.codes.ok, message: "OK" });
 	}
 }
 

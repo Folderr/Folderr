@@ -19,9 +19,9 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Make a user an administrator
@@ -29,35 +29,35 @@ import {Path} from '../../../../internals';
 class AddAdmin extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Management Add Admin';
-		this.path = '/manage/admin/:id';
+		this.label = "API/Management Add Admin";
+		this.path = "/manage/admin/:id";
 		this.reqAuth = true;
 
-		this.type = 'post';
+		this.type = "post";
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'},
+						id: { type: "string" },
 					},
-					required: ['id'],
+					required: ["id"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -72,23 +72,23 @@ class AddAdmin extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner),
+			Boolean(user.owner)
 		);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
 		// You need to use the query to supply the users ID
-		if (!request.params || !request.params.id) {
+		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Users ID is required!',
+				message: "Users ID is required!",
 			});
 		}
 
@@ -96,28 +96,28 @@ class AddAdmin extends Path {
 		if (!match || match[0].length !== request.params.id.length) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'ID is not a valid Folderr ID!',
+				message: "ID is not a valid Folderr ID!",
 			});
 		}
 
 		const user = await this.core.db.findAndUpdateUser(
 			{
 				id: request.params.id,
-				$nor: [{admin: false}, {first: true}],
+				$nor: [{ admin: false }, { first: true }],
 			},
-			{admin: true},
-			'admin',
+			{ admin: true },
+			"admin"
 		);
 		if (!user) {
 			return response.status(this.codes.notFound).send({
-				message: 'User not found!',
+				message: "User not found!",
 				code: this.Utils.foldCodes.dbNotFound,
 			});
 		}
 
 		if (!user.admin) {
 			return response.status(this.codes.notAccepted).send({
-				message: 'Update fail!',
+				message: "Update fail!",
 				code: this.Utils.foldCodes.dbUnkownError,
 			});
 		}
@@ -127,11 +127,11 @@ class AddAdmin extends Path {
 
 		user.admin = true;
 		this.core.logger.info(
-			`Administrator privileges granted to user ${userFormatted} by ${responsible}`,
+			`Administrator privileges granted to user ${userFormatted} by ${responsible}`
 		);
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: 'OK'});
+			.send({ code: this.codes.ok, message: "OK" });
 	}
 }
 

@@ -19,9 +19,9 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc SHorten links endpoint
@@ -29,31 +29,31 @@ import {Path} from '../../../../internals';
 class Shorten extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API Shorten Link';
-		this.path = '/link';
-		this.type = 'post';
+		this.label = "API Shorten Link";
+		this.path = "/link";
+		this.type = "post";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						url: {type: 'string'},
+						url: { type: "string" },
 					},
-					required: ['url'],
+					required: ["url"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'string',
+						type: "string",
 					},
 				},
 			},
@@ -68,15 +68,15 @@ class Shorten extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -87,26 +87,26 @@ class Shorten extends Path {
 			/* eslint-disable @typescript-eslint/no-unsafe-call */
 			if (
 				(error.code &&
-					typeof error.code === 'string' &&
-					error.code === 'ENOTFOUND') ||
+					typeof error.code === "string" &&
+					error.code === "ENOTFOUND") ||
 				(error.message &&
-					typeof error.message === 'string' &&
-					error.message.includes('EAI_AGAIN'))
+					typeof error.message === "string" &&
+					error.message.includes("EAI_AGAIN"))
 			) {
 				/* eslint-enable @typescript-eslint/no-unsafe-call */
 				return response.status(this.codes.notFound).send({
 					code: this.Utils.foldCodes.shortUrlNotFound,
-					message: 'URL not found!',
+					message: "URL not found!",
 				});
 			}
 
-			if (error.message && typeof error.message === 'string') {
+			if (error.message && typeof error.message === "string") {
 				this.core.logger.debug(error.message);
 			}
 
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.unkownError,
-				message: 'Unknown error occured',
+				message: "Unknown error occured",
 			});
 		}
 
@@ -114,7 +114,7 @@ class Shorten extends Path {
 		const ID = await this.Utils.genID();
 		await Promise.all([
 			this.core.db.makeLink(ID, auth.id, request.body.url),
-			this.core.db.updateUser({id: auth.id}, {$inc: {links: 1}}),
+			this.core.db.updateUser({ id: auth.id }, { $inc: { links: 1 } }),
 		]);
 
 		return response
@@ -122,12 +122,14 @@ class Shorten extends Path {
 			.send(
 				`${
 					request.headers?.responseURL &&
-					typeof request.headers.responseURL === 'string' &&
+					typeof request.headers.responseURL === "string" &&
 					auth.cURLs.includes(request.headers.responseURL) &&
-					(await this.Utils.testMirrorURL(request.headers.responseURL))
+					(await this.Utils.testMirrorURL(
+						request.headers.responseURL
+					))
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/l/${ID}`,
+				}/l/${ID}`
 			);
 	}
 }

@@ -19,39 +19,39 @@
  *
  */
 
-import process from 'process';
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {User} from '../../../../Structures/Database/db-class';
+import process from "process";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import type { User } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Allow a user to login
  */
 class Login extends Path {
-	#sameSite: undefined | 'strict';
+	readonly #sameSite: undefined | "strict";
 
-	#secure: boolean;
+	readonly #secure: boolean;
 
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Authorize';
+		this.label = "API/User Authorize";
 		this.secureOnly = false;
-		this.path = '/authorize';
+		this.path = "/authorize";
 
-		this.type = 'post';
+		this.type = "post";
 		this.options = {
 			schema: {
 				headers: {
-					username: {type: 'string'},
-					password: {type: 'string'},
+					username: { type: "string" },
+					password: { type: "string" },
 				},
 			},
 		};
 
-		this.#sameSite = 'strict';
+		this.#sameSite = "strict";
 		this.#secure = true;
-		if (process.env.NODE_ENV === 'dev') {
+		if (process.env.NODE_ENV === "dev") {
 			this.#secure = false;
 			this.#sameSite = undefined;
 		}
@@ -68,7 +68,7 @@ class Login extends Path {
 				password: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		let auth: false | User = false;
 
@@ -81,7 +81,7 @@ class Login extends Path {
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -91,7 +91,7 @@ class Login extends Path {
 			const date = new Date();
 			date.setDate(date.getDate() + 2 * 7);
 			return await response
-				.cookie('token', jwt, {
+				.cookie("token", jwt, {
 					expires: date,
 					secure: this.#secure,
 					httpOnly: true,
@@ -100,13 +100,13 @@ class Login extends Path {
 				.status(this.codes.ok)
 				.send({
 					code: this.codes.ok,
-					message: 'OK',
+					message: "OK",
 				});
 		} catch (error: unknown) {
 			this.core.logger.error(error);
 			return response.status(this.codes.internalErr).send({
 				code: this.codes.internalErr,
-				message: 'failed to generate auth code',
+				message: "failed to generate auth code",
 			});
 		}
 	}

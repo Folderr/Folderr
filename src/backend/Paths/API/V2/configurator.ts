@@ -19,39 +19,41 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../internals';
-import Configurator from '../../../Structures/Utilities/sharex-configurator';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../internals";
+import Path from "../../../Structures/path";
+import Configurator from "../../../Structures/Utilities/sharex-configurator";
 
 /**
  * @classdesc Generate a sharex configuration
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class ShareXConfigurator extends Path {
 	private readonly configurator: Configurator;
 
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Authorized Configurator';
-		this.path = '/sharex/config';
-		this.type = 'post';
+		this.label = "API/Authorized Configurator";
+		this.path = "/sharex/config";
+		this.type = "post";
 		this.configurator = new Configurator();
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						token: {type: 'string'}
+						token: { type: "string" },
 					},
-					required: ['token']
+					required: ["token"],
 				},
 				querystring: {
-					type: 'object',
+					type: "object",
 					properties: {
-						d: {type: 'string'}
-					}
-				}
-			}
+						d: { type: "string" },
+					},
+				},
+			},
 		};
 	}
 
@@ -65,7 +67,7 @@ class ShareXConfigurator extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 			Querystring: {
 				d?: string;
 			};
@@ -76,7 +78,7 @@ class ShareXConfigurator extends Path {
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: "Authorization failed.",
 			});
 		}
 
@@ -86,30 +88,30 @@ class ShareXConfigurator extends Path {
 		if (!compare) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.notAccepted,
-				message: 'Invalid Token!'
+				message: "Invalid Token!",
 			});
 		}
 
 		const url = await this.Utils.determineHomeURL(request);
 
 		const config = this.configurator.generateFiles(url, request.body.token);
-		if (request.query && request.query.d === 'file') {
+		if (request.query && request.query.d === "file") {
 			return response
-				.type('text/plain; charset=binary')
+				.type("text/plain; charset=binary")
 				.header(
-					'Content-Disposition',
-					'attachment; filename=Folderr-Link-Config.sxcu'
+					"Content-Disposition",
+					"attachment; filename=Folderr-Link-Config.sxcu"
 				)
 				.status(this.codes.ok)
 				.send(config[0]);
 		}
 
-		if (request.query?.d && request.query.d === 'link') {
+		if (request.query?.d && request.query.d === "link") {
 			return response
-				.type('text/plain; charset=binary')
+				.type("text/plain; charset=binary")
 				.header(
-					'Content-Disposition',
-					'attachment; filename=Folderr-Link-Config.sxcu'
+					"Content-Disposition",
+					"attachment; filename=Folderr-Link-Config.sxcu"
 				)
 				.status(this.codes.ok)
 				.send(config[1]);
@@ -117,7 +119,7 @@ class ShareXConfigurator extends Path {
 
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: config});
+			.send({ code: this.codes.ok, message: config });
 	}
 }
 

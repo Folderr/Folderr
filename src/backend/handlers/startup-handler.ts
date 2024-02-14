@@ -1,6 +1,6 @@
-import process from 'process'; // Shut.
-import * as Sentry from '@sentry/node';
-import Core from '../Structures/core';
+import process from "process"; // Shut.
+import * as Sentry from "@sentry/node";
+import Core from "../Structures/core";
 
 export async function startFolderr(): Promise<void> {
 	// Console.time('Startup');
@@ -11,12 +11,12 @@ export async function startFolderr(): Promise<void> {
 		if (
 			error instanceof Error &&
 			error.message ===
-				'Folderr DB entry not found, Folderr DB entry is required.'
+				"Folderr DB entry not found, Folderr DB entry is required."
 		) {
 			core.logger.error(
-				'Folderr has deemed that you have not set up this instance!',
+				"Folderr has deemed that you have not set up this instance!"
 			);
-			core.logger.warn('Folderr will exit as per protocol.');
+			core.logger.warn("Folderr will exit as per protocol.");
 			process.exit(0);
 		} else {
 			Sentry.captureException(error);
@@ -29,15 +29,15 @@ export async function startFolderr(): Promise<void> {
 
 	const paths = core.initPaths();
 	if (!paths) {
-		core.logger.error('[FATAL] Paths could not initalize');
-		throw new Error('[FATAL] Paths could not initalize');
+		core.logger.error("[FATAL] Paths could not initalize");
+		throw new Error("[FATAL] Paths could not initalize");
 	}
 
 	// Init new APIs before anything else.
 	await core.registerNewApi();
 
-	// Await core.registerApis();
-	await core.initAPI();
+	await core.registerApis();
+	// Await core.initAPI();
 
 	await core.initFrontend();
 
@@ -46,11 +46,11 @@ export async function startFolderr(): Promise<void> {
 		if (listened) {
 			// Console.timeEnd('Startup');
 		} else {
-			core.logger.error('[FATAL] UNABLE TO LISTEN TO PORT');
-			throw new Error('[FATAL] UNABLE TO LISTEN TO PORT');
+			core.logger.error("[FATAL] UNABLE TO LISTEN TO PORT");
+			throw new Error("[FATAL] UNABLE TO LISTEN TO PORT");
 		}
 	} catch (error: unknown) {
-		core.logger.error('[FATAL] UNABLE TO LISTEN TO PORT');
+		core.logger.error("[FATAL] UNABLE TO LISTEN TO PORT");
 		if (error instanceof Error) {
 			core.logger.error(error);
 			core.logger.debug(error.stack);

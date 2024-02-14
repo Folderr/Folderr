@@ -19,9 +19,9 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Allow the user to delete a shortened link
@@ -29,35 +29,35 @@ import {Path} from '../../../../internals';
 class DeleteLink extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API Delete Link';
-		this.path = '/link/:id';
+		this.label = "API Delete Link";
+		this.path = "/link/:id";
 
-		this.type = 'delete';
+		this.type = "delete";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'},
+						id: { type: "string" },
 					},
-					required: ['id'],
+					required: ["id"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -72,14 +72,14 @@ class DeleteLink extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -87,7 +87,7 @@ class DeleteLink extends Path {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'MISSING ID!',
+				message: "MISSING ID!",
 			});
 		}
 
@@ -98,13 +98,13 @@ class DeleteLink extends Path {
 		if (!short) {
 			return response.status(this.codes.notFound).send({
 				code: this.Utils.foldCodes.dbNotFound,
-				message: 'Link not found!',
+				message: "Link not found!",
 			});
 		}
 
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: 'OK'});
+			.send({ code: this.codes.ok, message: "OK" });
 	}
 }
 

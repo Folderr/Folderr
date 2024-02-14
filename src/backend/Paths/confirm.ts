@@ -19,46 +19,10 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
+import type { FastifyRequest, FastifyReply } from "fastify";
 import argon2 from "argon2";
-import type {Core} from '../internals';
-import {Path} from '../internals';
-import type {User} from '../Structures/Database/db-class';
-import * as constants from '../Structures/constants/index';
-
-type UpdateAccBody =
-	| {
-			email: string;
-			username?: string;
-			password?: string;
-			privacy?: {
-				dataCollection: boolean;
-			};
-	  }
-	| {
-			username: string;
-			email?: string;
-			password?: string;
-			privacy?: {
-				dataCollection: boolean;
-			};
-	  }
-	| {
-			password: string;
-			email?: string;
-			username?: string;
-			privacy?: {
-				dataCollection: boolean;
-			};
-	  }
-	| {
-			password?: string;
-			email?: string;
-			privacy?: {
-				dataCollection: boolean;
-			};
-			username?: string;
-	  };
+import type { Core } from "../internals";
+import Path from "../Structures/path";
 
 /**
  * @classdesc Updating the authorized users account
@@ -66,36 +30,36 @@ type UpdateAccBody =
 class ConfirmAcc extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'User Confirm Account';
+		this.label = "User Confirm Account";
 		// Ideal path: /api/account/confirm/:id/:verification
 		// Similar idea for new users: /api/account/verify/:id/:verification
-		this.path = '/confirm/:id/:verification';
+		this.path = "/confirm/:id/:verification";
 
-		this.type = 'get';
+		this.type = "get";
 		this.reqAuth = true;
 		this.options = {
 			schema: {
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
-					'5xx': {
-						type: 'object',
+					"5xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
-					'2xx': {
-						type: 'object',
+					"2xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -107,40 +71,43 @@ class ConfirmAcc extends Path {
 	async execute(
 		request: FastifyRequest<{
 			Params: {
-				verification: string,
-				id: string,
-			}
+				verification: string;
+				id: string;
+			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
-		console.log(request.params)
+		console.log(request.params);
 		const user = await this.core.app.db.findUser({
-			id: request.params.id
-		})
+			id: request.params.id,
+		});
 		if (user?.pendingEmailToken) {
-			const verify = await argon2.verify(user.pendingEmailToken, request.params.verification)
+			const verify = await argon2.verify(
+				user.pendingEmailToken,
+				request.params.verification
+			);
 			if (!verify) {
-				return response.code(this.core.app.codes.notAccepted).send(
-					{
-						message: 'Incorrect code.',
-						code: this.core.Utils.foldCodes.noUpdate
-					});
+				return response.code(this.core.app.codes.notAccepted).send({
+					message: "Incorrect code.",
+					code: this.core.Utils.foldCodes.noUpdate,
+				});
 			}
 
 			await this.core.app.db.updateUser(
-				{id: user.id},
-				{email: user.pendingEmail, pendingEmailToken: undefined}
-			)
-			return response.status(this.core.app.codes.ok).send(
-				{code: this.core.Utils.foldCodes.UserAccepted, message: "Updated Email"}
-			)
+				{ id: user.id },
+				{ email: user.pendingEmail, pendingEmailToken: undefined }
+			);
+			return response.status(this.core.app.codes.ok).send({
+				code: this.core.Utils.foldCodes.UserAccepted,
+				message: "Updated Email",
+			});
 		}
 
-		return response.code(this.core.app.codes.ok).send(
-			{
-				message: 'Not verified. User doesn\'t have a code or user was never found.',
-				code: this.core.Utils.foldCodes.noUpdate
-			});
+		return response.code(this.core.app.codes.ok).send({
+			message:
+				"Not verified. User doesn't have a code or user was never found.",
+			code: this.core.Utils.foldCodes.noUpdate,
+		});
 	}
 }
 

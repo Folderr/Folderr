@@ -21,8 +21,7 @@
 
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { Core } from "../../../../internals";
-import { Path } from "../../../../internals";
-import type { User } from "../../../../Structures/Database/db-class";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Administrators verify accounts via this endpoint

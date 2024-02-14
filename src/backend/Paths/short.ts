@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../internals';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../internals";
+import Path from "../Structures/path";
 
 /**
  * @class Allow users to access shortened links
@@ -28,24 +29,24 @@ import {Core, Path} from '../internals';
 class Short extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'Get link by id';
-		this.path = ['/link/:id', '/l/:id'];
+		this.label = "Get link by id";
+		this.path = ["/link/:id", "/l/:id"];
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'}
+						id: { type: "string" },
 					},
-					required: ['id']
+					required: ["id"],
 				},
 				response: {
-					'4xx': {
-						type: 'string'
-					}
-				}
-			}
+					"4xx": {
+						type: "string",
+					},
+				},
+			},
 		};
 	}
 
@@ -60,22 +61,22 @@ class Short extends Path {
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply | void> {
-		if (!request.params || !request.params.id) {
-			return response.status(this.codes.badReq).send('Missing short ID');
+		if (!request.params?.id) {
+			return response.status(this.codes.badReq).send("Missing short ID");
 		}
 
 		const short = await this.core.db.findLink(
-			{id: request.params.id},
-			'link owner'
+			{ id: request.params.id },
+			"link owner"
 		);
 		if (!short) {
-			return response.status(this.codes.notFound).send('404 Not Found');
+			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
-		const owner = await this.core.db.findUser({id: short.owner});
+		const owner = await this.core.db.findUser({ id: short.owner });
 		if (!owner) {
 			this.core.addDeleter(short.owner);
-			return response.status(this.codes.notFound).send('404 Not Found');
+			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
 		return response.redirect(short.link.trim());

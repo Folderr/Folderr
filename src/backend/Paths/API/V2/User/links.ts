@@ -19,10 +19,11 @@
  *
  */
 
-import {type FastifyReply, type FastifyRequest} from 'fastify';
-import {type Core, Path} from '../../../../internals';
-import {type Link} from '../../../../Structures/Database/db-class';
-import {type RequestGallery} from '../../../../../types/fastify-request-types';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import { type Link } from "../../../../Structures/Database/db-class";
+import { type RequestGallery } from "../../../../../types/fastify-request-types";
 
 /**
  * @classdesc Allow a user to access their links
@@ -30,40 +31,40 @@ import {type RequestGallery} from '../../../../../types/fastify-request-types';
 class Links extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Links';
-		this.path = '/links';
+		this.label = "API/User Links";
+		this.path = "/links";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				querystring: {
-					type: 'object',
+					type: "object",
 					properties: {
-						gallery: {type: 'boolean'},
-						limit: {type: 'number'},
-						before: {type: 'object'},
-						after: {type: 'object'}
-					}
+						gallery: { type: "boolean" },
+						limit: { type: "number" },
+						before: { type: "object" },
+						after: { type: "object" },
+					},
 				},
 				response: {
 					// eslint-disable-next-line @typescript-eslint/naming-convention
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
 					},
 					// eslint-disable-next-line @typescript-eslint/naming-convention
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'array'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							message: { type: "array" },
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -72,7 +73,7 @@ class Links extends Path {
 			Querystring: RequestGallery;
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
@@ -81,7 +82,7 @@ class Links extends Path {
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: "Authorization failed.",
 			});
 		}
 
@@ -95,10 +96,10 @@ class Links extends Path {
 			return response.status(genType.httpCode).send(genType.json);
 		}
 
-		const {query, options} = generated as unknown as {
+		const { query, options } = generated as unknown as {
 			query: {
-				$gt?: {created: Date};
-				$lt?: {created: Date};
+				$gt?: { created: Date };
+				$lt?: { created: Date };
 				owner: string;
 			};
 			options: {
@@ -112,28 +113,28 @@ class Links extends Path {
 		if (!shorts || shorts.length === 0) {
 			return response
 				.status(this.codes.ok)
-				.send({code: this.codes.ok, message: []});
+				.send({ code: this.codes.ok, message: [] });
 		}
 
 		let url =
 			request.headers?.responseURL &&
-			typeof request.headers.responseURL === 'string' &&
+			typeof request.headers.responseURL === "string" &&
 			auth.cURLs.includes(request.headers.responseURL) &&
 			(await this.Utils.testMirrorURL(request.headers.responseURL))
 				? request.headers.responseURL
 				: await this.Utils.determineHomeURL(request);
-		url = url.replace(/\/$/g, '');
+		url = url.replace(/\/$/g, "");
 		const aShorts = shorts.map((short: Link) => ({
 			id: short.id,
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			points_to: short.link,
 			created: Math.round(short.createdAt.getTime() / 1000),
-			link: `${url}/${short.id}`
+			link: `${url}/${short.id}`,
 		}));
 
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: aShorts});
+			.send({ code: this.codes.ok, message: aShorts });
 	}
 }
 

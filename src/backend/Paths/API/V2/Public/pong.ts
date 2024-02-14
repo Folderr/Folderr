@@ -19,13 +19,14 @@
  *
  */
 
-import moment from 'moment';
-import momentDurationFormatSetup from 'moment-duration-format';
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import pkg from '../../../../../../package.json';
+import moment from "moment";
+import momentDurationFormatSetup from "moment-duration-format";
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import pkg from "../../../../../../package.json";
 
-// @ts-expect-error
+// @ts-expect-error, According to docs, this works.
 momentDurationFormatSetup(moment);
 
 /**
@@ -34,29 +35,29 @@ momentDurationFormatSetup(moment);
 class Pong extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Public Info';
-		this.path = '/';
-		this.type = 'get';
+		this.label = "API/Public Info";
+		this.path = "/";
+		this.type = "get";
 
 		this.options = {
 			schema: {
 				response: {
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
 							message: {
 								values: {
-									version: {type: 'string'},
-									node_version: {type: 'string'},
-									online_since: {type: 'number'},
-									message: {type: 'pong'}
-								}
+									version: { type: "string" },
+									node_version: { type: "string" },
+									online_since: { type: "number" },
+									message: { type: "pong" },
+								},
 							},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -79,10 +80,12 @@ class Pong extends Path {
 			message: {
 				version: pkg.version,
 				node_version: process.version,
-				online_since: new Date(Date.now() - process.uptime() * 1000).getTime(),
-				message: 'Pong!'
+				online_since: new Date(
+					Date.now() - process.uptime() * 1000
+				).getTime(),
+				message: "Pong!",
 			},
-			code: this.codes.ok
+			code: this.codes.ok,
 		};
 		return response.status(this.codes.ok).send(out);
 	}

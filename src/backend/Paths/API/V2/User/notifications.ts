@@ -20,9 +20,10 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
-import {Notification} from '../../../../Structures/Database/db-class';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import { type Notification } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Shows all user notifications
@@ -30,37 +31,37 @@ import {Notification} from '../../../../Structures/Database/db-class';
 class Notifs extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Notifications';
-		this.path = '/notifications';
+		this.label = "API/User Notifications";
+		this.path = "/notifications";
 
-		this.type = 'get';
+		this.type = "get";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				querystring: {
-					type: 'object',
+					type: "object",
 					properties: {
-						admin: {type: 'boolean'}
-					}
+						admin: { type: "boolean" },
+					},
 				},
 				response: {
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'array'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							message: { type: "array" },
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -74,10 +75,10 @@ class Notifs extends Path {
 	): Promise<FastifyReply> {
 		// Check auth by token/id
 		const auth = await this.checkAuth(request);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: "Authorization failed.",
 			});
 		}
 
@@ -90,7 +91,7 @@ class Notifs extends Path {
 			if (!auth.admin) {
 				return response.status(this.codes.unauth).send({
 					code: this.codes.unauth,
-					message: 'Authorization failed'
+					message: "Authorization failed",
 				});
 			}
 
@@ -99,15 +100,15 @@ class Notifs extends Path {
 			notifs = anotifs.map((notification: Notification) => ({
 				id: notification.id,
 				title: notification.title,
-				notify: notification.notify.replace(/\n/g, ','),
-				createdAt: notification.createdAt
+				notify: notification.notify.replace(/\n/g, ","),
+				createdAt: notification.createdAt,
 			}));
 		}
 
 		// Return whatever notifications there are
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: notifs});
+			.send({ code: this.codes.ok, message: notifs });
 	}
 }
 

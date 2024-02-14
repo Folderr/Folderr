@@ -19,10 +19,10 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {AccountReturn} from '../../../../../types/user';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import type { AccountReturn } from "../../../../../types/user";
 
 /**
  * @classdesc View the authorized users account
@@ -30,21 +30,21 @@ import type {AccountReturn} from '../../../../../types/user';
 class Account extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User View Account';
-		this.path = '/account';
+		this.label = "API/User View Account";
+		this.path = "/account";
 		this.reqAuth = true;
 
-		this.type = 'get';
+		this.type = "get";
 
 		this.options = {
 			schema: {
 				response: {
 					// eslint-disable-next-line @typescript-eslint/naming-convention
 					401: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -54,14 +54,14 @@ class Account extends Path {
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = await this.checkAuth(request);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -82,7 +82,7 @@ class Account extends Path {
 		};
 		return response
 			.status(this.codes.ok)
-			.send({message: acc, code: this.codes.ok});
+			.send({ message: acc, code: this.codes.ok });
 	}
 }
 
