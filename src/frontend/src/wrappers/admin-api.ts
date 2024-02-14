@@ -32,6 +32,9 @@ function checkAuthenticationError(
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const BASE_URL = "/api/admin/";
+
 function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 	Sentry.captureException(error);
 	if (
@@ -83,7 +86,7 @@ type Stats = {
 
 export async function getStats(): Promise<GenericFetchReturn<Stats>> {
 	try {
-		const response = await fetch("/api/admin/statistics", {
+		const response = await fetch(`${BASE_URL}/statistics`, {
 			method: "GET",
 			credentials: "same-origin",
 		});
@@ -133,7 +136,7 @@ export async function getUsers(): Promise<
 	GenericFetchReturn<AdminUsersReturn[] | string>
 > {
 	try {
-		const response = await fetch("/api/admin/users", {
+		const response = await fetch(`${BASE_URL}users`, {
 			credentials: "same-origin",
 		});
 		const check = checkAuthenticationError(response);
@@ -196,7 +199,6 @@ export async function getUsers(): Promise<
 	}
 }
 
-// TODO: (User Moderation) Ban user, Warn user, Delete user
 // TODO: getBans, unbanEmail
 
 type VerifyingUser = {
@@ -210,11 +212,8 @@ export async function getVerifyingUsers(): Promise<
 	GenericFetchReturn<VerifyingUser[]>
 > {
 	try {
-		const response = await fetch("/api/admin/verifying-users", {
+		const response = await fetch(`${BASE_URL}verifying-users`, {
 			credentials: "same-origin",
-			headers: {
-				"Content-Type": "application/json",
-			},
 		});
 		const check = checkAuthenticationError(response);
 		if (check) {
@@ -265,7 +264,7 @@ export async function denyAccount(
 	const body = JSON.stringify({ id });
 	console.log(body);
 	try {
-		const response = await fetch("/api/admin/verify", {
+		const response = await fetch(`${BASE_URL}/verify`, {
 			credentials: "same-origin",
 			headers: {
 				"Content-Type": "application/json",
@@ -329,7 +328,7 @@ export async function acceptAccount(
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ id });
 	try {
-		const response = await fetch("/api/admin/verify", {
+		const response = await fetch(`${BASE_URL}verify`, {
 			credentials: "same-origin",
 			headers: {
 				"Content-Type": "application/json",
@@ -389,7 +388,10 @@ export async function acceptAccount(
 	}
 }
 
-export async function deleteAccount(id: string, reason: string) {
+export async function deleteAccount(
+	id: string,
+	reason: string
+): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {
 		const response = await fetch(`/api/account?userid=${id}`, {
@@ -466,10 +468,13 @@ export async function deleteAccount(id: string, reason: string) {
 	}
 }
 
-export async function warnUser(id: string, reason: string) {
+export async function warnUser(
+	id: string,
+	reason: string
+): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {
-		const response = await fetch(`/api/admin/warn/${id}`, {
+		const response = await fetch(`${BASE_URL}/warn/${id}`, {
 			credentials: "same-origin",
 			headers: {
 				"Content-Type": "application/json",
@@ -552,10 +557,13 @@ export async function warnUser(id: string, reason: string) {
 	}
 }
 
-export async function banUser(id: string, reason: string) {
+export async function banUser(
+	id: string,
+	reason: string
+): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {
-		const response = await fetch(`/api/admin/ban/${id}`, {
+		const response = await fetch(`${BASE_URL}ban/${id}`, {
 			credentials: "same-origin",
 			headers: {
 				"Content-Type": "application/json",

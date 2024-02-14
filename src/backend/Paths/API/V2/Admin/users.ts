@@ -118,10 +118,7 @@ class Users extends Path {
 			id: string;
 			created: number;
 		}> = users.map((user: User) => ({
-			title:
-				!user.admin && !user.owner
-					? "User"
-					: (user.owner && "owner") ?? "admin",
+			title: user.owner ? "owner" : (user.admin && "admin") ?? "user",
 			username: user.username,
 			email: user.email,
 			files: user.files,

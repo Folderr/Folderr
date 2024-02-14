@@ -122,7 +122,8 @@ class Utils {
 	 */
 	async checkAuth(
 		request: FastifyRequest,
-		admin?: boolean
+		admin?: boolean,
+		owner?: boolean
 	): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
 		let account: User | void;
 		if (request.headers.authorization) {
@@ -149,6 +150,10 @@ class Utils {
 		}
 
 		if (admin && (!account.admin || !account.owner)) {
+			return { code: 403 };
+		}
+
+		if (owner && !account.owner) {
 			return { code: 403 };
 		}
 

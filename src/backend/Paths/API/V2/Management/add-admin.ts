@@ -74,12 +74,10 @@ class AddAdmin extends Path {
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
-		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
-		);
-		if (!auth || typeof auth === "string") {
-			return response.status(this.codes.unauth).send({
-				code: this.codes.unauth,
+		const auth = await this.Utils.checkAuth(request, true, true);
+		if (auth.code !== this.codes.ok) {
+			return response.status(auth.code).send({
+				code: auth.code,
 				message: "Authorization failed.",
 			});
 		}
@@ -88,46 +86,50 @@ class AddAdmin extends Path {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: "Users ID is required!",
+				message: "User ID is required!",
 			});
 		}
 
-		const match = /^\d+$/.exec(request.params.id);
-		if (!match || match[0].length !== request.params.id.length) {
+		if (!this.Utils.validateUuid(request.params.id, 4)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: "ID is not a valid Folderr ID!",
+				message: "ID is not a valid Folderr ID",
 			});
 		}
 
+		// Why $nor includes owner: We don't modify the owner's admin status.
+		// Why $nor: So we don't get users that aren't admin. This way we only find the user if they
+		// 1. Aren't an admin and, 2. aren't the owner
 		const user = await this.core.db.findAndUpdateUser(
 			{
 				id: request.params.id,
-				$nor: [{ admin: false }, { first: true }],
+				$nor: [{ admin: true }, { owner: true }],
 			},
 			{ admin: true },
 			"admin"
 		);
 		if (!user) {
 			return response.status(this.codes.notFound).send({
-				message: "User not found!",
+				message: "User not found",
 				code: this.Utils.foldCodes.dbNotFound,
 			});
 		}
 
 		if (!user.admin) {
 			return response.status(this.codes.notAccepted).send({
-				message: "Update fail!",
+				message: "Promotion Failed",
 				code: this.Utils.foldCodes.dbUnkownError,
 			});
 		}
 
-		const responsible = `${auth.username} (${auth.id})`;
+		const responsible = `${auth.user.username} (${auth.user.id})`;
 		const userFormatted = `${user.username} (${user.id})`;
 
+		// Eventually we'll make an audit log that goes here
+		// So all admins can see what every user has done.
 		user.admin = true;
 		this.core.logger.info(
-			`Administrator privileges granted to user ${userFormatted} by ${responsible}`
+			`Administrator privileges granted to ${userFormatted} by ${responsible}`
 		);
 		return response
 			.status(this.codes.ok)
