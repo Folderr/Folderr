@@ -710,9 +710,9 @@ async function acceptUser(id: string) {
 
 async function deleteUser(
 	id: string,
-	reason?: string
+	reason: string
 ): Promise<boolean | Error> {
-	const output = await adminAPI.deleteAccount(id);
+	const output = await adminAPI.deleteAccount(id, reason);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {

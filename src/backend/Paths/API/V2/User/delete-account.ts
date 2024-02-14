@@ -49,6 +49,12 @@ class DelAccount extends Path {
 						userid: { type: "string" },
 					},
 				},
+				body: {
+					type: "object",
+					properties: {
+						reason: { type: "string" },
+					},
+				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
@@ -153,6 +159,9 @@ class DelAccount extends Path {
 			Querystring: {
 				userid?: string;
 			};
+			Body: {
+				reason?: string;
+			};
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
@@ -163,6 +172,13 @@ class DelAccount extends Path {
 			return response.status(newAuth.code).send({
 				code: newAuth.code,
 				message: "Authorization failed.",
+			});
+		}
+
+		if (needAdmin && !request.body.reason) {
+			return response.status(this.codes.badReq).send({
+				code: this.codes.badReq,
+				message: "Missing reason for account deletion",
 			});
 		}
 
