@@ -19,10 +19,10 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import * as constants from '../../../../Structures/constants/index';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import * as constants from "../../../../Structures/constants/index";
 
 /**
  * @classdesc Allows users to signup
@@ -30,43 +30,43 @@ import * as constants from '../../../../Structures/constants/index';
 class Signup extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Public Signup';
+		this.label = "API/Public Signup";
 
-		this.path = '/signup';
-		this.type = 'post';
+		this.path = "/signup";
+		this.type = "post";
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						email: {type: 'string'},
-						username: {type: 'string'},
-						password: {type: 'string'},
+						email: { type: "string" },
+						username: { type: "string" },
+						password: { type: "string" },
 					},
-					required: ['email', 'username', 'password'],
+					required: ["email", "username", "password"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					500: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					201: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -78,7 +78,7 @@ class Signup extends Path {
 		// Generate an ID, and do not allow a users id to be reused
 		const uID = this.Utils.genV4uuid();
 		/* eslint-enable @typescript-eslint/naming-convention */
-		const user = await this.core.db.findUser({id: uID});
+		const user = await this.core.db.findUser({ id: uID });
 		if (user) {
 			// If the user was found, retry
 			return this.genUID();
@@ -100,8 +100,11 @@ class Signup extends Path {
 			hash: string;
 			token: string;
 		},
-		response: FastifyReply,
-	): Promise<{httpCode: 500 | 201; msg: {code: number; message: string}}> {
+		response: FastifyReply
+	): Promise<{
+		httpCode: 500 | 201;
+		msg: { code: number; message: string };
+	}> {
 		// Find admin notifications, and generate an ID
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const notifyID = await this.Utils.genNotifyID();
@@ -114,7 +117,7 @@ class Signup extends Path {
 					`Username: ${userInfo.username}\n` +
 						`User ID: ${userInfo.id}\n` +
 						`Validation Token: ${validationToken.token}`,
-					'New user signup!',
+					"New user signup!"
 				),
 			]);
 		} catch (error: unknown) {
@@ -129,18 +132,18 @@ class Signup extends Path {
 				httpCode: this.codes.internalErr,
 				msg: {
 					code: this.Utils.foldCodes.unkownError,
-					message: 'An internal error occurred while signing up!',
+					message: "An internal error occurred while signing up!",
 				},
 			};
 		}
 
 		// Notify the console, and the user that the admins have been notified.
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
 		);
 		return {
 			httpCode: this.codes.created,
-			msg: {code: this.codes.created, message: 'OK'},
+			msg: { code: this.codes.created, message: "OK" },
 		};
 	}
 
@@ -158,9 +161,9 @@ class Signup extends Path {
 		request: FastifyRequest<{
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<{
 		httpCode: 500 | 201;
 		msg: {
@@ -177,7 +180,7 @@ class Signup extends Path {
 			await this.core.emailer.verifyEmail(
 				userInfo.email,
 				`${url}/account/verify/${userInfo.id}/${validationToken.token}`,
-				userInfo.username,
+				userInfo.username
 			);
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
 		} catch (error: unknown) {
@@ -192,19 +195,19 @@ class Signup extends Path {
 				httpCode: this.codes.internalErr,
 				msg: {
 					code: this.Utils.foldCodes.unkownError,
-					message: 'An internal error occurred while signing up!',
+					message: "An internal error occurred while signing up!",
 				},
 			};
 		}
 
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
 		);
 		return {
 			httpCode: this.codes.created,
 			msg: {
 				code: this.Utils.foldCodes.emailSent,
-				message: 'OK',
+				message: "OK",
 			},
 		};
 	}
@@ -218,26 +221,26 @@ class Signup extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
 		// If signups are closed, state that and do not allow them through
 		if (!this.core.config.signups) {
 			return response.status(this.codes.locked).send({
 				code: this.codes.locked,
-				message: "Signup's are closed.", // eslint-disable-line @typescript-eslint/quotes
+				message: "Signup's are closed.",
 			});
 		}
 
 		// Fetch the username and password from the body
-		const {username, password, email} = request.body;
+		const { username, password, email } = request.body;
 		const isValid = await this.checkUserInput(
 			request.body.email,
 			username,
-			password,
+			password
 		);
-		if (typeof isValid !== 'boolean') {
+		if (typeof isValid !== "boolean") {
 			return response.status(isValid.httpCode).send(isValid.response);
 		}
 
@@ -249,7 +252,7 @@ class Signup extends Path {
 			// Errors shouldnt happen here, so notify the console.. Also notify the user
 			if (error instanceof Error) {
 				this.core.logger.error(
-					`[SIGNUP -  Create password] - ${error.message}`,
+					`[SIGNUP -  Create password] - ${error.message}`
 				);
 				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
@@ -259,7 +262,7 @@ class Signup extends Path {
 
 			return response.status(this.codes.internalErr).send({
 				code: this.codes.internalErr,
-				message: 'An unknown error occured!',
+				message: "An unknown error occured!",
 			});
 		}
 
@@ -280,7 +283,7 @@ class Signup extends Path {
 						},
 						validationToken,
 						request,
-						response,
+						response
 				  )
 				: await this.noEmail(
 						{
@@ -290,7 +293,7 @@ class Signup extends Path {
 							email,
 						},
 						validationToken,
-						response,
+						response
 				  );
 		return response.status(r.httpCode).send(r.msg);
 	}
@@ -298,7 +301,7 @@ class Signup extends Path {
 	private async checkUserInput(
 		email: string,
 		username: string,
-		password: string,
+		password: string
 	): Promise<
 		| {
 				httpCode: number;
@@ -330,7 +333,8 @@ class Signup extends Path {
 				response: {
 					code: this.Utils.foldCodes.illegalUsername,
 					message:
-						constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS,
+						constants.ENUMS.RESPONSES.USERNAME
+							.USERNAME_LETTER_REQUIREMENTS,
 				},
 			};
 		}
@@ -340,7 +344,7 @@ class Signup extends Path {
 				httpCode: this.codes.badReq,
 				response: {
 					code: this.Utils.foldCodes.badEmail,
-					message: 'Invalid email!',
+					message: "Invalid email!",
 				},
 			};
 		}
@@ -351,21 +355,21 @@ class Signup extends Path {
 				httpCode: this.codes.forbidden,
 				response: {
 					code: this.Utils.foldCodes.bannedEmail,
-					message: 'Email banned',
+					message: "Email banned",
 				},
 			};
 		}
 
 		// See if the username is already taken. Fail if so.
 		const user =
-			(await this.core.db.findUser({$or: [{username}, {email}]})) ??
-			(await this.core.db.findVerify({$or: [{username}, {email}]}));
+			(await this.core.db.findUser({ $or: [{ username }, { email }] })) ??
+			(await this.core.db.findVerify({ $or: [{ username }, { email }] }));
 		if (user) {
 			return {
 				httpCode: this.codes.used,
 				response: {
 					code: this.Utils.foldCodes.usernameOrEmailTaken,
-					message: 'Username or email taken!',
+					message: "Username or email taken!",
 				},
 			};
 		}
@@ -378,18 +382,20 @@ class Signup extends Path {
 				httpCode: this.codes.badReq,
 				response: {
 					code: this.Utils.foldCodes.passwordSize,
-					message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS,
+					message:
+						constants.ENUMS.RESPONSES.PASSWORD
+							.PASSWORD_REQUIREMENTS,
 				},
 			};
 		}
 
 		// No NUL charater
-		if (password.includes('\0')) {
+		if (password.includes("\0")) {
 			return {
 				httpCode: this.codes.forbidden,
 				response: {
 					code: this.Utils.foldCodes.illegalPassword,
-					message: 'NUL character forbidden in passwords!',
+					message: "NUL character forbidden in passwords!",
 				},
 			};
 		}

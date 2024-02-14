@@ -18,12 +18,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import childProcess from 'child_process';
-import util from 'util';
-import {promises} from 'fs';
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import childProcess from "child_process";
+import util from "util";
+import { promises } from "fs";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 const exec = util.promisify(childProcess.exec);
 
@@ -33,20 +33,20 @@ const exec = util.promisify(childProcess.exec);
 class Manage extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Manage';
-		this.path = '/manage';
+		this.label = "API/Manage";
+		this.path = "/manage";
 
-		this.type = 'post';
+		this.type = "post";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				querystring: {
-					type: 'object',
+					type: "object",
 					properties: {
-						type: {type: 'string'},
+						type: { type: "string" },
 					},
-					required: ['type'],
+					required: ["type"],
 				},
 			},
 		};
@@ -58,42 +58,44 @@ class Manage extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply | void> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner),
+			Boolean(user.owner)
 		);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
-		if (request.query.type === 'shutdown') {
+		if (request.query.type === "shutdown") {
 			this.core.logger.info(
-				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`,
+				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`
 			);
 			this.core.shutdownServer(
-				'API/Manage/Shutdown',
-				'Remote shutdown by owner',
+				"API/Manage/Shutdown",
+				"Remote shutdown by owner"
 			);
 			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
-				message: 'OK',
+				message: "OK",
 			});
 		}
 
-		if (request.query.type === 'update') {
+		if (request.query.type === "update") {
 			await response.status(this.codes.accepted).send({
 				code: this.codes.ok,
-				message: 'Attempting update.',
+				message: "Attempting update.",
 			});
-			const file = await promises.readFile('./package.json');
+			const file = await promises.readFile("./package.json");
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const oPackage: Record<string, string> = JSON.parse(file.toString());
+			const oPackage: Record<string, string> = JSON.parse(
+				file.toString()
+			);
 			try {
-				await exec('npm run update'); // Eventually make file to handle this
+				await exec("npm run update"); // Eventually make file to handle this
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					return this.handleError(error, response, undefined, {
@@ -105,18 +107,18 @@ class Manage extends Path {
 				return;
 			}
 
-			const f = await promises.readFile('./package.json');
+			const f = await promises.readFile("./package.json");
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const af: Record<string, string> = JSON.parse(f.toString());
 			let v;
 			const vers = {
-				af: Number(af.version.split('.').join(' ')),
-				old: Number(oPackage.version.split('.').join(' ')),
+				af: Number(af.version.split(".").join(" ")),
+				old: Number(oPackage.version.split(".").join(" ")),
 			};
 			if (vers.af > vers.old) {
 				v = `Version upgraded from ${oPackage.version} to ${af.version}`;
 			} else if (vers.af === vers.old) {
-				v = 'Version not changed';
+				v = "Version not changed";
 			} else {
 				v = `Version downgraded from ${oPackage.version} to ${af.version}`;
 			}
@@ -127,7 +129,7 @@ class Manage extends Path {
 
 		return response.status(this.codes.badReq).send({
 			code: this.codes.badReq,
-			message: 'Not an option!',
+			message: "Not an option!",
 		});
 	}
 }

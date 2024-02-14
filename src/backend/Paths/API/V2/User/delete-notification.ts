@@ -19,10 +19,10 @@
  *
  */
 
-import moment from 'moment';
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import moment from "moment";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc User can delete a single notification
@@ -30,42 +30,42 @@ import {Path} from '../../../../internals';
 class DelNotify extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Delete notification';
-		this.path = '/notification/:id';
+		this.label = "API/User Delete notification";
+		this.path = "/notification/:id";
 
-		this.type = 'delete';
+		this.type = "delete";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'},
+						id: { type: "string" },
 					},
-					required: ['id'],
+					required: ["id"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					500: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -80,14 +80,14 @@ class DelNotify extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -95,27 +95,27 @@ class DelNotify extends Path {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing notification ID',
+				message: "Missing notification ID",
 			});
 		}
 
 		// Grab the users notifications, and find the one they are looking for
-		const {notifs} = auth;
+		const { notifs } = auth;
 		if (!notifs) {
 			return response.status(this.codes.notFound).send({
 				code: this.codes.notFound,
-				message: 'You have no notifications!',
+				message: "You have no notifications!",
 			});
 		}
 
 		const notify = notifs.find(
-			(notification) => notification.id === request.params.id,
+			(notification) => notification.id === request.params.id
 		);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
 			return response.status(this.codes.notFound).send({
 				code: this.Utils.foldCodes.dbNotFound,
-				message: 'Notification not found!',
+				message: "Notification not found!",
 			});
 		}
 
@@ -132,7 +132,7 @@ class DelNotify extends Path {
 			if (Number.isNaN(limit)) {
 				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
-					message: 'Internal Math Error',
+					message: "Internal Math Error",
 				});
 			}
 
@@ -140,14 +140,14 @@ class DelNotify extends Path {
 		}
 
 		if (
-			notify?.title === 'Warn' &&
+			notify?.title === "Warn" &&
 			Date.now() - notify.createdAt.getTime() < limit
 		) {
 			const time = new Date(Date.now() + limit).getTime() - Date.now();
 			const formattedTime = moment
 				.duration(time)
 				.format(
-					'M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]',
+					"M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]"
 				);
 			return response.status(this.codes.forbidden).send({
 				code: this.codes.forbidden,
@@ -157,18 +157,18 @@ class DelNotify extends Path {
 
 		// Remove the notification, update the users account, and return success
 		await this.core.db.updateUser(
-			{id: auth.id},
+			{ id: auth.id },
 			{
 				$pull: {
 					notifs: {
 						id: request.params.id,
 					},
 				},
-			},
+			}
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK',
+			message: "OK",
 		});
 	}
 }

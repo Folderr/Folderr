@@ -19,10 +19,10 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {User} from '../../../../Structures/Database/db-class';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import type { User } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Warn a user
@@ -30,40 +30,40 @@ import type {User} from '../../../../Structures/Database/db-class';
 class WarnUser extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin Warn User';
-		this.path = '/admin/warn/:id';
-		this.type = 'post';
+		this.label = "API/Admin Warn User";
+		this.path = "/admin/warn/:id";
+		this.type = "post";
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						reason: {type: 'string'},
+						reason: { type: "string" },
 					},
-					required: ['reason'],
+					required: ["reason"],
 				},
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'},
+						id: { type: "string" },
 					},
-					required: ['id'],
+					required: ["id"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -82,52 +82,52 @@ class WarnUser extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin),
+			Boolean(user.admin)
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
 		if (!/^\d+$/.test(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Requirements missing or invalid!',
+				message: "Requirements missing or invalid!",
 			});
 		}
 
-		const user = await this.core.db.findUser({id: request.params.id});
+		const user = await this.core.db.findUser({ id: request.params.id });
 		if (!user) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.dbNotFound,
-				message: 'User not found!',
+				message: "User not found!",
 			});
 		}
 
 		const id = await this.Utils.genNotifyID();
 		const updated = await this.core.db.updateUser(
-			{id: request.params.id},
+			{ id: request.params.id },
 			{
 				$addToSet: {
 					notifs: {
 						id,
-						title: 'Warn',
+						title: "Warn",
 						notify: `You were warned for: ${request.body.reason}`,
 					},
 				},
-			},
+			}
 		);
 		if (!updated) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.unkownError,
-				message: 'Warn failed',
+				message: "Warn failed",
 			});
 		}
 
@@ -137,13 +137,13 @@ class WarnUser extends Path {
 				user.email,
 				request.body.reason,
 				user.username,
-				url,
+				url
 			);
 		}
 
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK',
+			message: "OK",
 		});
 	}
 }

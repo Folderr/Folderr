@@ -19,10 +19,10 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {User} from '../../../../Structures/Database/db-class';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import type { User } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Allows admins to lookup content
@@ -30,33 +30,33 @@ import type {User} from '../../../../Structures/Database/db-class';
 class Lookup extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin Lookup Content';
-		this.path = '/admin/content/:type/:id';
+		this.label = "API/Admin Lookup Content";
+		this.path = "/admin/content/:type/:id";
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						type: {type: 'string'},
-						id: {type: 'string'},
+						type: { type: "string" },
+						id: { type: "string" },
 					},
-					required: ['id', 'type'],
+					required: ["id", "type"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'object'},
-							code: {type: 'number'},
+							message: { type: "object" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -72,33 +72,33 @@ class Lookup extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin),
+			Boolean(user.admin)
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed',
+				message: "Authorization failed",
 			});
 		}
 
 		if (
-			!['file', 'link'].includes(request.params.type) ||
+			!["file", "link"].includes(request.params.type) ||
 			!/^[A-Za-z\d]+$/.test(request.params.id)
 		) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing or invalid requirements',
+				message: "Missing or invalid requirements",
 			});
 		}
 
 		try {
 			const out =
-				request.params.type === 'file'
-					? await this.core.db.findFile({id: request.params.id})
-					: await this.core.db.findLink({id: request.params.id});
+				request.params.type === "file"
+					? await this.core.db.findFile({ id: request.params.id })
+					: await this.core.db.findLink({ id: request.params.id });
 			if (!out) {
 				return await response.status(this.codes.ok).send({
 					code: this.Utils.foldCodes.dbNotFound,
@@ -108,7 +108,7 @@ class Lookup extends Path {
 
 			return await response
 				.status(this.codes.ok)
-				.send({code: this.codes.ok, message: out});
+				.send({ code: this.codes.ok, message: out });
 		} catch (error: unknown) {
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.dbError,

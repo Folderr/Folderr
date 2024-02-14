@@ -92,7 +92,8 @@ type importedApi =
 	| ((fastify: FastifyInstance, core: Core) => FastifyInstance);
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const isTSNode = Boolean(process.env.TS_NODE_DEV);
+const isTSNode =
+	Boolean(process.env.TS_NODE_DEV) || Boolean(process.env.TS_NODE);
 
 if (isTSNode && process.env.NODE_ENV !== "dev") {
 	logger.fatal(
@@ -598,7 +599,10 @@ export default class Core {
 		}
 	}
 
-	findPaths(dir: string): Array<
+	findPaths(
+		dir: string,
+		caller?: string
+	): Array<
 		Promise<{
 			default: importedApi;
 			type?: string;
@@ -618,6 +622,8 @@ export default class Core {
 				url?: string;
 			}>
 		> = [];
+		console.log("dir:", dir);
+		console.log(caller ?? "none");
 		const apiitems = fs.readdirSync(dir);
 		for (const apiordir of apiitems) {
 			if (apiordir.startsWith("index")) continue;
@@ -633,7 +639,7 @@ export default class Core {
 				continue;
 			}
 
-			paths.push(...this.findPaths(join(dir, apiordir)));
+			paths.push(...this.findPaths(join(dir, apiordir), "self"));
 		}
 
 		return paths;
@@ -660,7 +666,8 @@ export default class Core {
 				if (!item.startsWith("V")) continue;
 
 				const output = this.findPaths(
-					join(require.main.path, `Paths/API/${item}`)
+					join(require.main.path, `Paths/API/${item}`),
+					"initAPI/for const item of dir"
 				);
 				paths.push({ version: item, paths: output });
 			}
@@ -672,6 +679,7 @@ export default class Core {
 
 				promises.push(
 					this.app.register(
+						// eslint-disable-next-line @typescript-eslint/no-loop-func
 						(instance, _options, done) => {
 							for (const pathimport of actpaths) {
 								let label: string;
@@ -687,7 +695,8 @@ export default class Core {
 									const endpoint =
 										new (Endpoint as typeof Path)(this);
 									if (!endpoint.enabled) continue;
-									// In the event that the API is rewritten by newer non-legacy code,
+									// In the event that the API is rewritten
+									// by newer non-legacy code,
 									// skip the legacy code.
 									const path = Array.isArray(endpoint.path)
 										? endpoint.path[0]

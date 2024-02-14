@@ -19,9 +19,9 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classsdesc Allows users to remove a mirror
@@ -29,34 +29,34 @@ import {Path} from '../../../../internals';
 class MirrorRemove extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Mirror Remove';
-		this.path = '/account/mirror';
+		this.label = "API/User Mirror Remove";
+		this.path = "/account/mirror";
 
-		this.type = 'delete';
+		this.type = "delete";
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						mirror: {type: 'string'},
+						mirror: { type: "string" },
 					},
-					required: ['mirror'],
+					required: ["mirror"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'object'},
-							code: {type: 'number'},
+							message: { type: "object" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -71,36 +71,39 @@ class MirrorRemove extends Path {
 				mirror: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
 		// Check auth
 		const auth = await this.checkAuth(request);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
-		if (auth.cURLs.length === 0 || !auth.cURLs.includes(request.body.mirror)) {
+		if (
+			auth.cURLs.length === 0 ||
+			!auth.cURLs.includes(request.body.mirror)
+		) {
 			return response.status(this.codes.badReq).send({
-				message: 'Mirror not linked!',
+				message: "Mirror not linked!",
 				code: this.Utils.foldCodes.dbNotFound,
 			});
 		}
 
 		await this.core.db.updateUser(
-			{id: auth.id},
+			{ id: auth.id },
 			{
 				$pullAll: {
 					// eslint-disable-next-line @typescript-eslint/naming-convention
 					cURLs: request.body.mirror,
 				},
-			},
+			}
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,
-			message: 'OK',
+			message: "OK",
 		});
 	}
 }

@@ -19,11 +19,11 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {JTDSchemaType} from 'ajv/dist/jtd';
-import AJV from 'ajv/dist/jtd';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { JTDSchemaType } from "ajv/dist/jtd";
+import AJV from "ajv/dist/jtd";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 type MirrorResponse = {
 	message: {
@@ -32,10 +32,10 @@ type MirrorResponse = {
 	};
 };
 
-const msgschema: JTDSchemaType<MirrorResponse['message']> = {
+const msgschema: JTDSchemaType<MirrorResponse["message"]> = {
 	properties: {
-		res: {type: 'string'},
-		token: {type: 'string'},
+		res: { type: "string" },
+		token: { type: "string" },
 	},
 };
 
@@ -54,41 +54,41 @@ const parse = ajv.compileParser(schema);
 class MirrorAdd extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Add Mirror';
-		this.path = '/account/mirror';
+		this.label = "API/User Add Mirror";
+		this.path = "/account/mirror";
 
-		this.type = 'post';
+		this.type = "post";
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						url: {type: 'string'},
+						url: { type: "string" },
 					},
-					required: ['url'],
+					required: ["url"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
-					'5xx': {
-						type: 'object',
+					"5xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -104,23 +104,23 @@ class MirrorAdd extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
 		if (!/http(s)?:\/\//.test(request.body.url)) {
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.mirrorInvalidUrl,
-				message: 'Invalid Mirror URL',
+				message: "Invalid Mirror URL",
 			});
 		}
 
@@ -131,26 +131,26 @@ class MirrorAdd extends Path {
 			u = await this.Utils.determineHomeURL(request);
 			const out = await this.Utils.authorization.genMirrorKey(
 				u,
-				request.body.url,
+				request.body.url
 			);
 			id = out.id;
 			r = await this.core.got.post<MirrorResponse>(
 				`${request.body.url}/api/verify`,
 				{
-					responseType: 'json',
+					responseType: "json",
 					parseJson: parse,
 					json: {
 						url: u,
 						owner: auth.id,
 						token: out.key,
 					},
-				},
+				}
 			);
 		} catch (error: unknown) {
 			if (!error || !(error instanceof Error)) {
 				return response.status(this.codes.internalErr).send({
 					code: this.Utils.foldCodes.unkownError,
-					message: 'Unknown error occured',
+					message: "Unknown error occured",
 				});
 			}
 
@@ -162,37 +162,37 @@ class MirrorAdd extends Path {
 			) {
 				return response.status(this.codes.notAccepted).send({
 					code: this.Utils.foldCodes.mirrorReject,
-					message: 'Mirror failed Validation',
+					message: "Mirror failed Validation",
 				});
 			}
 
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.unkownError,
-				message: 'Something unknown happened.',
+				message: "Something unknown happened.",
 			});
 		}
 
 		if (!r?.body) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.mirrorReject,
-				message: 'Mirror failed Validation',
+				message: "Mirror failed Validation",
 			});
 		}
 
-		const {message} = r.body;
+		const { message } = r.body;
 		const valid =
 			id && u
 				? this.Utils.authorization.verifyMirrorKey(
 						message,
 						id,
 						u,
-						request.body.url,
+						request.body.url
 				  )
 				: false;
 		if (!valid) {
 			return response.status(this.codes.notAccepted).send({
 				code: this.Utils.foldCodes.mirrorReject,
-				message: 'Mirror failed Validation',
+				message: "Mirror failed Validation",
 			});
 		}
 
@@ -205,11 +205,11 @@ class MirrorAdd extends Path {
 					// eslint-disable-next-line @typescript-eslint/naming-convention
 					cURLs: request.body.url,
 				},
-			},
+			}
 		);
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: 'OK'});
+			.send({ code: this.codes.ok, message: "OK" });
 	}
 }
 

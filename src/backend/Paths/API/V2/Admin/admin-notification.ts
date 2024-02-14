@@ -19,9 +19,9 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc View the admin notification
@@ -29,34 +29,34 @@ import {Path} from '../../../../internals';
 class AdminNotification extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin Notification';
-		this.path = '/admin/notification/:id';
+		this.label = "API/Admin Notification";
+		this.path = "/admin/notification/:id";
 		this.reqAuth = true;
 
-		this.type = 'get';
+		this.type = "get";
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						id: {type: 'string'},
+						id: { type: "string" },
 					},
-					required: ['id'],
+					required: ["id"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
-					'2xx': {
-						type: 'object',
+					"2xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -71,14 +71,14 @@ class AdminNotification extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -86,12 +86,14 @@ class AdminNotification extends Path {
 		if (!request.params.id) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Notification ID required!',
+				message: "Notification ID required!",
 			});
 		}
 
 		// Find notification. If not found, return a not found status code
-		const notify = await this.core.db.findAdminNotify({id: request.params.id});
+		const notify = await this.core.db.findAdminNotify({
+			id: request.params.id,
+		});
 		if (!notify) {
 			return response.status(this.codes.noContent).send({
 				code: this.Utils.foldCodes.dbNotFound,
@@ -102,7 +104,7 @@ class AdminNotification extends Path {
 		// Oh look a notification!
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: notify});
+			.send({ code: this.codes.ok, message: notify });
 	}
 }
 

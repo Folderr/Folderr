@@ -21,7 +21,7 @@
 
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { Core } from "../../../../internals";
-import { Path } from "../../../../internals";
+import Path from "../../../../Structures/path";
 import type { User } from "../../../../Structures/Database/db-class";
 import type { RequestGallery } from "../../../../../types/fastify-request-types";
 

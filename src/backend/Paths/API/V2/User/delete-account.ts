@@ -21,7 +21,7 @@
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals";
-import { Path } from "../../../../internals";
+import Path from "../../../../Structures/path";
 import type { User } from "../../../../Structures/Database/db-class";
 
 type DelReturns = {

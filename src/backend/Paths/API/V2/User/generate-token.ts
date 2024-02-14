@@ -19,10 +19,10 @@
  *
  */
 
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {Tokendb} from '../../../../Structures/Database/db-class';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import type { Tokendb } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Allow a user to generate a token
@@ -30,40 +30,40 @@ import type {Tokendb} from '../../../../Structures/Database/db-class';
 class GenToken extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/User Generate API Token';
-		this.path = '/account/token';
+		this.label = "API/User Generate API Token";
+		this.path = "/account/token";
 
-		this.type = 'post';
+		this.type = "post";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				body: {
 					description: {
-						type: 'string',
+						type: "string",
 						maxLength: 50,
 					},
 				},
 				querystring: {
-					type: 'object',
+					type: "object",
 					properties: {
-						override: {type: 'boolean'},
+						override: { type: "boolean" },
 					},
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -81,18 +81,18 @@ class GenToken extends Path {
 				description?: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
-		const tokens = await this.core.db.findTokens(auth.id, {web: false});
+		const tokens = await this.core.db.findTokens(auth.id, { web: false });
 		this.core.logger.debug(tokens.length >= 10 && !request.query.override);
 
 		if (tokens.length > 10 && !request.query.override) {
@@ -108,18 +108,21 @@ class GenToken extends Path {
 
 		if (tokens.length >= 10 && request.query.override) {
 			const tkns = tokens.sort(
-				(a: Tokendb, b: Tokendb) => Number(a.createdAt) - Number(b.createdAt),
+				(a: Tokendb, b: Tokendb) =>
+					Number(a.createdAt) - Number(b.createdAt)
 			);
-			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {web: false});
+			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {
+				web: false,
+			});
 		}
 
 		const token = await this.Utils.authorization.genKey(
 			auth.id,
-			request.body.description,
+			request.body.description
 		);
 		return response
 			.status(this.codes.created)
-			.send({code: this.codes.ok, message: token});
+			.send({ code: this.codes.ok, message: token });
 	}
 }
 

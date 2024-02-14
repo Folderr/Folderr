@@ -19,10 +19,10 @@
  *
  */
 
-import type {FastifyRequest, FastifyReply} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
-import type {User} from '../../../../Structures/Database/db-class';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
+import type { User } from "../../../../Structures/Database/db-class";
 
 /**
  * @classdesc Admin endpoint for removing a users content
@@ -30,41 +30,41 @@ import type {User} from '../../../../Structures/Database/db-class';
 class Takedown extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin Takedown Content';
-		this.type = 'delete';
-		this.path = '/admin/content/:type/:id';
+		this.label = "API/Admin Takedown Content";
+		this.type = "delete";
+		this.path = "/admin/content/:type/:id";
 
 		this.options = {
 			schema: {
 				params: {
-					type: 'object',
+					type: "object",
 					properties: {
-						type: {type: 'string'},
-						id: {type: 'string'},
+						type: { type: "string" },
+						id: { type: "string" },
 					},
-					required: ['type', 'id'],
+					required: ["type", "id"],
 				},
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					500: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
 				},
@@ -82,8 +82,8 @@ class Takedown extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
-		}>,
+			};
+		}>
 	): Promise<{
 		httpCode: 406 | 200;
 		msg: {
@@ -91,27 +91,30 @@ class Takedown extends Path {
 			message: string;
 		};
 	}> {
-		const del = await this.core.db.findAndDeleteFile({id});
+		const del = await this.core.db.findAndDeleteFile({ id });
 		if (!del) {
 			return {
 				httpCode: this.codes.notAccepted,
 				msg: {
 					code: this.Utils.foldCodes.dbNotFound,
-					message: 'File not found!',
+					message: "File not found!",
 				},
 			};
 		}
 
-		await this.core.db.updateUser({id: del.owner}, {$inc: {files: -1}});
+		await this.core.db.updateUser(
+			{ id: del.owner },
+			{ $inc: { files: -1 } }
+		);
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
-				{id: del.owner},
-				'id username email',
+				{ id: del.owner },
+				"id username email"
 			);
 			if (!user) {
 				return {
 					httpCode: this.codes.ok,
-					msg: {code: this.codes.ok, message: 'OK'},
+					msg: { code: this.codes.ok, message: "OK" },
 				};
 			}
 
@@ -123,11 +126,14 @@ class Takedown extends Path {
 					id,
 					type: del.type,
 				},
-				url,
+				url
 			);
 		}
 
-		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+		return {
+			httpCode: this.codes.ok,
+			msg: { code: this.codes.ok, message: "OK" },
+		};
 	}
 
 	async takedownLink(
@@ -139,8 +145,8 @@ class Takedown extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
-		}>,
+			};
+		}>
 	): Promise<{
 		httpCode: 406 | 200;
 		msg: {
@@ -148,27 +154,30 @@ class Takedown extends Path {
 			message: string;
 		};
 	}> {
-		const del = await this.core.db.findAndDeleteLink({id});
+		const del = await this.core.db.findAndDeleteLink({ id });
 		if (!del) {
 			return {
 				httpCode: this.codes.notAccepted,
 				msg: {
 					code: this.Utils.foldCodes.dbNotFound,
-					message: 'Link not found!',
+					message: "Link not found!",
 				},
 			};
 		}
 
-		await this.core.db.updateUser({id: del.owner}, {$inc: {links: -1}});
+		await this.core.db.updateUser(
+			{ id: del.owner },
+			{ $inc: { links: -1 } }
+		);
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
-				{id: del.owner},
-				'id username email',
+				{ id: del.owner },
+				"id username email"
 			);
 			if (!user) {
 				return {
 					httpCode: this.codes.ok,
-					msg: {code: this.codes.ok, message: 'OK'},
+					msg: { code: this.codes.ok, message: "OK" },
 				};
 			}
 
@@ -178,13 +187,16 @@ class Takedown extends Path {
 					email: user.email,
 					username: user.username,
 					id,
-					type: 'Link',
+					type: "Link",
 				},
-				url,
+				url
 			);
 		}
 
-		return {httpCode: this.codes.ok, msg: {code: this.codes.ok, message: 'OK'}};
+		return {
+			httpCode: this.codes.ok,
+			msg: { code: this.codes.ok, message: "OK" },
+		};
 	}
 
 	async execute(
@@ -195,32 +207,32 @@ class Takedown extends Path {
 			};
 			Headers: {
 				preferredURL?: string;
-			}
+			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin),
+			Boolean(user.admin)
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed',
+				message: "Authorization failed",
 			});
 		}
 
 		if (
-			!['file', 'link'].includes(request.params.type) ||
+			!["file", "link"].includes(request.params.type) ||
 			!/^[\dA-Za-z]+$/.test(request.params.id)
 		) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
-				message: 'Missing or invalid requirements',
+				message: "Missing or invalid requirements",
 			});
 		}
 
 		try {
-			if (request.params.type === 'file') {
+			if (request.params.type === "file") {
 				const out = await this.takedownFile(request.params.id, request);
 				return await response.status(out.httpCode).send(out.msg);
 			}
@@ -239,7 +251,7 @@ class Takedown extends Path {
 
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.unkownError,
-				message: 'An unknown error occurred with this operation!',
+				message: "An unknown error occurred with this operation!",
 			});
 		}
 	}

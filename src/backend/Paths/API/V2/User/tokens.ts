@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyRequest, FastifyReply} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import { type FastifyRequest, type FastifyReply } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Fetchs users tokens information (actual token not stored by Folderr)
@@ -28,41 +29,44 @@ import {Core, Path} from '../../../../internals';
 class Tokens extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API List Tokens';
-		this.path = '/account/tokens';
+		this.label = "API List Tokens";
+		this.path = "/account/tokens";
 
 		this.options = {
 			schema: {
 				response: {
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'array'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							message: { type: "array" },
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
 	async execute(request: FastifyRequest, response: FastifyReply) {
 		const auth = request.cookies.token
-			? await this.Utils.authorization.verifyAccount(request.cookies.token, {
-					web: true
-			  })
+			? await this.Utils.authorization.verifyAccount(
+					request.cookies.token,
+					{
+						web: true,
+					}
+			  )
 			: await this.Utils.authPassword(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
-				message: 'Authorization failed',
-				code: this.codes.unauth
+				message: "Authorization failed",
+				code: this.codes.unauth,
 			});
 		}
 
@@ -75,8 +79,8 @@ class Tokens extends Path {
 					created: token.createdAt.getTime(),
 					id: token.id,
 					for_user: token.userID,
-					description: token.description
-				}))
+					description: token.description,
+				})),
 		});
 	}
 }

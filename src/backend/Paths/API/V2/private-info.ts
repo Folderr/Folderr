@@ -18,11 +18,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-import childProcess from 'child_process';
-import util from 'util';
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../internals';
-import Package from '../../../../../package.json';
+import childProcess from "child_process";
+import util from "util";
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../internals";
+import Path from "../../../Structures/path";
+import Package from "../../../../../package.json";
 
 const exec = util.promisify(childProcess.exec);
 
@@ -32,29 +33,29 @@ const exec = util.promisify(childProcess.exec);
 export default class Info extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Authorized Info';
-		this.path = '/info';
+		this.label = "API/Authorized Info";
+		this.path = "/info";
 		this.reqAuth = true;
 
 		this.options = {
 			schema: {
 				response: {
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'}
-						}
+							message: { type: "string" },
+							code: { type: "number" },
+						},
 					},
 					200: {
-						type: 'object',
+						type: "object",
 						properties: {
-							message: {type: 'object'},
-							code: {type: 'number'}
-						}
-					}
-				}
-			}
+							message: { type: "object" },
+							code: { type: "number" },
+						},
+					},
+				},
+			},
 		};
 	}
 
@@ -63,33 +64,33 @@ export default class Info extends Path {
 		response: FastifyReply
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuthAdmin(request);
-		if (!auth || typeof auth === 'string') {
+		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.'
+				message: "Authorization failed.",
 			});
 		}
 
-		const branch = await exec('git branch');
+		const branch = await exec("git branch");
 		let actbranch = branch.stdout;
-		const arraybranch = actbranch.split('\n');
+		const arraybranch = actbranch.split("\n");
 		for (const b of arraybranch) {
-			if (b.startsWith('*')) {
+			if (b.startsWith("*")) {
 				actbranch = b.slice(2);
 				break;
 			}
 		}
 
-		const vers = await exec('git log -1 --oneline');
+		const vers = await exec("git log -1 --oneline");
 		const version = vers.stdout;
 
 		const object = {
 			commit: version,
 			branch,
-			version: Package.version
+			version: Package.version,
 		};
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: object});
+			.send({ code: this.codes.ok, message: object });
 	}
 }

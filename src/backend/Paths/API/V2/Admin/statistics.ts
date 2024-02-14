@@ -19,8 +19,9 @@
  *
  */
 
-import {FastifyReply, FastifyRequest} from 'fastify';
-import {Core, Path} from '../../../../internals';
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { type Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc View the admin notification
@@ -28,35 +29,35 @@ import {Core, Path} from '../../../../internals';
 class Statistics extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Admin Statistics';
-		this.path = '/admin/statistics';
+		this.label = "API/Admin Statistics";
+		this.path = "/admin/statistics";
 		this.reqAuth = true;
 
-		this.type = 'get';
+		this.type = "get";
 		this.options = {
 			schema: {
 				response: {
-					'4xx': {
-						type: 'object',
+					"4xx": {
+						type: "object",
 						properties: {
-							message: {type: 'string'},
-							code: {type: 'number'},
+							message: { type: "string" },
+							code: { type: "number" },
 						},
 					},
-					'2xx': {
-						type: 'object',
+					"2xx": {
+						type: "object",
 						properties: {
 							message: {
-								type: 'object',
+								type: "object",
 								properties: {
-									users: {type: 'number'},
-									files: {type: 'number'},
-									links: {type: 'number'},
-									bannedEmails: {type: 'number'},
-									whitelistedEmails: {type: 'number'},
+									users: { type: "number" },
+									files: { type: "number" },
+									links: { type: "number" },
+									bannedEmails: { type: "number" },
+									whitelistedEmails: { type: "number" },
 								},
 							},
-							code: {type: 'number'},
+							code: { type: "number" },
 						},
 					},
 				},
@@ -66,14 +67,14 @@ class Statistics extends Path {
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -81,7 +82,7 @@ class Statistics extends Path {
 
 		return response
 			.status(this.codes.ok)
-			.send({code: this.codes.ok, message: stats});
+			.send({ code: this.codes.ok, message: stats });
 	}
 }
 

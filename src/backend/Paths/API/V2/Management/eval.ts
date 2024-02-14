@@ -19,11 +19,11 @@
  *
  */
 
-import {inspect} from 'util';
-import process from 'process';
-import type {FastifyReply, FastifyRequest} from 'fastify';
-import type {Core} from '../../../../internals';
-import {Path} from '../../../../internals';
+import { inspect } from "util";
+import process from "process";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals";
+import Path from "../../../../Structures/path";
 
 /**
  * @classdesc Allows owner to eval on the instance.
@@ -31,18 +31,18 @@ import {Path} from '../../../../internals';
 class Eval extends Path {
 	constructor(core: Core) {
 		super(core);
-		this.label = 'API/Management Eval';
-		this.path = '/eval';
-		this.type = 'post';
+		this.label = "API/Management Eval";
+		this.path = "/eval";
+		this.type = "post";
 		this.reqAuth = true;
-		this.enabled = process.env.NODE_ENV === 'dev';
+		this.enabled = process.env.NODE_ENV === "dev";
 
 		this.options = {
 			schema: {
 				body: {
-					type: 'object',
+					type: "object",
 					properties: {
-						eval: {type: 'string'},
+						eval: { type: "string" },
 					},
 				},
 			},
@@ -55,15 +55,15 @@ class Eval extends Path {
 				eval: string;
 			};
 		}>,
-		response: FastifyReply,
+		response: FastifyReply
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner),
+			Boolean(user.owner)
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
 				code: this.codes.unauth,
-				message: 'Authorization failed.',
+				message: "Authorization failed.",
 			});
 		}
 
@@ -71,18 +71,18 @@ class Eval extends Path {
 			/* eslint-disable no-eval */
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			let evaled: string | Record<string, unknown> = await eval(
-				request.body.eval,
+				request.body.eval
 			);
 			/* eslint-enable no-eval */
 			evaled =
-				typeof evaled === 'object'
-					? (evaled = inspect(evaled, {depth: 0, showHidden: true}))
+				typeof evaled === "object"
+					? (evaled = inspect(evaled, { depth: 0, showHidden: true }))
 					: (evaled = String(evaled));
 
 			if (!evaled || evaled.length === 0) {
 				return await response.status(this.codes.noContent).send({
 					code: this.codes.ok,
-					message: '',
+					message: "",
 				});
 			}
 
@@ -90,7 +90,7 @@ class Eval extends Path {
 			if (evaled.length > maxLength) {
 				return await response.status(this.codes.ok).send({
 					code: this.Utils.foldCodes.evalSizeLimit,
-					message: 'Eval input too big',
+					message: "Eval input too big",
 				});
 			}
 
@@ -108,7 +108,7 @@ class Eval extends Path {
 
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.evalError,
-				message: 'Unknown Eval Error. No error object returned.',
+				message: "Unknown Eval Error. No error object returned.",
 			});
 		}
 	}
