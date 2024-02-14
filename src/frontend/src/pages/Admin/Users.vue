@@ -324,19 +324,19 @@
 					v-else-if="
 						userList && userList.length >= 0 && filter === 'Users'
 					"
-					class="mx-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 grid-flow-dense mt-10 gap-x-4"
+					class="mx-10 grid grid-cols-2 md:grid-cols-3 xl-grid-cols-4 2xl:grid-cols-5 grid-flow-dense mt-10 gap-x-4"
 				>
 					<!-- eslint-enable max-len -->
 					<h2 class="w-fit">Profile</h2>
 					<h2 class="hidden md:block w-fit">Email</h2>
-					<h2 class="hidden lg:block w-fit">Statistics</h2>
-					<h2 class="hidden lg:block w-fit">Role</h2>
+					<h2 class="hidden xl:block w-fit">Statistics</h2>
+					<h2 class="hidden xl:block w-fit">Role</h2>
 					<h2>Actions</h2>
 					<!-- eslint-disable max-len -->
 					<ul
 						v-for="user of userList"
 						:key="user.username"
-						class="grid grid-cols-subgrid col-span-2 md:col-span-3 lg:col-span-5 text-secondary-text"
+						class="grid grid-cols-subgrid col-span-2 md:col-span-3 xl:col-span-4 2xl:col-span-5 text-secondary-text"
 					>
 						<!-- eslint-enable max-len -->
 						<li class="my-auto py-4 w-fit">
@@ -346,13 +346,13 @@
 							<MailIcon class="h-5 my-auto mr-2 text-brand" />
 							{{ user.email }}
 						</li>
-						<li class="hidden lg:flex my-auto py-4">
+						<li class="hidden 2xl:flex my-auto py-4">
 							<DocumentIcon class="h-5 mr-2 text-brand my-auto" />
 							{{ user.statistics.files }} files,
 							<LinkIcon class="h-5 mx-2 text-brand my-auto" />
 							{{ user.statistics.links }} links
 						</li>
-						<li class="hidden lg:block my-auto py-4">
+						<li class="hidden xl:block my-auto py-4">
 							{{
 								user.role[0].toUpperCase() + user.role.slice(1)
 							}}
