@@ -1,127 +1,13 @@
-import * as Sentry from "@sentry/vue";
-
-const httpCodes = {
-	unauthorization: 401,
-	forbidden: 403,
-	notFound: 404,
-	notAccepted: 406,
-	created: 201,
-	ok: 200,
-};
-
-function checkAuthenticationError(
-	response: Response
-): GenericFetchReturn<undefined> | undefined {
-	switch (response.status) {
-		case httpCodes.forbidden:
-			return {
-				error: "Access Denied",
-				output: undefined,
-				response,
-				success: false,
-			};
-		case httpCodes.unauthorization:
-			return {
-				error: "Authorization Failed",
-				output: undefined,
-				response,
-				success: false,
-			};
-		default:
-			return undefined;
-	}
-}
+import {
+	httpCodes,
+	badResponseHandler,
+	type GenericFetchReturn,
+	genericCatch,
+	requestHelper,
+} from "../utils/request-helpers";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const BASE_URL = "/api/admin/";
-
-function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
-	Sentry.captureException(error);
-	if (
-		error instanceof Error &&
-		error.message === "Failed to fetch" &&
-		import.meta.env.DEV
-	) {
-		console.log(
-			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
-		);
-		console.log(error);
-	}
-
-	if (error instanceof Error) {
-		if (error.message.includes("Authorization failed")) {
-			return {
-				error: "Authorization failed",
-				success: false,
-				output: undefined,
-			};
-		}
-	}
-
-	console.log(error);
-
-	return {
-		error: "An unknown error occurred",
-		success: false,
-		output: undefined,
-	};
-}
-
-export async function badResponseHandler(
-	response: Response,
-	codeMessage: {
-		notAccepted?: string;
-		notFound?: string;
-		forbidden?: string;
-	}
-): Promise<GenericFetchReturn<undefined> | undefined> {
-	const check = checkAuthenticationError(response);
-	if (check) {
-		return check;
-	}
-
-	if (response.status === httpCodes.notFound) {
-		return {
-			error: codeMessage.notFound ?? "User Not Found",
-			success: false,
-			response,
-			output: undefined,
-		};
-	}
-
-	if (response.status === httpCodes.notAccepted) {
-		return {
-			error: codeMessage.notAccepted ?? "Not Accepted",
-			success: false,
-			response,
-			output: undefined,
-		};
-	}
-
-	if (response.status === httpCodes.forbidden) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const json: { code: number; message: string } | undefined =
-			await response.json();
-		return {
-			error:
-				json?.message ??
-				codeMessage.forbidden ??
-				"You are not authorized to perform that action",
-			success: false,
-			output: undefined,
-			response,
-		};
-	}
-}
-
-type GenericFetchReturn<T = void> =
-	| {
-			error: string | Error;
-			success: false;
-			response?: Response;
-			output: undefined;
-	  }
-	| { error: undefined; success: true; response?: Response; output?: T };
 
 type Stats = {
 	users: number;
@@ -137,7 +23,7 @@ export async function getStats(): Promise<GenericFetchReturn<Stats>> {
 			method: "GET",
 			credentials: "same-origin",
 		});
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {});
 		if (check) {
 			return check;
 		}
@@ -182,68 +68,26 @@ export type AdminUsersReturn = {
 export async function getUsers(): Promise<
 	GenericFetchReturn<AdminUsersReturn[] | string>
 > {
-	try {
-		const response = await fetch(`${BASE_URL}users`, {
-			credentials: "same-origin",
-		});
-		const check = await badResponseHandler(response, {});
-		if (check) {
-			return check;
+	const dbNotFound = 1054;
+	const output = await requestHelper<AdminUsersReturn[] | string>(
+		`${BASE_URL}users`,
+		"GET",
+		"Array",
+		{
+			altCode: dbNotFound,
+			altMessage: "No users found",
+		}
+	);
+	if (output.error) {
+		if (output.error instanceof Error) {
+			throw output.error;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const json:
-			| { code: number; message: string | AdminUsersReturn[] }
-			| undefined = await response.json();
-
-		if (!json?.code) {
-			throw Error(`Unexpected Error: ${response.statusText}`);
-		}
-
-		if (response.status !== httpCodes.ok) {
-			switch (typeof json?.message) {
-				case "string":
-					throw Error(`Error: ${json.code} ${json.message}`);
-				case "object":
-					if (!Array.isArray(json.message)) {
-						throw Error(`Unexpected Error: ${json.code}`);
-					}
-
-					break;
-				default:
-					throw Error(`Unexpected Error ${json.code}`);
-			}
-		}
-
-		const dbNotFound = 1054;
-
-		if (json.code === dbNotFound) {
-			return {
-				error: undefined,
-				success: true,
-				response,
-				output: json?.message ?? "No users found",
-			};
-		}
-
-		if (json?.message) {
-			switch (typeof json?.message) {
-				case "string":
-					throw Error(`Error: ${json.code} ${json.message}`);
-				default:
-					return {
-						error: undefined,
-						success: true,
-						response,
-						output: json?.message,
-					};
-			}
-		}
-
-		throw Error(`Unexpected Output: ${response.statusText}`);
-	} catch (error: unknown) {
-		return genericCatch(error);
+		throw new Error(output.error);
 	}
+
+	console.log(output);
+	return output;
 }
 
 // TODO: getBans, unbanEmail
