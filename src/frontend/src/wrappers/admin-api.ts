@@ -67,6 +67,53 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 	};
 }
 
+export async function badResponseHandler(
+	response: Response,
+	codeMessage: {
+		notAccepted?: string;
+		notFound?: string;
+		forbidden?: string;
+	}
+): Promise<GenericFetchReturn<undefined> | undefined> {
+	const check = checkAuthenticationError(response);
+	if (check) {
+		return check;
+	}
+
+	if (response.status === httpCodes.notFound) {
+		return {
+			error: codeMessage.notFound ?? "User Not Found",
+			success: false,
+			response,
+			output: undefined,
+		};
+	}
+
+	if (response.status === httpCodes.notAccepted) {
+		return {
+			error: codeMessage.notAccepted ?? "Not Accepted",
+			success: false,
+			response,
+			output: undefined,
+		};
+	}
+
+	if (response.status === httpCodes.forbidden) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const json: { code: number; message: string } | undefined =
+			await response.json();
+		return {
+			error:
+				json?.message ??
+				codeMessage.forbidden ??
+				"You are not authorized to perform that action",
+			success: false,
+			output: undefined,
+			response,
+		};
+	}
+}
+
 type GenericFetchReturn<T = void> =
 	| {
 			error: string | Error;
@@ -139,7 +186,7 @@ export async function getUsers(): Promise<
 		const response = await fetch(`${BASE_URL}users`, {
 			credentials: "same-origin",
 		});
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {});
 		if (check) {
 			return check;
 		}
@@ -215,7 +262,7 @@ export async function getVerifyingUsers(): Promise<
 		const response = await fetch(`${BASE_URL}verifying-users`, {
 			credentials: "same-origin",
 		});
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {});
 		if (check) {
 			return check;
 		}
@@ -272,16 +319,8 @@ export async function denyAccount(
 			body,
 			method: "DELETE",
 		});
-		if (response.status === httpCodes.notAccepted) {
-			return {
-				error: "Verifying User Not Found",
-				success: false,
-				response,
-				output: undefined,
-			};
-		}
 
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {});
 		if (check) {
 			return check;
 		}
@@ -337,16 +376,9 @@ export async function acceptAccount(
 			method: "POST",
 		});
 
-		if (response.status === httpCodes.notAccepted) {
-			return {
-				error: "Verifying User Not Found",
-				success: false,
-				response,
-				output: undefined,
-			};
-		}
-
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {
+			notFound: "Account not found",
+		});
 		if (check) {
 			return check;
 		}
@@ -403,30 +435,9 @@ export async function deleteAccount(
 			method: "DELETE",
 		});
 
-		if (response.status === httpCodes.notFound) {
-			return {
-				error: "User Not Found",
-				success: false,
-				response,
-				output: undefined,
-			};
-		}
-
-		if (response.status === httpCodes.forbidden) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const json: { code: number; message: string } | undefined =
-				await response.json();
-			return {
-				error:
-					json?.message ??
-					"You are not authorized to perform that action",
-				success: false,
-				output: undefined,
-				response,
-			};
-		}
-
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {
+			notFound: "User not found",
+		});
 		if (check) {
 			return check;
 		}
@@ -483,39 +494,10 @@ export async function warnUser(
 			method: "POST",
 		});
 
-		if (response.status === httpCodes.notFound) {
-			return {
-				error: "User Not Found",
-				success: false,
-				response,
-				output: undefined,
-			};
-		}
-
-		if (response.status === httpCodes.notAccepted) {
-			return {
-				error: "Warn failed",
-				success: false,
-				response,
-				output: undefined,
-			};
-		}
-
-		if (response.status === httpCodes.forbidden) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const json: { code: number; message: string } | undefined =
-				await response.json();
-			return {
-				error:
-					json?.message ??
-					"You are not authorized to perform that action",
-				success: false,
-				output: undefined,
-				response,
-			};
-		}
-
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {
+			notAccepted: "Warn Failed",
+			notFound: "User Not Found",
+		});
 		if (check) {
 			return check;
 		}
@@ -572,39 +554,10 @@ export async function banUser(
 			method: "POST",
 		});
 
-		if (response.status === httpCodes.notFound) {
-			return {
-				error: "User Not Found",
-				success: false,
-				response,
-				output: undefined,
-			};
-		}
-
-		if (response.status === httpCodes.notAccepted) {
-			return {
-				error: "Ban Failed",
-				success: false,
-				response,
-				output: undefined,
-			};
-		}
-
-		if (response.status === httpCodes.forbidden) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const json: { code: number; message: string } | undefined =
-				await response.json();
-			return {
-				error:
-					json?.message ??
-					"You are not authorized to perform that action",
-				success: false,
-				output: undefined,
-				response,
-			};
-		}
-
-		const check = checkAuthenticationError(response);
+		const check = await badResponseHandler(response, {
+			notAccepted: "Ban Failed",
+			notFound: "User Not Found",
+		});
 		if (check) {
 			return check;
 		}
