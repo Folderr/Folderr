@@ -9,6 +9,12 @@ export const httpCodes = {
 	ok: 200,
 };
 
+type BadResponseCodes = {
+	notAccepted?: string;
+	notFound?: string;
+	forbidden?: string;
+};
+
 export async function requestHelper<T>(
 	url: string,
 	method: "POST" | "GET" | "DELETE" | "PATCH",
@@ -17,9 +23,7 @@ export async function requestHelper<T>(
 		body?: string;
 		altCode?: number;
 		altMessage?: string;
-		notAcceptedMessage?: string;
-		notFoundMessage?: string;
-		forbiddenMessage?: string;
+		badResCodes?: BadResponseCodes;
 	}
 ): Promise<GenericFetchReturn<T>> {
 	if (options?.altCode && !options.altMessage) {
@@ -48,11 +52,10 @@ export async function requestHelper<T>(
 
 	try {
 		const response = await preResponse;
-		const check = await badResponseHandler(response, {
-			notAccepted: options?.notAcceptedMessage,
-			notFound: options?.notFoundMessage,
-			forbidden: options?.forbiddenMessage,
-		});
+		const check = await badResponseHandler(
+			response,
+			options?.badResCodes ?? {}
+		);
 		if (check) {
 			return check;
 		}
@@ -239,11 +242,7 @@ export function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 
 export async function badResponseHandler(
 	response: Response,
-	codeMessage: {
-		notAccepted?: string;
-		notFound?: string;
-		forbidden?: string;
-	}
+	codeMessage: BadResponseCodes
 ): Promise<GenericFetchReturn<undefined> | undefined> {
 	const check = checkAuthenticationError(response);
 	if (check) {
@@ -252,7 +251,7 @@ export async function badResponseHandler(
 
 	if (response.status === httpCodes.notFound) {
 		return {
-			error: codeMessage.notFound ?? "User Not Found",
+			error: codeMessage.notFound ?? "Endpoint Not Found",
 			success: false,
 			response,
 			output: undefined,

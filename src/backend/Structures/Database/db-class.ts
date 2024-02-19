@@ -54,6 +54,13 @@ export interface User {
 	markedForDeletion?: boolean;
 }
 
+export interface Ban {
+	email: string;
+	createdAt: Date;
+	id: string;
+	reason: string;
+}
+
 export interface Link {
 	link: string;
 	owner: string;
@@ -125,9 +132,15 @@ export class DBClass {
 		);
 	}
 
-	async addFolderrBan(email: string): Promise<boolean | void> {
+	async getBans(): Promise<Ban[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method addFolderrBan is not implemented!"
+			"DB > NOT IMPLEMENTED - Method getBans is not implemented!"
+		);
+	}
+
+	async addBan(email: string, id: string, reason: string): Promise<Ban> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method addBan is not implemented!"
 		);
 	}
 
@@ -137,9 +150,9 @@ export class DBClass {
 		);
 	}
 
-	async removeFolderrBan(email: string): Promise<boolean> {
+	async removeBan(email: string): Promise<boolean> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method removeFolderrBan is not implemented!"
+			"DB > NOT IMPLEMENTED - Method removeBan is not implemented!"
 		);
 	}
 

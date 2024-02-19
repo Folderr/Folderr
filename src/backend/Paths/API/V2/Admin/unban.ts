@@ -44,6 +44,7 @@ class Unban extends Path {
 					required: ["email"],
 				},
 				response: {
+					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -58,6 +59,7 @@ class Unban extends Path {
 							code: { type: "number" },
 						},
 					},
+					/* eslint-enable @typescript-eslint/naming-convention */
 				},
 			},
 		};
@@ -88,7 +90,7 @@ class Unban extends Path {
 			});
 		}
 
-		const unban = await this.core.db.removeFolderrBan(request.body.email);
+		const unban = await this.core.db.removeBan(request.body.email);
 		if (unban) {
 			return response
 				.status(this.codes.ok)

@@ -34,6 +34,7 @@ import type {
 	Notification,
 	Folderr,
 	Statistics,
+	Ban,
 } from "./db-class";
 import { DBClass } from "./db-class";
 
@@ -49,6 +50,7 @@ export default class Mongoosedb extends DBClass {
 		Upload: mongoose.Model<Upload>;
 		AdminNotification: mongoose.Model<Notification>;
 		Folderr: mongoose.Model<Folderr>;
+		Ban: mongoose.Model<Ban>;
 	};
 
 	readonly #internals: {
@@ -68,6 +70,7 @@ export default class Mongoosedb extends DBClass {
 			Upload: Schemas.File,
 			AdminNotification: Schemas.AdminNotifications,
 			Folderr: Schemas.Folderr,
+			Ban: Schemas.Ban,
 			/* eslint-enable @typescript-eslint/naming-convention */
 		};
 		this.#internals = {
@@ -140,20 +143,19 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	/* ---- FOLDERR RELATED METHODS ---- */
-	async addFolderrBan(email: string): Promise<boolean> {
-		const add = await this.#schemas.Folderr.updateOne(
-			{},
-			{ $addToSet: { bans: email } }
-		).exec();
-		return add?.modifiedCount > 0;
+	async addBan(email: string, id: string, reason: string): Promise<Ban> {
+		const ban = new this.#schemas.Ban({ email, id, reason });
+		await ban.save();
+		return ban;
 	}
 
-	async removeFolderrBan(email: string): Promise<boolean> {
-		const add = await this.#schemas.Folderr.updateOne(
-			{},
-			{ $pull: { bans: email } }
-		).exec();
-		return add?.modifiedCount > 0;
+	async getBans(): Promise<Ban[]> {
+		return this.#schemas.Ban.find({}).exec();
+	}
+
+	async removeBan(email: string): Promise<boolean> {
+		const remove = await this.#schemas.Ban.deleteOne({ email }).exec();
+		return remove.acknowledged ?? remove.deletedCount > 0;
 	}
 
 	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
@@ -209,8 +211,7 @@ export default class Mongoosedb extends DBClass {
 		const users = await this.#schemas.User.countDocuments({}).exec();
 		const files = await this.#schemas.Upload.countDocuments({}).exec();
 		const links = await this.#schemas.Link.countDocuments({}).exec();
-		const folderr = await this.fetchFolderr();
-		const bannedEmails = folderr.bans.length;
+		const bannedEmails = await this.#schemas.Ban.countDocuments({}).exec();
 		return { users, files, links, bannedEmails, whitelistedEmails: 0 };
 	}
 

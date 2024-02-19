@@ -19,10 +19,11 @@
  *
  */
 
-export {default as VerifyingUser} from './verifying-user';
-export {default as User} from './user';
-export {default as Short} from './link';
-export {default as JwtToken} from './jwt-token';
-export {default as File} from './files';
-export {default as AdminNotifications} from './admin-notifs';
-export {default as Folderr} from './folderr';
+export { default as VerifyingUser } from "./verifying-user";
+export { default as User } from "./user";
+export { default as Short } from "./link";
+export { default as JwtToken } from "./jwt-token";
+export { default as File } from "./files";
+export { default as AdminNotifications } from "./admin-notifs";
+export { default as Folderr } from "./folderr";
+export { default as Ban } from "./ban";

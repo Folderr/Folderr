@@ -76,6 +76,9 @@ export async function getUsers(): Promise<
 		{
 			altCode: dbNotFound,
 			altMessage: "No users found",
+			badResCodes: {
+				notFound: "No Users Found",
+			},
 		}
 	);
 	if (output.error) {
@@ -86,11 +89,10 @@ export async function getUsers(): Promise<
 		throw new Error(output.error);
 	}
 
-	console.log(output);
 	return output;
 }
 
-// TODO: getBans, unbanEmail
+// TODO: unbanEmail
 
 type VerifyingUser = {
 	id: string;
@@ -441,4 +443,97 @@ export async function banUser(
 	} catch (error: unknown) {
 		return genericCatch(error);
 	}
+}
+
+type Ban = {
+	id: string;
+	email: string;
+	createdAt: string;
+	reason: string;
+};
+
+// Get Bans: GET /api/admin/bans
+export async function getBans(): Promise<GenericFetchReturn<Ban[]>> {
+	const output = await requestHelper<Ban[]>(
+		"/api/admin/bans",
+		"GET",
+		"Array"
+	);
+	if (output.error) {
+		console.log(
+			`Error occurred: ${
+				typeof output.error === "string"
+					? output.error
+					: output.error.message
+			}`
+		);
+		return {
+			error: output.error,
+			success: false,
+			response: output.response,
+			output: output.output,
+		};
+	}
+
+	if (!output.output) {
+		return {
+			response: output.response,
+			output: output.output,
+			success: false,
+			error: "Unknown Error Occurred",
+		};
+	}
+
+	return {
+		error: output.error,
+		success: true,
+		response: output.response,
+		output: output.output,
+	};
+}
+
+export async function unbanUser(
+	email: string
+): Promise<GenericFetchReturn<Ban>> {
+	const output = await requestHelper<Ban>(
+		"/api/admin/ban",
+		"DELETE",
+		"Array",
+		{
+			body: JSON.stringify({
+				email,
+			}),
+		}
+	);
+	if (output.error) {
+		console.log(
+			`Error occurred: ${
+				typeof output.error === "string"
+					? output.error
+					: output.error.message
+			}`
+		);
+		return {
+			error: output.error,
+			success: false,
+			response: output.response,
+			output: output.output,
+		};
+	}
+
+	if (!output.output) {
+		return {
+			response: output.response,
+			output: output.output,
+			success: false,
+			error: "Unknown Error Occurred",
+		};
+	}
+
+	return {
+		error: output.error,
+		success: true,
+		response: output.response,
+		output: output.output,
+	};
 }

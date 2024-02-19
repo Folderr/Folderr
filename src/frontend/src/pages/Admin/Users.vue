@@ -965,5 +965,6 @@ onMounted(async () => {
 	}
 
 	await loadUsers();
+	await adminAPI.getBans();
 });
 </script>
