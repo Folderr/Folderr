@@ -1,7 +1,7 @@
 import type Core from "../../../Structures/core";
 import type { FastifyInstance } from "fastify";
 
-export const path = "/verifying-users";
+export const path = "/bans";
 export const enabled = true;
 
 export function route(fastify: FastifyInstance, core: Core) {
@@ -48,12 +48,9 @@ export function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			try {
-				const users = await core.db.findVerifies(
-					{},
-					"email createdAt username id"
-				);
+				const bans = await core.db.getBans();
 
-				if (users.length === 0) {
+				if (bans.length === 0) {
 					return await reply.code(core.codes.ok).send({
 						code: core.Utils.foldCodes.dbNotFound,
 						message: [],
@@ -62,16 +59,16 @@ export function route(fastify: FastifyInstance, core: Core) {
 
 				return await reply.code(core.codes.ok).send({
 					code: core.codes.ok,
-					message: users,
+					message: bans,
 				});
 			} catch (error: unknown) {
 				fastify.log.error(error);
 				return reply.code(core.codes.internalErr).send({
 					code: core.Utils.foldCodes.dbUnkownError,
-					message: error ?? "Unknown Error While Fetching Users",
+					message: error ?? "Unknown Error While Fetching Bans",
 				});
 			}
 		},
 	});
-	fastify.log.info("Initializing GET Verifying Users");
+	fastify.log.info(undefined, "Initialized GET bans");
 }

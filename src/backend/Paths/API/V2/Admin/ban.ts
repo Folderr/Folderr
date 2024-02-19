@@ -80,9 +80,6 @@ class Ban extends Path {
 			Params: {
 				id: string;
 			};
-			Headers: {
-				preferredURL?: string;
-			};
 		}>,
 		response: FastifyReply
 	): Promise<FastifyReply> {
@@ -109,7 +106,11 @@ class Ban extends Path {
 			});
 		}
 
-		const ban = await this.core.db.addFolderrBan(user.email);
+		const ban = await this.core.db.addBan(
+			user.email,
+			user.id,
+			request.body.reason
+		);
 		if (ban) {
 			if (this.core.emailer.active) {
 				const url = await this.Utils.determineHomeURL(request);
@@ -122,7 +123,7 @@ class Ban extends Path {
 			}
 
 			this.core.addDeleter(user.id);
-			await this.core.db.purgeUser(user.id);
+			await this.core.db.markUserForDeletion(user.id);
 			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
 				message: "OK",
