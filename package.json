@@ -17,7 +17,7 @@
     "installdev": "npm i -D && husky install"
   },
   "engines": {
-    "node": ">=16.19.1 <=18"
+    "node": ">=16.19.1 <=20"
   },
   "repository": {
     "type": "git",
