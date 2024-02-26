@@ -17,6 +17,28 @@ if (!fs.existsSync(dir)) {
 	fs.mkdirSync(dir);
 }
 
+// Check for all files, and make all log files
+const warn = join(dir, "warn.log");
+const all = join(dir, "all.log");
+const debug = join(dir, "debug.log");
+const error = join(dir, "error.log");
+
+if (!fs.existsSync(warn)) {
+	fs.closeSync(fs.openSync(warn, "w"));
+}
+
+if (!fs.existsSync(all)) {
+	fs.closeSync(fs.openSync(all, "w"));
+}
+
+if (!fs.existsSync(debug)) {
+	fs.closeSync(fs.openSync(debug, "w"));
+}
+
+if (!fs.existsSync(error)) {
+	fs.closeSync(fs.openSync(error, "w"));
+}
+
 // eslint-disable-next-line spaced-comment
 /*const transport = pino.transport({
 	targets: [
