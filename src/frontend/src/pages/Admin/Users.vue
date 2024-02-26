@@ -424,6 +424,7 @@ import {
 import { useUserStore } from "../../stores/user";
 import * as adminAPI from "../../wrappers/admin-api";
 import * as managementAPI from "../../wrappers/management-api";
+import * as newAPI from "fldrr-web-sdk";
 import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
 import AdminSidebar from "../../components/Admin-Sidebar.vue";
 import AdminButton from "../../components/Admin-Button.vue";
@@ -442,6 +443,8 @@ import {
 	ShieldExclamationIcon,
 	XIcon,
 } from "@heroicons/vue/solid";
+
+const api = newAPI.setup("");
 
 // Reason modal
 type ReasonModal = {
@@ -652,7 +655,13 @@ const reasonDemote = async (
 		return;
 	}
 
-	const output = await managementAPI.demoteUserToAdmin(user.id, reason);
+	const output = await api.Manage.Admin.promoteUserToAdmin(user.id, reason);
+	if (!output) {
+		console.error("No error");
+		console.log(output);
+	}
+
+	// Const output = await managementAPI.demoteUserToAdmin(user.id, reason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -826,7 +835,6 @@ async function denyUser(id: string): Promise<boolean | Error> {
 }
 
 async function promoteUser(id: string): Promise<boolean | Error> {
-	// To impl
 	const user = userList.value?.find((user) => user.id === id);
 	if (!user) {
 		if (sne.value) {
@@ -837,7 +845,13 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 		throw new Error("User Not Found");
 	}
 
-	const output = await managementAPI.promoteUserToAdmin(id);
+	const output = await api.Manage.Admin.promoteUserToAdmin(id);
+	if (!output) {
+		console.error("No error");
+		console.log(output);
+	}
+
+	// Const output = await managementAPI.promoteUserToAdmin(id);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
