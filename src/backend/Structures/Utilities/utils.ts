@@ -406,11 +406,10 @@ class Utils {
 		fn?: (arg0: UI) => boolean
 	): Promise<UI | false> {
 		// Make sure all of the auth stuff is there
-		if (!request.headers.password && !request.headers.username) {
-			return false;
-		}
-
 		if (!request.headers.password || !request.headers.username) {
+			this.#core.logger.debug(
+				"Failed to authenticate user, missing headers."
+			);
 			return false;
 		}
 

@@ -62,7 +62,7 @@ export default class Authorization {
 		try {
 			await this.#keyHandler.fetchKeys(this.#core.db);
 		} catch (error: unknown) {
-			console.log((error as Error).message);
+			console.error((error as Error).message);
 			const messages = [
 				"Private and Public Keys Do Not Match.",
 				"Unable to fetch keys",
@@ -105,6 +105,7 @@ export default class Authorization {
 
 			const verify = await this.#core.db.findToken(
 				result.jti,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				result.id,
 				{
 					web,
@@ -116,6 +117,7 @@ export default class Authorization {
 
 			return result.id as string;
 		} catch (error: unknown) {
+			this.#core.logger.error(error);
 			if (
 				error instanceof Error &&
 				error.message !== "JsonWebTokenError: invalid signature"
@@ -148,10 +150,16 @@ export default class Authorization {
 
 			const user = await this.#core.db.findUser({ id });
 			if (!user) {
+				this.#core.logger.debug(
+					`User with ID ${id} failed authentication. Reason: not found`
+				);
 				return;
 			}
 
 			if (options?.fn && !options.fn(user)) {
+				this.#core.logger.debug(
+					`User with ID ${id} failed authentication. Reason: failed fn check`
+				);
 				return;
 			}
 
@@ -184,6 +192,7 @@ export default class Authorization {
 
 			const verifyDb = await this.#core.db.purgeToken(
 				result.jti,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				result.id,
 				{
 					web,
