@@ -444,7 +444,7 @@ import {
 	XIcon,
 } from "@heroicons/vue/solid";
 
-const api = newAPI.setup("");
+const api = newAPI.setup();
 
 // Reason modal
 type ReasonModal = {
@@ -655,7 +655,7 @@ const reasonDemote = async (
 		return;
 	}
 
-	const output = await api.Manage.Admin.promoteUserToAdmin(user.id, reason);
+	const output = await api.Manage.Admin.demoteAdmin(user.id, reason);
 	if (!output) {
 		console.error("No error");
 		console.log(output);
