@@ -225,26 +225,37 @@ export default class Core {
 				defaultSrc.push("ws://localhost:*");
 			}
 
-			await this.app.register(helmet, {
-				contentSecurityPolicy: {
-					directives: {
-						defaultSrc,
+			if (process.env.BENCHMARK && process.env.BENCHMARK !== "true") {
+				this.logger.info("Enabling CSP");
+				await this.app.register(helmet, {
+					contentSecurityPolicy: {
+						directives: {
+							defaultSrc,
 
-						scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+							scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+						},
 					},
-				},
-			});
+				});
+			}
 		}
 
+		let maxReq = process.env.BENCHMARK === "true" ? 100_000_000 : 20;
+		if (process.env.NODE_ENV === "dev") {
+			maxReq = 100_000_000;
+		}
+
+		this.logger.info(`Ratelimiting at ${maxReq} requests per 10s`);
 		await this.app.register(ratelimit, {
-			max: process.env.NODE_ENV === "dev" ? 100 : 20,
+			max: maxReq,
 			timeWindow: "10s",
 		});
 
+		this.logger.info("Enabling CORS");
 		await this.app.register(fastifyCors, {
 			origin: "*",
 		});
 
+		this.logger.debug("Enabling Multipart");
 		await this.app.register(multipart, {
 			limits: {
 				fields: 0,
@@ -252,11 +263,13 @@ export default class Core {
 				fileSize: 10_000_000_000,
 			},
 		});
+		this.logger.debug("Enabling Fastify Static for dist/src/frontend");
 		await this.app.register(fastifyStatic, {
 			root: join(process.cwd(), "dist/src/frontend"),
 		});
 
 		if (process.env.DEBUG) {
+			this.logger.debug("Enabling request hooks");
 			this.app.addHook("onRequest", (request, _, done) => {
 				this.logger.debug(`URL: ${request.url}`);
 				this.logger.debug(`Is 404: ${request.is404.toString()}`);
@@ -986,6 +999,7 @@ export default class Core {
 		// One quick note: It would seem that TS-Node and IPC don't play well,
 		// which Folderr NEEDS to properly handle user deletion
 		if (isTSNode && process.env.NODE_ENV === "dev") {
+			this.logger.debug("Using same-process deleter queue");
 			return new DelQueue(this.db);
 		}
 
