@@ -80,7 +80,7 @@ export default class Mongoosedb extends DBClass {
 
 	async init(url: string): Promise<void> {
 		try {
-			await mongoose.connect(url);
+			await mongoose.connect(url, { appName: "Folderr" });
 			this.#internals.connection = mongoose.connection;
 			this.status = "ok";
 			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
