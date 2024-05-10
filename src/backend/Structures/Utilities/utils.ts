@@ -215,6 +215,7 @@ class Utils {
 	 * @desc Generate a user ID
 	 * @generator
 	 *
+	 * @deprecated Please use genV4uuid or other methods
 	 * @returns {Promise<string>}
 	 */
 	async genUid(): Promise<string> {
@@ -222,9 +223,9 @@ class Utils {
 		const max = 22;
 		const min = 18;
 		// What is wut??
-		const wut = 1;
+		const pad = 1;
 		// Pick between 18 and 22
-		const number = Math.floor(Math.random() * (max - min + wut)) + min;
+		const number = Math.floor(Math.random() * (max - min + pad)) + min;
 		let userid = "";
 		// Min and max numbers
 		const maxChar = 9;
@@ -232,7 +233,7 @@ class Utils {
 		// Generate the user ID
 		for (let i = 0; i < number; i++) {
 			userid += String(
-				Math.floor(Math.random() * (maxChar - minChar + wut)) + minChar
+				Math.floor(Math.random() * (maxChar - minChar + pad)) + minChar
 			);
 		}
 
@@ -356,16 +357,16 @@ class Utils {
 	async genValidationToken(): Promise<TokenReturn> {
 		// Generate random bytes, gen more random bytes
 		// Oh and get a base64 date in milliseconds
-		const r: string = crypto.randomBytes(this.byteSize).toString();
+		const r = crypto.randomBytes(this.byteSize);
 		const random: string = crypto
 			.randomBytes(this.byteSize)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
-		const userid = buffer.Buffer.from(r)
+		const userid = r
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
 		const date = buffer.Buffer.from(
-			new Date().getUTCMilliseconds().toString()
+			(new Date().getTime() / 1000).toFixed(0).toString()
 		)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
@@ -378,12 +379,8 @@ class Utils {
 	async genWebValidationToken(): Promise<TokenReturn> {
 		// Generate random bytes, gen more random bytes
 		// Oh and get a base64 date in milliseconds
-		const r: string = crypto.randomBytes(this.byteSize).toString();
 		const random: string = crypto
 			.randomBytes(this.byteSize)
-			.toString("base64")
-			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
-		buffer.Buffer.from(r)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
 		// Combine, hash, and return the hashed and unhashed token
