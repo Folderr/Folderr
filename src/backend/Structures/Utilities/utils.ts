@@ -23,7 +23,8 @@ import { promisify } from "util";
 import crypto from "crypto";
 import buffer from "buffer";
 import argon2 from "argon2";
-import * as uuid from "uuid";
+import * as uuid from "uuid"; // Use ulid over uuid
+import ulid from "ulidx";
 import type { JTDSchemaType } from "ajv/dist/jtd";
 import AJV from "ajv/dist/jtd";
 import type { FastifyRequest } from "fastify";
@@ -215,7 +216,7 @@ class Utils {
 	 * @desc Generate a user ID
 	 * @generator
 	 *
-	 * @deprecated Please use genV4uuid or other methods
+	 * @deprecated Please use genFolderrId
 	 * @returns {Promise<string>}
 	 */
 	async genUid(): Promise<string> {
@@ -242,18 +243,50 @@ class Utils {
 
 	/**
 	 *
-	 * Generate a ID using uuid
+	 * @desc Generate a ID using uuid
+	 *
+	 * @deprecated Please use utils.genFolderrId
 	 */
 	genV4uuid(): string {
 		return uuid.v4();
 	}
 
+	/**
+	 * @description Check if a UUID is validate with a specific version
+	 *
+	 * @param id UUID to validate
+	 * @param version What version of UUID to check for
+	 * @returns {Boolean} whether or not the uuid is compliant with the uuid version
+	 *
+	 * @deprecated UUID is deprecated please use isValidFolderrId
+	 */
 	validateUuid(id: string, version: 4 | 5) {
 		if (version === 5 && uuid.version(id) === 5 && uuid.validate(id)) {
 			return true;
 		}
 
 		return version === 4 && uuid.version(id) === 4 && uuid.validate(id);
+	}
+
+	genFolderrId(): string {
+		return ulid.ulid();
+	}
+
+	isValidFolderrId(id: string): boolean {
+		try {
+			const isUlid = ulid.isValid(id);
+			if (!isUlid) {
+				return uuid.validate(id);
+			}
+
+			return isUlid;
+		} catch {
+			return uuid.validate(id);
+		}
+	}
+
+	convertUuidToFolderrId(id: string): string {
+		return ulid.uuidToULID(id);
 	}
 
 	/**
@@ -336,12 +369,7 @@ class Utils {
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async genNotifyID(): Promise<string> {
 		// Gen the ID, and dont let the ID equal a already made notify id
-		const id: string = await this.genUid();
-		const notify = await this.#core.db.findAdminNotify({ id });
-		if (notify) {
-			// Retry if notify exists
-			return this.genNotifyID();
-		}
+		const id: string = this.genFolderrId();
 
 		// Return the ID
 		return id;
