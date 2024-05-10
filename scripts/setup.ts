@@ -421,7 +421,7 @@ async function keyGen(
 	}
 
 	if (username && email && password) {
-		const id = core.Utils.genV4uuid();
+		const id = core.Utils.genFolderrId();
 		const hashedPassword = await core.Utils.hashPass(password);
 		await core.db.makeOwner(username, hashedPassword, id, email);
 		console.log(

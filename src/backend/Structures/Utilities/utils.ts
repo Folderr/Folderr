@@ -241,33 +241,6 @@ class Utils {
 		return userid;
 	}
 
-	/**
-	 *
-	 * @desc Generate a ID using uuid
-	 *
-	 * @deprecated Please use utils.genFolderrId
-	 */
-	genV4uuid(): string {
-		return uuid.v4();
-	}
-
-	/**
-	 * @description Check if a UUID is validate with a specific version
-	 *
-	 * @param id UUID to validate
-	 * @param version What version of UUID to check for
-	 * @returns {Boolean} whether or not the uuid is compliant with the uuid version
-	 *
-	 * @deprecated UUID is deprecated please use isValidFolderrId
-	 */
-	validateUuid(id: string, version: 4 | 5) {
-		if (version === 5 && uuid.version(id) === 5 && uuid.validate(id)) {
-			return true;
-		}
-
-		return version === 4 && uuid.version(id) === 4 && uuid.validate(id);
-	}
-
 	genFolderrId(): string {
 		return ulid.ulid();
 	}
@@ -295,7 +268,6 @@ class Utils {
 	 *
 	 * @returns {Promise<string>}
 	 */
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async genShortId(): Promise<string> {
 		// Generate a random ID
 		const bytesToGen = 10;
