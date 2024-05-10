@@ -93,7 +93,7 @@ class WarnUser extends Path {
 			});
 		}
 
-		if (!this.Utils.validateUuid(request.params.id, 4)) {
+		if (!this.Utils.isValidFolderrId(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: "Requirements missing or invalid!",
@@ -108,7 +108,7 @@ class WarnUser extends Path {
 			});
 		}
 
-		const id = await this.Utils.genNotifyID();
+		const id = this.Utils.genNotifyID();
 		const updated = await this.core.db.updateUser(
 			{ id: request.params.id },
 			{

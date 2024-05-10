@@ -111,7 +111,7 @@ class Shorten extends Path {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/naming-convention
-		const ID = await this.Utils.genID();
+		const ID = await this.Utils.genShortId();
 		await Promise.all([
 			this.core.db.makeLink(ID, auth.id, request.body.url),
 			this.core.db.updateUser({ id: auth.id }, { $inc: { links: 1 } }),

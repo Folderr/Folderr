@@ -91,7 +91,7 @@ class Ban extends Path {
 			});
 		}
 
-		if (!this.Utils.validateUuid(request.params.id, 4)) {
+		if (!this.Utils.isValidFolderrId(request.params.id)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: "Missing requirements",

@@ -98,7 +98,7 @@ class Image extends Path {
 
 		const ext = file.filename.split(".");
 		const fext = ext[ext.length - 1];
-		const name = await this.Utils.genID();
+		const name = await this.Utils.genShortId();
 
 		try {
 			await pump(file.file, createWriteStream(`${dir}/${name}.${fext}`));

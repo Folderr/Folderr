@@ -76,7 +76,7 @@ class Signup extends Path {
 
 	async genUID(): Promise<string> {
 		// Generate an ID, and do not allow a users id to be reused
-		const uID = this.Utils.genV4uuid();
+		const uID = this.Utils.genFolderrId();
 		/* eslint-enable @typescript-eslint/naming-convention */
 		const user = await this.core.db.findUser({ id: uID });
 		if (user) {
@@ -107,7 +107,7 @@ class Signup extends Path {
 	}> {
 		// Find admin notifications, and generate an ID
 		// eslint-disable-next-line @typescript-eslint/naming-convention
-		const notifyID = await this.Utils.genNotifyID();
+		const notifyID = this.Utils.genNotifyID();
 		// Make a new notification and save to database
 		try {
 			await Promise.all([

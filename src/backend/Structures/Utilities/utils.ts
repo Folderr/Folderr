@@ -296,7 +296,7 @@ class Utils {
 	 * @returns {Promise<string>}
 	 */
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	async genID(): Promise<string> {
+	async genShortId(): Promise<string> {
 		// Generate a random ID
 		const bytesToGen = 10;
 		const min = 4;
@@ -316,7 +316,7 @@ class Utils {
 		}
 
 		if (!toReturn) {
-			return this.genID();
+			return this.genShortId();
 		}
 
 		return id;
@@ -364,15 +364,11 @@ class Utils {
 	 * @generator
 	 * @async
 	 *
-	 * @returns {Promise<string|Promise<*>>}
+	 * @returns {string}
 	 */
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	async genNotifyID(): Promise<string> {
-		// Gen the ID, and dont let the ID equal a already made notify id
-		const id: string = this.genFolderrId();
-
-		// Return the ID
-		return id;
+	genNotifyID(): string {
+		return this.genFolderrId();
 	}
 
 	/**
