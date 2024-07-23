@@ -495,7 +495,7 @@ export default class Core {
 	internalInitPath(path: Path, instance = this.app) {
 		const app = instance;
 
-		switch (path.type) {
+		switch (path.type.toLowerCase()) {
 			case "post": {
 				if (Array.isArray(path.path)) {
 					for (const url of path.path) {

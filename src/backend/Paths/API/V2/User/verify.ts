@@ -31,8 +31,8 @@ class Verify extends Path {
 		super(core);
 		this.label = "Verify Self";
 		this.path = "/verify/:userid/:token";
-		this.enabled =
-			this.core.emailer.active && this.core.config.signups === 2;
+		this.type = "POST";
+		this.enabled = process.env.NODE_ENV === 'dev' ? true : this.core.config.signups === 2;
 
 		this.options = {
 			schema: {

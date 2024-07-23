@@ -30,9 +30,9 @@ class Deny extends Path {
 	constructor(core: Core) {
 		super(core);
 		this.label = "Deny Self";
-		this.path = "/deny/:userid/:token";
-		this.enabled =
-			this.core.emailer.active && this.core.config.signups === 2;
+		this.path = "/verify/:userid/:token";
+		this.type = "DELETE";
+		this.enabled = true;
 
 		this.options = {
 			schema: {
