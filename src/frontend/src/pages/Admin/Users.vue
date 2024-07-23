@@ -655,7 +655,7 @@ const reasonDemote = async (
 		return;
 	}
 
-	const output = await api.Manage.Admin.demoteAdmin(user.id, reason);
+	const output = await api.Manage.admin.demoteAdmin(user.id, reason);
 	if (!output) {
 		console.error("No error");
 		console.log(output);
@@ -845,7 +845,7 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 		throw new Error("User Not Found");
 	}
 
-	const output = await api.Manage.Admin.promoteUserToAdmin(id);
+	const output = await api.Manage.admin.promoteUserToAdmin(id);
 	if (!output) {
 		console.error("No error");
 		console.log(output);
