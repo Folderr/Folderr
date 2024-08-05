@@ -69,6 +69,18 @@ const routes: RouteRecordRaw[] = [
 		name: "Verify Self",
 	},
 	{
+		path: "/signup/success",
+		component: () => import("./pages/Signup/Success.vue"),
+		beforeEnter: userGuards.inverseAuthGuard,
+		name: "Signup Success",
+	},
+	{
+		path: "/signup/failed",
+		component: () => import("./pages/Signup/Success.vue"),
+		beforeEnter: userGuards.inverseAuthGuard,
+		name: "Signup Failed",
+	},
+	{
 		path: "/404",
 		component: () => import("./pages/404.vue"),
 		name: "NotFound",

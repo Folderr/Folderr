@@ -95,7 +95,7 @@ const signup = async () => {
 
 	if (output.success) {
 		// If we signed up, go to the congrats page.
-		return router.push("/signup-success");
+		return router.push("/signup/success");
 	}
 };
 
