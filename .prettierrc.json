@@ -1,5 +1,6 @@
 {
 	"semi": true,
 	"tabWidth": 4,
-	"useTabs": true
+	"useTabs": true,
+	"endOfLine": "auto"
 }
