@@ -1,6 +1,6 @@
 <template>
 	<div class="bg-bg h-full md:h-screen flex flex-col">
-		<FNavbar url="/" :width="width" />
+		<FNavbar url="/signup" :width="width" />
 		<SuccessesErrors ref="sne" />
 		<div class="flex flex-col md:flex-row lg:m-auto">
 			<div
