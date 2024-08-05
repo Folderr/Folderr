@@ -1,7 +1,7 @@
 <template>
 	<div class="bg-bg h-full md:h-screen flex flex-col">
 		<!-- Maybe different navbar here? Maybe just add login link? -->
-		<FNavbar url="/verify" />
+		<FNavbar url="/account/verify" />
 		<!--- TODO: Put Logic Here --->
 		<div class="m-auto">
 			<div v-if="loading">

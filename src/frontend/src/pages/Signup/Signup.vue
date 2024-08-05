@@ -2,7 +2,7 @@
 	<div class="bg-bg h-full md:h-screen flex flex-col">
 		<FNavbar url="/" :width="width" />
 		<SuccessesErrors ref="sne" />
-		<div class="flex flex-col md:flex-row">
+		<div class="flex flex-col md:flex-row lg:m-auto">
 			<div
 				id="hero"
 				class="md:ml-32 mt-24 md:mt-20 flex flex-col md:w-[40%] ml-8"
@@ -123,7 +123,5 @@ onMounted(() => {
 	});
 });
 
-// eslint-disable-next-line max-len
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments, @typescript-eslint/no-redundant-type-constituents
 const sne = ref();
 </script>
