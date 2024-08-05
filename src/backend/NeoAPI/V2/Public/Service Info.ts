@@ -2,6 +2,7 @@
 import type Core from "../../../Structures/core";
 import pkg from "../../../../../package.json";
 import type { FastifyInstance } from "fastify";
+import { RFC_2822 } from "moment";
 
 // We have a name here for in case we decide to map these
 
@@ -28,6 +29,14 @@ export function route(fastify: FastifyInstance, core: Core) {
 								node_version: { type: "string" },
 								online_since: { type: "number" },
 								message: { type: "string" },
+								features: {
+									type: "object",
+									properties: {
+										emailer: { type: "boolean" },
+										dns_mirror: { type: "boolean" },
+										signups: { type: "number" },
+									},
+								},
 							},
 						},
 						/* eslint-enable @typescript-eslint/naming-convention */
@@ -44,6 +53,11 @@ export function route(fastify: FastifyInstance, core: Core) {
 					node_version: string;
 					online_since: number;
 					message: string;
+					features: {
+						dns_mirror: boolean;
+						emailer: boolean;
+						signups: 0 | 1 | 2;
+					};
 				};
 				code: number;
 			} = {
@@ -54,6 +68,11 @@ export function route(fastify: FastifyInstance, core: Core) {
 						Date.now() - process.uptime() * 1000
 					).getTime(),
 					message: "Pong!",
+					features: {
+						dns_mirror: false,
+						emailer: core.emailer.active,
+						signups: core.config.signups as 0 | 1 | 2,
+					},
 				},
 				code: this.codes.ok,
 			};
