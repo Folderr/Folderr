@@ -29,15 +29,20 @@ const routes: RouteRecordRaw[] = [
 	},
 	{
 		path: "/signup",
-		component: () => import("./pages/Signup.vue"),
+		component: () => import("./pages/Signup/Signup.vue"),
 		beforeEnter: userGuards.authGuard,
 		name: redirToSignup[1],
 	},
 	{
 		path: "/account",
-		component: () => import("./pages/Account.vue"),
+		component: () => import("./pages/Account/Account.vue"),
 		name: redirToSignup[2],
 		beforeEnter: userGuards.authGuard,
+	},
+	{
+		path: "/account/farewell",
+		component: () => import("./pages/Account/Farewell.vue"),
+		name: "farewell",
 	},
 	{
 		path: "/upload",
@@ -54,12 +59,14 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: "/admin/users",
 		component: () => import("./pages/Admin/Users.vue"),
+		name: "Users",
 		beforeEnter: adminNavGuards.adminAuthGuard,
 	},
 	{
 		path: "/account/verify/:userid/:token",
 		component: () => import("./pages/Verification/Verify.vue"),
 		beforeEnter: userGuards.inverseAuthGuard,
+		name: "Verify Self",
 	},
 	{
 		path: "/404",

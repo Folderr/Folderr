@@ -994,7 +994,7 @@ const deleteAccount = async(confirmed: boolean) => {
     const deleted = await api.deleteAccount();
     if (deleted.success) {
         userStore.clear();
-        return router.push('/farewell');
+        return router.push('/account/farewell');
     }
 
     if (!deleted.success) {
