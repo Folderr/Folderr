@@ -38,7 +38,10 @@ export async function inverseAuthGuard(
 		}
 
 		if (
-			(to.path.includes("deny") || to.path.includes("verify")) &&
+			(to.path.includes("deny") ||
+				to.path.includes("verify") ||
+				to.path === "/signup/success" ||
+				to.path === "/signup/failed") &&
 			store.id
 		) {
 			return "/account";

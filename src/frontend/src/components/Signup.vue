@@ -31,7 +31,7 @@ const router = useRouter();
 
 const signup = async () => {
 	if (loading.value) {
-		// Can't login if the page is loading!
+		// Can't sign up if the page is loading!
 		return;
 	}
 

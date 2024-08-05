@@ -32,7 +32,7 @@ export async function noUser(to: RouteLocationNormalized) {
 		}
 
 		if (store.id) {
-			return false;
+			return "/account";
 		}
 
 		return true;
