@@ -98,7 +98,7 @@
 				The email may be in your spam/junk folder
 			</h3>
 		</div>
-		<FFooter class="mt-20 md:mt-0" />
+		<FFooter />
 	</div>
 </template>
 

@@ -69,6 +69,12 @@ const routes: RouteRecordRaw[] = [
 		name: "Verify Self",
 	},
 	{
+		path: "/account/deny/:userid/:token",
+		component: () => import("./pages/Verification/Deny.vue"),
+		beforeEnter: userGuards.inverseAuthGuard,
+		name: "Deny Self",
+	},
+	{
 		path: "/signup/success",
 		component: () => import("./pages/Signup/Success.vue"),
 		beforeEnter: userGuards.inverseAuthGuard,
