@@ -3,18 +3,22 @@
 const EMAILER_TEXTS = {
 	verify(username: string, verifyLink: string) {
 		return (
-			`Hello ${username[0]},\n` +
+			`Hello ${username},\n` +
 			`Your Folderr verification link for ${
-				verifyLink[1].split('/verify')[0]
-			} is ${verifyLink[1]}\n` +
-			'The link will expire in 48 hours.\n' +
-			`If you did not request an account click this link to deny the account request: ${verifyLink[1].replace(
-				'verify',
-				'deny'
+				verifyLink.split("/verify")[0]
+			} is ${verifyLink}\n` +
+			"The link will expire in 48 hours.\n" +
+			`If you did not request an account click this link to deny the account request: ${verifyLink.replace(
+				"verify",
+				"deny"
 			)}.`
 		);
 	},
-	forgot_password(username: string, instanceLink: string, forgotLink: string) {
+	forgot_password(
+		username: string,
+		instanceLink: string,
+		forgotLink: string
+	) {
 		return (
 			`Hello ${username},\n` +
 			`Please click the link below to reset your ${instanceLink} password.\n` +
@@ -40,7 +44,7 @@ const EMAILER_TEXTS = {
 		return (
 			`Hello ${username},\n` +
 			`Here is a link to confirm your email change ${confirmLink}\n` +
-			'If you did not request an email change, please ignore this email, it will expire in 48 hours.'
+			"If you did not request an email change, please ignore this email, it will expire in 48 hours."
 		);
 	},
 	takedown(username: string, type: string, id: string, instanceLink: string) {
@@ -48,20 +52,20 @@ const EMAILER_TEXTS = {
 			`Hello ${username},\n` +
 			`Your content (type: ${type}) with ID ${id} was taken down by service administrators for Folderr instance ${instanceLink}`
 		);
-	}
+	},
 };
 
 const MONGOOSE = {
 	expected_queries(expected: number, actual?: number) {
 		return `MongooseDB > Input > findFullUser - Expected ${expected} queries in array but got ${
-			actual ?? 'none'
+			actual ?? "none"
 		}`;
-	}
+	},
 };
 
 const TEMPLATES = {
 	EMAILER_TEXTS,
-	MONGOOSE
+	MONGOOSE,
 };
 
 export default TEMPLATES;

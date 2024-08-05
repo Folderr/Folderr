@@ -1,10 +1,10 @@
-import type {RouteLocationNormalized} from 'vue-router';
-import {useUserStore} from '../stores/user';
+import type { RouteLocationNormalized } from "vue-router";
+import { useUserStore } from "../stores/user";
 
 export async function authGuard(
-	to: RouteLocationNormalized,
+	to: RouteLocationNormalized
 ): Promise<string | boolean | Error> {
-	if (to.name === 'NotFound') {
+	if (to.name === "NotFound") {
 		return true;
 	}
 
@@ -14,8 +14,34 @@ export async function authGuard(
 			await store.loadUser();
 		}
 
-		if ((to.path === '/login' || to.path === '/') && store.id) {
-			return '/account';
+		if ((to.path === "/login" || to.path === "/") && store.id) {
+			return "/account";
+		}
+
+		return true;
+	} catch (error: unknown) {
+		return error as Error;
+	}
+}
+
+export async function inverseAuthGuard(
+	to: RouteLocationNormalized
+): Promise<string | boolean | Error> {
+	if (to.name === "NotFound") {
+		return true;
+	}
+
+	try {
+		const store = useUserStore();
+		if (!store.id) {
+			await store.loadUser();
+		}
+
+		if (
+			(to.path.includes("deny") || to.path.includes("verify")) &&
+			store.id
+		) {
+			return "/account";
 		}
 
 		return true;

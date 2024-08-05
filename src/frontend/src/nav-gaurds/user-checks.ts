@@ -23,3 +23,20 @@ export async function getUser(
 		return error as Error;
 	}
 }
+
+export async function noUser(to: RouteLocationNormalized) {
+	try {
+		const store = useUserStore();
+		if (!store.id) {
+			await store.loadUser();
+		}
+
+		if (store.id) {
+			return false;
+		}
+
+		return true;
+	} catch (error: unknown) {
+		return error as Error;
+	}
+}

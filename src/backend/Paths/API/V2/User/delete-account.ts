@@ -49,12 +49,12 @@ class DelAccount extends Path {
 						userid: { type: "string" },
 					},
 				},
-				body: {
-					type: "object",
-					properties: {
-						reason: { type: "string" },
-					},
-				},
+				// body: {
+				//	type: "object",
+				//	properties: {
+				//		reason: { type: "string" },
+				//	},
+				// },
 				response: {
 					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {

@@ -32,7 +32,10 @@ class Verify extends Path {
 		this.label = "Verify Self";
 		this.path = "/verify/:userid/:token";
 		this.type = "POST";
-		this.enabled = process.env.NODE_ENV === 'dev' ? true : this.core.config.signups === 2;
+		this.enabled =
+			process.env.NODE_ENV === "dev"
+				? true
+				: this.core.config.signups === 2;
 
 		this.options = {
 			schema: {
@@ -80,12 +83,19 @@ class Verify extends Path {
 			});
 		}
 
+		if (!this.Utils.isValidFolderrId(request.params.userid)) {
+			return response.status(this.codes.badReq).send({
+				code: this.codes.badReq,
+				message: "Malformed or otherwise invalid ID",
+			});
+		}
+
 		const verify = await this.Utils.findVerifying(
 			request.params.token,
 			request.params.userid
 		);
 		if (!verify) {
-			return response.status(this.codes.badReq).send({
+			return response.status(this.codes.notFound).send({
 				code: this.Utils.foldCodes.dbNotFound,
 				message: "User not found!",
 			});

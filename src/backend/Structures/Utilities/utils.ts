@@ -358,16 +358,13 @@ class Utils {
 			.randomBytes(this.byteSize)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
-		const userid = r
-			.toString("base64")
-			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
 		const date = buffer.Buffer.from(
 			(new Date().getTime() / 1000).toFixed(0).toString()
 		)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
 		// Combine, hash, and return the hashed and unhashed token
-		const token = `${userid}-${random}-${date}`;
+		const token = `${random}_${date}`;
 		const hash = await argon2.hash(token, { timeCost: this.saltRounds });
 		return { token, hash };
 	}

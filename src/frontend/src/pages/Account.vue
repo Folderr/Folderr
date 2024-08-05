@@ -2,12 +2,7 @@
     <div v-if="loading">
         <div class="bg-bg h-screen flex flex-col">
             <FNavbar />
-            <div
-                id="hero"
-                class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow"
-            >
-                <h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
-            </div>
+            <Spinner />
         </div>
         <FFooter />
     </div>
@@ -25,7 +20,7 @@
             >
                 <p
                     class="text-secondary-text mt-10"
-                
+
                 ><!-- eslint-disable-next-line max-len-->
                 This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br></p>
                 <template #warning>
@@ -86,7 +81,7 @@
                 <template #warning>
                     <div
                         class="
-                            flex 
+                            flex
                             items-center
                             justify-center
                             p-2
@@ -121,7 +116,7 @@
                         You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
                     </div>
                 </template>
-                
+
                 <div class="text-text mt-4 text-lg">
                     <h1 class="font-info"><b>Token</b></h1>
                     <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-2">
@@ -376,7 +371,7 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                             buttontitle="Update Your Information"
                             :color-disabled="isInfoSame"
                         >Save Changes</FButton>
-                        
+
                         <label
                             for="password"
                             class="block text-secondary-text text-md mt-10"
@@ -598,7 +593,7 @@ for="newpassword"
                         >Save Privacy choices
                         </FButton>
                     </div>
-                    
+
                 </div>
                 <!-- Token Management -->
                 <div ref="tokendiv" class="m-auto pt-10 text-justify w-full md:w-1/2">
@@ -635,8 +630,8 @@ for="newpassword"
                             >
                                 <p class="text-secondary-text text-md">
                                     ID: {{ token.id }}
-                                
-                                
+
+
                                 <br>Created on: {{ new Date(token.created).toLocaleString() }}
                                 <br>Description: {{ token.description }}</p>
                                 <button
@@ -679,6 +674,7 @@ import {useTokens} from '../stores/tokens';
 import * as api from '../wrappers/api';
 import {passwordRegex, usernameRegex} from '../utils/regexs'
 import SuccessesErrors from "../components/Success-N-Error.vue"; // Success & Error component
+import Spinner from "../components/Spinner.vue"
 const sne = ref();
 
 const url = computed(() => window.location.origin);
@@ -801,7 +797,7 @@ const updateInfo = async() => {
         sne.value?.addError('Unknown Error Occured while updating your info');
         console.log(error);
         console.log(typeof error);
-        
+
     }
 }
 
@@ -844,7 +840,7 @@ const oldPasswordValid = computed(() => {
     if (passwordRegex.test(oldPassword.value)) {
         return true;
     }
-    
+
     return false;
 })
 
@@ -852,7 +848,7 @@ const confirmPasswordValid = computed(() => {
     if (passwordConfirm.value === password.value && passwordRegex.test(passwordConfirm.value)) {
         return true;
     }
-    
+
     return false;
 })
 
@@ -908,7 +904,7 @@ const updatePassword = async() =>  {
         sne.value?.addError('Unknown Error Occured while updating your password');
         console.log(error);
         console.log(typeof error);
-        
+
     }
 }
 
@@ -1011,7 +1007,7 @@ const deleteAccount = async(confirmed: boolean) => {
         if (typeof deleted.error === 'string') {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(deleted.error);
-            
+
         }
     }
 }
@@ -1074,7 +1070,7 @@ const createToken = async(description: string) => {
 
         tokenCreateModal();
         modals.tokens.showDetails = true;
-        
+
     }
 }
 
@@ -1097,7 +1093,7 @@ const revokeToken = async(id: string) => {
         sne.value?.addSuccess('Token Revoked');
         tokens.value = tokens.value.filter((token) => token.id !== id);
         tokenStore.setTokens(tokens.value);
-        
+
     }
 }
 

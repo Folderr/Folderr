@@ -57,8 +57,9 @@ const routes: RouteRecordRaw[] = [
 		beforeEnter: adminNavGuards.adminAuthGuard,
 	},
 	{
-		path: "/verify/:userid/:token",
-		component: () => import("./pages/Verification/Verify.vue")
+		path: "/account/verify/:userid/:token",
+		component: () => import("./pages/Verification/Verify.vue"),
+		beforeEnter: userGuards.inverseAuthGuard,
 	},
 	{
 		path: "/404",
