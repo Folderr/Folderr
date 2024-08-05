@@ -35,13 +35,10 @@
 					</defs>
 				</svg>
 				<h1 class="text-4xl text-brand font-bold">
-					Successfully Verified Email
+					Successfully Denied
 				</h1>
 				<h2 class="text-2xl text-secondary-text w-fit m-auto">
-					You may now
-					<RouterLink to="/#login" class="text-brand underline"
-						>log in</RouterLink
-					>
+					You may now close this page
 				</h2>
 			</div>
 			<div v-else>
@@ -70,7 +67,7 @@
 				</svg>
 
 				<h1 class="text-4xl text-secondary-accent font-bold">
-					Failed to verify your account
+					Failed to deny your account
 				</h1>
 				<h2 class="text-2xl text-secondary-text m-auto w-fit">
 					{{ altMessage ? altMessage : error }}
@@ -108,18 +105,18 @@ const verifyAccount = async () => {
 	)
 		return;
 
-	const verification = await sdk.Verification.self.verifySelf(
+	const denial = await sdk.Verification.self.denySelf(
 		route.params.userid,
 		route.params.token
 	);
-	if (verification.error) {
-		if (verification.error instanceof Error) {
-			error.value = verification.error.message;
-			errorCause.value = verification.error.cause;
+	if (denial.error) {
+		if (denial.error instanceof Error) {
+			error.value = denial.error.message;
+			errorCause.value = denial.error.cause;
 		} else {
-			error.value = verification.error;
+			error.value = denial.error;
 		}
-	} else if (verification.success) {
+	} else if (denial.success) {
 		verificationSuccess.value = true;
 	} else {
 		altMessage.value = "Something went wrong and I don't know what.";
