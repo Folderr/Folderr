@@ -226,6 +226,13 @@ export default class Core {
 				"Emailer connection failed. Shutting down. Error below."
 			);
 			this.logger.fatal(error);
+			this.logger.warn(
+				"This may mean your emailer is not configured properly."
+			);
+			this.logger.warn(
+				"Please check host, port, and authentication are correct " +
+					"and in line with your host"
+			);
 			process.exit(1);
 		} else {
 			this.logger.info("Emailer OK or disabled");
