@@ -19,10 +19,10 @@
  *
  */
 
-import nodemailer, {type SentMessageInfo} from 'nodemailer';
-import type Mail from 'nodemailer/lib/mailer';
-import {type Core} from '../internals';
-import * as constants from './constants/index';
+import nodemailer, { type SentMessageInfo } from "nodemailer";
+import type Mail from "nodemailer/lib/mailer";
+import { type Core } from "../internals";
+import * as constants from "./constants/index";
 
 /**
  *
@@ -38,7 +38,7 @@ export default class Emailer {
 
 	private readonly email?: string;
 
-	#core: Core;
+	readonly #core: Core;
 
 	constructor(
 		core: Core,
@@ -59,18 +59,18 @@ export default class Emailer {
 		if (this.active) {
 			this.mailer = nodemailer.createTransport({
 				...options,
-				tls: {rejectUnauthorized: false} // Should be added to options
+				tls: { rejectUnauthorized: false }, // Should be added to options
 			});
 			this.email = email;
-			if(selfTest) {
-				console.log('Self testing email...')
-				console.log('Sending email to', this.email)
+			if (selfTest) {
+				console.log("Self testing email...");
+				console.log("Sending email to", this.email);
 				void this.mailer.sendMail({
 					from: this.email,
 					to: this.email,
-					subject: 'Folderr Test Email',
-					text: "Testing Folderr SMTP abilities. If you got this email, it works."
-				})
+					subject: "Folderr Test Email",
+					text: "Testing Folderr SMTP abilities. If you got this email, it works.",
+				});
 			}
 		}
 	}
@@ -89,7 +89,30 @@ export default class Emailer {
 				from: this.email,
 				to: email,
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.VERIFY,
-				text: constants.TEMPLATES.EMAILER_TEXTS.verify(username, verifyLink),
+				text: constants.TEMPLATES.EMAILER_TEXTS.verify(
+					username,
+					verifyLink
+				),
+			});
+		}
+
+		return null;
+	}
+
+	async welcomeEmail(
+		email: string,
+		username: string,
+		instanceLink: string
+	): Promise<undefined | SentMessageInfo> {
+		if (this.email && this.mailer) {
+			return this.mailer.sendMail({
+				from: this.email,
+				to: email,
+				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.WELCOME,
+				text: constants.TEMPLATES.EMAILER_TEXTS.welcome(
+					username,
+					instanceLink
+				),
 			});
 		}
 
@@ -106,13 +129,14 @@ export default class Emailer {
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.FORGOT_PASSWARD,
-				text: constants.TEMPLATES.EMAILER_TEXTS.forgot_password(
+				subject:
+					constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.FORGOT_PASSWARD,
+				text: constants.TEMPLATES.EMAILER_TEXTS.forgotPassword(
 					username,
 					instanceLink,
 					forgotLink
 				),
-				priority: 'high'
+				priority: "high",
 			});
 		}
 
@@ -135,7 +159,7 @@ export default class Emailer {
 					instanceLink,
 					reason
 				),
-				priority: 'high'
+				priority: "high",
 			});
 		}
 
@@ -158,7 +182,7 @@ export default class Emailer {
 					instanceLink,
 					reason
 				),
-				priority: 'high'
+				priority: "high",
 			});
 		}
 
@@ -174,12 +198,13 @@ export default class Emailer {
 			return this.mailer.sendMail({
 				from: this.email,
 				to: email,
-				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.EMAIL_CHANGE,
-				text: constants.TEMPLATES.EMAILER_TEXTS.email_change(
+				subject:
+					constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.EMAIL_CHANGE,
+				text: constants.TEMPLATES.EMAILER_TEXTS.emailChange(
 					username,
 					confirmLink
 				),
-				priority: 'low'
+				priority: "low",
 			});
 		}
 
@@ -191,7 +216,7 @@ export default class Emailer {
 			email,
 			username,
 			id,
-			type
+			type,
 		}: {
 			email: string;
 			username: string;
@@ -211,7 +236,7 @@ export default class Emailer {
 					id,
 					instanceLink
 				),
-				priority: 'low'
+				priority: "low",
 			});
 		}
 

@@ -1,5 +1,6 @@
 /* eslint max-len: ["error", { "code": 150 }] */
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const EMAILER_TEXTS = {
 	verify(username: string, verifyLink: string) {
 		return (
@@ -14,11 +15,7 @@ const EMAILER_TEXTS = {
 			)}.`
 		);
 	},
-	forgot_password(
-		username: string,
-		instanceLink: string,
-		forgotLink: string
-	) {
+	forgotPassword(username: string, instanceLink: string, forgotLink: string) {
 		return (
 			`Hello ${username},\n` +
 			`Please click the link below to reset your ${instanceLink} password.\n` +
@@ -29,18 +26,26 @@ const EMAILER_TEXTS = {
 	warn(username: string, instanceLink: string, reason: string) {
 		return (
 			`Hello ${username},\n` +
-			`You have been warned on Folderr ${instanceLink}\n` +
+			`You have been warned on Folderr instance ${instanceLink}\n` +
 			`Reason: ${reason}`
+		);
+	},
+	welcome(username: string, instanceLink: string) {
+		return (
+			`Hello ${username},\n` +
+			`Welcome to the Folderr instance at ${instanceLink}\n` +
+			`If you want to learn more about Folderr (or how to use it) you can visit https://folderr.net for our documentation\n` +
+			"\nHave a good day,\nFolderr Staff"
 		);
 	},
 	ban(username: string, instanceLink: string, reason: string) {
 		return (
 			`Hello ${username},\n` +
-			`You have been banned on Folderr ${instanceLink}\n` +
+			`You have been banned from Folderr instance ${instanceLink}\n` +
 			`Reason: ${reason}`
 		);
 	},
-	email_change(username: string, confirmLink: string) {
+	emailChange(username: string, confirmLink: string) {
 		return (
 			`Hello ${username},\n` +
 			`Here is a link to confirm your email change ${confirmLink}\n` +
@@ -55,17 +60,21 @@ const EMAILER_TEXTS = {
 	},
 };
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const MONGOOSE = {
-	expected_queries(expected: number, actual?: number) {
+	expectedQueries(expected: number, actual?: number) {
 		return `MongooseDB > Input > findFullUser - Expected ${expected} queries in array but got ${
 			actual ?? "none"
 		}`;
 	},
 };
 
+/* eslint-disable @typescript-eslint/naming-convention */
 const TEMPLATES = {
 	EMAILER_TEXTS,
 	MONGOOSE,
 };
+
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export default TEMPLATES;

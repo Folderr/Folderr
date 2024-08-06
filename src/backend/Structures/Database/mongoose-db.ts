@@ -139,7 +139,6 @@ export default class Mongoosedb extends DBClass {
 				process.exit(1);
 			}
 		});
-		/* eslint-enable unicorn/no-process-exit */
 	}
 
 	/* ---- FOLDERR RELATED METHODS ---- */
@@ -268,10 +267,7 @@ export default class Mongoosedb extends DBClass {
 	): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
 		if (!queries || queries.length < 2 || queries.length > 2) {
 			throw new Error(
-				constants.TEMPLATES.MONGOOSE.expected_queries(
-					2,
-					queries?.length
-				)
+				constants.TEMPLATES.MONGOOSE.expectedQueries(2, queries?.length)
 			);
 		}
 
@@ -293,7 +289,7 @@ export default class Mongoosedb extends DBClass {
 		}
 
 		return { account, files, links };
-	} /* eslint-enable unicorn/no-array-callback-reference */
+	}
 
 	async findAndUpdateUser(
 		query: Record<string, unknown>,

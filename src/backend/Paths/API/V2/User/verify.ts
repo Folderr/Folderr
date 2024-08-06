@@ -114,9 +114,27 @@ class Verify extends Path {
 		await this.core.db.verifySelf(verify.id);
 
 		this.core.logger.info("User account verified by self");
-		return response
+		const resp = await response
 			.status(this.codes.created)
 			.send({ code: this.codes.ok, message: "OK" });
+
+		if (this.core.emailer.active) {
+			try {
+				await this.core.emailer.welcomeEmail(
+					verify.email,
+					verify.email,
+					this.core.config.url
+				);
+			} catch (error: unknown) {
+				if (error instanceof Error) {
+					this.core.logger.error(error, error.message);
+				}
+
+				this.core.logger.error(error, "Unknown error occurred");
+			}
+		}
+
+		return resp;
 	}
 }
 

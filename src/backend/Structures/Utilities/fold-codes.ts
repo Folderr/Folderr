@@ -2,7 +2,7 @@
  * @fileoverview Codes to send in the response
  */
 
-export interface FoldCodesI {
+export type FoldCodesI = {
 	fileParserError: number;
 	noFile: number;
 	noUpdate: number;
@@ -65,8 +65,10 @@ export interface FoldCodesI {
 	emailerNotConfigured: number;
 	bannedEmail: number;
 	emailSent: number;
-}
+	emailFailed: number;
+};
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export const FoldCodes: FoldCodesI = {
 	fileParserError: 1000,
 	noFile: 1001,
@@ -129,5 +131,6 @@ export const FoldCodes: FoldCodesI = {
 	badEmail: 1058,
 	emailerNotConfigured: 1059,
 	bannedEmail: 1060,
-	emailSent: 1061
+	emailSent: 1061,
+	emailFailed: 1062,
 };
