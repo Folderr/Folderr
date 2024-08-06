@@ -60,6 +60,7 @@ export default class Emailer {
 			this.mailer = nodemailer.createTransport({
 				...options,
 				tls: { rejectUnauthorized: false }, // Should be added to options
+				connectionTimeout: 45 * 1000,
 			});
 			this.email = email;
 			if (selfTest) {
@@ -77,6 +78,33 @@ export default class Emailer {
 
 	validateEmail(email: string): boolean {
 		return this.#core.regexs.email.test(email);
+	}
+
+	async verifyConnection(): Promise<{
+		error: Error | undefined;
+		success: boolean;
+	}> {
+		if (!this.mailer) {
+			return {
+				error: new Error("Emailer not activated"),
+				success: false,
+			};
+		}
+
+		let error: Error | undefined;
+		let success = false;
+
+		try {
+			success = await this.mailer.verify();
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				error = err;
+			}
+
+			success = false;
+		}
+
+		return { error, success };
 	}
 
 	async verifyEmail(

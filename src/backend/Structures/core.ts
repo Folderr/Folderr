@@ -213,6 +213,25 @@ export default class Core {
 		);
 	}
 
+	async testEmailer() {
+		if (!this.emailer.active) {
+			this.logger.info("Skipping emailer check. Emailer not enabled.");
+			return;
+		}
+
+		this.logger.info("Testing emailer connection");
+		const { error } = await this.emailer.verifyConnection();
+		if (error && error.message !== "Emailer not activated") {
+			this.logger.fatal(
+				"Emailer connection failed. Shutting down. Error below."
+			);
+			this.logger.fatal(error);
+			process.exit(1);
+		} else {
+			this.logger.info("Emailer OK or disabled");
+		}
+	}
+
 	async registerServerPlugins() {
 		await this.app.register(cookie);
 

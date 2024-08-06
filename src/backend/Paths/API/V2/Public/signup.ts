@@ -185,6 +185,16 @@ class Signup extends Path {
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
+				if (error.message.includes("Connection timeout")) {
+					return {
+						httpCode: this.codes.internalErr,
+						msg: {
+							code: this.Utils.foldCodes.emailFailed,
+							message: "Email failed to send",
+						},
+					};
+				}
+
 				await this.handleError(error, response, undefined, {
 					noResponse: true,
 					noIncrease: false,

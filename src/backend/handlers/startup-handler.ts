@@ -27,6 +27,7 @@ export async function startFolderr(): Promise<void> {
 
 	await core.registerServerPlugins();
 
+	await core.testEmailer();
 	const paths = core.initPaths();
 	if (!paths) {
 		core.logger.error("[FATAL] Paths could not initalize");
