@@ -1,0 +1,39 @@
+name: Test Build
+on: [pull_request, push]
+
+jobs:
+    typecheck:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: 20
+
+            - name: Install Dependencies
+              run: npm i -D
+
+            - name: Typecheck
+              run: npm run typecheck
+
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: 20
+
+            - name: Install Dependencies
+              run: npm i -D
+
+            - name: Typecheck
+              run: npm run build
