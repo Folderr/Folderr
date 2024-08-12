@@ -61,13 +61,13 @@
     "moment-duration-format": "^2.3.2",
     "mongoose": "^7.6.3",
     "nodemailer": "^6.7.2",
-    "pinia": "^2.0.33",
+    "pinia": "^2.2.1",
     "pino": "^8.11.0",
     "pino-pretty": "^10.0.0",
     "spdy": "^4.0.2",
     "ulidx": "^2.3.0",
     "uuid": "^8.3.2",
-    "vue": "^3.2.47"
+    "vue": "^3.4.37"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^2.0.1",
@@ -82,7 +82,7 @@
     "@types/nodemailer": "^6.4.4",
     "@types/spdy": "^3.4.5",
     "@types/uuid": "^8.3.1",
-    "@vitejs/plugin-vue": "^5.0.5",
+    "@vitejs/plugin-vue": "^5.1.2",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^9.1.0",
@@ -100,8 +100,8 @@
     "tailwindcss": "^3.4.6",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.2.2",
-    "vite": "^5.3.4",
-    "vue-router": "^4.2.5",
+    "vite": "^5.4.0",
+    "vue-router": "^4.4.3",
     "vue-tsc": "^2.0.29"
   },
   "lint-staged": {
