@@ -1,5 +1,7 @@
 # Folderr - A FOSS file host
 
+[![Unstable Build](https://github.com/Folderr/Folderr/actions/workflows/build.yml/badge.svg)](https://github.com/Folderr/Folderr/actions/workflows/build.yml)
+
 This is an experimental version of Folderr V2
 
 This is not final product, use at your own risk.
