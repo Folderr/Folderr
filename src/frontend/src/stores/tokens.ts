@@ -1,12 +1,12 @@
-import {acceptHMRUpdate, defineStore} from 'pinia';
-import type {Token} from '../wrappers/api';
-import * as api from '../wrappers/api';
+import { defineStore } from "pinia";
+import type { Token } from "../wrappers/api.js";
+import * as api from "../wrappers/api.js";
 
 type Tokens = {
 	tokens?: Token[];
 };
 
-export const useTokens = defineStore('tokens', {
+export const useTokens = defineStore("tokens", {
 	state: (): Tokens => ({
 		tokens: undefined,
 	}),
@@ -19,12 +19,12 @@ export const useTokens = defineStore('tokens', {
 				const tokens = await api.getTokens();
 				if (!tokens.message || tokens.error) {
 					if (tokens.error) {
-						throw typeof tokens.error === 'string'
+						throw typeof tokens.error === "string"
 							? new Error(tokens.error)
 							: tokens.error;
 					}
 
-					throw new Error('No tokens found');
+					throw new Error("No tokens found");
 				}
 
 				this.setTokens(tokens.message);

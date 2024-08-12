@@ -1,4 +1,4 @@
-import type Core from "../../../Structures/core";
+import type Core from "../../../Structures/core.js";
 import type { FastifyInstance } from "fastify";
 
 export const path = "/verifying-users";

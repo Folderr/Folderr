@@ -35,35 +35,36 @@ import type pino from "pino";
 
 // Local files
 // Handlers
-import Configurer from "../handlers/config-handler";
+import Configurer from "../handlers/config-handler.js";
 import type {
 	CoreConfig,
 	DbConfig,
 	ActEmailConfig,
 	KeyConfig,
-} from "../handlers/config-handler";
+} from "../handlers/config-handler.js";
 // Structs, classes
-import * as endpointsImport from "../Paths/index";
-import * as APIs from "../Paths/API/index";
+import * as endpointsImport from "../Paths/index.js";
+import * as APIs from "../Paths/API/index.js";
 import {
 	Emailer,
 	Utils,
 	MongoDB,
 	Regexs,
 	codes as StatusCodes,
-} from "../internals";
-import { version } from "../../../package.json";
-import DelQueue from "./Utilities/db-queue";
+} from "../internals.js";
+import pkg from "../../../package.json" assert { type: "json" };
+import DelQueue from "./Utilities/db-queue.js";
 
-import type { Path } from "../internals";
+const version = pkg.version;
+
+import type { Path } from "../internals.js";
 
 // Other utilities
-import logger from "./logger";
-import type { LoggerLevels } from "./logger";
+import logger from "./logger.js";
+import type { LoggerLevels } from "./logger.js";
 
 // Local Fastify plugins
-import SentryPlugin from "./plugins/sentry";
-import { type FastifyRequest } from "fastify/types/request";
+import SentryPlugin from "./plugins/sentry.js";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -884,16 +885,17 @@ export default class Core {
 			envDir: process.cwd(),
 		});
 		const publicPaths = fs.readdirSync("./src/frontend/public");
-		this.app.use((request: FastifyRequest, response, next) => {
+		this.app.use((request, response, next) => {
+			if (!request.url) return next();
 			const strippedUrl = request.url?.slice(1, request.url.length) ?? "";
 			const regex =
 				/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/;
 			if (publicPaths.includes(strippedUrl)) {
-				server.middlewares(request.raw, response, next);
+				server.middlewares(request, response, next);
 			} else if (regex.exec(request.url)) {
 				next();
 			} else {
-				server.middlewares(request.raw, response, next);
+				server.middlewares(request, response, next);
 			}
 		});
 		this.app.setNotFoundHandler(async (request, reply) => {

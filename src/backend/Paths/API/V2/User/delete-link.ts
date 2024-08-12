@@ -20,8 +20,8 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Allow the user to delete a shortened link

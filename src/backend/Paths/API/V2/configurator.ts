@@ -20,9 +20,9 @@
  */
 
 import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../internals";
-import Path from "../../../Structures/path";
-import Configurator from "../../../Structures/Utilities/sharex-configurator";
+import { type Core } from "../../../internals.js";
+import Path from "../../../Structures/path.js";
+import Configurator from "../../../Structures/Utilities/sharex-configurator.js";
 
 /**
  * @classdesc Generate a sharex configuration

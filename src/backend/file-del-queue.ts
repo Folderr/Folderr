@@ -24,8 +24,8 @@
  */
 
 import process from "process";
-import DbQueue from "./Structures/Utilities/db-queue";
-import { logger } from "./internals";
+import DbQueue from "./Structures/Utilities/db-queue.js";
+import { logger } from "./internals.js";
 
 const queuer = new DbQueue();
 
@@ -33,7 +33,7 @@ let stopped = false;
 
 process.env.NODE_ENV = "production";
 logger.info("HEY");
-if (process.send) process.send("Hello World");
+// if (process.send) process.send("Hello World");
 
 process.on("message", ({ msg, data }) => {
 	if (msg === "add" && !stopped && typeof data === "string") {

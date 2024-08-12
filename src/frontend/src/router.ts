@@ -8,9 +8,9 @@ import {
 
 // Navigation guards guards
 
-import * as userGuards from "./nav-gaurds/user-nav-guard";
-import * as adminNavGuards from "./nav-gaurds/admin-nav-guard";
-import * as userChecks from "./nav-gaurds/user-checks";
+import * as userGuards from "./nav-gaurds/user-nav-guard.js";
+import * as adminNavGuards from "./nav-gaurds/admin-nav-guard.js";
+import * as userChecks from "./nav-gaurds/user-checks.js";
 
 const redirToSignup: RouteRecordName[] = [
 	"Index",

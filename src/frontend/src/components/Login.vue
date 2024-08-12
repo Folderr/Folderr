@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router';
-import * as api from '../wrappers/api';
+import * as api from '../wrappers/api.js';
 import type SuccessesErrors from './Success-N-Error.vue';
 import UInput from './Underline-Input.vue';
 import { LoginIcon, CheckCircleIcon } from '@heroicons/vue/solid';

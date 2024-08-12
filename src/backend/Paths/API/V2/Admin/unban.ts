@@ -20,9 +20,9 @@
  */
 
 import { type FastifyRequest, type FastifyReply } from "fastify";
-import { type Core } from "../../../../internals";
-import { type User } from "../../../../Structures/Database/db-class";
-import Path from "../../../../Structures/path";
+import { type Core } from "../../../../internals.js";
+import { type User } from "../../../../Structures/Database/db-class.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Unbans a email from the service

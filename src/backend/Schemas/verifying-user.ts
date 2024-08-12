@@ -19,19 +19,19 @@
  *
  */
 
-import type {Model} from 'mongoose';
-import {Schema, model} from 'mongoose';
-import type {PendingMember} from '../Structures/Database/db-class';
+import type { Model } from "mongoose";
+import { Schema, model } from "mongoose";
+import type { PendingMember } from "../Structures/Database/db-class.js";
 
 const user = new Schema({
-	id: {type: String, required: true, index: true},
-	password: {type: String, required: true},
-	username: {type: String, required: true},
-	validationToken: {type: String, required: true},
-	email: {type: String, required: true},
-	createdAt: {type: Date, default: new Date()},
+	id: { type: String, required: true, index: true },
+	password: { type: String, required: true },
+	username: { type: String, required: true },
+	validationToken: { type: String, required: true },
+	email: { type: String, required: true },
+	createdAt: { type: Date, default: new Date() },
 });
 
-const mod: Model<PendingMember> = model<PendingMember>('verifying_user', user);
+const mod: Model<PendingMember> = model<PendingMember>("verifying_user", user);
 
 export default mod;

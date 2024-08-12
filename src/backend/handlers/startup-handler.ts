@@ -1,6 +1,6 @@
 import process from "process"; // Shut.
 import * as Sentry from "@sentry/node";
-import Core from "../Structures/core";
+import Core from "../Structures/core.js";
 
 export async function startFolderr(): Promise<void> {
 	// Console.time('Startup');

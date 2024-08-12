@@ -1,2 +1,2 @@
-export {default as TEMPLATES} from './templates/index';
-export {default as ENUMS} from './enums/index';
+export { default as TEMPLATES } from "./templates/index.js";
+export { default as ENUMS } from "./enums/index.js";

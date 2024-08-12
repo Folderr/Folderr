@@ -27,10 +27,10 @@ import type {
 	RouteShorthandOptions,
 } from "fastify";
 import * as Sentry from "@sentry/node";
-import type { RequestGallery } from "../../types/fastify-request-types";
-import type { Core, Codes } from "../internals";
-import { ErrorHandler, codes } from "../internals";
-import type { User } from "./Database/db-class";
+import type { RequestGallery } from "../../types/fastify-request-types.js";
+import type { Core, Codes } from "../internals.js";
+import { ErrorHandler, codes } from "../internals.js";
+import type { User } from "./Database/db-class.js";
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)

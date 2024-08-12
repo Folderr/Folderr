@@ -1,38 +1,38 @@
-import * as Sentry from '@sentry/vue';
-import {BrowserTracing} from '@sentry/tracing';
-import {createApp} from 'vue';
-import {createPinia} from 'pinia';
-import {useUserStore} from './stores/user';
-import router from './router';
-import Navbar from './components/Navbar.vue';
-import Footer from './components/Footer.vue';
-import NavbarAuthenticated from './components/Navbar-Authenticated.vue';
-import SuccessNErrors from './components/Success-N-Error.vue';
-import Button from './components/Button.vue';
+import * as Sentry from "@sentry/vue";
+import { BrowserTracing } from "@sentry/tracing";
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import { useUserStore } from "./stores/user.js";
+import router from "./router.js";
+import Navbar from "./components/Navbar.vue";
+import Footer from "./components/Footer.vue";
+import NavbarAuthenticated from "./components/Navbar-Authenticated.vue";
+import SuccessNErrors from "./components/Success-N-Error.vue";
+import Button from "./components/Button.vue";
 
 // Modals
 
-import FlexibleModal from './components/Modals/Flexible.vue';
-import NewFlexible from './components/Modals/NewFlexible.vue';
+import FlexibleModal from "./components/Modals/Flexible.vue";
+import NewFlexible from "./components/Modals/NewFlexible.vue";
 
-import App from './App.vue';
+import App from "./App.vue";
 
-import './index.css';
+import "./index.css";
 
 const pinia = createPinia();
 const app = createApp(App);
 
 // The prefix "F" stands for Folderr.
 
-app.component('FNavbar', Navbar);
-app.component('FFooter', Footer);
-app.component('NavbarAuthenticated', NavbarAuthenticated);
-app.component('SuccessesErrors', SuccessNErrors);
-app.component('FButton', Button);
+app.component("FNavbar", Navbar);
+app.component("FFooter", Footer);
+app.component("NavbarAuthenticated", NavbarAuthenticated);
+app.component("SuccessesErrors", SuccessNErrors);
+app.component("FButton", Button);
 
 // Initalize Modals
-app.component('FlexibleModal', FlexibleModal);
-app.component('NFlexibleModal', NewFlexible);
+app.component("FlexibleModal", FlexibleModal);
+app.component("NFlexibleModal", NewFlexible);
 
 app.use(router);
 app.use(pinia); // New, better store
@@ -55,7 +55,8 @@ if (import.meta.env.VITE_SENTRY) {
 			...options,
 			integrations: [
 				new BrowserTracing({
-					routingInstrumentation: Sentry.vueRouterInstrumentation(router),
+					routingInstrumentation:
+						Sentry.vueRouterInstrumentation(router),
 				}),
 			],
 			tracesSampleRate: rate ?? import.meta.env.DEV ? 1 : 0.2,
@@ -96,4 +97,4 @@ if (import.meta.env.VITE_SENTRY) {
 	});
 }
 
-app.mount('#app');
+app.mount("#app");

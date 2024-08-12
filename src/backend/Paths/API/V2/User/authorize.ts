@@ -21,9 +21,9 @@
 
 import process from "process";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
-import type { User } from "../../../../Structures/Database/db-class";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
+import type { User } from "../../../../Structures/Database/db-class.js";
 
 /**
  * @classdesc Allow a user to login

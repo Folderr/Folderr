@@ -1,5 +1,5 @@
 import type { RouteLocationNormalized } from "vue-router";
-import { useUserStore } from "../stores/user";
+import { useUserStore } from "../stores/user.js";
 
 export async function authGuard(
 	to: RouteLocationNormalized

@@ -177,9 +177,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import * as api from "../wrappers/api";
+import * as api from "../wrappers/api.js";
 import { useRouter } from "vue-router";
-import { useUserStore } from "../stores/user";
+import { useUserStore } from "../stores/user.js";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
 import {
 	LogoutIcon,

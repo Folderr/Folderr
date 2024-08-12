@@ -19,20 +19,20 @@
  *
  */
 
-import {Schema, model} from 'mongoose';
-import type {Tokendb} from '../Structures/Database/db-class';
+import { Schema, model } from "mongoose";
+import type { Tokendb } from "../Structures/Database/db-class.js";
 
 const jwtToken = new Schema({
-	id: {type: String, required: true, index: true},
+	id: { type: String, required: true, index: true },
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	userID: {type: String, required: true, index: true},
-	web: {type: Boolean, required: false, default: false},
-	createdAt: {type: Date, default: new Date()},
-	expireAt: {type: Date},
-	description: {type: String, default: 'No description'},
+	userID: { type: String, required: true, index: true },
+	web: { type: Boolean, required: false, default: false },
+	createdAt: { type: Date, default: new Date() },
+	expireAt: { type: Date },
+	description: { type: String, default: "No description" },
 });
 
-jwtToken.index({expireAt: 1}, {expireAfterSeconds: 0});
+jwtToken.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
-const mod = model<Tokendb>('token', jwtToken);
+const mod = model<Tokendb>("token", jwtToken);
 export default mod;

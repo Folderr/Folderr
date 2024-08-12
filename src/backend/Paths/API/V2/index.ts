@@ -1,59 +1,59 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // Authorization locked  endpoints
-import Info from './private-info';
-import ConfigureShareX from './configurator';
+import Info from "./private-info.js";
+import ConfigureShareX from "./configurator.js";
 
 // Public  endpoints
-import Signup from './Public/signup';
-import Pong from './Public/pong';
+import Signup from "./Public/signup.js";
+import Pong from "./Public/pong.js";
 
 // Authorization locked User-related endpoints
-import Notifs from './User/notifications';
-import DelNotifs from './User/clear-notifications';
-import DelAccount from './User/delete-account';
-import Account from './User/account';
-import AdminNotify from './Admin/admin-notification';
-import DelNotify from './User/delete-notification';
-import DelAdminNotify from './Admin/delete-admin-notiification';
-import UpdateAcc from './User/update-account';
-import GenToken from './User/generate-token';
-import Shorten from './User/shorten';
-import DeleteLink from './User/delete-link';
-import Links from './User/links';
-import UploadFile from './User/upload-file';
-import Files from './User/files';
-import DeleteImage from './User/delete-file';
-import Login from './User/authorize';
-import AddMirror from './User/add-mirror';
-import RemoveMirror from './User/remove-mirror';
-import VerifySelf from './User/verify';
-import DenySelf from './User/deny-self';
-import Tokens from './User/tokens';
-import DeleteToken from './User/delete-token';
+import Notifs from "./User/notifications.js";
+import DelNotifs from "./User/clear-notifications.js";
+import DelAccount from "./User/delete-account.js";
+import Account from "./User/account.js";
+import AdminNotify from "./Admin/admin-notification.js";
+import DelNotify from "./User/delete-notification.js";
+import DelAdminNotify from "./Admin/delete-admin-notiification.js";
+import UpdateAcc from "./User/update-account.js";
+import GenToken from "./User/generate-token.js";
+import Shorten from "./User/shorten.js";
+import DeleteLink from "./User/delete-link.js";
+import Links from "./User/links.js";
+import UploadFile from "./User/upload-file.js";
+import Files from "./User/files.js";
+import DeleteImage from "./User/delete-file.js";
+import Login from "./User/authorize.js";
+import AddMirror from "./User/add-mirror.js";
+import RemoveMirror from "./User/remove-mirror.js";
+import VerifySelf from "./User/verify.js";
+import DenySelf from "./User/deny-self.js";
+import Tokens from "./User/tokens.js";
+import DeleteToken from "./User/delete-token.js";
 
 // User Flexible Authorization endpoints
-import Logout from './User/logout';
+import Logout from "./User/logout.js";
 
 // Admin Authorization locked endpoints for administration & moderation features
-import Ban from './Admin/ban';
-import Unban from './Admin/unban';
-import Warn from './Admin/warn-user';
-import Takedown from './Admin/takedown';
-import Lookup from './Admin/lookup-content';
-import AccountLookup from './Admin/reverse-lookup-account';
-import PVerify from './Admin/verify-account';
-import DVerify from './Admin/deny-account';
-import Users from './Admin/users';
-import Stats from './Admin/statistics';
+import Ban from "./Admin/ban.js";
+import Unban from "./Admin/unban.js";
+import Warn from "./Admin/warn-user.js";
+import Takedown from "./Admin/takedown.js";
+import Lookup from "./Admin/lookup-content.js";
+import AccountLookup from "./Admin/reverse-lookup-account.js";
+import PVerify from "./Admin/verify-account.js";
+import DVerify from "./Admin/deny-account.js";
+import Users from "./Admin/users.js";
+import Stats from "./Admin/statistics.js";
 
 // Authroization locked owner endpoints
-import OwnerManage from './Management/manage';
-import Eval from './Management/eval';
-import AddAdmin from './Management/add-admin';
-import DelAdmin from './Management/remove-admin';
+import OwnerManage from "./Management/manage.js";
+import Eval from "./Management/eval.js";
+import AddAdmin from "./Management/add-admin.js";
+import DelAdmin from "./Management/remove-admin.js";
 
-export const version = '2';
-export const prefix = '/api';
+export const version = "2";
+export const prefix = "/api";
 
 export const endpoints = {
 	Info,

@@ -22,8 +22,8 @@
 import { createReadStream } from "fs";
 import mime from "mime-types";
 import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../internals";
-import Path from "../Structures/path";
+import { type Core } from "../internals.js";
+import Path from "../Structures/path.js";
 
 /**
  * @classdesc Allow images to be accessed over the web

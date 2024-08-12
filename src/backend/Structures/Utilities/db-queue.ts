@@ -20,13 +20,12 @@
  */
 
 import { EventEmitter } from "events";
-import type { DbConfig } from "../../handlers/config-handler";
-import Configurer from "../../handlers/config-handler";
-import type { Upload } from "../Database/db-class";
-import type DB from "../Database/db-class";
-import MongoDB from "../Database/mongoose-db";
-import { logger } from "../../internals";
-import fsPromises from "node:fs/promises";
+import type { DbConfig } from "../../handlers/config-handler.js";
+import Configurer from "../../handlers/config-handler.js";
+import type { Upload } from "../Database/db-class.js";
+import type DB from "../Database/db-class.js";
+import MongoDB from "../Database/mongoose-db.js";
+import { logger } from "../../internals.js";
 import fs from "node:fs";
 
 /**

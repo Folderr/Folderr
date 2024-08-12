@@ -669,12 +669,12 @@ import {
 } from "@heroicons/vue/solid";
 import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
 import {useRouter} from 'vue-router';
-import {useUserStore} from '../stores/user';
-import {useTokens} from '../stores/tokens';
-import * as api from '../wrappers/api';
-import {passwordRegex, usernameRegex} from '../utils/regexs'
-import SuccessesErrors from "../components/Success-N-Error.vue"; // Success & Error component
-import Spinner from "../components/Spinner.vue"
+import {useUserStore} from '../../stores/user.js';
+import {useTokens} from '../../stores/tokens.js';
+import * as api from '../../wrappers/api.js';
+import {passwordRegex, usernameRegex} from '../../utils/regexs.js'
+import SuccessesErrors from "../../components/Success-N-Error.vue"; // Success & Error component
+import Spinner from "../../components/Spinner.vue"
 const sne = ref();
 
 const url = computed(() => window.location.origin);

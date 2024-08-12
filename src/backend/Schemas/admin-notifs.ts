@@ -19,16 +19,16 @@
  *
  */
 
-import {Schema, model} from 'mongoose';
-import type {Notification} from '../Structures/Database/db-class';
+import { Schema, model } from "mongoose";
+import type { Notification } from "../Structures/Database/db-class.js";
 
 const adminNotifs = new Schema({
-	title: {type: String, required: true},
-	notify: {type: String, required: true},
-	id: {type: String, required: true, index: true},
-	createdAt: {type: Date, default: new Date()},
+	title: { type: String, required: true },
+	notify: { type: String, required: true },
+	id: { type: String, required: true, index: true },
+	createdAt: { type: Date, default: new Date() },
 });
 
-const mod = model<Notification>('admin_notifs', adminNotifs);
+const mod = model<Notification>("admin_notifs", adminNotifs);
 
 export default mod;

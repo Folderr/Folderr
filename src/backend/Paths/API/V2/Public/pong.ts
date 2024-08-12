@@ -22,9 +22,9 @@
 import moment from "moment";
 import momentDurationFormatSetup from "moment-duration-format";
 import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
-import pkg from "../../../../../../package.json";
+import { type Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
+import pkg from "../../../../../../package.json" assert { type: "json" };
 
 // @ts-expect-error, According to docs, this works.
 momentDurationFormatSetup(moment);

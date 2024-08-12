@@ -1,7 +1,7 @@
-import {acceptHMRUpdate, defineStore} from 'pinia';
-import {setUser} from '@sentry/vue';
-import * as api from '../wrappers/api';
-import type {AccountReturn} from '../../../types/user';
+import { defineStore } from "pinia";
+import { setUser } from "@sentry/vue";
+import * as api from "../wrappers/api.js";
+import type { AccountReturn } from "../../../types/user.js";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface UserStore {
@@ -22,7 +22,7 @@ interface UserStore {
 	};
 }
 
-export const useUserStore = defineStore('user', {
+export const useUserStore = defineStore("user", {
 	state: (): UserStore => ({
 		id: undefined,
 		username: undefined,
@@ -58,7 +58,7 @@ export const useUserStore = defineStore('user', {
 			this.owner = payload.owner;
 			if (payload.privacy?.dataCollection) {
 				// Typescript plz.
-				this.privacy = payload.privacy as {dataCollection: boolean};
+				this.privacy = payload.privacy as { dataCollection: boolean };
 			}
 
 			if (this.privacy.dataCollection) {

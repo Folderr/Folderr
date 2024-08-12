@@ -112,10 +112,10 @@
 
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue';
-import {useUserStore} from '../stores/user';
+import {useUserStore} from '../stores/user.js';
 import {useRouter} from 'vue-router';
 import {ClipboardCopyIcon, ClipboardCheckIcon, XIcon} from '@heroicons/vue/solid';
-import * as api from '../wrappers/api';
+import * as api from '../wrappers/api.js';
 import SuccessesErrors from "../components/Success-N-Error.vue";
 
 // Setup store & router
@@ -208,7 +208,7 @@ const pickFile = () => {
     if (files?.[0]) {
         file.value = files[0];
         filePreviewURL();
-        
+
     }
 }
 
@@ -260,8 +260,8 @@ const upload = async() => {
         sne.value?.addError('Unknown Error Occured while uploading your file');
         console.log(error);
         console.log(typeof error);
-        
-    } 
+
+    }
 }
 </script>
 

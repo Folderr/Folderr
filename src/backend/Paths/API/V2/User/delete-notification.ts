@@ -21,8 +21,8 @@
 
 import moment from "moment";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc User can delete a single notification

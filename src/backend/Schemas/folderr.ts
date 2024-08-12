@@ -20,13 +20,13 @@
  *
  */
 
-import {Schema, model} from 'mongoose';
-import type {Folderr} from '../Structures/Database/db-class';
+import { Schema, model } from "mongoose";
+import type { Folderr } from "../Structures/Database/db-class.js";
 
 const folderr: Schema = new Schema({
-	bans: {type: Array, default: [], required: false},
+	bans: { type: Array, default: [], required: false },
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	publicKeyJWT: {type: Buffer, required: true},
+	publicKeyJWT: { type: Buffer, required: true },
 });
 
-export default model<Folderr>('folderr', folderr);
+export default model<Folderr>("folderr", folderr);

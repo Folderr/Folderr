@@ -19,17 +19,17 @@
  *
  */
 
-import {Schema, model} from 'mongoose';
-import type {Upload} from '../Structures/Database/db-class';
+import { Schema, model } from "mongoose";
+import type { Upload } from "../Structures/Database/db-class.js";
 
 const file = new Schema({
-	id: {type: String, required: true, index: true},
-	owner: {type: String, required: true},
-	path: {type: String, required: true},
-	type: {type: String, required: true},
-	createdAt: {type: Date, default: new Date()},
-	mimetype: {type: String, required: true},
+	id: { type: String, required: true, index: true },
+	owner: { type: String, required: true },
+	path: { type: String, required: true },
+	type: { type: String, required: true },
+	createdAt: { type: Date, default: new Date() },
+	mimetype: { type: String, required: true },
 });
 
-const mod = model<Upload>('file', file);
+const mod = model<Upload>("file", file);
 export default mod;

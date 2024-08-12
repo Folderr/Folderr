@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import fs, {existsSync} from 'fs';
-import process from 'process';
-import {join} from 'path';
-import yaml from 'js-yaml';
+import fs, { existsSync } from "fs";
+import process from "process";
+import { join } from "path";
+import yaml from "js-yaml";
 import {
 	cleanEnv,
 	json,
@@ -12,8 +12,8 @@ import {
 	num,
 	email as envemail,
 	str,
-} from 'envalid';
-import {logger} from '../internals';
+} from "envalid";
+import { logger } from "../internals.js";
 
 type CertOptions = {
 	key?: string;
@@ -34,7 +34,7 @@ type EmailOptions = {
 		requireTLS?: boolean;
 		ignoreTLS?: boolean;
 	};
-	selfTest?: boolean // Default: true
+	selfTest?: boolean; // Default: true
 	sendingEmail?: string;
 };
 
@@ -93,11 +93,11 @@ export type EmailConfig = {
 		requireTls?: boolean;
 		ignoreTls?: boolean;
 		tls?: {
-			rejectUnauthorized: boolean
-		}
+			rejectUnauthorized: boolean;
+		};
 	};
 	sendingEmail?: string;
-	selfTest?: boolean // Default: true
+	selfTest?: boolean; // Default: true
 };
 
 export type CoreConfig = {
@@ -134,10 +134,10 @@ export type ActEmailConfig = {
 		requireTLS?: boolean;
 		ignoreTLS?: boolean;
 		tls?: {
-			rejectUnauthorized: boolean
-		}
+			rejectUnauthorized: boolean;
+		};
 	};
-	selfTest?: boolean // Default: true
+	selfTest?: boolean; // Default: true
 	sendingEmail?: string;
 };
 
@@ -176,9 +176,9 @@ type EnvEmailConfig = {
 	IGNORE_TLS?: boolean;
 	SENDING_EMAIL?: string;
 	TLS?: {
-		REJECT_UNAUTHORIZED: boolean
-	},
-	SELF_TEST?: boolean
+		REJECT_UNAUTHORIZED: boolean;
+	};
+	SELF_TEST?: boolean;
 };
 
 export type EnvCoreConfig = {
@@ -202,60 +202,72 @@ export type EnvKeyLiteConfig = {
 };
 
 export type EnvKeyConfig = {
-	HTTPS_CERT_OPTIONS?: EnvKeyLiteConfig
+	HTTPS_CERT_OPTIONS?: EnvKeyLiteConfig;
 };
 
 const configHandler = {
-	fetchFiles(env: {server: EnvCoreConfig; db: EnvDbConfig; email: EnvEmailConfig}): {
+	fetchFiles(env: {
+		server: EnvCoreConfig;
+		db: EnvDbConfig;
+		email: EnvEmailConfig;
+	}): {
 		server?: Record<string, unknown>;
 		db?: Record<string, unknown>;
 		email?: Record<string, unknown> | undefined | false;
 	} {
 		// This entire segment sees if the env has the required config
 		const precheck = this.preCheckEnv(env);
-		const dbFail = precheck.filter((item) => item.includes('db'));
-		const serverFail = precheck.filter((item) => item.includes('server'));
-		const emailFail = precheck.filter((item) => item.includes('email'));
+		const dbFail = precheck.filter((item) => item.includes("db"));
+		const serverFail = precheck.filter((item) => item.includes("server"));
+		const emailFail = precheck.filter((item) => item.includes("email"));
 
 		// Grab all the config files (if they exist)
-		const dir = join(process.cwd(), 'configs');
+		const dir = join(process.cwd(), "configs");
 		const server =
-			existsSync(join(dir, 'server.yaml')) &&
-			yaml.load(fs.readFileSync(join(dir, 'server.yaml'), {encoding: 'utf8'}));
+			existsSync(join(dir, "server.yaml")) &&
+			yaml.load(
+				fs.readFileSync(join(dir, "server.yaml"), { encoding: "utf8" })
+			);
 		const db =
-			existsSync(join(dir, 'db.yaml')) &&
-			yaml.load(fs.readFileSync(join(dir, 'db.yaml'), {encoding: 'utf8'}));
+			existsSync(join(dir, "db.yaml")) &&
+			yaml.load(
+				fs.readFileSync(join(dir, "db.yaml"), { encoding: "utf8" })
+			);
 		const email =
-			existsSync(join(dir, 'email.yaml')) &&
-			yaml.load(fs.readFileSync(join(dir, 'email.yaml'), {encoding: 'utf8'}));
+			existsSync(join(dir, "email.yaml")) &&
+			yaml.load(
+				fs.readFileSync(join(dir, "email.yaml"), { encoding: "utf8" })
+			);
 
 		// Check if the configs exist
 		// Note: Envs count as configs
 		const missing: string[] = [];
-		if (typeof server !== 'object' && serverFail.length <= 0) {
+		if (typeof server !== "object" && serverFail.length <= 0) {
 			// If the server config is not present, the env server config must work instead.
-			missing.push('server.yaml');
+			missing.push("server.yaml");
 		}
 
-		if (typeof db !== 'object' && dbFail.length <= 0) {
+		if (typeof db !== "object" && dbFail.length <= 0) {
 			// If the db config is not present, the env db config must work instead.
-			missing.push('db.yaml');
+			missing.push("db.yaml");
 		}
 
 		if (
-			(typeof email !== 'object' && typeof email !== 'undefined') ||
+			(typeof email !== "object" && typeof email !== "undefined") ||
 			emailFail.length <= 0
 		) {
 			// If the email config is not present, the env email config must work instead.
-			missing.push('email.yaml');
+			missing.push("email.yaml");
 		}
 
 		if (
 			missing.length > 0 &&
-			!(missing.length === 1 && missing[0] === 'email.yaml')
+			!(missing.length === 1 && missing[0] === "email.yaml")
 		) {
-			console.log(`Invalid YAML config, missing: ${missing.join(', ')}`);
-			throw new Error(`Invalid YAML config, missing: ${missing.join(', ')}`);
+			console.log(`Invalid YAML config, missing: ${missing.join(", ")}`);
+			throw new Error(
+				`Invalid YAML config, missing: ${missing.join(", ")}`
+			);
 		} // OK TS, shut up.
 
 		return {
@@ -268,7 +280,7 @@ const configHandler = {
 	// eslint-disable-next-line complexity
 	verifyEmailer(
 		envEmailConfig: EnvEmailConfig,
-		email?: EmailConfig,
+		email?: EmailConfig
 	): ActEmailConfig {
 		const emailConfig: ActEmailConfig = {};
 		if (email ?? envEmailConfig) {
@@ -277,27 +289,35 @@ const configHandler = {
 			const hasAuth =
 				Boolean(envEmailConfig.AUTH ?? email?.mailerOptions?.auth) &&
 				Boolean(
-					envEmailConfig.AUTH.PASS ?? email?.mailerOptions?.auth.password,
+					envEmailConfig.AUTH.PASS ??
+						email?.mailerOptions?.auth.password
 				) &&
 				Boolean(
-					envEmailConfig.AUTH.USER ?? email?.mailerOptions?.auth.username,
+					envEmailConfig.AUTH.USER ??
+						email?.mailerOptions?.auth.username
 				);
-			emailConfig.selfTest = envEmailConfig.SELF_TEST ?? email?.selfTest ?? true
-				
+			emailConfig.selfTest =
+				envEmailConfig.SELF_TEST ?? email?.selfTest ?? true;
+
 			if (email?.mailerOptions && hasAuth) {
 				emailConfig.mailerOptions = {
 					auth: {
 						user:
-							envEmailConfig.AUTH.USER ?? email?.mailerOptions.auth.username,
+							envEmailConfig.AUTH.USER ??
+							email?.mailerOptions.auth.username,
 						pass:
-							envEmailConfig.AUTH.PASS ?? email?.mailerOptions.auth.password,
+							envEmailConfig.AUTH.PASS ??
+							email?.mailerOptions.auth.password,
 					},
 					host: envEmailConfig.HOST ?? email.mailerOptions.host,
 					port: envEmailConfig.EMAIL_PORT ?? email.mailerOptions.port,
 					secure: envEmailConfig.SECURE ?? email.mailerOptions.secure,
 					requireTLS:
-						envEmailConfig.REQUIRE_TLS ?? email.mailerOptions.requireTls,
-					ignoreTLS: envEmailConfig.IGNORE_TLS ?? email.mailerOptions.ignoreTls,
+						envEmailConfig.REQUIRE_TLS ??
+						email.mailerOptions.requireTls,
+					ignoreTLS:
+						envEmailConfig.IGNORE_TLS ??
+						email.mailerOptions.ignoreTls,
 				};
 			}
 
@@ -310,9 +330,9 @@ const configHandler = {
 						rejectUnauthorized:
 							envEmailConfig.TLS?.REJECT_UNAUTHORIZED ??
 							email?.mailerOptions?.tls?.rejectUnauthorized ??
-							false
-					}
-				}
+							false,
+					},
+				};
 			}
 		}
 
@@ -326,11 +346,11 @@ const configHandler = {
 		db: DbConfig;
 	} {
 		const partialEnvCoreConfig = cleanEnv(process.env, {
-			URL: host({default: undefined}),
-			PORT: port({default: undefined}),
-			TRUST_PROXIES: bool({default: undefined}),
-			SIGNUPS: num({default: undefined}),
-			API_ONLY: bool({default: undefined}),
+			URL: host({ default: undefined }),
+			PORT: port({ default: undefined }),
+			TRUST_PROXIES: bool({ default: undefined }),
+			SIGNUPS: num({ default: undefined }),
+			API_ONLY: bool({ default: undefined }),
 			HTTPS_CERT_OPTIONS: json<EnvKeyLiteConfig>({
 				default: {
 					KEY: undefined,
@@ -344,9 +364,9 @@ const configHandler = {
 		// Handle the configuration for sentry
 
 		const envSentryConf = cleanEnv(process.env, {
-			SENTRY: str({default: undefined}),
-			SENTRY_RATE: num({default: undefined}),
-			SENTRY_TRACING: bool({default: undefined}),
+			SENTRY: str({ default: undefined }),
+			SENTRY_RATE: num({ default: undefined }),
+			SENTRY_TRACING: bool({ default: undefined }),
 		});
 		const envCoreConfig = {
 			...partialEnvCoreConfig,
@@ -358,25 +378,26 @@ const configHandler = {
 		};
 
 		const envDbConfig = cleanEnv(process.env, {
-			DB_URL: host({default: undefined}),
+			DB_URL: host({ default: undefined }),
 		});
 
 		const envEmailConfig = cleanEnv(process.env, {
 			AUTH: json<
-				{USER: string; PASS: string} | {USER: undefined; PASS: undefined}
-			>({default: {user: undefined, pass: undefined}}),
-			HOST: host({default: undefined}),
-			EMAIL_PORT: port({default: undefined}),
-			SECURE: bool({default: false}),
-			REQUIRE_TLS: bool({default: false}),
-			IGNORE_TLS: bool({default: false}),
-			SENDING_EMAIL: envemail({default: undefined}),
-			TLS: json<EnvEmailConfig["TLS"] | undefined>(
-				{default: undefined}
-			),
-			SELF_TEST: json<EnvEmailConfig["SELF_TEST"] | undefined>(
-				{default: undefined}
-			)
+				| { USER: string; PASS: string }
+				| { USER: undefined; PASS: undefined }
+			>({ default: { user: undefined, pass: undefined } }),
+			HOST: host({ default: undefined }),
+			EMAIL_PORT: port({ default: undefined }),
+			SECURE: bool({ default: false }),
+			REQUIRE_TLS: bool({ default: false }),
+			IGNORE_TLS: bool({ default: false }),
+			SENDING_EMAIL: envemail({ default: undefined }),
+			TLS: json<EnvEmailConfig["TLS"] | undefined>({
+				default: undefined,
+			}),
+			SELF_TEST: json<EnvEmailConfig["SELF_TEST"] | undefined>({
+				default: undefined,
+			}),
 		});
 
 		const files = this.fetchFiles({
@@ -395,7 +416,7 @@ const configHandler = {
 				email: envEmailConfig,
 			});
 		} catch (error: unknown) {
-			process.emitWarning('Unknown Error (config-handler:171)');
+			process.emitWarning("Unknown Error (config-handler:171)");
 			if (error instanceof Error) {
 				throw error;
 			}
@@ -421,7 +442,8 @@ const configHandler = {
 		const coreConfig = {
 			url: envCoreConfig.URL ?? files.server?.url,
 			port: envCoreConfig.PORT ?? files.server?.port,
-			trustProxies: envCoreConfig.TRUST_PROXIES ?? files.server?.trustProxies,
+			trustProxies:
+				envCoreConfig.TRUST_PROXIES ?? files.server?.trustProxies,
 			signups: envCoreConfig.SIGNUPS ?? files.server?.signups,
 			apiOnly: envCoreConfig.API_ONLY ?? files.server?.apiOnly,
 			sentry: {
@@ -429,7 +451,7 @@ const configHandler = {
 				rate:
 					envCoreConfig.SENTRY.RATE ??
 					files.server?.sentry?.rate ??
-					process.env.NODE_ENV === 'dev'
+					process.env.NODE_ENV === "dev"
 						? 1
 						: 0.2,
 				tracing:
@@ -452,13 +474,18 @@ const configHandler = {
 			coreConfig,
 			keyConfig,
 			emailConfig,
-			!noExitEmit,
+			!noExitEmit
 		);
-		if (typeof postCheck === 'string') {
+		if (typeof postCheck === "string") {
 			throw new TypeError(postCheck);
 		}
 
-		return {key: keyConfig, email: emailConfig, core: coreConfig, db: dbConfig};
+		return {
+			key: keyConfig,
+			email: emailConfig,
+			core: coreConfig,
+			db: dbConfig,
+		};
 	},
 
 	preCheckEnv(env: {
@@ -469,23 +496,23 @@ const configHandler = {
 		const missing = [];
 
 		if (!env.server.PORT) {
-			missing.push('server/port');
+			missing.push("server/port");
 		}
 
 		if (!env.server.URL) {
-			missing.push('server/url');
+			missing.push("server/url");
 		}
 
 		if (!env.server.SIGNUPS) {
-			missing.push('server/signups');
+			missing.push("server/signups");
 		}
 
 		if (!env.db.DB_URL) {
-			missing.push('server/url');
+			missing.push("server/url");
 		}
 
 		if (env.email?.SENDING_EMAIL && !env.email.AUTH) {
-			missing.push('email', 'email/auth');
+			missing.push("email", "email/auth");
 		}
 
 		return missing;
@@ -498,10 +525,10 @@ const configHandler = {
 			email?: EmailConfig;
 		},
 		env?: {
-			server: EnvServerConfig,
-			db: EnvDbConfig,
-			email: EnvEmailConfig
-		},
+			server: EnvServerConfig;
+			db: EnvDbConfig;
+			email: EnvEmailConfig;
+		}
 	): true | void {
 		const missingConfigs = {
 			server: [] as string[],
@@ -510,9 +537,9 @@ const configHandler = {
 
 		if (
 			!(files?.server?.port ?? env?.server.PORT) ||
-			typeof files?.server?.port !== 'number'
+			typeof files?.server?.port !== "number"
 		) {
-			missingConfigs.server.push('server/port - Must be a number');
+			missingConfigs.server.push("server/port - Must be a number");
 		}
 
 		if (
@@ -520,43 +547,46 @@ const configHandler = {
 				!files?.server?.signups &&
 				files?.server?.signups !== 0) ||
 			(!files?.server?.signups && files?.server?.signups !== 0) ||
-			typeof files.server.signups !== 'number'
+			typeof files.server.signups !== "number"
 		) {
 			console.log(env?.server.SIGNUPS);
-			missingConfigs.server.push('server/signups - Must be a number');
+			missingConfigs.server.push("server/signups - Must be a number");
 		}
 
 		if (
 			!(files?.server?.url ?? env?.server.URL) ||
-			typeof files?.server?.url !== 'string'
+			typeof files?.server?.url !== "string"
 		) {
-			missingConfigs.db.push('server/url - Must be a url string');
+			missingConfigs.db.push("server/url - Must be a url string");
 		}
 
 		if (
 			!(files?.db?.url ?? env?.db.DB_URL) ||
-			typeof files?.db?.url !== 'string'
+			typeof files?.db?.url !== "string"
 		) {
-			missingConfigs.db.push('db/url - Must be a url string');
+			missingConfigs.db.push("db/url - Must be a url string");
 		}
 
 		if (missingConfigs.server.length > 0 || missingConfigs.db.length > 0) {
-			console.log('[CONFIG] Missing/Invalid Required Options:');
-			let error = '[CONFIG] Missing/Invalid Required Options:';
+			console.log("[CONFIG] Missing/Invalid Required Options:");
+			let error = "[CONFIG] Missing/Invalid Required Options:";
 			if (missingConfigs.server.length > 0) {
-				console.log(missingConfigs.server.join('\n'));
-				error += `\n${missingConfigs.server.join('\n')}`;
+				console.log(missingConfigs.server.join("\n"));
+				error += `\n${missingConfigs.server.join("\n")}`;
 			}
 
 			if (missingConfigs.db.length > 0) {
-				console.log(missingConfigs.db.join('\n'));
-				error += `\n${missingConfigs.db.join('\n')}`;
+				console.log(missingConfigs.db.join("\n"));
+				error += `\n${missingConfigs.db.join("\n")}`;
 			}
 
-			error += '\nPotential fix: run "npm run configure --invalid-or-missing"';
-			process.emitWarning('Config Error (config-handler:277)');
+			error +=
+				'\nPotential fix: run "npm run configure --invalid-or-missing"';
+			process.emitWarning("Config Error (config-handler:277)");
 
-			throw new Error(`[CONFIG] Missing/Invalid Required Options:\n${error}`);
+			throw new Error(
+				`[CONFIG] Missing/Invalid Required Options:\n${error}`
+			);
 		}
 
 		return true;
@@ -568,14 +598,14 @@ const configHandler = {
 			keyConfig.httpsCertOptions?.key &&
 			!existsSync(keyConfig.httpsCertOptions?.key)
 		) {
-			missingFiles.push('https certificate options/key');
+			missingFiles.push("https certificate options/key");
 		}
 
 		if (
 			keyConfig.httpsCertOptions?.cert &&
 			!existsSync(keyConfig.httpsCertOptions?.cert)
 		) {
-			missingFiles.push('https certificate options/cert');
+			missingFiles.push("https certificate options/cert");
 		}
 
 		return missingFiles;
@@ -585,7 +615,7 @@ const configHandler = {
 		coreConfig: CoreConfig,
 		keyConfig: KeyConfig,
 		emailConfig: ActEmailConfig,
-		exitEmit?: boolean,
+		exitEmit?: boolean
 	): true | string | void {
 		const missingFiles = this.keyCheck(keyConfig);
 
@@ -593,7 +623,11 @@ const configHandler = {
 		const maxPort = 65_535;
 		let failedPort;
 		let failedSignups;
-		if (!coreConfig.port || coreConfig.port > maxPort || coreConfig.port < 1) {
+		if (
+			!coreConfig.port ||
+			coreConfig.port > maxPort ||
+			coreConfig.port < 1
+		) {
 			failedPort = true;
 		}
 
@@ -603,7 +637,7 @@ const configHandler = {
 			coreConfig.signups < 0 ||
 			coreConfig.signups > 2
 		) {
-			failedSignups = 'Signup type invalid';
+			failedSignups = "Signup type invalid";
 		}
 
 		if (
@@ -613,18 +647,18 @@ const configHandler = {
 				!emailConfig.mailerOptions?.auth.user)
 		) {
 			failedSignups =
-				'Signup Type Not Configured Properly (Emailer not configured)';
+				"Signup Type Not Configured Properly (Emailer not configured)";
 		}
 
 		// Check if anything has failed
 		if (failedSignups ?? failedPort ?? missingFiles.length > 0) {
-			let error = '[CONFIG - INVALID CONFIG]';
+			let error = "[CONFIG - INVALID CONFIG]";
 			if (failedPort) {
 				error +=
-					'\nPort configuration invalid. Please be below 65535 and above 0';
+					"\nPort configuration invalid. Please be below 65535 and above 0";
 			}
 
-			if (failedSignups && typeof failedSignups === 'string') {
+			if (failedSignups && typeof failedSignups === "string") {
 				error += `\n${failedSignups}`;
 			}
 
@@ -633,17 +667,17 @@ const configHandler = {
 
 			if (missingFiles.length > 0) {
 				error +=
-					'\nThe following key files were not found:\n' +
-					missingFiles.join('\n');
+					"\nThe following key files were not found:\n" +
+					missingFiles.join("\n");
 				potentialFix +=
-					' and generating the specified keys' +
-					'(See key generation documentation for detail)';
+					" and generating the specified keys" +
+					"(See key generation documentation for detail)";
 			}
 
 			error += `\n${potentialFix}"`;
 
 			if (exitEmit) {
-				process.emitWarning('Config Error (config-handler:366)');
+				process.emitWarning("Config Error (config-handler:366)");
 				console.log(error);
 				logger.error(error);
 				const ms = 500;
@@ -651,7 +685,7 @@ const configHandler = {
 					process.exit(1);
 				}, ms);
 			} else {
-				process.emitWarning('Config Error (config-handler:376)');
+				process.emitWarning("Config Error (config-handler:376)");
 				return error;
 			}
 

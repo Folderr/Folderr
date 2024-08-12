@@ -22,9 +22,9 @@
 import { existsSync, promises as fs } from "fs";
 import process from "process";
 import mongoose from "mongoose";
-import * as Schemas from "../../Schemas/index";
-import logger from "../logger";
-import * as constants from "../constants/index";
+import * as Schemas from "../../Schemas/index.js";
+import logger from "../logger.js";
+import * as constants from "../constants/index.js";
 import type {
 	User,
 	Tokendb,
@@ -36,7 +36,7 @@ import type {
 	Statistics,
 	Ban,
 } from "./db-class";
-import { DBClass } from "./db-class";
+import { DBClass } from "./db-class.js";
 
 /**
  * @classdesc Handle all MongoDB operations.

@@ -20,9 +20,9 @@
  */
 
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
-import * as constants from "../../../../Structures/constants/index";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
+import * as constants from "../../../../Structures/constants/index.js";
 
 /**
  * @classdesc Allows users to signup

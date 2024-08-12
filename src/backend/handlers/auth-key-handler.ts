@@ -1,9 +1,9 @@
-import {Buffer} from 'buffer';
-import {join} from 'path';
-import process from 'process';
-import fs from 'fs/promises';
-import locations from '../../../internal/locations.json';
-import type AbstractDB from '../Structures/Database/db-class';
+import { Buffer } from "buffer";
+import { join } from "path";
+import process from "process";
+import fs from "fs/promises";
+import locations from "../../../internal/locations.json" assert { type: "json" };
+import type AbstractDB from "../Structures/Database/db-class.js";
 
 export default class AuthKeyHandler {
 	#publicKey?: Buffer;
@@ -11,19 +11,19 @@ export default class AuthKeyHandler {
 	#location: string;
 
 	constructor() {
-		this.#location = join(process.cwd(), './internal/keys/privateJWT.pem');
-		if (locations.keys !== 'internal') {
+		this.#location = join(process.cwd(), "./internal/keys/privateJWT.pem");
+		if (locations.keys !== "internal") {
 			this.#location = locations.keys;
 		}
 	}
 
 	async fetchKeys(db: AbstractDB): Promise<void> {
 		try {
-			if (locations.keys === 'none' && process.env.PRIVATE_KEY) {
+			if (locations.keys === "none" && process.env.PRIVATE_KEY) {
 				this.#privateKey = Buffer.from(process.env.PRIVATE_KEY);
-			} else if (locations.keys === 'none' && !process.env.PRIVATE_KEY) {
+			} else if (locations.keys === "none" && !process.env.PRIVATE_KEY) {
 				throw new Error(
-					'You Need to Pass the Secret Key with an Environment Variable',
+					"You Need to Pass the Secret Key with an Environment Variable"
 				);
 			} else {
 				this.#privateKey = await fs.readFile(this.#location);
@@ -31,21 +31,26 @@ export default class AuthKeyHandler {
 
 			const folderr = await db.fetchFolderr();
 			this.#publicKey = Buffer.from(folderr.publicKeyJWT.buffer);
-			if (locations.keys === 'none') {
-				const crypto = await import('crypto');
+			if (locations.keys === "none") {
+				const crypto = await import("crypto");
 				try {
 					const data = crypto.publicEncrypt(
 						this.#publicKey,
 						// eslint-disable-next-line prettier/prettier
-						Buffer.from('Hi I\'m Folderr!'),
+						Buffer.from("Hi I'm Folderr!")
 					);
-					const decrypted = crypto.privateDecrypt(this.#privateKey, data);
+					const decrypted = crypto.privateDecrypt(
+						this.#privateKey,
+						data
+					);
 					// eslint-disable-next-line prettier/prettier
-					if (decrypted.toString() !== 'Hi I\'m Folderr!') {
-						throw new Error('Private and public keys do not match.');
+					if (decrypted.toString() !== "Hi I'm Folderr!") {
+						throw new Error(
+							"Private and public keys do not match."
+						);
 					}
 				} catch (error: unknown) {
-					throw new Error('Private and Public Keys Do Not Match.', {
+					throw new Error("Private and Public Keys Do Not Match.", {
 						cause: error,
 					});
 				}
@@ -54,25 +59,25 @@ export default class AuthKeyHandler {
 			if (
 				error instanceof Error &&
 				error.message ===
-					'You Need to Pass the Secret Key with an Environment Variable'
+					"You Need to Pass the Secret Key with an Environment Variable"
 			) {
 				throw new Error(
-					'You Need to Pass the Secret Key with an Environment Variable',
-					{cause: error},
+					"You Need to Pass the Secret Key with an Environment Variable",
+					{ cause: error }
 				);
 			}
 
 			if (
 				error instanceof Error &&
-				error.message === 'Private and Public Keys Do Not Match.'
+				error.message === "Private and Public Keys Do Not Match."
 			) {
-				throw new Error('Private and Public Keys Do Not Match.', {
+				throw new Error("Private and Public Keys Do Not Match.", {
 					cause: error,
 				});
 			}
 
 			console.log(error);
-			throw new Error('Unable to fetch keys', {cause: error});
+			throw new Error("Unable to fetch keys", { cause: error });
 		}
 	}
 

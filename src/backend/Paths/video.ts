@@ -22,8 +22,8 @@
 import { createReadStream } from "fs";
 import { type FastifyReply, type FastifyRequest } from "fastify";
 import mime from "mime-types";
-import { type Core } from "../internals";
-import Path from "../Structures/path";
+import { type Core } from "../internals.js";
+import Path from "../Structures/path.js";
 
 /**
  * @classdesc Allow users to access videos over the web

@@ -22,10 +22,10 @@
 import process from "process";
 import argon2 from "argon2";
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
-import type { User } from "../../../../Structures/Database/db-class";
-import * as constants from "../../../../Structures/constants/index";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
+import type { User } from "../../../../Structures/Database/db-class.js";
+import * as constants from "../../../../Structures/constants/index.js";
 
 type UpdateAccBody =
 	| {

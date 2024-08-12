@@ -1,2 +1,2 @@
-import { prefix as parentPrefix } from '../index';
-export const prefix = String(parentPrefix) + '';
+import { prefix as parentPrefix } from "../index.js";
+export const prefix = String(parentPrefix) + "";

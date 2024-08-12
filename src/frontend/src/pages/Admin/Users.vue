@@ -421,9 +421,7 @@ import {
 	DialogDescription,
 	DialogPanel,
 } from "@headlessui/vue";
-import { useUserStore } from "../../stores/user";
-import * as adminAPI from "../../wrappers/admin-api";
-import * as managementAPI from "../../wrappers/management-api";
+import { useUserStore } from "../../stores/user.js";
 import * as newAPI from "fldrr-web-sdk";
 import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
 import AdminSidebar from "../../components/Admin-Sidebar.vue";
@@ -484,7 +482,7 @@ const reasonDelete = async (
 		return;
 	}
 
-	const output = await adminAPI.deleteAccount(user.id, reason);
+	const output = await api.Admin.user.deleteAccount(user.id, reason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -551,7 +549,7 @@ const reasonWarn = async (
 		return;
 	}
 
-	const output = await adminAPI.warnUser(user.id, localReason);
+	const output = await api.Admin.user.warnUser(user.id, localReason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -599,7 +597,7 @@ const reasonBan = async (user: FilteredUsers, reason: string | undefined) => {
 		return;
 	}
 
-	const output = await adminAPI.banUser(user.id, reason);
+	const output = await api.Admin.user.banUser(user.id, reason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -770,7 +768,7 @@ type VerifyingUsers = {
 	username: string;
 	id: string;
 	email: string;
-	createdAt: Date;
+	createdAt: number;
 };
 
 const verifyingUsers = ref<VerifyingUsers[]>();
@@ -778,15 +776,14 @@ const verifyingUsers = ref<VerifyingUsers[]>();
 const userList = ref<FilteredUsers[]>();
 
 const loadVerifyingUsers = async () => {
-	const users = await adminAPI.getVerifyingUsers();
-
-	if (users.success && users.output) {
+	const users = await api.Admin.verifying.getVerfiyingUsers();
+	if (users.success && users.output && typeof users.output !== 'string') {
 		verifyingUsers.value = users.output;
 	}
 };
 
 const loadUsers = async () => {
-	const users = await adminAPI.getUsers();
+	const users = await api.Admin.user.getUsers();
 
 	// Handle errors later
 
@@ -804,7 +801,7 @@ const loadUsers = async () => {
 };
 
 async function denyUser(id: string): Promise<boolean | Error> {
-	const output = await adminAPI.denyAccount(id);
+	const output = await api.Admin.verifying.denyAccount(id);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
@@ -889,7 +886,7 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 }
 
 async function acceptUser(id: string): Promise<boolean | Error> {
-	const output = await adminAPI.acceptAccount(id);
+	const output = await api.Admin.verifying.acceptAccount(id);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
@@ -942,7 +939,7 @@ async function deleteUser(
 	id: string,
 	reason: string
 ): Promise<boolean | Error> {
-	const output = await adminAPI.deleteAccount(id, reason);
+	const output = await api.Admin.user.deleteAccount(id, reason);
 	if (output.error ?? !output.success) {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
@@ -979,6 +976,6 @@ onMounted(async () => {
 	}
 
 	await loadUsers();
-	await adminAPI.getBans();
+	await api.Admin.general.getBans();
 });
 </script>

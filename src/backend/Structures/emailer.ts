@@ -21,8 +21,8 @@
 
 import nodemailer, { type SentMessageInfo } from "nodemailer";
 import type Mail from "nodemailer/lib/mailer";
-import { type Core } from "../internals";
-import * as constants from "./constants/index";
+import { type Core } from "../internals.js";
+import * as constants from "./constants/index.js";
 
 /**
  *

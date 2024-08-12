@@ -4,7 +4,7 @@ import {
 	type GenericFetchReturn,
 	genericCatch,
 	requestHelper,
-} from "../utils/request-helpers";
+} from "../utils/request-helpers.js";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const BASE_URL = "/api/admin/";

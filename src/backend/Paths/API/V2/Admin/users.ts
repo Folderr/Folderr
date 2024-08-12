@@ -20,10 +20,10 @@
  */
 
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
-import type { User } from "../../../../Structures/Database/db-class";
-import type { RequestGallery } from "../../../../../types/fastify-request-types";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
+import type { User } from "../../../../Structures/Database/db-class.js";
+import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
 
 /**
  * @classdesc Shows users to admins

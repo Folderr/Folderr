@@ -19,7 +19,7 @@
  *
  */
 
-import {Path} from '../internals';
+import { Path } from "../internals.js";
 
 export interface HandlerMessage {
 	culprit: string;
@@ -52,23 +52,23 @@ class ErrorHandler {
 	 */
 	handlePathError(error: Error, severity?: string): HandlerMessage {
 		if (!error || !error.stack) {
-			throw new Error('[ERROR] - Missing error (REQUIRED)');
+			throw new Error("[ERROR] - Missing error (REQUIRED)");
 		}
 
 		// Define variables
-		const base = error.stack.split('\n');
+		const base = error.stack.split("\n");
 		const cul: string = base[2].slice(7);
 		const file = cul;
-		const culprit: string = cul.split(' ')[0];
+		const culprit: string = cul.split(" ")[0];
 		const message: HandlerMessage = {
 			culprit,
 			file: file.slice(culprit.length + 1),
 			message: base[0],
-			severity
+			severity,
 		};
 
 		// Disable path if the error was fatal
-		if (severity && severity === 'fatal') {
+		if (severity && severity === "fatal") {
 			this.Path.locked = true;
 		}
 

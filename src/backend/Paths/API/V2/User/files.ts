@@ -20,10 +20,10 @@
  */
 
 import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals";
-import { type Upload } from "../../../../Structures/Database/db-class";
-import { type RequestGallery } from "../../../../../types/fastify-request-types";
-import Path from "../../../../Structures/path";
+import { type Core } from "../../../../internals.js";
+import { type Upload } from "../../../../Structures/Database/db-class.js";
+import { type RequestGallery } from "../../../../../types/fastify-request-types.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Send users their files

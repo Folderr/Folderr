@@ -1,8 +1,7 @@
 // This is the new path standard for Folderr
-import type Core from "../../../Structures/core";
-import pkg from "../../../../../package.json";
+import type Core from "../../../Structures/core.js";
+import pkg from "../../../../../package.json" assert { type: "json" };
 import type { FastifyInstance } from "fastify";
-import { RFC_2822 } from "moment";
 
 // We have a name here for in case we decide to map these
 

@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/vue';
-import type {AccountReturn} from '../../../types/user';
+import * as Sentry from "@sentry/vue";
+import type { AccountReturn } from "../../../types/user.js";
 
 type GenericFetchReturn<T = void> =
 	| {
@@ -8,11 +8,11 @@ type GenericFetchReturn<T = void> =
 			response?: Response;
 			output: undefined;
 	  }
-	| {error: undefined; success: true; response?: Response; output?: T};
+	| { error: undefined; success: true; response?: Response; output?: T };
 
 type UserReturn =
-	| {error: string | Error; user: undefined}
-	| {error: undefined; user: AccountReturn};
+	| { error: string | Error; user: undefined }
+	| { error: undefined; user: AccountReturn };
 
 type ArrayFetchReturn<T> =
 	| {
@@ -21,17 +21,17 @@ type ArrayFetchReturn<T> =
 			success: false;
 			message: undefined;
 	  }
-	| {error: undefined; success: true; response?: Response; message: T[]};
+	| { error: undefined; success: true; response?: Response; message: T[] };
 
 function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 	Sentry.captureException(error);
 	if (
 		error instanceof Error &&
-		error.message === 'Failed to fetch' &&
+		error.message === "Failed to fetch" &&
 		import.meta.env.DEV
 	) {
 		console.log(
-			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
+			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
 		);
 		console.log(error);
 	}
@@ -39,7 +39,7 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 	console.log(error);
 
 	return {
-		error: 'An unknown error occurred',
+		error: "An unknown error occurred",
 		success: false,
 		output: undefined,
 	};
@@ -51,98 +51,102 @@ export async function signup(
 	email: string
 ) {
 	try {
-		const response = await fetch('/api/signup', {
-			method: 'POST',
+		const response = await fetch("/api/signup", {
+			method: "POST",
 			body: JSON.stringify({
 				username,
 				password,
-				email
+				email,
 			}),
-			credentials: 'same-origin',
+			credentials: "same-origin",
 			headers: {
-				'Content-Type': 'application/json'
-			}
+				"Content-Type": "application/json",
+			},
 		});
 		if (response.status === 400) {
 			if (import.meta.env.DEV) {
-				console.log('DEBUG Response');
+				console.log("DEBUG Response");
 				console.log(response);
 			}
 
-			return {error: 'Bad Request', success: false, output: undefined};
+			return { error: "Bad Request", success: false, output: undefined };
 		}
 
 		if (response.status === 423) {
-			return {error: 'Signups Closed', success: false, output: undefined}
+			return {
+				error: "Signups Closed",
+				success: false,
+				output: undefined,
+			};
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: undefined};
+			return { error: "Unauthorized", success: false, output: undefined };
 		}
 
 		if (/5\d{2}/.test(response.status.toString())) {
 			return {
-				error: 'Internal Server Error',
+				error: "Internal Server Error",
 				success: false,
 				output: undefined,
 			};
 		}
 
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {success: true, error: undefined};
+			return { success: true, error: undefined };
 		}
 
 		return {
 			success: false,
-			error: 'An unknown error occurred',
+			error: "An unknown error occurred",
 			output: undefined,
 		};
 	} catch (error: unknown) {
-		return genericCatch(error)
+		return genericCatch(error);
 	}
 }
 
 export async function login(
 	username: string,
-	password: string,
+	password: string
 ): Promise<GenericFetchReturn> {
 	try {
-		const response = await fetch('/api/authorize', {
-			method: 'POST',
+		const response = await fetch("/api/authorize", {
+			method: "POST",
 			headers: {
 				username,
 				password,
 			},
-			credentials: 'same-origin',
+			credentials: "same-origin",
 		});
 		if (response.status === 400) {
 			if (import.meta.env.DEV) {
-				console.log('DEBUG Response');
+				console.log("DEBUG Response");
 				console.log(response);
 			}
 
-			return {error: 'Bad Request', success: false, output: undefined};
+			return { error: "Bad Request", success: false, output: undefined };
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: undefined};
+			return { error: "Unauthorized", success: false, output: undefined };
 		}
 
 		if (/5\d{2}/.test(response.status.toString())) {
 			return {
-				error: 'Internal Server Error',
+				error: "Internal Server Error",
 				success: false,
 				output: undefined,
 			};
 		}
 
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {success: true, error: undefined};
+			return { success: true, error: undefined };
 		}
 
 		return {
 			success: false,
-			error: 'An unknown error occurred',
+			error: "An unknown error occurred",
 			output: undefined,
 		};
 	} catch (error: unknown) {
@@ -152,40 +156,40 @@ export async function login(
 
 export async function fetchUser(): Promise<UserReturn> {
 	try {
-		const response = await fetch('/api/account');
+		const response = await fetch("/api/account");
 		if (response.status === 401 || response.status === 400) {
-			return {error: 'Unauthorized', user: undefined};
+			return { error: "Unauthorized", user: undefined };
 		}
 
 		if (!/2\d{2}/.test(response.status.toString())) {
-			return {error: 'Request failed', user: undefined};
+			return { error: "Request failed", user: undefined };
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const output: {code: number; message: AccountReturn} =
+		const output: { code: number; message: AccountReturn } =
 			await response.json();
-		return {error: undefined, user: output.message};
+		return { error: undefined, user: output.message };
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
+			error.message === "Failed to fetch" &&
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
 			);
 		}
 
-		return {error: 'An unknown error occurred', user: undefined};
+		return { error: "An unknown error occurred", user: undefined };
 	}
 }
 
 type UpdateInfoParameterOptions =
-	| {username: string; email?: string}
-	| {email: string; username?: string};
+	| { username: string; email?: string }
+	| { email: string; username?: string };
 
 export async function updateInfo(
-	input: UpdateInfoParameterOptions,
+	input: UpdateInfoParameterOptions
 ): Promise<GenericFetchReturn> {
 	const info: {
 		username?: string;
@@ -200,41 +204,42 @@ export async function updateInfo(
 	}
 
 	try {
-		const response = await fetch('/api/account', {
-			method: 'PATCH',
+		const response = await fetch("/api/account", {
+			method: "PATCH",
 			body: JSON.stringify(info),
-			credentials: 'same-origin',
+			credentials: "same-origin",
 			headers: {
-				'Content-Type': 'application/json',
+				"Content-Type": "application/json",
 			},
 		});
 
 		if (response.status === 226) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
 				error:
-					output?.message ?? 'Something you entered is in use by another user',
+					output?.message ??
+					"Something you entered is in use by another user",
 				success: false,
 				output: undefined,
 			};
 		}
 
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {error: undefined, success: true};
+			return { error: undefined, success: true };
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: undefined};
+			return { error: "Unauthorized", success: false, output: undefined };
 		}
 
 		if (response.status === 400) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Bad Request',
+				error: output?.message ?? "Bad Request",
 				success: false,
 				output: undefined,
 			};
@@ -242,33 +247,35 @@ export async function updateInfo(
 
 		if (response.status === 406) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Forbidden Action Attempted',
+				error: output?.message ?? "Forbidden Action Attempted",
 				success: false,
-				output: undefined
-			}
+				output: undefined,
+			};
 		}
 
 		if (response.status === 501) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Method, resource, or action not implemented',
+				error:
+					output?.message ??
+					"Method, resource, or action not implemented",
 				success: false,
 				output: undefined,
 			};
 		}
 
 		if (import.meta.env.DEV) {
-			console.log('DEBUG Response from API/Update Account');
+			console.log("DEBUG Response from API/Update Account");
 			console.log(response);
 		}
 
 		return {
-			error: 'Unknown Response',
+			error: "Unknown Response",
 			success: false,
 			response,
 			output: undefined,
@@ -285,37 +292,37 @@ export async function updatePassword(info: {
 	if (info.password === info.newPassword) {
 		return {
 			success: false,
-			error: 'Passwords cannot be the same',
+			error: "Passwords cannot be the same",
 			output: undefined,
 		};
 	}
 
 	try {
-		const response = await fetch('/api/account', {
-			method: 'PATCH',
-			body: JSON.stringify({password: info.newPassword}),
+		const response = await fetch("/api/account", {
+			method: "PATCH",
+			body: JSON.stringify({ password: info.newPassword }),
 			headers: {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
+				Accept: "application/json",
+				"Content-Type": "application/json",
 			},
-			credentials: 'same-origin',
+			credentials: "same-origin",
 		});
 
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {error: undefined, success: true};
+			return { error: undefined, success: true };
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: undefined};
+			return { error: "Unauthorized", success: false, output: undefined };
 		}
 
 		if (response.status === 400) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Bad Request',
+				error: output?.message ?? "Bad Request",
 				success: false,
 				output: undefined,
 			};
@@ -323,22 +330,24 @@ export async function updatePassword(info: {
 
 		if (response.status === 501) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Method, resource, or action not implemented',
+				error:
+					output?.message ??
+					"Method, resource, or action not implemented",
 				success: false,
 				output: undefined,
 			};
 		}
 
 		if (import.meta.env.DEV) {
-			console.log('DEBUG Response from API/Update Account Password');
+			console.log("DEBUG Response from API/Update Account Password");
 			console.log(response);
 		}
 
 		return {
-			error: 'Unknown Response',
+			error: "Unknown Response",
 			success: false,
 			response,
 			output: undefined,
@@ -353,34 +362,34 @@ type PrivacyUpdateOptions = {
 };
 
 export async function updatePrivacy(
-	info: PrivacyUpdateOptions,
+	info: PrivacyUpdateOptions
 ): Promise<GenericFetchReturn> {
 	try {
-		const response = await fetch('/api/account', {
-			method: 'PATCH',
-			body: JSON.stringify({privacy: info}),
+		const response = await fetch("/api/account", {
+			method: "PATCH",
+			body: JSON.stringify({ privacy: info }),
 			headers: {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
+				Accept: "application/json",
+				"Content-Type": "application/json",
 			},
-			credentials: 'same-origin',
+			credentials: "same-origin",
 		});
 
 		if (/2\d{2}/.test(response.status.toString())) {
-			return {error: undefined, success: true};
+			return { error: undefined, success: true };
 		}
 
 		if (response.status === 401) {
-			return {error: 'Unauthorized', success: false, output: undefined};
+			return { error: "Unauthorized", success: false, output: undefined };
 		}
 
 		if (response.status === 400) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Bad Request',
+				error: output?.message ?? "Bad Request",
 				success: false,
 				output: undefined,
 			};
@@ -388,22 +397,24 @@ export async function updatePrivacy(
 
 		if (response.status === 501) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Method, resource, or action not implemented',
+				error:
+					output?.message ??
+					"Method, resource, or action not implemented",
 				success: false,
 				output: undefined,
 			};
 		}
 
 		if (import.meta.env.DEV) {
-			console.log('DEBUG Response from API/Update Account Password');
+			console.log("DEBUG Response from API/Update Account Password");
 			console.log(response);
 		}
 
 		return {
-			error: 'Unknown Response',
+			error: "Unknown Response",
 			success: false,
 			response,
 			output: undefined,
@@ -415,8 +426,8 @@ export async function updatePrivacy(
 
 export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 	try {
-		const response = await fetch('/api/logout?everywhere=true', {
-			credentials: 'same-origin',
+		const response = await fetch("/api/logout?everywhere=true", {
+			credentials: "same-origin",
 		});
 
 		if (/2\d{2}/.test(response.status.toString())) {
@@ -428,10 +439,12 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 
 		if (response.status === 400) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Could not log out (likely developer error)',
+				error:
+					output?.message ??
+					"Could not log out (likely developer error)",
 				success: false,
 				response,
 				output: undefined,
@@ -440,7 +453,7 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 
 		if (response.status === 401) {
 			return {
-				error: 'Unauthorized',
+				error: "Unauthorized",
 				success: false,
 				response,
 				output: undefined,
@@ -449,10 +462,12 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 
 		if (response.status === 500) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Could not log out (likely issue with host)',
+				error:
+					output?.message ??
+					"Could not log out (likely issue with host)",
 				success: false,
 				response,
 				output: undefined,
@@ -460,12 +475,12 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 		}
 
 		if (import.meta.env.DEV) {
-			console.log('DEBUG Response from API/Logout Everywhere');
+			console.log("DEBUG Response from API/Logout Everywhere");
 			console.log(response);
 		}
 
 		return {
-			error: 'Unknown Response',
+			error: "Unknown Response",
 			success: false,
 			response,
 			output: undefined,
@@ -477,8 +492,8 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 
 export async function logout(): Promise<GenericFetchReturn> {
 	try {
-		const response = await fetch('/api/logout', {
-			credentials: 'same-origin',
+		const response = await fetch("/api/logout", {
+			credentials: "same-origin",
 		});
 
 		if (/2\d{2}/.test(response.status.toString())) {
@@ -490,10 +505,12 @@ export async function logout(): Promise<GenericFetchReturn> {
 
 		if (response.status === 400) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Could not log out (likely developer error)',
+				error:
+					output?.message ??
+					"Could not log out (likely developer error)",
 				success: false,
 				response,
 				output: undefined,
@@ -502,12 +519,12 @@ export async function logout(): Promise<GenericFetchReturn> {
 
 		if (response.status === 500) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
 				error:
 					output?.message ??
-					'Could not log out (likely issue with host/server)',
+					"Could not log out (likely issue with host/server)",
 				success: false,
 				response,
 				output: undefined,
@@ -515,12 +532,12 @@ export async function logout(): Promise<GenericFetchReturn> {
 		}
 
 		if (import.meta.env.DEV) {
-			console.log('DEBUG Response from API/Logout');
+			console.log("DEBUG Response from API/Logout");
 			console.log(response);
 		}
 
 		return {
-			error: 'Unknown Response',
+			error: "Unknown Response",
 			success: false,
 			response,
 			output: undefined,
@@ -531,17 +548,17 @@ export async function logout(): Promise<GenericFetchReturn> {
 }
 
 export async function deleteAccount(
-	userID?: string,
+	userID?: string
 ): Promise<GenericFetchReturn> {
-	let url = '/api/account';
+	let url = "/api/account";
 	if (userID) {
 		url += `?userid=${userID}`;
 	}
 
 	try {
 		const response = await fetch(url, {
-			credentials: 'same-origin',
-			method: 'DELETE',
+			credentials: "same-origin",
+			method: "DELETE",
 		});
 
 		if (/2\d{2}/.test(response.status.toString())) {
@@ -553,12 +570,12 @@ export async function deleteAccount(
 
 		if (response.status === 400) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
 				error:
 					output?.message ??
-					'Could not delete account (likely developer error)',
+					"Could not delete account (likely developer error)",
 				success: false,
 				response,
 				output: undefined,
@@ -567,7 +584,7 @@ export async function deleteAccount(
 
 		if (response.status === 401) {
 			return {
-				error: 'Unauthorized',
+				error: "Unauthorized",
 				success: false,
 				response,
 				output: undefined,
@@ -576,10 +593,11 @@ export async function deleteAccount(
 
 		if (response.status === 403) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
-				error: output?.message ?? 'Forbidden from deleting that account',
+				error:
+					output?.message ?? "Forbidden from deleting that account",
 				success: false,
 				response,
 				output: undefined,
@@ -588,12 +606,12 @@ export async function deleteAccount(
 
 		if (response.status === 500) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const output: {message: string; code: number} | undefined =
+			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
 				error:
 					output?.message ??
-					'Could not delete account (likely issue with server)',
+					"Could not delete account (likely issue with server)",
 				success: false,
 				response,
 				output: undefined,
@@ -601,12 +619,12 @@ export async function deleteAccount(
 		}
 
 		if (import.meta.env.DEV) {
-			console.log('DEBUG Response from API/Delete Account');
+			console.log("DEBUG Response from API/Delete Account");
 			console.log(response);
 		}
 
 		return {
-			error: 'Unknown Response',
+			error: "Unknown Response",
 			success: false,
 			response,
 			output: undefined,
@@ -626,19 +644,21 @@ export type Token = {
 
 export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 	try {
-		const response = await fetch('/api/account/tokens', {
-			credentials: 'same-origin',
+		const response = await fetch("/api/account/tokens", {
+			credentials: "same-origin",
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const body: {code: number; message: string | Token[]} | undefined =
+		const body: { code: number; message: string | Token[] } | undefined =
 			await response.json();
 
 		if (response.status === 400) {
 			return {
 				success: false,
 				error:
-					typeof body?.message === 'string' ? body?.message : 'Bad Request',
+					typeof body?.message === "string"
+						? body?.message
+						: "Bad Request",
 				response,
 				message: undefined,
 			};
@@ -648,7 +668,9 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			return {
 				success: false,
 				error:
-					typeof body?.message === 'string' ? body?.message : 'Unauthorized',
+					typeof body?.message === "string"
+						? body?.message
+						: "Unauthorized",
 				message: undefined,
 			};
 		}
@@ -656,7 +678,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 		if (response.status === 500) {
 			return {
 				success: false,
-				error: 'A internal server occured',
+				error: "A internal server occured",
 				response,
 				message: undefined,
 			};
@@ -665,7 +687,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 		if (
 			/2\d{2}/.test(response.status.toString()) &&
 			body &&
-			typeof body.message !== 'string'
+			typeof body.message !== "string"
 		) {
 			return {
 				success: true,
@@ -676,18 +698,18 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 
 		return {
 			success: false,
-			error: 'An unknown error occured',
+			error: "An unknown error occured",
 			response,
 			message: undefined,
 		};
 	} catch (error: unknown) {
 		if (
 			error instanceof Error &&
-			error.message === 'Failed to fetch' &&
+			error.message === "Failed to fetch" &&
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
 			);
 			console.log(error);
 		}
@@ -700,7 +722,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			};
 		}
 
-		if (typeof error === 'string') {
+		if (typeof error === "string") {
 			return {
 				success: false,
 				error,
@@ -712,27 +734,27 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 
 		return {
 			success: false,
-			error: 'An unknown error occured',
+			error: "An unknown error occured",
 			message: undefined,
 		};
 	}
 }
 
 export async function createToken(
-	description: string,
+	description: string
 ): Promise<GenericFetchReturn<string>> {
 	try {
-		const response = await fetch('/api/account/token', {
-			method: 'POST',
-			credentials: 'same-origin',
-			body: JSON.stringify({description}),
+		const response = await fetch("/api/account/token", {
+			method: "POST",
+			credentials: "same-origin",
+			body: JSON.stringify({ description }),
 			headers: {
-				'Content-Type': 'application/json',
+				"Content-Type": "application/json",
 			},
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const body: {code: number; message: string} | undefined =
+		const body: { code: number; message: string } | undefined =
 			await response.json();
 
 		if (/2\d{2}/.test(response.status.toString())) {
@@ -745,7 +767,7 @@ export async function createToken(
 
 		if (response.status === 500) {
 			return {
-				error: body?.message ?? 'An internal server error occurred',
+				error: body?.message ?? "An internal server error occurred",
 				success: false,
 				response,
 				output: undefined,
@@ -754,7 +776,7 @@ export async function createToken(
 
 		if (response.status === 401) {
 			return {
-				error: body?.message ?? 'Unauthorized',
+				error: body?.message ?? "Unauthorized",
 				success: false,
 				response,
 				output: undefined,
@@ -763,7 +785,7 @@ export async function createToken(
 
 		if (response.status === 400) {
 			return {
-				error: body?.message ?? 'Bad Request',
+				error: body?.message ?? "Bad Request",
 				success: false,
 				response,
 				output: undefined,
@@ -771,7 +793,7 @@ export async function createToken(
 		}
 
 		return {
-			error: body?.message ?? 'An unknown error occurred',
+			error: body?.message ?? "An unknown error occurred",
 			success: false,
 			response,
 			output: undefined,
@@ -782,16 +804,16 @@ export async function createToken(
 }
 
 export async function revokeToken(
-	id: string,
+	id: string
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch(`/api/account/token/${id}`, {
-			method: 'DELETE',
-			credentials: 'same-origin',
+			method: "DELETE",
+			credentials: "same-origin",
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const body: {code: number; message: string} | undefined =
+		const body: { code: number; message: string } | undefined =
 			await response.json();
 
 		if (/2\d{2}/.test(response.status.toString())) {
@@ -804,7 +826,7 @@ export async function revokeToken(
 
 		if (response.status === 500) {
 			return {
-				error: body?.message ?? 'An internal server error occurred',
+				error: body?.message ?? "An internal server error occurred",
 				success: false,
 				response,
 				output: undefined,
@@ -813,7 +835,7 @@ export async function revokeToken(
 
 		if (response.status === 401) {
 			return {
-				error: body?.message ?? 'Unauthorized',
+				error: body?.message ?? "Unauthorized",
 				success: false,
 				response,
 				output: undefined,
@@ -822,7 +844,7 @@ export async function revokeToken(
 
 		if (response.status === 400) {
 			return {
-				error: body?.message ?? 'Bad Request',
+				error: body?.message ?? "Bad Request",
 				success: false,
 				response,
 				output: undefined,
@@ -830,7 +852,7 @@ export async function revokeToken(
 		}
 
 		return {
-			error: body?.message ?? 'An unknown error occurred',
+			error: body?.message ?? "An unknown error occurred",
 			success: false,
 			response,
 			output: undefined,
@@ -841,16 +863,16 @@ export async function revokeToken(
 }
 
 export async function uploadFile(
-	data: FormData,
+	data: FormData
 ): Promise<GenericFetchReturn<string>> {
 	try {
-		const response = await fetch('/api/file', {
-			method: 'POST',
-			credentials: 'same-origin',
+		const response = await fetch("/api/file", {
+			method: "POST",
+			credentials: "same-origin",
 			body: data,
 		});
 
-		console.log(response.headers.get('content-type'));
+		console.log(response.headers.get("content-type"));
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
@@ -861,11 +883,11 @@ export async function uploadFile(
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const body: {code: number; message: string} | undefined =
+		const body: { code: number; message: string } | undefined =
 			await response.json();
 		if (response.status === 500) {
 			return {
-				error: body?.message ?? 'An internal server error occurred',
+				error: body?.message ?? "An internal server error occurred",
 				success: false,
 				response,
 				output: undefined,
@@ -874,7 +896,7 @@ export async function uploadFile(
 
 		if (response.status === 401) {
 			return {
-				error: body?.message ?? 'Unauthorized',
+				error: body?.message ?? "Unauthorized",
 				success: false,
 				response,
 				output: undefined,
@@ -883,16 +905,16 @@ export async function uploadFile(
 
 		if (response.status === 400) {
 			return {
-				error: body?.message ?? 'Bad Request',
+				error: body?.message ?? "Bad Request",
 				success: false,
 				response,
 				output: undefined,
 			};
 		}
 
-		console.log('what');
+		console.log("what");
 		return {
-			error: body?.message ?? 'An unknown error occurred',
+			error: body?.message ?? "An unknown error occurred",
 			success: false,
 			response,
 			output: undefined,
@@ -903,19 +925,19 @@ export async function uploadFile(
 }
 
 export async function shortenLink(
-	url: URL,
+	url: URL
 ): Promise<GenericFetchReturn<string>> {
 	try {
-		const response = await fetch('/api/link', {
-			method: 'POST',
-			credentials: 'same-origin',
-			body: JSON.stringify({url}),
+		const response = await fetch("/api/link", {
+			method: "POST",
+			credentials: "same-origin",
+			body: JSON.stringify({ url }),
 			headers: {
-				'Content-Type': 'application/json',
+				"Content-Type": "application/json",
 			},
 		});
 
-		console.log(response.headers.get('content-type'));
+		console.log(response.headers.get("content-type"));
 
 		if (/2\d{2}/.test(response.status.toString())) {
 			return {
@@ -926,11 +948,11 @@ export async function shortenLink(
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const body: {code: number; message: string} | undefined =
+		const body: { code: number; message: string } | undefined =
 			await response.json();
 		if (response.status === 500) {
 			return {
-				error: body?.message ?? 'An internal server error occurred',
+				error: body?.message ?? "An internal server error occurred",
 				success: false,
 				response,
 				output: undefined,
@@ -939,7 +961,7 @@ export async function shortenLink(
 
 		if (response.status === 404 || response.status === 406) {
 			return {
-				error: body?.message ?? 'URL Not Accepted',
+				error: body?.message ?? "URL Not Accepted",
 				success: false,
 				response,
 				output: undefined,
@@ -948,7 +970,7 @@ export async function shortenLink(
 
 		if (response.status === 401) {
 			return {
-				error: body?.message ?? 'Unauthorized',
+				error: body?.message ?? "Unauthorized",
 				success: false,
 				response,
 				output: undefined,
@@ -957,7 +979,7 @@ export async function shortenLink(
 
 		if (response.status === 400) {
 			return {
-				error: body?.message ?? 'Bad Request',
+				error: body?.message ?? "Bad Request",
 				success: false,
 				response,
 				output: undefined,
@@ -967,7 +989,7 @@ export async function shortenLink(
 		console.log(response.status);
 
 		return {
-			error: body?.message ?? 'An unknown error occurred',
+			error: body?.message ?? "An unknown error occurred",
 			success: false,
 			response,
 			output: undefined,

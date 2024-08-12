@@ -26,10 +26,10 @@
 import crypto from "crypto";
 import { Buffer } from "buffer";
 import jwt, { type Algorithm } from "jsonwebtoken";
-import type { Core } from "../../internals";
-import { logger } from "../../internals";
-import type { User } from "../Database/db-class";
-import AuthKeyHandler from "../../handlers/auth-key-handler";
+import type { Core } from "../../internals.js";
+import { logger } from "../../internals.js";
+import type { User } from "../Database/db-class.js";
+import AuthKeyHandler from "../../handlers/auth-key-handler.js";
 
 /**
  * @classdesc Handle token authorization.

@@ -21,9 +21,9 @@
 import childProcess from "child_process";
 import util from "util";
 import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../internals";
-import Path from "../../../Structures/path";
-import Package from "../../../../../package.json";
+import { type Core } from "../../../internals.js";
+import Path from "../../../Structures/path.js";
+import Package from "../../../../../package.json" assert { type: "json" };
 
 const exec = util.promisify(childProcess.exec);
 

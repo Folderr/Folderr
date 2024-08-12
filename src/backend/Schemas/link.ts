@@ -19,16 +19,16 @@
  *
  */
 
-import {Schema, model} from 'mongoose';
-import type {Link} from '../Structures/Database/db-class';
+import { Schema, model } from "mongoose";
+import type { Link } from "../Structures/Database/db-class.js";
 
 const shortSchema = new Schema({
-	link: {type: String, required: true},
-	owner: {type: String, required: true},
-	id: {type: String, required: true, index: true},
-	createdAt: {type: Date, default: new Date()},
+	link: { type: String, required: true },
+	owner: { type: String, required: true },
+	id: { type: String, required: true, index: true },
+	createdAt: { type: Date, default: new Date() },
 });
 
-const shortModel = model<Link>('short', shortSchema);
+const shortModel = model<Link>("short", shortSchema);
 
 export default shortModel;

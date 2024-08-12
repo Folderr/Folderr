@@ -20,8 +20,8 @@
  */
 
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
 /**
  * @classdesc Remove an administrators admin status
  */

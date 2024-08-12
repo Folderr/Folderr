@@ -2,7 +2,7 @@
 import { CheckCircleIcon, UserAddIcon } from "@heroicons/vue/solid";
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import * as api from "../wrappers/api";
+import * as api from "../wrappers/api.js";
 import type SuccessesErrors from "../components/Success-N-Error.vue";
 import UInput from "./Underline-Input.vue";
 import { passwordRegex, usernameRegex, emailRegex } from "../utils/regexs";

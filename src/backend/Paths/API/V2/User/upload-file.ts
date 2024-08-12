@@ -26,8 +26,8 @@ import { promisify } from "util";
 import { pipeline } from "stream";
 import { unlink } from "fs/promises";
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { Core } from "../../../../internals";
-import Path from "../../../../Structures/path";
+import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
 
 const pump = promisify(pipeline);
 

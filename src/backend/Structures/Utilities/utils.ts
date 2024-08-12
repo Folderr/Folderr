@@ -24,16 +24,16 @@ import crypto from "crypto";
 import buffer from "buffer";
 import argon2 from "argon2";
 import * as uuid from "uuid"; // Use ulid over uuid
-import ulid from "ulidx";
-import type { JTDSchemaType } from "ajv/dist/jtd";
-import AJV from "ajv/dist/jtd";
+import * as ulid from "ulidx";
+import type { JTDSchemaType } from "ajv/dist/jtd.js";
+import AJV from "ajv/dist/jtd.js";
 import type { FastifyRequest } from "fastify";
-import type { User as UI, PendingMember, User } from "../Database/db-class";
-import type { Core } from "../../internals";
-import { Authorization } from "../../internals";
-import * as constants from "../constants/index";
-import type { FoldCodesI } from "./fold-codes";
-import { FoldCodes } from "./fold-codes";
+import type { User as UI, PendingMember, User } from "../Database/db-class.js";
+import type { Core } from "../../internals.js";
+import { Authorization } from "../../internals.js";
+import * as constants from "../constants/index.js";
+import type { FoldCodesI } from "./fold-codes.js";
+import { FoldCodes } from "./fold-codes.js";
 
 type MirrorResponse = {
 	message: {

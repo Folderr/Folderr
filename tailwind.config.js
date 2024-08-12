@@ -1,5 +1,5 @@
 // eslint-disable-next-line unicorn/prefer-module
-module.exports = {
+export default {
 	theme: {
 		extend: {
 			colors: {
