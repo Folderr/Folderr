@@ -71,8 +71,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^2.0.1",
     "@iconify/types": "^1.1.0",
-    "@types/busboy": "^0.3.1",
-    "@types/connect": "^3.4.35",
     "@types/js-yaml": "^4.0.2",
     "@types/jsonwebtoken": "^8.5.4",
     "@types/mime-types": "^2.1.0",
