@@ -100,7 +100,7 @@
 									() =>
 										setReasonWarn(
 											// @ts-expect-error, we've checked this
-											selectedUser?.user.id
+											selectedUser?.user.id,
 										)
 								"
 								class="flex align-middle"
@@ -145,7 +145,7 @@
 									async () => {
 										await setReasonDelete(
 											// @ts-expect-error, we've checked this
-											selectedUser?.user.id
+											selectedUser?.user.id,
 										);
 									}
 								"
@@ -159,7 +159,7 @@
 									() =>
 										setReasonBan(
 											// @ts-expect-error, we've checked this
-											selectedUser?.user.id
+											selectedUser?.user.id,
 										)
 								"
 								type="red"
@@ -471,7 +471,7 @@ const setReasonDelete = (userid: string) => {
 
 const reasonDelete = async (
 	user: FilteredUsers,
-	reason: string | undefined
+	reason: string | undefined,
 ) => {
 	if (!reason) {
 		if (sne.value) {
@@ -497,7 +497,7 @@ const reasonDelete = async (
 	}
 
 	userList.value = userList.value?.filter(
-		(localUser) => localUser.id !== user.id
+		(localUser) => localUser.id !== user.id,
 	);
 
 	if (selectedUser.value) {
@@ -538,7 +538,7 @@ const setReasonWarn = (userid: string) => {
 
 const reasonWarn = async (
 	user: FilteredUsers,
-	localReason: string | undefined
+	localReason: string | undefined,
 ) => {
 	if (!localReason) {
 		if (sne.value) {
@@ -612,7 +612,7 @@ const reasonBan = async (user: FilteredUsers, reason: string | undefined) => {
 	}
 
 	userList.value = userList.value?.filter(
-		(localUser) => localUser.id !== user.id
+		(localUser) => localUser.id !== user.id,
 	);
 	cancelReason();
 
@@ -642,7 +642,7 @@ const setReasonDemote = (userid: string) => {
 
 const reasonDemote = async (
 	user: FilteredUsers,
-	reason: string | undefined
+	reason: string | undefined,
 ) => {
 	if (!reason) {
 		if (sne.value) {
@@ -705,7 +705,7 @@ const selectedUser = ref<SelectedUser | undefined>();
 
 const openUserDialog = (
 	userid: string,
-	type: UserSelectionTypeText
+	type: UserSelectionTypeText,
 ): boolean => {
 	let user: UserType | undefined;
 	if (type === "User") {
@@ -777,7 +777,7 @@ const userList = ref<FilteredUsers[]>();
 
 const loadVerifyingUsers = async () => {
 	const users = await api.Admin.verifying.getVerfiyingUsers();
-	if (users.success && users.output && typeof users.output !== 'string') {
+	if (users.success && users.output && typeof users.output !== "string") {
 		verifyingUsers.value = users.output;
 	}
 };
@@ -822,7 +822,7 @@ async function denyUser(id: string): Promise<boolean | Error> {
 	}
 
 	verifyingUsers.value = verifyingUsers.value?.filter(
-		(user) => user.id !== id
+		(user) => user.id !== id,
 	);
 	if (selectedUser.value) {
 		closeUserDialog();
@@ -909,7 +909,7 @@ async function acceptUser(id: string): Promise<boolean | Error> {
 	const user = verifyingUsers.value?.find((user) => user.id === id);
 
 	verifyingUsers.value = verifyingUsers.value?.filter(
-		(user) => user.id !== id
+		(user) => user.id !== id,
 	);
 	if (user) {
 		userList.value?.push({
@@ -937,7 +937,7 @@ async function acceptUser(id: string): Promise<boolean | Error> {
 
 async function deleteUser(
 	id: string,
-	reason: string
+	reason: string,
 ): Promise<boolean | Error> {
 	const output = await api.Admin.user.deleteAccount(id, reason);
 	if (output.error ?? !output.success) {
