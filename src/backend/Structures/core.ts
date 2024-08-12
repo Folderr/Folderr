@@ -106,7 +106,7 @@ const isTSNode =
 
 if (isTSNode && process.env.NODE_ENV !== "dev") {
 	logger.fatal(
-		"Running in ts-node-dev while not being in dev mode is not supported"
+		"Running in ts-node-dev while not being in dev mode is not supported",
 	);
 	process.exit(1);
 }
@@ -175,7 +175,7 @@ export default class Core {
 		// Init app
 		this.httpsEnabled = Boolean(
 			this.#keys.httpsCertOptions?.cert &&
-				this.#keys.httpsCertOptions?.key
+				this.#keys.httpsCertOptions?.key,
 		);
 
 		this.app = fastify({
@@ -198,7 +198,7 @@ export default class Core {
 			this,
 			this.#emailConfig?.sendingEmail,
 			this.#emailConfig?.mailerOptions,
-			this.#emailConfig?.selfTest
+			this.#emailConfig?.selfTest,
 		);
 		this.codes = StatusCodes;
 		this.got = got.extend({
@@ -218,7 +218,7 @@ export default class Core {
 				parseAs: "string",
 			},
 			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
-			(_request, body, done) => done(null, body)
+			(_request, body, done) => done(null, body),
 		);
 	}
 
@@ -232,15 +232,15 @@ export default class Core {
 		const { error } = await this.emailer.verifyConnection();
 		if (error && error.message !== "Emailer not activated") {
 			this.logger.fatal(
-				"Emailer connection failed. Shutting down. Error below."
+				"Emailer connection failed. Shutting down. Error below.",
 			);
 			this.logger.fatal(error);
 			this.logger.warn(
-				"This may mean your emailer is not configured properly."
+				"This may mean your emailer is not configured properly.",
 			);
 			this.logger.warn(
 				"Please check host, port, and authentication are correct " +
-					"and in line with your host"
+					"and in line with your host",
 			);
 			process.exit(1);
 		} else {
@@ -317,7 +317,7 @@ export default class Core {
 			this.app.addHook("preValidation", (request, _, done) => {
 				this.logger.debug("Validation:");
 				this.logger.debug(
-					`Content-Type: ${request.headers["content-type"] ?? "N/A"}`
+					`Content-Type: ${request.headers["content-type"] ?? "N/A"}`,
 				);
 				done();
 			});
@@ -338,7 +338,7 @@ export default class Core {
 	}
 
 	initServer(
-		keys: KeyConfig
+		keys: KeyConfig,
 	): (handler: FastifyServerFactoryHandler) => http.Server {
 		return (handler: FastifyServerFactoryHandler) => {
 			if (keys.httpsCertOptions?.key && keys.httpsCertOptions?.cert) {
@@ -353,7 +353,7 @@ export default class Core {
 					},
 					(request, response) => {
 						handler(request, response);
-					}
+					},
 				);
 				this.logger.debug("Using SPDY server");
 				this.logger.debug("Initalized Server");
@@ -366,11 +366,11 @@ export default class Core {
 				!this.config.trustProxies
 			) {
 				this.logger.error(
-					"HTTPS and/or HTTP/2 required in production. Shuting down"
+					"HTTPS and/or HTTP/2 required in production. Shuting down",
 				);
 				this.shutdownServer("Core.initServer", "No HTTPS Certificate");
 				throw new Error(
-					"HTTPS and/or HTTP/2 required in production. Shuting down"
+					"HTTPS and/or HTTP/2 required in production. Shuting down",
 				);
 			}
 
@@ -393,9 +393,9 @@ export default class Core {
 			extension = ".js";
 		}
 
-		let osPrefix = '';
-		if (platform() === 'win32') {
-			osPrefix = 'file://';
+		let osPrefix = "";
+		if (platform() === "win32") {
+			osPrefix = "file://";
 		}
 
 		const dirs = fs.readdirSync(basedir);
@@ -404,7 +404,12 @@ export default class Core {
 		for (const dir of dirs) {
 			const children = fs.readdirSync(basedir + `/${dir}`);
 			for (const child of children) {
-				if (child.endsWith(".ts") || child.endsWith(".js") || child.endsWith(".map")) continue;
+				if (
+					child.endsWith(".ts") ||
+					child.endsWith(".js") ||
+					child.endsWith(".map")
+				)
+					continue;
 				let files = fs
 					.readdirSync(basedir + `/${dir}/` + child)
 					.filter((file) => file.endsWith(extension))
@@ -436,11 +441,13 @@ export default class Core {
 									path: string;
 									route: (
 										fastify: FastifyInstance,
-										core: Core
+										core: Core,
 									) => any;
 									rewrites?: string;
 									enabled: boolean;
-								} = await import(`${osPrefix}${process.cwd()}` + `/${file}`);
+								} = await import(
+									`${osPrefix}${process.cwd()}` + `/${file}`
+								);
 								if (!imported.enabled) return;
 								// In the event that the file rewrites older legacy code, disable it
 								if (
@@ -460,8 +467,8 @@ export default class Core {
 					},
 					{
 						prefix: `/api${files.prefix}`,
-					}
-				)
+					},
+				),
 			);
 		}
 
@@ -472,7 +479,7 @@ export default class Core {
 		this.logger.debug("Init DB");
 		// Again, neglecting this potential error to handle elsewhere
 		return this.db.init(
-			this.#dbConfig.url || "mongodb://localhost/folderr"
+			this.#dbConfig.url || "mongodb://localhost/folderr",
 		);
 	}
 
@@ -515,20 +522,20 @@ export default class Core {
 						const method = endpoint.type.toUpperCase();
 
 						this.logger.startup(
-							`API Path ${label} v${version} initialized with method ${method}!`
+							`API Path ${label} v${version} initialized with method ${method}!`,
 						);
 						count++;
 					}
 
 					this.logger.info(
-						`${count} API v${version} initialized paths`
+						`${count} API v${version} initialized paths`,
 					);
 
 					done();
 				},
 				{
 					prefix: api.prefix,
-				}
+				},
 			);
 		}
 	}
@@ -544,7 +551,7 @@ export default class Core {
 							app.post(
 								url,
 								path.options,
-								path.execute.bind(path)
+								path.execute.bind(path),
 							);
 							continue;
 						}
@@ -556,7 +563,7 @@ export default class Core {
 						app.post(
 							path.path,
 							path.options,
-							path.execute.bind(path)
+							path.execute.bind(path),
 						);
 						break;
 					}
@@ -574,7 +581,7 @@ export default class Core {
 							app.delete(
 								url,
 								path.options,
-								path.execute.bind(path)
+								path.execute.bind(path),
 							);
 							continue;
 						}
@@ -586,7 +593,7 @@ export default class Core {
 						app.delete(
 							path.path,
 							path.options,
-							path.execute.bind(path)
+							path.execute.bind(path),
 						);
 						break;
 					}
@@ -604,7 +611,7 @@ export default class Core {
 							app.patch(
 								url,
 								path.options,
-								path.execute.bind(path)
+								path.execute.bind(path),
 							);
 							continue;
 						}
@@ -616,7 +623,7 @@ export default class Core {
 						app.patch(
 							path.path,
 							path.options,
-							path.execute.bind(path)
+							path.execute.bind(path),
 						);
 						break;
 					}
@@ -642,7 +649,7 @@ export default class Core {
 						app.get(
 							path.path,
 							path.options,
-							path.execute.bind(path)
+							path.execute.bind(path),
 						);
 						break;
 					}
@@ -655,7 +662,7 @@ export default class Core {
 
 	findPaths(
 		dir: string,
-		caller?: string
+		caller?: string,
 	): Array<
 		Promise<{
 			default: importedApi;
@@ -667,7 +674,6 @@ export default class Core {
 		if (!require.main?.path) {
 			return [];
 		}
-
 
 		const paths: Array<
 			Promise<{
@@ -689,7 +695,7 @@ export default class Core {
 						type?: string;
 						label?: string;
 						url?: string;
-					}>
+					}>,
 				);
 				continue;
 			}
@@ -717,16 +723,16 @@ export default class Core {
 					}>
 				>;
 			}> = [];
-			let osPrefix = '';
-			if (platform() === 'win32') {
-				osPrefix = 'file://';
+			let osPrefix = "";
+			if (platform() === "win32") {
+				osPrefix = "file://";
 			}
 			for (const item of dir) {
 				if (!item.startsWith("V")) continue;
 
 				const output = this.findPaths(
 					join(osPrefix + require.main.path, `Paths/API/${item}`),
-					"initAPI/for const item of dir"
+					"initAPI/for const item of dir",
 				);
 				paths.push({ version: item, paths: output });
 			}
@@ -748,7 +754,7 @@ export default class Core {
 								const Endpoint = pathimport.default;
 								if (
 									Object.getOwnPropertyNames(
-										Endpoint
+										Endpoint,
 									).includes("prototype")
 								) {
 									const endpoint =
@@ -775,7 +781,7 @@ export default class Core {
 									(
 										Endpoint as (
 											fastify: FastifyInstance,
-											core: Core
+											core: Core,
 										) => FastifyInstance
 									)(instance, this);
 									endpointType = pathimport.type ?? "unknown";
@@ -787,21 +793,21 @@ export default class Core {
 								this.logger.startup(
 									`Loaded ${label}` +
 										` ${value.version} with method ${endpointType}` +
-										` with url /api${endUrl}`
+										` with url /api${endUrl}`,
 								);
 								count++;
 							}
 
 							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 							this.logger.startup(
-								`Loaded ${count} API Paths (${value.version})`
+								`Loaded ${count} API Paths (${value.version})`,
 							);
 							done();
 						},
 						{
 							prefix: "/api",
-						}
-					)
+						},
+					),
 				);
 			}
 
@@ -829,14 +835,14 @@ export default class Core {
 			if (path.enabled) {
 				if (!path.label || !path.path) {
 					this.logger.error(
-						`Path ${endpointName} label or endpoint not found, fail init of Path.`
+						`Path ${endpointName} label or endpoint not found, fail init of Path.`,
 					);
 					continue;
 				}
 
 				if (!path.execute) {
 					this.logger.error(
-						`Path ${endpointName} executable found, fail init of Path.`
+						`Path ${endpointName} executable found, fail init of Path.`,
 					);
 					continue;
 				}
@@ -847,7 +853,7 @@ export default class Core {
 				this.logger.startup(
 					`Initalized path ${
 						path.label
-					} (${base}) with method ${path.type.toUpperCase()}`
+					} (${base}) with method ${path.type.toUpperCase()}`,
 				);
 				pathCount++;
 			}
@@ -859,7 +865,8 @@ export default class Core {
 	}
 
 	async initFrontend() {
-		if (process.env.NODE_ENV === "production") {
+		console.log("Node Env: " + process.env.NODE_ENV);
+		if (process.env.NODE_ENV !== "dev") {
 			this.logger.debug("Using production build for frontend");
 
 			this.app.setNotFoundHandler(async (request, reply) => {
@@ -883,9 +890,7 @@ export default class Core {
 			return;
 		}
 
-		if (process.env.DEBUG) {
-			this.logger.debug("Using Development Vite server for frontend");
-		}
+		this.logger.debug("Using Development Vite server for frontend");
 
 		const vite = await import("vite");
 		await this.app.register(middie);
@@ -931,7 +936,7 @@ export default class Core {
 		this.app.addContentTypeParser(
 			"text/json",
 			{ parseAs: "string" },
-			this.app.getDefaultJsonParser("ignore", "ignore")
+			this.app.getDefaultJsonParser("ignore", "ignore"),
 		);
 		return "development";
 	}
@@ -947,10 +952,10 @@ export default class Core {
 		) {
 			ee.emit("fail", 13);
 			this.logger.fatal(
-				`Cannot listen to port ${this.config.port} as you are not root!`
+				`Cannot listen to port ${this.config.port} as you are not root!`,
 			);
 			throw new Error(
-				`Cannot listen to port ${this.config.port} as you are not root!`
+				`Cannot listen to port ${this.config.port} as you are not root!`,
 			);
 		}
 
@@ -967,7 +972,11 @@ export default class Core {
 		});
 	}
 
-	shutdownServer(calledby?: string, reason?: string, exitCode?: number): void {
+	shutdownServer(
+		calledby?: string,
+		reason?: string,
+		exitCode?: number,
+	): void {
 		if (calledby) {
 			this.logger.info(`SHUTDOWN - Shutdown called by ${calledby}`);
 			if (process.env.NODE_ENV !== "dev") {
@@ -989,17 +998,20 @@ export default class Core {
 			!this.#deleter.killed
 		) {
 			this.logger.info("SHUTDOWN - Waiting on deleter shutdown");
-			if (process.env.NODE_ENV !== 'dev') {
+			if (process.env.NODE_ENV !== "dev") {
 				console.log("SHUTDOWN - Waiting on deleter shutdown");
 			}
 			this.#deleter.send({ msg: "shutdown" });
 			this.#deleter.on("exit", () => {
 				this.logger.info("Account Deleter: Offline");
-				if (process.env.NODE_ENV !== 'dev') {
+				if (process.env.NODE_ENV !== "dev") {
 					console.log("Account Deleter: Offline");
 				}
 				this.#internals.deleterShutdown = true;
-				if (this.#requestIds.size === 0 && this.#internals.serverClosed) {
+				if (
+					this.#requestIds.size === 0 &&
+					this.#internals.serverClosed
+				) {
 					process.exit(exitCode || 0);
 				}
 			});
@@ -1033,10 +1045,16 @@ export default class Core {
 
 		if (!this.#internals.serverClosed || this.#requestIds.size !== 0) {
 			this.logger.info("SHUTDOWN - Waiting on HTTP server shutdown");
-			this.logger.info("SHUTDOWN - Requests Currently Handling: " + this.#requestIds.size);
-			if (process.env.NODE_ENV !== 'dev') {
+			this.logger.info(
+				"SHUTDOWN - Requests Currently Handling: " +
+					this.#requestIds.size,
+			);
+			if (process.env.NODE_ENV !== "dev") {
 				console.log("SHUTDOWN - Waiting on HTTP server shutdown");
-				console.log("SHUTDOWN - Requests Currently Handling: " + this.#requestIds.size);
+				console.log(
+					"SHUTDOWN - Requests Currently Handling: " +
+						this.#requestIds.size,
+				);
 			}
 		}
 
