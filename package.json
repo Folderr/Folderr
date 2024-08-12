@@ -11,7 +11,7 @@
     "build:production": "swc && vite build",
     "start": "node --enable-source-maps dist/src/backend/index.js",
     "setup": "node dist/scripts/setup.js",
-    "dev": "tsx watch --clear-screen=false --ignore \"**vite**\" src",
+    "dev": "tsx watch --clear-screen=false --ignore \"**vite**\" src/backend/index.ts",
     "test": "eslint --ext .vue,.ts && node dist/src/backend/index.js",
     "lint": "eslint --ext .vue,.ts src/ scripts/ vite.config.ts",
     "lint:fix": "eslint --ext .vue,.ts --fix src/ scripts/ vite.config.ts",
