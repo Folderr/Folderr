@@ -16,7 +16,7 @@ module.exports = {
 		],
 		extraFileExtensions: [".vue"],
 	},
-	plugins: ["optimize-regex", "unicorn", "import"],
+	plugins: ["optimize-regex", "unicorn"],
 	rules: {
 		indent: "off",
 		"@typescript-eslint/indent": "off",
