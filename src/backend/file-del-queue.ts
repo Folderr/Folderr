@@ -49,6 +49,8 @@ process.on("message", ({ msg, data }) => {
 			}
 
 			case "shutdown": {
+				stopped = true;
+				if (!queuer.onGoing) process.exit(1);
 				queuer.once("stopped", () => {
 					process.exit(1);
 				});

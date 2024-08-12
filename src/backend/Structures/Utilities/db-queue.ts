@@ -44,12 +44,13 @@ export default class DbQueue extends EventEmitter {
 
 	constructor(db?: DB) {
 		super();
-		this.onGoing = true;
+		this.onGoing = false;
 		this.config = Configurer.verifyFetch().db;
 		this.#db = db ?? new MongoDB();
 		if (!db) {
 			this.#db.init(this.config.url).catch((error) => {
 				logger.error("CANNOT RUN DBQueue - Database Error");
+				this.onGoing = false;
 
 				if (error instanceof Error) {
 					logger.debug(error.message);
@@ -95,34 +96,6 @@ export default class DbQueue extends EventEmitter {
 		await this.#db.purgeFiles({ owner: userID }, files.length);
 		await this.#db.purgeUser(userID);
 		await this.#db.purgeTokens(userID);
-	}
-
-	/**
-	 *
-	 * @param files A list of files to delete. Requires values id and path
-	 *
-	 * @deprecated Deprecated in favor of newRemoveFiles
-	 */
-	private async removeFiles(files: Upload[]): Promise<void> {
-		for (const file of files) {
-			try {
-				// Await is needed for this loops functioning
-				// eslint-disable-next-line no-await-in-loop
-				await this.#db.purgeFile({ id: file.id });
-				files = files.filter((fil) => fil.id !== file.id);
-			} catch (error: unknown) {
-				if (error instanceof Error) {
-					logger.error(
-						// eslint-disable-next-line max-len
-						`Database ran into an error while deleting file "${file.path}". See below\n ${error.message}`
-					);
-				}
-
-				logger.error(
-					`Database ran into an error while deleting file "${file.path}".`
-				);
-			}
-		}
 	}
 
 	private async loop(): Promise<void> {

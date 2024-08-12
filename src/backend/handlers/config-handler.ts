@@ -266,7 +266,7 @@ const configHandler = {
 		) {
 			console.log(`Invalid YAML config, missing: ${missing.join(", ")}`);
 			throw new Error(
-				`Invalid YAML config, missing: ${missing.join(", ")}`
+				`Invalid YAML config, missing: ${missing.join(", ")}\nDid you create (or copy) these files?`
 			);
 		} // OK TS, shut up.
 

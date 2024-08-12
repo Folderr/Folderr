@@ -72,12 +72,14 @@ export default class Authorization {
 				this.#core.logger.error(error.message);
 				await this.#core.Utils.sleep(1000);
 				this.#core.shutdownServer(
-					"Utils.init",
-					"Utility initialization failed"
+					"Utils/authorization.init",
+					"Utils/Authorization initialization failed",
+					1
 				);
 			}
-
-			this.#core.app.sentry.captureException(error);
+			if (this.#core.app.sentry) {
+				this.#core.app.sentry.captureException(error);
+			}
 			return;
 		}
 

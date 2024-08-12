@@ -6,15 +6,15 @@
   "scripts": {
     "build": "npm run build:backend && npm run build:frontend",
     "build:frontend": "vite build",
-    "build:typecheck": "tsc && vue-tsc --noEmit -p src/frontend && build:frontend",
-    "build:backend": "swc",
-    "build:production": "swc && vite build",
+    "build:typecheck": "npm run typecheck && npm run build",
+    "build:backend": "swc . --config-file ./.swcrc --ignore dist/**,node_modules/** --copy-files --out-dir dist/",
     "start": "node --enable-source-maps dist/src/backend/index.js",
     "setup": "node dist/scripts/setup.js",
     "dev": "tsx watch --clear-screen=false --ignore \"**vite**\" src/backend/index.ts",
     "test": "eslint --ext .vue,.ts && node dist/src/backend/index.js",
     "lint": "eslint --ext .vue,.ts src/ scripts/ vite.config.ts",
     "lint:fix": "eslint --ext .vue,.ts --fix src/ scripts/ vite.config.ts",
+    "typecheck": "tsc --noEmit && vue-tsc --noEmit -p src/frontend",
     "installdev": "npm i -D && husky install"
   },
   "type": "module",

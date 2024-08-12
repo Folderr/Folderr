@@ -65,6 +65,7 @@ import type { LoggerLevels } from "./logger.js";
 
 // Local Fastify plugins
 import SentryPlugin from "./plugins/sentry.js";
+import { P } from "pino";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -392,22 +393,28 @@ export default class Core {
 			extension = ".js";
 		}
 
+		let osPrefix = '';
+		if (platform() === 'win32') {
+			osPrefix = 'file://';
+		}
+
 		const dirs = fs.readdirSync(basedir);
 		const fullPaths: Array<{ prefix: string; dirs: string[] }> = [];
 		// Find all the files!
 		for (const dir of dirs) {
 			const children = fs.readdirSync(basedir + `/${dir}`);
 			for (const child of children) {
-				if (child.endsWith(".ts") || child.endsWith(".js")) continue;
+				if (child.endsWith(".ts") || child.endsWith(".js") || child.endsWith(".map")) continue;
 				let files = fs
 					.readdirSync(basedir + `/${dir}/` + child)
+					.filter((file) => file.endsWith(extension))
 					.map((file) => `/${basedir}/${dir}/${child}/${file}`);
 				// The index file contains metadata about the subfolder like the API prefix
 				files = files.filter((file) => !/index/.exec(file));
 				// eslint-disable-next-line max-len
 				// eslint-disable-next-line no-await-in-loop, @typescript-eslint/no-unsafe-assignment
 				const { prefix } = await import(
-					`${process.cwd()}/${basedir}/${dir}/${child}/index${extension}`
+					`${osPrefix}${process.cwd()}/${basedir}/${dir}/${child}/index${extension}`
 				);
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				fullPaths.push({ prefix, dirs: files });
@@ -433,7 +440,7 @@ export default class Core {
 									) => any;
 									rewrites?: string;
 									enabled: boolean;
-								} = await import(process.cwd() + `/${file}`);
+								} = await import(`${osPrefix}${process.cwd()}` + `/${file}`);
 								if (!imported.enabled) return;
 								// In the event that the file rewrites older legacy code, disable it
 								if (
@@ -661,6 +668,7 @@ export default class Core {
 			return [];
 		}
 
+
 		const paths: Array<
 			Promise<{
 				default: importedApi;
@@ -709,11 +717,15 @@ export default class Core {
 					}>
 				>;
 			}> = [];
+			let osPrefix = '';
+			if (platform() === 'win32') {
+				osPrefix = 'file://';
+			}
 			for (const item of dir) {
 				if (!item.startsWith("V")) continue;
 
 				const output = this.findPaths(
-					join(require.main.path, `Paths/API/${item}`),
+					join(osPrefix + require.main.path, `Paths/API/${item}`),
 					"initAPI/for const item of dir"
 				);
 				paths.push({ version: item, paths: output });
@@ -955,29 +967,41 @@ export default class Core {
 		});
 	}
 
-	shutdownServer(calledby?: string, reason?: string): void {
+	shutdownServer(calledby?: string, reason?: string, exitCode?: number): void {
 		if (calledby) {
-			this.logger.info(`Shutdown called by ${calledby}`);
+			this.logger.info(`SHUTDOWN - Shutdown called by ${calledby}`);
 			if (process.env.NODE_ENV !== "dev") {
-				console.log(`Shutdown called by ${calledby}`);
+				console.log(`SHUTDOWN - Shutdown called by ${calledby}`);
 			}
 		}
 
 		if (reason) {
-			this.logger.info(`Shutting down because ${reason}`);
+			this.logger.info(`SHUTDOWN - Shutting down because ${reason}`);
 			if (process.env.NODE_ENV !== "dev") {
-				console.log(`Shutting down because ${reason}`);
+				console.log(`SHUTDOWN - Shutting down because ${reason}`);
 			}
 		}
 
 		if (
+			this.#deleter &&
 			!(this.#deleter instanceof DelQueue) &&
 			this.#deleter?.connected &&
 			!this.#deleter.killed
 		) {
-			this.#deleter.send({ msg: "stop" });
+			this.logger.info("SHUTDOWN - Waiting on deleter shutdown");
+			if (process.env.NODE_ENV !== 'dev') {
+				console.log("SHUTDOWN - Waiting on deleter shutdown");
+			}
+			this.#deleter.send({ msg: "shutdown" });
 			this.#deleter.on("exit", () => {
+				this.logger.info("Account Deleter: Offline");
+				if (process.env.NODE_ENV !== 'dev') {
+					console.log("Account Deleter: Offline");
+				}
 				this.#internals.deleterShutdown = true;
+				if (this.#requestIds.size === 0 && this.#internals.serverClosed) {
+					process.exit(exitCode || 0);
+				}
 			});
 		} else if (this.#deleter instanceof DelQueue) {
 			if (!this.#deleter.onGoing) {
@@ -1004,18 +1028,27 @@ export default class Core {
 			this.#requestIds.size === 0 &&
 			this.#internals.deleterShutdown
 		) {
-			process.exit(0);
+			process.exit(exitCode || 0);
+		}
+
+		if (!this.#internals.serverClosed || this.#requestIds.size !== 0) {
+			this.logger.info("SHUTDOWN - Waiting on HTTP server shutdown");
+			this.logger.info("SHUTDOWN - Requests Currently Handling: " + this.#requestIds.size);
+			if (process.env.NODE_ENV !== 'dev') {
+				console.log("SHUTDOWN - Waiting on HTTP server shutdown");
+				console.log("SHUTDOWN - Requests Currently Handling: " + this.#requestIds.size);
+			}
 		}
 
 		ee.once("noRequests", () => {
 			if (this.#internals.deleterShutdown) {
-				process.exit(0);
+				process.exit(exitCode || 0);
 			}
 
 			if (this.#deleter instanceof DelQueue) {
 				this.#deleter.once("stopped", () => {
 					this.#internals.deleterShutdown = true;
-					process.exit(0);
+					process.exit(exitCode || 0);
 				});
 			}
 		});

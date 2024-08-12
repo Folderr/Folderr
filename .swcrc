@@ -1,14 +1,24 @@
 {
-  "exclude": "node_modules/",
+  "exclude": "node_modules/**",
   "jsc": {
     "parser": {
       "syntax": "typescript",
-      "topLevelAwait": true
+      "topLevelAwait": true,
+      "dynamicImport": true
+    },
+    "paths": {
+      "*/package.json": ["../*/package.json"]
+    },
+    "experimental": {
+      "emitAssertForImportAttributes": true,
+      "keepImportAttributes": true
     },
     "target": "esnext",
-    "baseUrl": ".",
+    "baseUrl": "."
   },
   "module": {
-    "type": "nodenext"
-  }
+    "type": "nodenext",
+    "resolveFully": true
+  },
+  "sourceMaps": true
 }
