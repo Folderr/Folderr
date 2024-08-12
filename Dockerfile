@@ -1,4 +1,4 @@
-FROM node:16 AS build
+FROM node:20 AS build
 ARG installtype="--omit dev"
 
 WORKDIR /usr/build
@@ -14,7 +14,7 @@ ARG buildcmd=build:production
 
 RUN npm run ${buildcmd}
 
-FROM node:16 AS setup
+FROM node:20 AS setup
 
 WORKDIR /usr/fldrr
 
