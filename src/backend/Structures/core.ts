@@ -16,7 +16,11 @@ import fastifyStatic from "@fastify/static";
 import ratelimit from "@fastify/rate-limit";
 import fastifyCors from "@fastify/cors";
 import multipart from "@fastify/multipart";
-import type { FastifyInstance, FastifyServerFactoryHandler } from "fastify";
+import type {
+	FastifyBaseLogger,
+	FastifyInstance,
+	FastifyServerFactoryHandler,
+} from "fastify";
 
 // Frontend stuff
 
@@ -55,9 +59,11 @@ import type { Path } from "../internals";
 
 // Other utilities
 import logger from "./logger";
+import type { LoggerLevels } from "./logger";
 
 // Local Fastify plugins
 import SentryPlugin from "./plugins/sentry";
+import { type FastifyRequest } from "fastify/types/request";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -76,6 +82,7 @@ interface LogOptions extends pino.LoggerOptions {
 		startup: 35;
 	};
 }
+
 declare module "fastify" {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface FastifyInstance {
@@ -109,7 +116,7 @@ export default class Core {
 
 	public readonly config: CoreConfig;
 
-	public readonly logger: pino.Logger<LogOptions>;
+	public readonly logger: pino.Logger<LoggerLevels>;
 
 	public readonly emailer: Emailer;
 
@@ -173,7 +180,7 @@ export default class Core {
 			trustProxy: this.config.trustProxies,
 			disableRequestLogging: true,
 			serverFactory: this.initServer(this.#keys),
-			logger: this.logger,
+			logger: this.logger as FastifyBaseLogger,
 		});
 		this.app.decorate("codes", StatusCodes);
 
@@ -763,6 +770,7 @@ export default class Core {
 									endUrl = pathimport.url ?? "Unknown";
 								}
 
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 								this.logger.startup(
 									`Loaded ${label}` +
 										` ${value.version} with method ${endpointType}` +
@@ -771,6 +779,7 @@ export default class Core {
 								count++;
 							}
 
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 							this.logger.startup(
 								`Loaded ${count} API Paths (${value.version})`
 							);
@@ -821,7 +830,7 @@ export default class Core {
 
 				this.internalInitPath(path);
 
-				// eslint, this is a string. Do not mark this as max-len.
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				this.logger.startup(
 					`Initalized path ${
 						path.label
@@ -831,6 +840,7 @@ export default class Core {
 			}
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		this.logger.startup(`Initalized ${pathCount} paths`);
 		return true;
 	}
@@ -874,18 +884,16 @@ export default class Core {
 			envDir: process.cwd(),
 		});
 		const publicPaths = fs.readdirSync("./src/frontend/public");
-		this.app.use((request, response, next) => {
+		this.app.use((request: FastifyRequest, response, next) => {
 			const strippedUrl = request.url?.slice(1, request.url.length) ?? "";
+			const regex =
+				/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/;
 			if (publicPaths.includes(strippedUrl)) {
-				server.middlewares(request, response, next);
-			} else if (
-				request.url?.match(
-					/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/
-				)
-			) {
+				server.middlewares(request.raw, response, next);
+			} else if (regex.exec(request.url)) {
 				next();
 			} else {
-				server.middlewares(request, response, next);
+				server.middlewares(request.raw, response, next);
 			}
 		});
 		this.app.setNotFoundHandler(async (request, reply) => {
