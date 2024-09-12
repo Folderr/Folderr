@@ -53,7 +53,7 @@ export async function route(fastify: FastifyInstance, core: Core) {
 			}>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuthAdmin(request);
+			const auth = await core.Utils.checkAuth(request, true);
 			if (!auth) {
 				return reply.status(core.codes.unauth).send({
 					code: core.codes.unauth,
