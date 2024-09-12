@@ -32,6 +32,7 @@ import got from "got";
 import type { Got } from "got";
 import * as Sentry from "@sentry/node";
 import type pino from "pino";
+import fg from "fast-glob";
 
 // Local files
 // Handlers
@@ -137,6 +138,8 @@ export default class Core {
 
 	readonly #rewritten: string[];
 
+	readonly #registeredEndpoints: Set<string>;
+
 	readonly #deleter: ChildProcess | DelQueue;
 
 	readonly #keys: KeyConfig;
@@ -164,6 +167,7 @@ export default class Core {
 
 		// For new paths rewritten under "NeoAPI" Folder
 		this.#rewritten = [];
+		this.#registeredEndpoints = new Set<string>();
 
 		// Init configs
 		const configs = Configurer.verifyFetch();
@@ -398,81 +402,73 @@ export default class Core {
 			osPrefix = "file://";
 		}
 
+		const files = await fg(`${basedir}/**/*${extension}`, {
+			ignore: ["**/index*"],
+		});
+		let prefixes = new Map<string, string>();
 		const dirs = fs.readdirSync(basedir);
 		const fullPaths: Array<{ prefix: string; dirs: string[] }> = [];
 		// Find all the files!
-		for (const dir of dirs) {
-			const children = fs.readdirSync(basedir + `/${dir}`);
-			for (const child of children) {
-				if (
-					child.endsWith(".ts") ||
-					child.endsWith(".js") ||
-					child.endsWith(".map")
-				)
-					continue;
-				let files = fs
-					.readdirSync(basedir + `/${dir}/` + child)
-					.filter((file) => file.endsWith(extension))
-					.map((file) => `/${basedir}/${dir}/${child}/${file}`);
-				// The index file contains metadata about the subfolder like the API prefix
-				files = files.filter((file) => !/index/.exec(file));
-				// eslint-disable-next-line max-len
-				// eslint-disable-next-line no-await-in-loop, @typescript-eslint/no-unsafe-assignment
+		const filebase = `${osPrefix}${process.cwd()}`;
+		let fileGroups = new Map<string, string[]>();
+		for (const lfile of files) {
+			const dir = join(lfile, "../");
+			let topPrefix = prefixes.get(dir);
+			if (!prefixes.has(dir)) {
 				const { prefix } = await import(
-					`${osPrefix}${process.cwd()}/${basedir}/${dir}/${child}/index${extension}`
+					join(filebase, dir, `index${extension}`)
 				);
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				fullPaths.push({ prefix, dirs: files });
+				topPrefix = prefix;
+				prefixes.set(dir, prefix);
+			}
+			if (!fileGroups.has(topPrefix as string)) {
+				const filteredFiles = files.filter((lfile) =>
+					lfile.startsWith(dir),
+				);
+				fileGroups.set(topPrefix as string, filteredFiles);
 			}
 		}
-
-		const promises: any[] = [];
-
-		for (const files of fullPaths) {
-			promises.push(
+		const initQueue = [];
+		// impl: Faster import
+		for (const [prefix, files] of fileGroups) {
+			initQueue.push(
 				this.app.register(
 					async (instance, opts) => {
-						const inits: Array<Promise<any>> = [];
-						for (const file of files.dirs) {
-							const setup = async () => {
-								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-								const imported: {
-									name: string;
-									path: string;
-									route: (
-										fastify: FastifyInstance,
-										core: Core,
-									) => any;
-									rewrites?: string;
-									enabled: boolean;
-								} = await import(
-									`${osPrefix}${process.cwd()}` + `/${file}`
+						const endpoints = files.map(async (file) => {
+							const imported: {
+								name: string;
+								path: string;
+								route: (
+									fastify: FastifyInstance,
+									core: Core,
+								) => any;
+								method: string;
+								rewrites?: string;
+								enabled: boolean;
+							} = await import(join(filebase, file));
+							if (!imported.enabled) return;
+							if (imported.rewrites) {
+								this.logger.debug(
+									`Using new rewritten endpoint for ${imported.method}:${imported.rewrites}`,
 								);
-								if (!imported.enabled) return;
-								// In the event that the file rewrites older legacy code, disable it
-								if (
-									imported.rewrites &&
-									imported.rewrites.length > 0
-								) {
-									this.#rewritten.push(imported.rewrites);
-								}
+								this.#rewritten.push(imported.rewrites);
+							}
 
-								imported.route(instance, this);
-							};
-
-							inits.push(setup());
-						}
-
-						await Promise.all(inits);
+							imported.route(instance, this);
+							this.#registeredEndpoints.add(
+								`${imported.method}:${imported.path}`,
+							);
+						});
+						Promise.all(endpoints);
 					},
 					{
-						prefix: `/api${files.prefix}`,
+						prefix: `/api${prefix}`,
 					},
 				),
 			);
 		}
 
-		await Promise.all(promises);
+		await Promise.all(initQueue);
 	}
 
 	async initDb(): Promise<void> {
@@ -518,6 +514,12 @@ export default class Core {
 						}
 
 						this.internalInitPath(endpoint, instance);
+						this.#registeredEndpoints.add(
+							`${endpoint.type}:` +
+								(Array.isArray(endpoint.path)
+									? endpoint.path[0]
+									: endpoint.path),
+						);
 
 						const method = endpoint.type.toUpperCase();
 
@@ -529,6 +531,9 @@ export default class Core {
 
 					this.logger.info(
 						`${count} API v${version} initialized paths`,
+					);
+					this.logger.info(
+						`Initalized ${this.#registeredEndpoints.size} total endpoints!`,
 					);
 
 					done();

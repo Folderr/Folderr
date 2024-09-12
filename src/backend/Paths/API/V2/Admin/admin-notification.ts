@@ -32,6 +32,7 @@ class AdminNotification extends Path {
 		this.label = "API/Admin Notification";
 		this.path = "/admin/notification/:id";
 		this.reqAuth = true;
+		this.enabled = false;
 
 		this.type = "get";
 		this.options = {
@@ -71,7 +72,7 @@ class AdminNotification extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuthAdmin(request);

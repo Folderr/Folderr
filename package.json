@@ -52,6 +52,7 @@
 		"ajv": "^8.17.1",
 		"argon2": "^0.40.3",
 		"envalid": "^7.3.1",
+		"fast-glob": "^3.3.2",
 		"fastify": "^4.28.1",
 		"fastify-plugin": "^4.5.1",
 		"fldrr-web-sdk": "github:Folderr/fldrr-web-sdk",

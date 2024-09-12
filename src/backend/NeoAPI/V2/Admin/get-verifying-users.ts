@@ -3,10 +3,11 @@ import type { FastifyInstance } from "fastify";
 
 export const path = "/verifying-users";
 export const enabled = true;
+export const method = "GET";
 
 export function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
-		method: "GET",
+		method,
 		url: path,
 		schema: {
 			/* eslint-disable @typescript-eslint/naming-convention */
@@ -50,7 +51,7 @@ export function route(fastify: FastifyInstance, core: Core) {
 			try {
 				const users = await core.db.findVerifies(
 					{},
-					"email createdAt username id"
+					"email createdAt username id",
 				);
 
 				if (users.length === 0) {

@@ -11,10 +11,11 @@ export const name = "Service Info";
 export const path = "/";
 export const rewrites = "/";
 export const enabled = true;
+export const method = "GET";
 
 export function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
-		method: "GET",
+		method,
 		url: path,
 		schema: {
 			response: {
@@ -64,7 +65,7 @@ export function route(fastify: FastifyInstance, core: Core) {
 					version: pkg.version,
 					node_version: process.version,
 					online_since: new Date(
-						Date.now() - process.uptime() * 1000
+						Date.now() - process.uptime() * 1000,
 					).getTime(),
 					message: "Pong!",
 					features: {
@@ -80,9 +81,9 @@ export function route(fastify: FastifyInstance, core: Core) {
 		},
 	});
 	core.logger.startup(
-		`Initialized NEW API ${name} with method GET with path /api/`
+		`Initialized NEW API ${name} with method GET with path /api/`,
 	);
 	fastify.log.info(
-		`New API ${name} rewrites (and replaces) old endpoint /api${rewrites}`
+		`New API ${name} rewrites (and replaces) old endpoint /api${rewrites}`,
 	);
 }

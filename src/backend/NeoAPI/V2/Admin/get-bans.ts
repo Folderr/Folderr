@@ -3,10 +3,11 @@ import type { FastifyInstance } from "fastify";
 
 export const path = "/bans";
 export const enabled = true;
+export const method = "GET";
 
 export function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
-		method: "GET",
+		method,
 		url: path,
 		schema: {
 			/* eslint-disable @typescript-eslint/naming-convention */
