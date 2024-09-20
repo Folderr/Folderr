@@ -2,12 +2,13 @@ import fs from "fs";
 import { join } from "path";
 import process from "process";
 import pino, { multistream } from "pino";
+import { LoggerOptions } from "pino";
 import pretty from "pino-pretty";
 
 export type LoggerLevels = "startup";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface LogOptions extends pino.LoggerOptions<"startup"> {
+export interface LogOptions extends LoggerOptions<"startup"> {
 	customLevels: {
 		startup: 35;
 	};

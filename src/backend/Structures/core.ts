@@ -67,6 +67,8 @@ import type { LoggerLevels } from "./logger.js";
 // Local Fastify plugins
 import SentryPlugin from "./plugins/sentry.js";
 import { P } from "pino";
+import type { ErrorHandlerWithSeverity, supressErrorHandlerRoute } from "./Utilities/errorHandlerPlugin.js";
+import errorHandlerPlugin from "./Utilities/errorHandlerPlugin.js";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -93,6 +95,8 @@ declare module "fastify" {
 		got: Got;
 		utils: Utils;
 		db: MongoDB;
+		handleError: ErrorHandlerWithSeverity;
+		supressErrorHandlerRoute: supressErrorHandlerRoute;
 	}
 }
 
@@ -254,6 +258,11 @@ export default class Core {
 
 	async registerServerPlugins() {
 		await this.app.register(cookie);
+
+		await this.app.register(errorHandlerPlugin, {
+			database: this.db,
+			utils: this.Utils,
+		});
 
 		// Enable Sentry tracing
 		await this.app.register(SentryPlugin);
@@ -547,119 +556,52 @@ export default class Core {
 
 	internalInitPath(path: Path, instance = this.app) {
 		const app = instance;
-
-		switch (path.type.toLowerCase()) {
-			case "post": {
-				if (Array.isArray(path.path)) {
-					for (const url of path.path) {
-						if (path.options) {
-							app.post(
-								url,
-								path.options,
-								path.execute.bind(path),
-							);
-							continue;
-						}
-
-						app.post(url, path.execute.bind(path));
-					}
-				} else {
-					if (path.options) {
+		if (Array.isArray(path.path)) {
+			for (const url of path.path) {
+				this.app.supressErrorHandlerRoute(`${path.type.toUpperCase()}:${app.prefix}${url}`);
+				switch (path.type.toLowerCase()) {
+					case "post": {
 						app.post(
-							path.path,
-							path.options,
+							url,
+							path.options || {},
 							path.execute.bind(path),
 						);
 						break;
 					}
-
-					app.post(path.path, path.execute.bind(path));
+					case "delete": {
+						app.delete(url, path.options || {}, path.execute.bind(path));
+						break;
+					}
+					case "patch": {
+						app.patch(url, path.options || {}, path.execute.bind(path));
+						break;
+					}
+					default: {
+						app.get(url, path.options || {}, path.execute.bind(path));
+					}
 				}
-
-				break;
 			}
-
-			case "delete": {
-				if (Array.isArray(path.path)) {
-					for (const url of path.path) {
-						if (path.options) {
-							app.delete(
-								url,
-								path.options,
-								path.execute.bind(path),
-							);
-							continue;
-						}
-
-						app.delete(url, path.execute.bind(path));
-					}
-				} else {
-					if (path.options) {
-						app.delete(
-							path.path,
-							path.options,
-							path.execute.bind(path),
-						);
-						break;
-					}
-
-					app.delete(path.path, path.execute.bind(path));
+		} else {
+			this.app.supressErrorHandlerRoute(`${path.type.toUpperCase()}:${app.prefix}${path.path}`);
+			switch (path.type.toLowerCase()) {
+				case "post": {
+					app.post(
+						path.path,
+						path.options || {},
+						path.execute.bind(path),
+					);
+					break;
 				}
-
-				break;
-			}
-
-			case "patch": {
-				if (Array.isArray(path.path)) {
-					for (const url of path.path) {
-						if (path.options) {
-							app.patch(
-								url,
-								path.options,
-								path.execute.bind(path),
-							);
-							continue;
-						}
-
-						app.patch(url, path.execute.bind(path));
-					}
-				} else {
-					if (path.options) {
-						app.patch(
-							path.path,
-							path.options,
-							path.execute.bind(path),
-						);
-						break;
-					}
-
-					app.patch(path.path, path.execute.bind(path));
+				case "delete": {
+					app.delete(path.path, path.options || {}, path.execute.bind(path));
+					break;
 				}
-
-				break;
-			}
-
-			default: {
-				if (Array.isArray(path.path)) {
-					for (const url of path.path) {
-						if (path.options) {
-							app.get(url, path.options, path.execute.bind(path));
-							continue;
-						}
-
-						app.get(url, path.execute.bind(path));
-					}
-				} else {
-					if (path.options) {
-						app.get(
-							path.path,
-							path.options,
-							path.execute.bind(path),
-						);
-						break;
-					}
-
-					app.get(path.path, path.execute.bind(path));
+				case "patch": {
+					app.patch(path.path, path.options || {}, path.execute.bind(path));
+					break;
+				}
+				default: {
+					app.get(path.path, path.options || {}, path.execute.bind(path));
 				}
 			}
 		}
@@ -696,6 +638,8 @@ export default class Core {
 					);
 					continue;
 				}
+
+				this.app.supressErrorHandlerRoute(`${path.type.toUpperCase()}:${Array.isArray(path.path) ? path.path[0] : path.path}`);
 
 				this.internalInitPath(path);
 
