@@ -83,6 +83,17 @@ export default class Mongoosedb extends DBClass {
 			await mongoose.connect(url, { appName: "Folderr" });
 			this.#internals.connection = mongoose.connection;
 			this.status = "ok";
+			// Ensure all indexes for hopefully proper (and faster) sorting
+			logger.debug("DB - Ensuring Indexes");
+			await this.#schemas.User.ensureIndexes();
+			await this.#schemas.Token.ensureIndexes();
+			await this.#schemas.Link.ensureIndexes();
+			await this.#schemas.PendingMember.ensureIndexes();
+			await this.#schemas.Upload.ensureIndexes();
+			await this.#schemas.AdminNotification.ensureIndexes();
+			await this.#schemas.Folderr.ensureIndexes();
+			await this.#schemas.Ban.ensureIndexes();
+			logger.debug("DB - Indexes ensured");
 			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
 		} catch (error: unknown) {
 			if (error instanceof Error) {
