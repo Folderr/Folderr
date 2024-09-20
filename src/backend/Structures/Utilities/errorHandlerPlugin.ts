@@ -24,8 +24,6 @@ const errorHandlerPlugin: FastifyPluginAsync<ErrorHandlerPluginOpts> = async (in
 	const adminNotified = new Set<string>();
 	const supressedRoutes = new Set<string>();
 
-	const {database, utils} = options
-
 	// Function to send notification to admins
 	const sendNotificationToAdmins = async (route: string) => {
 		if (adminNotified.has(route)) {
@@ -33,7 +31,7 @@ const errorHandlerPlugin: FastifyPluginAsync<ErrorHandlerPluginOpts> = async (in
 		}
 		// Replace this with your actual notification logic
 		instance.log.error(`Route ${route} is offline due to more than ${MAX_ERRORS} errors`);
-		await database.makeAdminNotify(utils.genFolderrId(), `Route ${route} is offline due to more than ${MAX_ERRORS} errors`, `System Endpoint Failure: ${route}`);
+		await instance.db.makeAdminNotify(instance.utils.genFolderrId(), `Route ${route} is offline due to more than ${MAX_ERRORS} errors`, `System Endpoint Failure: ${route}`);
 		adminNotified.add(route);
 	};
 
@@ -46,6 +44,7 @@ const errorHandlerPlugin: FastifyPluginAsync<ErrorHandlerPluginOpts> = async (in
 
 		// Check if the error count for the route has exceeded the maximum
 		if (errorCounts[route] >= MAX_ERRORS) {
+			instance.setRouteFailed(route);
 			await sendNotificationToAdmins(route); // Send notification to admins
 			reply.code(503).send({ error: 'Service Unavailable', code: 503 });
 			return;

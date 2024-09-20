@@ -97,6 +97,7 @@ declare module "fastify" {
 		db: MongoDB;
 		handleError: ErrorHandlerWithSeverity;
 		supressErrorHandlerRoute: supressErrorHandlerRoute;
+		setRouteFailed: (route: string) => void;
 	}
 }
 
@@ -160,6 +161,10 @@ export default class Core {
 		noRequests: boolean;
 	};
 
+	#health: {
+		failedEndpoints: Set<string>;
+	}
+
 	constructor() {
 		this.logger = logger;
 		this.#requestIds = new Set();
@@ -179,6 +184,10 @@ export default class Core {
 		this.#keys = configs.key;
 		this.#dbConfig = configs.db;
 		this.#emailConfig = configs.email;
+
+		this.#health = {
+			failedEndpoints: new Set(),
+		};
 
 		// Init app
 		this.httpsEnabled = Boolean(
@@ -202,6 +211,9 @@ export default class Core {
 		this.Utils = new Utils(this);
 		this.app.decorate("utils", this.Utils);
 		this.app.decorate("db", this.db);
+		this.app.decorate("setRouteFailed", (route: string) => {
+			this.#health.failedEndpoints.add(route);
+		});
 		this.emailer = new Emailer(
 			this,
 			this.#emailConfig?.sendingEmail,
@@ -228,6 +240,13 @@ export default class Core {
 			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
 			(_request, body, done) => done(null, body),
 		);
+	}
+
+	getHealth(): { failedEndpoints: Set<string>; activeRoutes: Set<string> } {
+		return {
+			failedEndpoints: this.#health.failedEndpoints,
+			activeRoutes: this.#registeredEndpoints.difference(this.#health.failedEndpoints),
+		};
 	}
 
 	async testEmailer() {

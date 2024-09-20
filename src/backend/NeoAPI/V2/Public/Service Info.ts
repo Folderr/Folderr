@@ -37,6 +37,10 @@ export function route(fastify: FastifyInstance, core: Core) {
 										signups: { type: "number" },
 									},
 								},
+								failedEndpoints: {
+									type: "array",
+									items: { type: "string" },
+								},
 							},
 						},
 						/* eslint-enable @typescript-eslint/naming-convention */
@@ -58,6 +62,7 @@ export function route(fastify: FastifyInstance, core: Core) {
 						emailer: boolean;
 						signups: 0 | 1 | 2;
 					};
+					failedEndpoints: string[];
 				};
 				code: number;
 			} = {
@@ -73,6 +78,7 @@ export function route(fastify: FastifyInstance, core: Core) {
 						emailer: core.emailer.active,
 						signups: core.config.signups as 0 | 1 | 2,
 					},
+					failedEndpoints: Array.from(core.getHealth().failedEndpoints),
 				},
 				code: this.codes.ok,
 			};
