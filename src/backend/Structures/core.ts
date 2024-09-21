@@ -66,9 +66,8 @@ import type { LoggerLevels } from "./logger.js";
 
 // Local Fastify plugins
 import SentryPlugin from "./plugins/sentry.js";
-import { P } from "pino";
-import type { ErrorHandlerWithSeverity, supressErrorHandlerRoute } from "./Utilities/errorHandlerPlugin.js";
-import errorHandlerPlugin from "./Utilities/errorHandlerPlugin.js";
+import type { ErrorHandlerWithSeverity, supressErrorHandlerRoute } from "./plugins/errorHandler.js";
+import errorHandlerPlugin from "./plugins/errorHandler.js";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
