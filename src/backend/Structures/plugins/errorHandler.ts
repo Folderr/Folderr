@@ -1,5 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply, FastifyPluginAsync } from 'fastify';
-import type {MongoDB, Utils} from "../../internals";
+import { FastifyInstance, FastifyRequest, FastifyReply, FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
 
 interface ErrorCounts {
@@ -8,15 +7,10 @@ interface ErrorCounts {
 
 const MAX_ERRORS = 5; // Define the maximum number of errors allowed
 
-export type ErrorHandlerPluginOpts = {
-	database: MongoDB;
-	utils: Utils;
-};
-
 export type ErrorHandlerWithSeverity = (error: Error, request: FastifyRequest, reply: FastifyReply, severity?: string) => Promise<FastifyReply>;
 export type supressErrorHandlerRoute = (route: string) => void;
 
-const errorHandlerPlugin: FastifyPluginAsync<ErrorHandlerPluginOpts> = async (instance: FastifyInstance, options: ErrorHandlerPluginOpts) => {
+const errorHandlerPlugin: FastifyPluginAsync = async (instance: FastifyInstance, options: FastifyPluginOptions) => {
 	if (!options.database) {
 		throw new Error('Core instance is required');
 	}

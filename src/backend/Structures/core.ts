@@ -277,10 +277,7 @@ export default class Core {
 	async registerServerPlugins() {
 		await this.app.register(cookie);
 
-		await this.app.register(errorHandlerPlugin, {
-			database: this.db,
-			utils: this.Utils,
-		});
+		await this.app.register(errorHandlerPlugin);
 
 		// Enable Sentry tracing
 		await this.app.register(SentryPlugin);
