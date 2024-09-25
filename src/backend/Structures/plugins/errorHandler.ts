@@ -1,5 +1,11 @@
-import { FastifyInstance, FastifyRequest, FastifyReply, FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
-import fp from 'fastify-plugin';
+import {
+	FastifyInstance,
+	FastifyRequest,
+	FastifyReply,
+	FastifyPluginAsync,
+	FastifyPluginOptions,
+} from "fastify";
+import fp from "fastify-plugin";
 
 interface ErrorCounts {
 	[route: string]: number;
@@ -7,13 +13,18 @@ interface ErrorCounts {
 
 const MAX_ERRORS = 5; // Define the maximum number of errors allowed
 
-export type ErrorHandlerWithSeverity = (error: Error, request: FastifyRequest, reply: FastifyReply, severity?: string) => Promise<FastifyReply>;
+export type ErrorHandlerWithSeverity = (
+	error: Error,
+	request: FastifyRequest,
+	reply: FastifyReply,
+	severity?: string,
+) => Promise<FastifyReply>;
 export type supressErrorHandlerRoute = (route: string) => void;
 
-const errorHandlerPlugin: FastifyPluginAsync = async (instance: FastifyInstance, options: FastifyPluginOptions) => {
-	if (!options.database) {
-		throw new Error('Core instance is required');
-	}
+const errorHandlerPlugin: FastifyPluginAsync = async (
+	instance: FastifyInstance,
+	_: FastifyPluginOptions,
+) => {
 	const errorCounts: ErrorCounts = {};
 	const adminNotified = new Set<string>();
 	const supressedRoutes = new Set<string>();
@@ -24,12 +35,18 @@ const errorHandlerPlugin: FastifyPluginAsync = async (instance: FastifyInstance,
 			return;
 		}
 		// Replace this with your actual notification logic
-		instance.log.error(`Route ${route} is offline due to more than ${MAX_ERRORS} errors`);
-		await instance.db.makeAdminNotify(instance.utils.genFolderrId(), `Route ${route} is offline due to more than ${MAX_ERRORS} errors`, `System Endpoint Failure: ${route}`);
+		instance.log.error(
+			`Route ${route} is offline due to more than ${MAX_ERRORS} errors`,
+		);
+		await instance.db.makeAdminNotify(
+			instance.utils.genFolderrId(),
+			`Route ${route} is offline due to more than ${MAX_ERRORS} errors`,
+			`System Endpoint Failure: ${route}`,
+		);
 		adminNotified.add(route);
 	};
 
-	instance.addHook('onRequest', async (request, reply) => {
+	instance.addHook("onRequest", async (request, reply) => {
 		const route = `${request.routeOptions.method}:${request.routeOptions.url}`;
 
 		if (!errorCounts[route]) {
@@ -40,37 +57,51 @@ const errorHandlerPlugin: FastifyPluginAsync = async (instance: FastifyInstance,
 		if (errorCounts[route] >= MAX_ERRORS) {
 			instance.setRouteFailed(route);
 			await sendNotificationToAdmins(route); // Send notification to admins
-			reply.code(503).send({ error: 'Service Unavailable', code: 503 });
+			reply.code(503).send({ error: "Service Unavailable", code: 503 });
 			return;
 		}
 	});
 
-	const handlerWithSeverity = async (error: Error, request: FastifyRequest, reply: FastifyReply, severity?: string): Promise<FastifyReply> => {
+	const handlerWithSeverity = async (
+		error: Error,
+		request: FastifyRequest,
+		reply: FastifyReply,
+		severity?: string,
+	): Promise<FastifyReply> => {
 		const route = `${request.routeOptions.method}:${request.routeOptions.url}`;
 		if (supressedRoutes.has(route)) {
 			return reply;
 		}
 
-		if (severity === 'fatal' || !severity) {
+		if (severity === "fatal" || !severity) {
 			errorCounts[route]++;
 		}
-		instance.log.error(`Error occurred on route ${route}: ${error.message}`);
+		instance.log.error(
+			`Error occurred on route ${route}: ${error.message}`,
+		);
 		return reply.code(500).send({ error: error.message, code: 500 });
 	};
 
-	const errorHandler = async (error: Error, request: FastifyRequest, reply: FastifyReply) => {
+	const errorHandler = async (
+		error: Error,
+		request: FastifyRequest,
+		reply: FastifyReply,
+	) => {
 		return handlerWithSeverity(error, request, reply);
 	};
 
-	instance.decorate('handleError', handlerWithSeverity);
-	instance.decorate('supressErrorHandlerRoute', (route: string) => {
+	instance.decorate("handleError", handlerWithSeverity);
+	instance.decorate("supressErrorHandlerRoute", (route: string) => {
 		// instance.log.debug("Supressing route " + route);
 		supressedRoutes.add(route);
 	});
 
 	instance.setErrorHandler(errorHandler);
 
-	instance.log.debug('ErrorHandler plugin registered for instance with prefix: ' + instance.prefix);
+	instance.log.debug(
+		"ErrorHandler plugin registered for instance with prefix: " +
+			instance.prefix,
+	);
 };
 
-export default fp(errorHandlerPlugin, '4.x');
+export default fp(errorHandlerPlugin, "4.x");
