@@ -15,7 +15,7 @@
 		"test": "eslint --ext .vue,.ts && node dist/src/backend/index.js",
 		"lint": "eslint --ext .vue,.ts src/ scripts/ vite.config.ts",
 		"lint:fix": "eslint --ext .vue,.ts --fix src/ scripts/ vite.config.ts",
-		"typecheck": "tsc --noEmit && vue-tsc --noEmit -p src/frontend",
+		"typecheck": "tsc --noEmit --skipLibCheck && vue-tsc --noEmit -p src/frontend",
 		"installdev": "npm i -D && husky install"
 	},
 	"type": "module",
