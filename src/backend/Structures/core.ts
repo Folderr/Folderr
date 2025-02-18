@@ -1,11 +1,12 @@
 // Node modules
-import { join } from "path";
+import { join, normalize } from "path";
 import { platform } from "os";
 import { EventEmitter } from "events";
 import http from "http";
 import { fork } from "child_process";
 import fs from "fs";
 import process from "process";
+import { PerformanceObserver, performance } from "perf_hooks";
 import type { ChildProcess } from "child_process";
 
 // Fastify imports
@@ -101,9 +102,6 @@ declare module "fastify" {
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-type importedApi =
-	| typeof Path
-	| ((fastify: FastifyInstance, core: Core) => FastifyInstance);
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const isTSNode =
@@ -115,6 +113,13 @@ if (isTSNode && process.env.NODE_ENV !== "dev") {
 	);
 	process.exit(1);
 }
+
+type debugLevels = 0 | 1 | 2;
+const debugLevelMap = new Map<debugLevels, string>([
+	[0, "Disabled"],
+	[1, "Basic. Debugging and performance"],
+	[2, "Request level. Debugging, performance, and request logging"],
+])
 
 export default class Core {
 	public readonly db: MongoDB;
@@ -139,6 +144,8 @@ export default class Core {
 	public readonly httpsEnabled: boolean;
 
 	public listening: boolean;
+
+	public readonly debugLevel: debugLevels // 0 = off, 1 = basic debug + performance, 2 = request + lvl 1. Dervied from both DEBUG and DEBUG_LEVEL env variables
 
 	readonly #rewritten: string[];
 
@@ -187,6 +194,9 @@ export default class Core {
 		this.#health = {
 			failedEndpoints: new Set(),
 		};
+
+		this.debugLevel = Number(process.env.DEBUG_LEVEL) || process.env.DEBUG ? 1 : 0;
+		this.logger.info(`Debug Level: ${debugLevelMap.get(this.debugLevel)}`);
 
 		// Init app
 		this.httpsEnabled = Boolean(
@@ -275,6 +285,15 @@ export default class Core {
 	}
 
 	async registerServerPlugins() {
+		const obs = new PerformanceObserver((list) => {
+			this.logger.debug(`[PERFORMANCE] ${list.getEntries()[0].name} time taken: ${list.getEntries()[0].duration}ms`);
+		});
+		if (this.debugLevel >= 1) {
+			obs.observe({type: "measure"});
+		} else {
+			obs.disconnect();
+		}
+		performance.mark("Basic Plugins");
 		await this.app.register(cookie);
 
 		await this.app.register(errorHandlerPlugin);
@@ -331,7 +350,7 @@ export default class Core {
 			root: join(process.cwd(), "dist/src/frontend"),
 		});
 
-		if (process.env.DEBUG) {
+		if (this.debugLevel >= 2) {
 			this.logger.debug("Enabling request hooks");
 			this.app.addHook("onRequest", (request, _, done) => {
 				this.logger.debug(`URL: ${request.url}`);
@@ -350,6 +369,10 @@ export default class Core {
 				done();
 			});
 		}
+		performance.measure("core.registerServerPlugins", "Basic Plugins");
+		await this.Utils.sleep(10);
+		setTimeout(() => obs.disconnect(), 10)
+		// obs.disconnect();
 	}
 
 	addDeleter(userID: string): void {
@@ -413,6 +436,14 @@ export default class Core {
 	}
 
 	async registerNewApi() {
+		const obs = new PerformanceObserver((list) => {
+			this.logger.debug(`[PERFORMANCE] ${list.getEntries()[0].name} time taken: ${list.getEntries()[0].duration}ms`);
+		});
+		if (this.debugLevel >= 1) {
+			obs.observe({ type: "measure" });
+		} else {
+			obs.disconnect();
+		}
 		this.logger.debug("Automatically loading new APIs");
 		let basedir = "src/backend/NeoAPI";
 		let extension = ".ts";
@@ -426,73 +457,75 @@ export default class Core {
 			osPrefix = "file://";
 		}
 
+		performance.mark("core.registerNewApi File Pathing Start");
 		const files = await fg(`${basedir}/**/*${extension}`, {
 			ignore: ["**/index*"],
 		});
-		let prefixes = new Map<string, string>();
-		const dirs = fs.readdirSync(basedir);
-		const fullPaths: Array<{ prefix: string; dirs: string[] }> = [];
-		// Find all the files!
+		performance.measure("core.registerNewApi File Paths", "core.registerNewApi File Pathing Start");
 		const filebase = `${osPrefix}${process.cwd()}`;
-		let fileGroups = new Map<string, string[]>();
-		for (const lfile of files) {
-			const dir = join(lfile, "../");
-			let topPrefix = prefixes.get(dir);
-			if (!prefixes.has(dir)) {
+		let prefixes = new Map<string, string>();
+		let groups = new Map<string, string[]>(); // A group of files
+		performance.mark("core.registerNewApi Prefix Grouping");
+		for (const file of files) {
+			const directory = normalize(join(file, "../"));
+			let apiPrefix = prefixes.get(directory);
+			if (apiPrefix && groups.has(apiPrefix)) {
+				continue;
+			}
+			if (!apiPrefix) {
 				const { prefix } = await import(
-					join(filebase, dir, `index${extension}`)
+					join(filebase, directory, `index${extension}`)
 				);
-				topPrefix = prefix;
-				prefixes.set(dir, prefix);
+				apiPrefix = prefix as string;
+				prefixes.set(directory, prefix);
 			}
-			if (!fileGroups.has(topPrefix as string)) {
-				const filteredFiles = files.filter((lfile) =>
-					lfile.startsWith(dir),
-				);
-				fileGroups.set(topPrefix as string, filteredFiles);
-			}
+			const filteredFiles = files.filter((newfile) =>
+				normalize(newfile).startsWith(directory),
+			);
+			groups.set(apiPrefix, filteredFiles);
 		}
+		performance.measure("core.registerNewApi Prefix Grouped", "core.registerNewApi Prefix Grouping");
+
 		const initQueue = [];
 		// impl: Faster import
-		for (const [prefix, files] of fileGroups) {
-			initQueue.push(
-				this.app.register(
-					async (instance, opts) => {
-						const endpoints = files.map(async (file) => {
-							const imported: {
-								name: string;
-								path: string;
-								route: (
-									fastify: FastifyInstance,
-									core: Core,
-								) => any;
-								method: string;
-								rewrites?: string;
-								enabled: boolean;
-							} = await import(join(filebase, file));
-							if (!imported.enabled) return;
-							if (imported.rewrites) {
-								this.logger.debug(
-									`Using new rewritten endpoint for ${imported.method}:${imported.rewrites}`,
-								);
-								this.#rewritten.push(imported.rewrites);
-							}
-
-							imported.route(instance, this);
-							this.#registeredEndpoints.add(
-								`${imported.method}:${imported.path}`,
+		performance.mark("core.registerNewApi Registering APIs");
+		for (const [prefix, files] of groups) {
+			this.app.register(
+				async (instance, opts) => {
+					const endpoints = files.map(async (file) => {
+						const imported: {
+							name: string;
+							path: string;
+							route: (
+								fastify: FastifyInstance,
+								core: Core,
+							) => any;
+							method: string;
+							rewrites?: string;
+							enabled: boolean;
+						} = await import(join(filebase, file));
+						if (!imported.enabled) return;
+						if (imported.rewrites) {
+							this.logger.debug(
+								`Using new rewritten endpoint for ${imported.method}: ${imported.rewrites}`,
 							);
-						});
-						Promise.all(endpoints);
-					},
-					{
-						prefix: `/api${prefix}`,
-					},
-				),
-			);
-		}
+							this.#rewritten.push(imported.rewrites);
+						}
 
-		await Promise.all(initQueue);
+						imported.route(instance, this);
+						this.#registeredEndpoints.add(
+							`${imported.method}:${imported.path}`,
+						);
+					});
+					await Promise.all(endpoints);
+				},
+				{
+					prefix: `/api${prefix}`,
+				},
+			)
+		}
+		performance.measure("core.registerNewApi Registered APIs", "core.registerNewApi Registering APIs");
+		setTimeout(() => obs.disconnect(), 10)
 	}
 
 	async initDb(): Promise<void> {
@@ -523,7 +556,7 @@ export default class Core {
 						if (
 							!endpoint.enabled ||
 							(endpoint.label.startsWith("DEBUG") &&
-								!process.env.DEBUG)
+								!this.debugLevel)
 						) {
 							continue;
 						}
@@ -628,7 +661,7 @@ export default class Core {
 			// This works TS, trust me.
 			if (
 				endpoint.toLowerCase().startsWith("debug") &&
-				!process.env.DEBUG
+				!this.debugLevel
 			) {
 				continue;
 			}
@@ -879,6 +912,13 @@ export default class Core {
 				});
 			}
 		});
+	}
+
+	postInitCleanup() {
+		this.logger.debug("Cleaning up after init");
+		// Clean up the performance measures
+		performance.clearMarks();
+		performance.clearMeasures();
 	}
 
 	removeRequestId(id: string): boolean {

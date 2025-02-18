@@ -31,6 +31,7 @@ import type { RequestGallery } from "../../types/fastify-request-types.js";
 import type { Core, Codes } from "../internals.js";
 import { ErrorHandler, codes } from "../internals.js";
 import type { User } from "./Database/db-class.js";
+import exp from "constants";
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -127,24 +128,44 @@ class Path {
 		throw new Error("Not implemented!");
 	}
 
-	async checkAuth(request: FastifyRequest): Promise<User | void> {
-		if (request.headers.authorization) {
-			return this.Utils.authorization.verifyAccount(
-				request.headers.authorization,
-				{
-					fn: (user) => !user.markedForDeletion,
+	async checkAuth(request: FastifyRequest, reply?: FastifyReply): Promise<User | void> {
+		let authorized: User | void | undefined = undefined;
+		try {
+			if (request.headers.authorization) {
+				authorized = await this.Utils.authorization.verifyAccount(
+					request.headers.authorization,
+					{
+						fn: (user) => !user.markedForDeletion,
+					}
+				);
+			}
+	
+			if (request.cookies.token) {
+				authorized = await this.Utils.authorization.verifyAccount(
+					request.cookies.token,
+					{
+						web: true,
+						fn: (user) => !user.markedForDeletion,
+					}
+				);
+			}
+		} catch (error: unknown) {
+			if (error instanceof Error && error.message == "Invalid Token") {
+				if (reply) this.core.logger.debug("Invalidated auth of a request with an invalid token");
+				reply?.header("Authorization-Status", "Invalidated");
+				if (request.cookies.token) {
+					const expires = new Date();
+					expires.setTime(expires.getTime() - 1000 * 60 * 60 * 48);
+					reply?.setCookie("token", "", { expires })
+					return;
 				}
-			);
-		}
-
-		if (request.cookies.token) {
-			return this.Utils.authorization.verifyAccount(
-				request.cookies.token,
-				{
-					web: true,
-					fn: (user) => !user.markedForDeletion,
-				}
-			);
+				return;
+			} else if (error instanceof Error) {
+				this.core.logger.error(error.message);
+			}
+		} finally {
+			if (authorized) return authorized;
+			return;
 		}
 	}
 

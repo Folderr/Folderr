@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/node";
 import Core from "../Structures/core.js";
 
 export async function startFolderr(): Promise<void> {
-	// Console.time('Startup');
+	console.time('Startup');
 	const core = new Core();
 	try {
 		await core.initDb();
@@ -38,14 +38,13 @@ export async function startFolderr(): Promise<void> {
 	await core.registerNewApi();
 
 	await core.registerApis();
-	// Await core.initAPI();
 
 	await core.initFrontend();
 
 	try {
 		const listened = await core.listen();
 		if (listened) {
-			// Console.timeEnd('Startup');
+			core.postInitCleanup();
 		} else {
 			core.logger.error("[FATAL] UNABLE TO LISTEN TO PORT");
 			throw new Error("[FATAL] UNABLE TO LISTEN TO PORT");

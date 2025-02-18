@@ -119,12 +119,13 @@ export default class Authorization {
 
 			return result.id as string;
 		} catch (error: unknown) {
-			this.#core.logger.error(error);
 			if (
 				error instanceof Error &&
-				error.message !== "JsonWebTokenError: invalid signature"
+				error.message !== "invalid signature"
 			) {
-				console.log(error);
+				this.#core.logger.error(error);
+			} else if (error instanceof Error) {
+				throw new Error("Invalid Token");
 			}
 		}
 	}
@@ -167,7 +168,11 @@ export default class Authorization {
 
 			return user;
 		} catch (error: unknown) {
-			this.#core.logger.error(error);
+			if (error instanceof Error && error.message === "Invalid Token") {
+				throw new Error("Invalid Token");
+			} else if (error instanceof Error) {
+				this.#core.logger.error(error);
+			}
 		}
 	}
 
