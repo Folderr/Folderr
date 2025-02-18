@@ -195,7 +195,11 @@ export default class Core {
 			failedEndpoints: new Set(),
 		};
 
-		this.debugLevel = Number(process.env.DEBUG_LEVEL) || process.env.DEBUG ? 1 : 0;
+		this.debugLevel = process.env.DEBUG_LEVEL ? Number(process.env.DEBUG_LEVEL) as debugLevels : 0;
+		if (process.env.DEBUG === "true" && !this.debugLevel) {
+			this.debugLevel = 1;
+		}
+		this.logger.debug(this.debugLevel);
 		this.logger.info(`Debug Level: ${debugLevelMap.get(this.debugLevel)}`);
 
 		// Init app
