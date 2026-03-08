@@ -72,6 +72,7 @@ import type {
 	supressErrorHandlerRoute,
 } from "./plugins/errorHandler.js";
 import errorHandlerPlugin from "./plugins/errorHandler.js";
+import fastifySwagger from "@fastify/swagger";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -307,7 +308,7 @@ export default class Core {
 			obs.disconnect();
 		}
 		performance.mark("Basic Plugins");
-		await this.app.register(import("@fastify/swagger"), {
+		await this.app.register(fastifySwagger, {
 			openapi: {
 				openapi: "3.0.0",
 				info: {
@@ -330,8 +331,6 @@ export default class Core {
 					securitySchemes: {
 						apiKey: {
 							type: "apiKey",
-							bearerFormat: "bearer",
-							scheme: "Bearer",
 							name: "Authorization",
 							in: "header",
 						},
@@ -352,7 +351,7 @@ export default class Core {
 		});
 
 		this.app.get("/openapi.json", async (_) => {
-			return fastify.swagger();
+			return this.app.swagger();
 		});
 
 		await this.app.register(cookie);
