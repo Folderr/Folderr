@@ -345,7 +345,14 @@ export default class Core {
 		});
 		await this.app.register(import("@scalar/fastify-api-reference"), {
 			routePrefix: "/api/reference",
-			configuration: { theme: "purple" },
+			configuration: {
+				theme: "purple",
+				title: "Folderr API Documentation",
+			},
+		});
+
+		this.app.get("/openapi.json", async (_) => {
+			return fastify.swagger();
 		});
 
 		await this.app.register(cookie);
