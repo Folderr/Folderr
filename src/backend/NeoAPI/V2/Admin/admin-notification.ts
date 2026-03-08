@@ -13,6 +13,10 @@ export async function route(fastify: FastifyInstance, core: Core) {
 		method,
 		url: path,
 		schema: {
+			tags: ["admin"],
+			description: "Retrieve the notifications for administrators",
+			summary: "Admin notifications",
+			security: [{ apiKey: [] }],
 			/* eslint-disable @typescript-eslint/naming-convention */
 			params: {
 				type: "object",

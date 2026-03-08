@@ -14,6 +14,9 @@ export async function route(fastify: FastifyInstance, core: Core) {
 		method,
 		url: path,
 		schema: {
+			tags: ["public"],
+			summary: "Signup for Folderr",
+			description: "A simple endpoint to allow you to sign up to Folderr",
 			/* eslint-disable @typescript-eslint/naming-convention */
 			body: {
 				type: "object",
@@ -51,15 +54,22 @@ export async function route(fastify: FastifyInstance, core: Core) {
 				};
 				Headers: {
 					preferredURL?: string;
-				}
+				};
 			}>,
-			response: FastifyReply
+			response: FastifyReply,
 		) {
 			// Check user input
 			const { email, username, password } = request.body;
-			const userInput = await checkUserInput(core, email, username, password);
+			const userInput = await checkUserInput(
+				core,
+				email,
+				username,
+				password,
+			);
 			if (typeof userInput !== "boolean") {
-				return response.status(userInput.httpCode).send(userInput.response);
+				return response
+					.status(userInput.httpCode)
+					.send(userInput.response);
 			}
 
 			// Generate a unique user ID
@@ -79,8 +89,19 @@ export async function route(fastify: FastifyInstance, core: Core) {
 				try {
 					// Call the signup function based on the email server availability
 					const result = core.emailer.active
-						? await emailSignup(core, userInfo, validationToken, request, response)
-						: await noEmailSignup(core, userInfo, validationToken, response);
+						? await emailSignup(
+								core,
+								userInfo,
+								validationToken,
+								request,
+								response,
+							)
+						: await noEmailSignup(
+								core,
+								userInfo,
+								validationToken,
+								response,
+							);
 
 					return response.status(result.httpCode).send(result.msg);
 				} catch (error: unknown) {
@@ -121,7 +142,7 @@ async function emailSignup(
 			preferredURL?: string;
 		};
 	}>,
-	response: FastifyReply
+	response: FastifyReply,
 ): Promise<{
 	httpCode: 500 | 201;
 	msg: {
@@ -138,7 +159,7 @@ async function emailSignup(
 		await core.emailer.verifyEmail(
 			userInfo.email,
 			`${url}/account/verify/${userInfo.id}/${validationToken.token}`,
-			userInfo.username
+			userInfo.username,
 		);
 		await core.db.makeVerify(userInfo, validationToken.hash);
 	} catch (error: unknown) {
@@ -154,7 +175,12 @@ async function emailSignup(
 					};
 				}
 
-				await request.server.handleError(error, request, response, "fatal");
+				await request.server.handleError(
+					error,
+					request,
+					response,
+					"fatal",
+				);
 			}
 
 			return {
@@ -176,7 +202,7 @@ async function emailSignup(
 	}
 
 	core.logger.info(
-		`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
+		`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 	);
 	return {
 		httpCode: core.codes.created,
@@ -199,7 +225,7 @@ async function noEmailSignup(
 		hash: string;
 		token: string;
 	},
-	response: FastifyReply
+	response: FastifyReply,
 ): Promise<{
 	httpCode: 500 | 201;
 	msg: { code: number; message: string };
@@ -213,7 +239,7 @@ async function noEmailSignup(
 				`Username: ${userInfo.username}\n` +
 					`User ID: ${userInfo.id}\n` +
 					`Validation Token: ${validationToken.token}`,
-				"New user signup!"
+				"New user signup!",
 			),
 		]);
 	} catch (error: unknown) {
@@ -231,7 +257,7 @@ async function noEmailSignup(
 	}
 
 	core.logger.info(
-		`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
+		`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 	);
 	return {
 		httpCode: core.codes.created,
@@ -255,7 +281,7 @@ async function checkUserInput(
 	core: Core,
 	email: string,
 	username: string,
-	password: string
+	password: string,
 ): Promise<
 	| {
 			httpCode: number;
@@ -287,7 +313,9 @@ async function checkUserInput(
 			httpCode: core.codes.badReq,
 			response: {
 				code: core.Utils.foldCodes.illegalUsername,
-				message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LETTER_REQUIREMENTS,
+				message:
+					constants.ENUMS.RESPONSES.USERNAME
+						.USERNAME_LETTER_REQUIREMENTS,
 			},
 		};
 	}
@@ -335,7 +363,8 @@ async function checkUserInput(
 			httpCode: core.codes.badReq,
 			response: {
 				code: core.Utils.foldCodes.invalidPassword,
-				message: constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS,
+				message:
+					constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS,
 			},
 		};
 	}

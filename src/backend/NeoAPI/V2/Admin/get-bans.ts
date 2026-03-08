@@ -10,6 +10,10 @@ export function route(fastify: FastifyInstance, core: Core) {
 		method,
 		url: path,
 		schema: {
+			tags: ["admin"],
+			description: "Shows all emails that are banned",
+			summary: "Retrieve bans",
+			security: [{ apiKey: [] }],
 			/* eslint-disable @typescript-eslint/naming-convention */
 			// How do you camelCase a number?
 			response: {
@@ -18,6 +22,22 @@ export function route(fastify: FastifyInstance, core: Core) {
 					properties: {
 						message: {
 							type: "array",
+							uniqueItems: true,
+							items: {
+								type: "object",
+								properties: {
+									reason: { type: "string" },
+									email: { type: "string" },
+									createdAt: { type: "integer" },
+									id: { type: "string" },
+								},
+								required: [
+									"reason",
+									"email",
+									"createdAt",
+									"id",
+								],
+							},
 						},
 						code: { type: "number" },
 					},

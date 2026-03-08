@@ -307,6 +307,47 @@ export default class Core {
 			obs.disconnect();
 		}
 		performance.mark("Basic Plugins");
+		await this.app.register(import("@fastify/swagger"), {
+			openapi: {
+				openapi: "3.0.0",
+				info: {
+					title: "Folderr",
+					description: "Testing the Fastify swagger API",
+					version: "2.0.0-D",
+				},
+				servers: [
+					{
+						url: "http://localhost:8888",
+						description: "Development server",
+					},
+				],
+				tags: [
+					{ name: "user", description: "User related end-points" },
+					{ name: "admin", description: "Administrative Endpoints" },
+					{ name: "public", description: "Public facing endpoints" },
+				],
+				components: {
+					securitySchemes: {
+						apiKey: {
+							type: "apiKey",
+							bearerFormat: "bearer",
+							scheme: "Bearer",
+							name: "Authorization",
+							in: "header",
+						},
+					},
+				},
+				externalDocs: {
+					url: "https://folderr.net",
+					description: "Find more info here",
+				},
+			},
+		});
+		await this.app.register(import("@scalar/fastify-api-reference"), {
+			routePrefix: "/api/reference",
+			configuration: { theme: "purple" },
+		});
+
 		await this.app.register(cookie);
 
 		await this.app.register(errorHandlerPlugin);

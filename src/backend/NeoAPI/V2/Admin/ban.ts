@@ -11,6 +11,10 @@ export async function route(fastify: FastifyInstance, core: Core) {
 		method,
 		url: path,
 		schema: {
+			tags: ["admin"],
+			description: "Bans a user (via email) from the service",
+			summary: "Ban",
+			security: [{ apiKey: [] }],
 			body: {
 				type: "object",
 				properties: {

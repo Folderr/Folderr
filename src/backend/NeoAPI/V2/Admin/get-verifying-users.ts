@@ -10,6 +10,10 @@ export function route(fastify: FastifyInstance, core: Core) {
 		method,
 		url: path,
 		schema: {
+			tags: ["admin"],
+			description: "Show all the users that are awaiting verification",
+			summary: "Retrieve verifying user (list)",
+			security: [{ apiKey: [] }],
 			/* eslint-disable @typescript-eslint/naming-convention */
 			// How do you camelCase a number?
 			response: {
@@ -18,6 +22,12 @@ export function route(fastify: FastifyInstance, core: Core) {
 					properties: {
 						message: {
 							type: "array",
+							items: {
+								email: { type: "string" },
+								createdAt: { type: "number" },
+								username: { type: "string" },
+								id: { type: "string" },
+							},
 						},
 						code: { type: "number" },
 					},

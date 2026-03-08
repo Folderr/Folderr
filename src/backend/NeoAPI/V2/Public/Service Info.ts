@@ -8,7 +8,7 @@ import type { FastifyInstance } from "fastify";
 export const name = "Service Info";
 
 // End path will be formatted something like "/api/v2/"
-export const path = "/";
+export const path = "";
 export const rewrites = "/";
 export const enabled = true;
 export const method = "GET";
@@ -18,13 +18,17 @@ export function route(fastify: FastifyInstance, core: Core) {
 		method,
 		url: path,
 		schema: {
+			summary: "Retrieve basic API information",
+			tags: ["public"],
+			description:
+				"Sends back basic information about the Folderr API, including an enabled feature-set",
 			response: {
 				/* eslint-disable @typescript-eslint/naming-convention */
 				200: {
 					type: "object",
 					properties: {
 						message: {
-							values: {
+							properties: {
 								version: { type: "string" },
 								node_version: { type: "string" },
 								online_since: { type: "number" },
@@ -78,7 +82,9 @@ export function route(fastify: FastifyInstance, core: Core) {
 						emailer: core.emailer.active,
 						signups: core.config.signups as 0 | 1 | 2,
 					},
-					failedEndpoints: Array.from(core.getHealth().failedEndpoints),
+					failedEndpoints: Array.from(
+						core.getHealth().failedEndpoints,
+					),
 				},
 				code: this.codes.ok,
 			};
