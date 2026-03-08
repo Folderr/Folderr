@@ -7,7 +7,7 @@ import { join } from "path";
 import readline from "readline";
 import { Writable } from "stream";
 import Core from "../src/backend/Structures/core.js";
-import locations from "../internal/locations.json" assert { type: "json" };
+import locations from "../internal/locations.json" with { type: "json" };
 import ConfigHandler from "../src/backend/handlers/config-handler.js";
 
 class MuteStreamHandler {
@@ -23,7 +23,7 @@ class MuteStreamHandler {
 					// Why is it like this Node? Fuck off.
 					process.stdout.write(
 						chunk as string | Uint8Array,
-						encoding
+						encoding,
 					);
 				}
 
@@ -86,12 +86,12 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 
 async function askUsername(core: Core): Promise<string> {
 	return new Promise<string>((resolve) => {
-		if (process.env.username) {
-			if (!core.regexs.username.test(process.env.username)) {
+		if (process.env.folderr_username) {
+			if (!core.regexs.username.test(process.env.folderr_username)) {
 				throw new Error('ENV Var "username" invalid.');
 			}
 
-			resolve(process.env.username);
+			resolve(process.env.folderr_username);
 			return;
 		}
 
@@ -133,12 +133,12 @@ async function askPassword(core: Core, confirm?: boolean): Promise<string> {
 	}
 
 	return new Promise<string>((resolve) => {
-		if (process.env.password) {
-			if (!core.regexs.password.test(process.env.password)) {
+		if (process.env.folderr_password) {
+			if (!core.regexs.password.test(process.env.folderr_password)) {
 				throw new Error('ENV Var "password" invalid.');
 			}
 
-			resolve(process.env.password);
+			resolve(process.env.folderr_password);
 			return;
 		}
 
@@ -169,12 +169,12 @@ async function askPassword(core: Core, confirm?: boolean): Promise<string> {
 
 async function askEmail(core: Core): Promise<string> {
 	return new Promise<string>((resolve) => {
-		if (process.env.email) {
-			if (!core.regexs.email.test(process.env.email)) {
+		if (process.env.folderr_email) {
+			if (!core.regexs.email.test(process.env.folderr_email)) {
 				throw new Error('ENV Var "email" invalid.');
 			}
 
-			resolve(process.env.email);
+			resolve(process.env.folderr_email);
 			return;
 		}
 
@@ -205,9 +205,13 @@ async function confirmDetails(
 	username: string,
 	email: string,
 	password: string,
-	redo?: boolean
+	redo?: boolean,
 ): Promise<"yes" | "no"> {
-	if (process.env.username && process.env.password && process.env.email) {
+	if (
+		process.env.folderr_username &&
+		process.env.folderr_password &&
+		process.env.folderr_email
+	) {
 		return "yes";
 	}
 
@@ -243,7 +247,7 @@ async function confirmDetails(
 }
 
 async function keyGen(
-	core: Core
+	core: Core,
 ): Promise<{ privateKey: string; publicKey: string }> {
 	let keys: { privateKey: string; publicKey: string };
 	if (process.env.PUBLIC_KEY && process.env.PRIVATE_KEY) {
@@ -252,11 +256,11 @@ async function keyGen(
 			const data = crypto.publicEncrypt(
 				process.env.PUBLIC_KEY,
 				// eslint-disable-next-line prettier/prettier
-				Buffer.from("Hi! I'm Folderr!")
+				Buffer.from("Hi! I'm Folderr!"),
 			);
 			const decrypted = crypto.privateDecrypt(
 				process.env.PRIVATE_KEY,
-				data
+				data,
 			);
 			// eslint-disable-next-line prettier/prettier
 			if (decrypted.toString() !== "Hi I'm Folderr") {
@@ -279,7 +283,7 @@ async function keyGen(
 				"Something went wrong when checking the keys. Maybe the keys are incorrect.",
 				{
 					cause: error,
-				}
+				},
 			);
 		}
 	} else {
@@ -291,7 +295,7 @@ async function keyGen(
 
 (async function () {
 	rl.write(
-		"Welcome to the Folderr setup CLI!\nGive us a moment while we check setup status..."
+		"Welcome to the Folderr setup CLI!\nGive us a moment while we check setup status...",
 	);
 	if (
 		!(await fs.stat(join(process.cwd(), "configs/server.yaml"))) ||
@@ -304,7 +308,7 @@ async function keyGen(
 				" please ensure I have the correct permissions to " +
 				"read, write, and execute the files.\n" +
 				"See the Folderr documentation about file permissions at " +
-				"https://folderr.net/documentation/folderr/v2 for more details/guidance"
+				"https://folderr.net/documentation/folderr/v2 for more details/guidance",
 		);
 		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 		process.exit();
@@ -321,6 +325,7 @@ async function keyGen(
 	}
 
 	const keysConfigured = locations.keyConfigured;
+	console.log(keysConfigured);
 	const core = new Core();
 	process.env.setup = "true";
 	await core.initDb();
@@ -363,7 +368,7 @@ async function keyGen(
 	if (!owner) {
 		rl.write(
 			"\nThis instance does not have an owner." +
-				" The instance will not function without an owner."
+				" The instance will not function without an owner.",
 		);
 		await core.Utils.sleep(1000);
 		const statement =
@@ -381,7 +386,7 @@ async function keyGen(
 			rl.write("Details saved\n");
 		} else {
 			rl.write(
-				'Invalid password, closing setup. Retry with "npm run setup"'
+				'Invalid password, closing setup. Retry with "npm run setup"',
 			);
 			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 			process.exit();
@@ -398,7 +403,7 @@ async function keyGen(
 	if (!keysConfigured) {
 		rl.write(
 			"It appears you have not configured your authorization keys." +
-				" Please follow the prompts to do so.\n"
+				" Please follow the prompts to do so.\n",
 		);
 		const location = await getKeyLocation();
 		const keys = await core.Utils.genKeyPair();
@@ -413,15 +418,16 @@ async function keyGen(
 		newLocations.keyConfigured = true;
 		await fs.writeFile(
 			join(process.cwd(), "/internal/locations.json"),
-			JSON.stringify(newLocations, null, 4)
+			JSON.stringify(newLocations, null, 4),
 		);
 		if (location !== "none") {
 			await fs.writeFile(
 				`${actualLocation}/privateJWT.pem`,
-				actualPrivateKey
+				actualPrivateKey,
 			);
 		}
 
+		console.log("Creating authorization keys");
 		await core.db.createFolderr(actualPubKey);
 		console.log("Authorization keys created\n");
 		if (!username && !email && !password) {
@@ -439,9 +445,12 @@ async function keyGen(
 			"Owner account created successfully. Information below.\n" +
 				`User ID: ${id}\n` +
 				`Username: ${username}\n` +
-				`Email address: ${email}\n`
+				`Email address: ${email}\n`,
 		);
 		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
 		process.exit();
 	}
+	console.log(
+		"We have determined that your Folderr instance is set up correctly. If you believe this is an error, submit an issue at https://github.com/Folderr/Folderr/issues or at https://folderr.discourse.group/c/issues/9",
+	);
 })();

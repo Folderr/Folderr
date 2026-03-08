@@ -1,6 +1,6 @@
 import process from "process";
 import type { Transaction, Span } from "@sentry/types";
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsync, FastifyPluginOptions } from "fastify";
 import fp from "fastify-plugin";
 import * as Sentry from "@sentry/node";
 
@@ -24,10 +24,11 @@ type SentryOptions = {
 
 const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	fastify,
-	options
+	options,
 ) => {
 	if (!options.enabled) {
-		fastify.setErrorHandler((error, _, reply) => {
+		fastify.setErrorHandler((err, _, reply) => {
+			const error = err as Error;
 			fastify.log.error(error.message || error);
 
 			return reply.status(fastify.codes.internalErr).send({
@@ -38,7 +39,8 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 		return;
 	}
 
-	fastify.setErrorHandler((error, request, reply) => {
+	fastify.setErrorHandler((err, request, reply) => {
+		const error = err as Error;
 		fastify.log.error(error.message || error);
 
 		Sentry.withScope((scope) => {
@@ -66,7 +68,7 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 		return;
 	}
 
-	fastify.decorateRequest("transaction", null);
+	fastify.decorateRequest("transaction");
 	fastify.addHook("onRequest", (request, _, done) => {
 		// Configure the scope
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -95,7 +97,7 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 				if (!span) return;
 
 				request.span = span;
-			}
+			},
 		);
 
 		if (request.span) {
@@ -121,4 +123,4 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	});
 };
 
-export default fp(sentryPlugin);
+export default fp(sentryPlugin as FastifyPluginAsync);

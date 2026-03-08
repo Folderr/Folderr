@@ -10,7 +10,6 @@
       "*/package.json": ["../*/package.json"]
     },
     "experimental": {
-      "emitAssertForImportAttributes": true,
       "keepImportAttributes": true
     },
     "target": "esnext",

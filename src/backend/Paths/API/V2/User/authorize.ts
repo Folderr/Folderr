@@ -43,8 +43,12 @@ class Login extends Path {
 		this.options = {
 			schema: {
 				headers: {
-					username: { type: "string" },
-					password: { type: "string" },
+					type: "object",
+					properties: {
+						username: { type: "string" },
+						password: { type: "string" },
+					},
+					required: ["username", "password"],
 				},
 			},
 		};
@@ -68,7 +72,7 @@ class Login extends Path {
 				password: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		let auth: false | User = false;
 

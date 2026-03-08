@@ -36,9 +36,8 @@ class Logout extends Path {
 		this.options = {
 			schema: {
 				querystring: {
-					everywhere: {
-						type: "boolean",
-					},
+					type: "object",
+					properties: { everywhere: { type: "boolean" } },
 				},
 			},
 		};
@@ -60,7 +59,7 @@ class Logout extends Path {
 				everywhere?: boolean;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		if (request.query.everywhere) {
 			const auth = await this.checkAuth(request);
@@ -73,7 +72,7 @@ class Logout extends Path {
 
 			const revoked = await this.Utils.authorization.revokeAll(
 				auth.id,
-				true
+				true,
 			);
 			if (!revoked) {
 				return response.status(this.codes.internalErr).send({
@@ -106,7 +105,7 @@ class Logout extends Path {
 
 		const revoked = await this.Utils.authorization.revoke(
 			request.cookies.token,
-			true
+			true,
 		);
 		if (!revoked) {
 			return response.status(this.codes.internalErr).send({

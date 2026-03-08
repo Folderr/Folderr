@@ -39,9 +39,8 @@ class GenToken extends Path {
 		this.options = {
 			schema: {
 				body: {
-					description: {
-						type: "string",
-						maxLength: 50,
+					properties: {
+						description: { type: "string", maxLength: 50 },
 					},
 				},
 				querystring: {
@@ -81,7 +80,7 @@ class GenToken extends Path {
 				description?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
@@ -109,7 +108,7 @@ class GenToken extends Path {
 		if (tokens.length >= 10 && request.query.override) {
 			const tkns = tokens.sort(
 				(a: Tokendb, b: Tokendb) =>
-					Number(a.createdAt) - Number(b.createdAt)
+					Number(a.createdAt) - Number(b.createdAt),
 			);
 			await this.core.db.purgeToken(tkns[0].id, tkns[0].userID, {
 				web: false,
@@ -118,7 +117,7 @@ class GenToken extends Path {
 
 		const token = await this.Utils.authorization.genKey(
 			auth.id,
-			request.body.description
+			request.body.description,
 		);
 		return response
 			.status(this.codes.created)

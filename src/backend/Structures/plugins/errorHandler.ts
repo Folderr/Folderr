@@ -104,4 +104,4 @@ const errorHandlerPlugin: FastifyPluginAsync = async (
 	);
 };
 
-export default fp(errorHandlerPlugin, "4.x");
+export default fp(errorHandlerPlugin, ">=4.x");

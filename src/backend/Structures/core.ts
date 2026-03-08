@@ -54,7 +54,7 @@ import {
 	Regexs,
 	codes as StatusCodes,
 } from "../internals.js";
-import pkg from "../../../package.json" assert { type: "json" };
+import pkg from "../../../package.json" with { type: "json" };
 import DelQueue from "./Utilities/db-queue.js";
 
 const version = pkg.version;
@@ -67,7 +67,10 @@ import type { LoggerLevels } from "./logger.js";
 
 // Local Fastify plugins
 import SentryPlugin from "./plugins/sentry.js";
-import type { ErrorHandlerWithSeverity, supressErrorHandlerRoute } from "./plugins/errorHandler.js";
+import type {
+	ErrorHandlerWithSeverity,
+	supressErrorHandlerRoute,
+} from "./plugins/errorHandler.js";
 import errorHandlerPlugin from "./plugins/errorHandler.js";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
@@ -119,7 +122,7 @@ const debugLevelMap = new Map<debugLevels, string>([
 	[0, "Disabled"],
 	[1, "Basic. Debugging and performance"],
 	[2, "Request level. Debugging, performance, and request logging"],
-])
+]);
 
 export default class Core {
 	public readonly db: MongoDB;
@@ -145,7 +148,7 @@ export default class Core {
 
 	public listening: boolean;
 
-	public readonly debugLevel: debugLevels // 0 = off, 1 = basic debug + performance, 2 = request + lvl 1. Dervied from both DEBUG and DEBUG_LEVEL env variables
+	public readonly debugLevel: debugLevels; // 0 = off, 1 = basic debug + performance, 2 = request + lvl 1. Dervied from both DEBUG and DEBUG_LEVEL env variables
 
 	readonly #rewritten: string[];
 
@@ -169,7 +172,7 @@ export default class Core {
 
 	#health: {
 		failedEndpoints: Set<string>;
-	}
+	};
 
 	constructor() {
 		this.logger = logger;
@@ -195,7 +198,9 @@ export default class Core {
 			failedEndpoints: new Set(),
 		};
 
-		this.debugLevel = process.env.DEBUG_LEVEL ? Number(process.env.DEBUG_LEVEL) as debugLevels : 0;
+		this.debugLevel = process.env.DEBUG_LEVEL
+			? (Number(process.env.DEBUG_LEVEL) as debugLevels)
+			: 0;
 		if (process.env.DEBUG === "true" && !this.debugLevel) {
 			this.debugLevel = 1;
 		}
@@ -212,7 +217,7 @@ export default class Core {
 			trustProxy: this.config.trustProxies,
 			disableRequestLogging: true,
 			serverFactory: this.initServer(this.#keys),
-			logger: this.logger as FastifyBaseLogger,
+			loggerInstance: this.logger as FastifyBaseLogger,
 		});
 		this.app.decorate("codes", StatusCodes);
 
@@ -258,7 +263,9 @@ export default class Core {
 	getHealth(): { failedEndpoints: Set<string>; activeRoutes: Set<string> } {
 		return {
 			failedEndpoints: this.#health.failedEndpoints,
-			activeRoutes: this.#registeredEndpoints.difference(this.#health.failedEndpoints),
+			activeRoutes: this.#registeredEndpoints.difference(
+				this.#health.failedEndpoints,
+			),
 		};
 	}
 
@@ -290,10 +297,12 @@ export default class Core {
 
 	async registerServerPlugins() {
 		const obs = new PerformanceObserver((list) => {
-			this.logger.debug(`[PERFORMANCE] ${list.getEntries()[0].name} time taken: ${list.getEntries()[0].duration}ms`);
+			this.logger.debug(
+				`[PERFORMANCE] ${list.getEntries()[0].name} time taken: ${list.getEntries()[0].duration}ms`,
+			);
 		});
 		if (this.debugLevel >= 1) {
-			obs.observe({type: "measure"});
+			obs.observe({ type: "measure" });
 		} else {
 			obs.disconnect();
 		}
@@ -375,7 +384,7 @@ export default class Core {
 		}
 		performance.measure("core.registerServerPlugins", "Basic Plugins");
 		await this.Utils.sleep(10);
-		setTimeout(() => obs.disconnect(), 10)
+		setTimeout(() => obs.disconnect(), 10);
 		// obs.disconnect();
 	}
 
@@ -441,7 +450,9 @@ export default class Core {
 
 	async registerNewApi() {
 		const obs = new PerformanceObserver((list) => {
-			this.logger.debug(`[PERFORMANCE] ${list.getEntries()[0].name} time taken: ${list.getEntries()[0].duration}ms`);
+			this.logger.debug(
+				`[PERFORMANCE] ${list.getEntries()[0].name} time taken: ${list.getEntries()[0].duration}ms`,
+			);
 		});
 		if (this.debugLevel >= 1) {
 			obs.observe({ type: "measure" });
@@ -465,8 +476,11 @@ export default class Core {
 		const files = await fg(`${basedir}/**/*${extension}`, {
 			ignore: ["**/index*"],
 		});
-		performance.measure("core.registerNewApi File Paths", "core.registerNewApi File Pathing Start");
-		const filebase = `${osPrefix}${process.cwd()}`;
+		performance.measure(
+			"core.registerNewApi File Paths",
+			"core.registerNewApi File Pathing Start",
+		);
+		const filebase = `${process.cwd()}`;
 		let prefixes = new Map<string, string>();
 		let groups = new Map<string, string[]>(); // A group of files
 		performance.mark("core.registerNewApi Prefix Grouping");
@@ -478,7 +492,7 @@ export default class Core {
 			}
 			if (!apiPrefix) {
 				const { prefix } = await import(
-					join(filebase, directory, `index${extension}`)
+					osPrefix + join(filebase, directory, `index${extension}`)
 				);
 				apiPrefix = prefix as string;
 				prefixes.set(directory, prefix);
@@ -488,7 +502,10 @@ export default class Core {
 			);
 			groups.set(apiPrefix, filteredFiles);
 		}
-		performance.measure("core.registerNewApi Prefix Grouped", "core.registerNewApi Prefix Grouping");
+		performance.measure(
+			"core.registerNewApi Prefix Grouped",
+			"core.registerNewApi Prefix Grouping",
+		);
 
 		const initQueue = [];
 		// impl: Faster import
@@ -507,7 +524,7 @@ export default class Core {
 							method: string;
 							rewrites?: string;
 							enabled: boolean;
-						} = await import(join(filebase, file));
+						} = await import(osPrefix + join(filebase, file));
 						if (!imported.enabled) return;
 						if (imported.rewrites) {
 							this.logger.debug(
@@ -526,10 +543,13 @@ export default class Core {
 				{
 					prefix: `/api${prefix}`,
 				},
-			)
+			);
 		}
-		performance.measure("core.registerNewApi Registered APIs", "core.registerNewApi Registering APIs");
-		setTimeout(() => obs.disconnect(), 10)
+		performance.measure(
+			"core.registerNewApi Registered APIs",
+			"core.registerNewApi Registering APIs",
+		);
+		setTimeout(() => obs.disconnect(), 10);
 	}
 
 	async initDb(): Promise<void> {
@@ -610,7 +630,9 @@ export default class Core {
 		const app = instance;
 		if (Array.isArray(path.path)) {
 			for (const url of path.path) {
-				this.app.supressErrorHandlerRoute(`${path.type.toUpperCase()}:${app.prefix}${url}`);
+				this.app.supressErrorHandlerRoute(
+					`${path.type.toUpperCase()}:${app.prefix}${url}`,
+				);
 				switch (path.type.toLowerCase()) {
 					case "post": {
 						app.post(
@@ -621,20 +643,34 @@ export default class Core {
 						break;
 					}
 					case "delete": {
-						app.delete(url, path.options || {}, path.execute.bind(path));
+						app.delete(
+							url,
+							path.options || {},
+							path.execute.bind(path),
+						);
 						break;
 					}
 					case "patch": {
-						app.patch(url, path.options || {}, path.execute.bind(path));
+						app.patch(
+							url,
+							path.options || {},
+							path.execute.bind(path),
+						);
 						break;
 					}
 					default: {
-						app.get(url, path.options || {}, path.execute.bind(path));
+						app.get(
+							url,
+							path.options || {},
+							path.execute.bind(path),
+						);
 					}
 				}
 			}
 		} else {
-			this.app.supressErrorHandlerRoute(`${path.type.toUpperCase()}:${app.prefix}${path.path}`);
+			this.app.supressErrorHandlerRoute(
+				`${path.type.toUpperCase()}:${app.prefix}${path.path}`,
+			);
 			switch (path.type.toLowerCase()) {
 				case "post": {
 					app.post(
@@ -645,15 +681,27 @@ export default class Core {
 					break;
 				}
 				case "delete": {
-					app.delete(path.path, path.options || {}, path.execute.bind(path));
+					app.delete(
+						path.path,
+						path.options || {},
+						path.execute.bind(path),
+					);
 					break;
 				}
 				case "patch": {
-					app.patch(path.path, path.options || {}, path.execute.bind(path));
+					app.patch(
+						path.path,
+						path.options || {},
+						path.execute.bind(path),
+					);
 					break;
 				}
 				default: {
-					app.get(path.path, path.options || {}, path.execute.bind(path));
+					app.get(
+						path.path,
+						path.options || {},
+						path.execute.bind(path),
+					);
 				}
 			}
 		}
@@ -691,7 +739,9 @@ export default class Core {
 					continue;
 				}
 
-				this.app.supressErrorHandlerRoute(`${path.type.toUpperCase()}:${Array.isArray(path.path) ? path.path[0] : path.path}`);
+				this.app.supressErrorHandlerRoute(
+					`${path.type.toUpperCase()}:${Array.isArray(path.path) ? path.path[0] : path.path}`,
+				);
 
 				this.internalInitPath(path);
 
