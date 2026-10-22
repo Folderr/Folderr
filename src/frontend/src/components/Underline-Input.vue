@@ -4,7 +4,7 @@
 		:disabled="disabled"
         class="
         	block font-input
-            focus:outline-none border-0
+            focus:outline-hidden border-0
             text-brand
             p-4 pl-0 w-full mb-1
             border-brand-darkened border-b-2

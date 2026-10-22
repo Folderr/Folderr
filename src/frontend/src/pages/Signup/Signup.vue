@@ -93,7 +93,7 @@
 			>
 				<!-- eslint-enable max-len -->
 				<Signup :sne="sne" />
-				<div class="flex mt-2 justify-center w-[100%] font-headline">
+				<div class="flex mt-2 justify-center w-full font-headline">
 					<p class="text-secondary-text">returning user?</p>
 					<a
 						class="border-0 bg-transparent text-brand ml-2 hover:font-bold"
