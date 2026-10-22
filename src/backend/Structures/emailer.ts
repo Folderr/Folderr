@@ -111,7 +111,7 @@ export default class Emailer {
 		email: string,
 		verifyLink: string,
 		username: string
-	): Promise<undefined | SentMessageInfo> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -131,7 +131,7 @@ export default class Emailer {
 		email: string,
 		username: string,
 		instanceLink: string
-	): Promise<undefined | SentMessageInfo> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -152,7 +152,7 @@ export default class Emailer {
 		forgotLink: string,
 		username: string,
 		instanceLink: string
-	): Promise<undefined | SentMessageInfo> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -176,7 +176,7 @@ export default class Emailer {
 		reason: string,
 		username: string,
 		instanceLink: string
-	): Promise<undefined | SentMessageInfo> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -199,7 +199,7 @@ export default class Emailer {
 		reason: string,
 		username: string,
 		instanceLink: string
-	): Promise<undefined | SentMessageInfo> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -221,7 +221,7 @@ export default class Emailer {
 		email: string,
 		confirmLink: string,
 		username: string
-	): Promise<undefined | SentMessageInfo> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
@@ -252,7 +252,7 @@ export default class Emailer {
 			type: string;
 		},
 		instanceLink: string
-	): Promise<undefined | SentMessageInfo> {
+	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
 				from: this.email,
