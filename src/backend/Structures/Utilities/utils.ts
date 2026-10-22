@@ -23,7 +23,6 @@ import { promisify } from "util";
 import crypto from "crypto";
 import buffer from "buffer";
 import argon2 from "argon2";
-import * as uuid from "uuid"; // Use ulid over uuid
 import * as ulid from "ulidx";
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
@@ -246,16 +245,7 @@ class Utils {
 	}
 
 	isValidFolderrId(id: string): boolean {
-		try {
-			const isUlid = ulid.isValid(id);
-			if (!isUlid) {
-				return uuid.validate(id);
-			}
-
-			return isUlid;
-		} catch {
-			return uuid.validate(id);
-		}
+		return ulid.isValid(id);
 	}
 
 	convertUuidToFolderrId(id: string): string {

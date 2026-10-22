@@ -23,10 +23,6 @@ import type {
 	FastifyServerFactoryHandler,
 } from "fastify";
 
-// Frontend stuff
-
-import middie from "@fastify/middie";
-
 // Other imports
 import spdy from "spdy"; // Fuck spdy
 import got from "got";
@@ -836,8 +832,6 @@ export default class Core {
 		this.logger.debug("Using Development Vite server for frontend");
 
 		const vite = await import("vite");
-		await this.app.register(middie);
-		await this.app.after();
 		const server = await vite.createServer({
 			server: {
 				middlewareMode: true,
@@ -845,18 +839,32 @@ export default class Core {
 			envDir: process.cwd(),
 		});
 		const publicPaths = fs.readdirSync("./src/frontend/public");
-		this.app.use((request, response, next) => {
-			if (!request.url) return next();
-			const strippedUrl = request.url?.slice(1, request.url.length) ?? "";
-			const regex =
-				/^\/(api|confirm|image|i\/|v\/|video|file|f|l|link\/)/;
-			if (publicPaths.includes(strippedUrl)) {
-				server.middlewares(request, response, next);
-			} else if (regex.exec(request.url)) {
-				next();
-			} else {
-				server.middlewares(request, response, next);
+		// Paths served by Fastify, matched as whole segments so "/login" still goes to Vite
+		const backendPaths =
+			/^\/(api|confirm|image|i|videos|v|file|f|link|l)(\/|$)/;
+		this.app.addHook("onRequest", (request, reply, done) => {
+			const { url } = request.raw;
+			if (!url) {
+				done();
+				return;
 			}
+
+			const pathname = url.split("?", 1)[0];
+			if (
+				!publicPaths.includes(pathname.slice(1)) &&
+				backendPaths.test(pathname)
+			) {
+				done();
+				return;
+			}
+
+			// Vite owns the response from here, so Fastify must not send one
+			reply.hijack();
+			server.middlewares(request.raw, reply.raw, (error?: unknown) => {
+				// Vite didn't handle the request
+				reply.raw.statusCode = error ? 500 : 404;
+				reply.raw.end();
+			});
 		});
 		this.app.setNotFoundHandler(async (request, reply) => {
 			if (request.url.startsWith("/api")) {
