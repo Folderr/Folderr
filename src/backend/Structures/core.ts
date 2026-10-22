@@ -2,7 +2,7 @@
 import { join, normalize } from "path";
 import { platform } from "os";
 import { EventEmitter } from "events";
-import http from "http";
+import type { ServerOptions } from "https";
 import { fork } from "child_process";
 import fs from "fs";
 import process from "process";
@@ -17,14 +17,9 @@ import fastifyStatic from "@fastify/static";
 import ratelimit from "@fastify/rate-limit";
 import fastifyCors from "@fastify/cors";
 import multipart from "@fastify/multipart";
-import type {
-	FastifyBaseLogger,
-	FastifyInstance,
-	FastifyServerFactoryHandler,
-} from "fastify";
+import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 
 // Other imports
-import spdy from "spdy"; // Fuck spdy
 import got from "got";
 import type { Got } from "got";
 import * as Sentry from "@sentry/node";
@@ -213,7 +208,7 @@ export default class Core {
 		this.app = fastify({
 			trustProxy: this.config.trustProxies,
 			disableRequestLogging: true,
-			serverFactory: this.initServer(this.#keys),
+			https: this.initServer(this.#keys),
 			loggerInstance: this.logger as FastifyBaseLogger,
 		});
 		this.app.decorate("codes", StatusCodes);
@@ -444,51 +439,26 @@ export default class Core {
 		await this.Utils.authorization.init();
 	}
 
-	initServer(
-		keys: KeyConfig,
-	): (handler: FastifyServerFactoryHandler) => http.Server {
-		return (handler: FastifyServerFactoryHandler) => {
-			if (keys.httpsCertOptions?.key && keys.httpsCertOptions?.cert) {
-				// IMPL http/2 server
-				const server = spdy.createServer(
-					{
-						cert: fs.readFileSync(keys.httpsCertOptions.cert),
-						key: fs.readFileSync(keys.httpsCertOptions.key),
-						spdy: {
-							protocols: ["h2", "http/1.1"],
-						},
-					},
-					(request, response) => {
-						handler(request, response);
-					},
-				);
-				this.logger.debug("Using SPDY server");
-				this.logger.debug("Initalized Server");
+	/**
+	 * @desc Builds Fastify's HTTPS options. null means Fastify serves plain HTTP
+	 */
+	initServer(keys: KeyConfig): ServerOptions | null {
+		if (keys.httpsCertOptions?.key && keys.httpsCertOptions?.cert) {
+			this.logger.debug("Using HTTPS server");
+			return {
+				cert: fs.readFileSync(keys.httpsCertOptions.cert),
+				key: fs.readFileSync(keys.httpsCertOptions.key),
+			};
+		}
 
-				return server;
-			}
+		if (process.env.NODE_ENV === "production" && !this.config.trustProxies) {
+			this.logger.error("HTTPS required in production. Shuting down");
+			this.shutdownServer("Core.initServer", "No HTTPS Certificate");
+			throw new Error("HTTPS required in production. Shuting down");
+		}
 
-			if (
-				process.env.NODE_ENV === "production" &&
-				!this.config.trustProxies
-			) {
-				this.logger.error(
-					"HTTPS and/or HTTP/2 required in production. Shuting down",
-				);
-				this.shutdownServer("Core.initServer", "No HTTPS Certificate");
-				throw new Error(
-					"HTTPS and/or HTTP/2 required in production. Shuting down",
-				);
-			}
-
-			const server = http.createServer((request, response) => {
-				handler(request, response);
-			});
-			this.logger.debug("Using HTTP server");
-			this.logger.debug("Initalized Server");
-
-			return server;
-		};
+		this.logger.debug("Using HTTP server");
+		return null;
 	}
 
 	async registerNewApi() {

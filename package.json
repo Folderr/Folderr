@@ -68,7 +68,6 @@
 		"pinia": "^2.3.1",
 		"pino": "^9.6.0",
 		"pino-pretty": "^11.3.0",
-		"spdy": "^4.0.2",
 		"tsx": "^4.19.2",
 		"ulidx": "^2.4.1",
 		"vue": "^3.5.13"
@@ -84,7 +83,6 @@
 		"@types/moment-duration-format": "^2.2.6",
 		"@types/node": "^18.19.76",
 		"@types/nodemailer": "^6.4.17",
-		"@types/spdy": "^3.4.9",
 		"@vitejs/plugin-vue": "^5.2.1",
 		"autoprefixer": "^10.4.20",
 		"eslint": "^9.20.1",
