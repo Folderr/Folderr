@@ -1,5 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&display=swap')
+layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+@theme {
+  --font-*: initial;
+  --font-headline: Raleway;
+  --font-info: 'Open Sans';
+  --font-input: 'Jetbrains Mono', sans-serif;
+
+  --color-brand: #2ecc71;
+  --color-brand-darkened: #2ba05c;
+  --color-secondary-brand: #81b5d9;
+  --color-bg: #282828;
+  --color-bg-old: #313131;
+  --color-secondary-bg: #131313;
+  --color-tertiary-bg: #393939;
+  --color-text: #ffffff;
+  --color-secondary-text: #c4c4c4;
+  --color-secondary-accent: #c5395b;
+  --color-secondary-accent-dark: #a91f40;
+  --color-disabled: #757575;
+  --color-disabled-red: #590015;
+
+  --breakpoint-lg: 1024px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 2400px;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}

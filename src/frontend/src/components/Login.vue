@@ -113,7 +113,7 @@ const jumpToLogin = () => { // Focuses on the login button
                     font-extrabold bg-brand
                     border-2 p-4 border-brand
                     hover:bg-brand-darkened hover:border-brand-darkened
-                    rounded-lg w-[100%] xl:w-80
+                    rounded-lg w-full xl:w-80
                 "
                 :class="[{
                     'bg-disabled': loading,

@@ -24,7 +24,7 @@ defineProps<{
 					(!type || type != 'red') && !buttonDisabled,
 			},
 		]"
-		class="px-2 rounded-sm p-1 border-2 font-semibold"
+		class="px-2 rounded-xs p-1 border-2 font-semibold"
 		@click="onClick"
 	>
 		<slot></slot>
