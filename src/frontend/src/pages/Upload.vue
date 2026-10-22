@@ -68,7 +68,7 @@
                 <div
                     v-if="link"
                     class="
-                        flex justify-center shrink
+                        flex justify-center flex-shrink
                         items-center bg-tertiary-bg
                         mx-auto w-min p-2 mb-8
                         border-2 rounded-lg

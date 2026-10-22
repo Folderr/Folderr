@@ -39,10 +39,10 @@
                             border-yellow-600
                             rounded-lg
                             mt-4
-                            md:max-w-(--breakpoint-sm)
+                            md:max-w-screen-sm
                             3xl:max-w-full
-                            wrap-break-word
-                            max-w-(--breakpoint-sm)
+                            break-words
+                            max-w-screen-sm
                             font-info
                         "
                     >
@@ -93,10 +93,10 @@
                             border-yellow-600
                             rounded-lg
                             mt-4
-                            md:max-w-(--breakpoint-sm)
+                            md:max-w-screen-sm
                             3xl:max-w-full
-                            wrap-break-word
-                            max-w-(--breakpoint-sm)
+                            break-words
+                            max-w-screen-sm
                             font-info m-auto
                         ">
                         <ExclamationIcon
@@ -119,7 +119,7 @@
 
                 <div class="text-text mt-4 text-lg">
                     <h1 class="font-info"><b>Token</b></h1>
-                    <div class="flex shrink bg-tertiary-bg rounded-lg mt-2">
+                    <div class="flex flex-shrink bg-tertiary-bg rounded-lg mt-2">
                         <input
                             readonly
                             title="Your API authentication token"
@@ -194,7 +194,7 @@
                                     my-2 p-2 px-4
                                     border-0
                                     hover:bg-none
-                                    rounded-xs
+                                    rounded-sm
                                     text-brand-darkened hover:text-brand bg-tertiary-bg"
                                 @click="downloadSharexConfig()"
                             >
@@ -206,7 +206,7 @@
                                     flex
                                     my-2 p-2 px-4 border-0
                                     hover:bg-none
-                                    rounded-xs
+                                    rounded-sm
                                     text-brand-darkened hover:text-brand bg-tertiary-bg
                                 "
                                 @click="copySharexConfig()"
@@ -292,7 +292,7 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                                 bg-tertiary-bg text-text
                                 p-4 w-4/5 xl:w-3/5
                                 placeholder-secondary-text
-                                focus:ring-3 focus:outline-hidden
+                                focus:ring focus:outline-none
                                 rounded-lg max-w-lg"
                             :class="[
                                 {
@@ -355,7 +355,7 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                                 placeholder-secondary-text
                                 focus:valid:ring-brand
                                 focus:invalid:ring-secondary-accent-dark
-                                focus:ring-3 focus:outline-hidden
+                                focus:ring focus:outline-none
                                 rounded-lg max-w-lg"
                             :class="[
                                 {
@@ -394,7 +394,7 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                                 p-4
                                 w-4/5 xl:w-3/5
                                 placeholder-secondary-text
-                                focus:ring-3 focus:outline-hidden
+                                focus:ring focus:outline-none
                                 rounded-lg max-w-lg"
                             :class="[
                                 {
@@ -432,7 +432,7 @@ for="newpassword"
                                 p-4
                                 w-4/5 xl:w-3/5
                                 placeholder-secondary-text
-                                focus:ring-3 focus:outline-hidden
+                                focus:ring focus:outline-none
                                 rounded-lg max-w-lg"
                             :class="[
                                 {
@@ -495,7 +495,7 @@ for="newpassword"
                                 p-4
                                 w-4/5 xl:w-3/5
                                 placeholder-secondary-text
-                                focus:ring-3 focus:outline-hidden
+                                focus:ring focus:outline-none
                                 rounded-lg max-w-lg"
                             :class="[
                                 {
@@ -576,7 +576,7 @@ for="newpassword"
                                     intermediate:ring-offset-gray-800 checked:ring-1
                                     checked:ring-offset-gray-800 bg-tertiary-bg
                                     ring-brand checked:ring-brand
-                                    checked:bg-brand rounded-xs
+                                    checked:bg-brand rounded-sm
                                 "
                                 type="checkbox"
                             >

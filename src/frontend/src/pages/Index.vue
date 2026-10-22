@@ -69,7 +69,7 @@
           justify-center"
       >
         <Login :sne="sne" />
-        <div class="flex mt-2 justify-center w-full font-headline">
+        <div class="flex mt-2 justify-center w-[100%] font-headline">
           <p class="text-secondary-text">new here?</p>
           <a
             href="/signup#signup"

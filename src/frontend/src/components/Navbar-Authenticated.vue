@@ -14,17 +14,17 @@
 					Folderr
 				</router-link>
 				<button
-					class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-sm bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
+					class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
 					@click="showMenu = !showMenu"
 				>
 					<span
-						class="block relative w-6 h-px rounded-xs bg-brand"
+						class="block relative w-6 h-px rounded-sm bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
 					></span>
 				</button>
 			</div>

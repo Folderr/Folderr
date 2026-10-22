@@ -25,7 +25,7 @@ defineProps<{
                                 'text-secondary-bg': !colorDisabled
                         },
                 ]"
-                class="px-8 rounded-xs p-2 border-2 font-semibold"
+                class="px-8 rounded-sm p-2 border-2 font-semibold"
                 @click="onClick"
         >
 		<slot></slot>
@@ -47,7 +47,7 @@ defineProps<{
                                 'text-black': !colorDisabled
                         },
                 ]"
-                class="px-8 rounded-xs p-2 border-2 font-semibold"
+                class="px-8 rounded-sm p-2 border-2 font-semibold"
                 @click="onClick"
         >
 		<slot></slot>
@@ -68,7 +68,7 @@ defineProps<{
                                 'text-text': !colorDisabled
                         },
                 ]"
-                class="px-8 rounded-xs p-2 border-2 font-semibold"
+                class="px-8 rounded-sm p-2 border-2 font-semibold"
                 @click="onClick"
         >
 		<slot></slot>
