@@ -128,7 +128,7 @@ class Utils {
 		let account: User | void;
 		if (request.headers.authorization) {
 			account = await this.authorization.verifyAccount(
-				request.headers.token,
+				request.headers.authorization,
 				{
 					fn: (user) => !user.markedForDeletion,
 				}
@@ -149,7 +149,7 @@ class Utils {
 			return { code: 401 };
 		}
 
-		if (admin && (!account.admin || !account.owner)) {
+		if (admin && !account.admin && !account.owner) {
 			return { code: 403 };
 		}
 
@@ -246,10 +246,6 @@ class Utils {
 
 	isValidFolderrId(id: string): boolean {
 		return ulid.isValid(id);
-	}
-
-	convertUuidToFolderrId(id: string): string {
-		return ulid.uuidToULID(id);
 	}
 
 	/**

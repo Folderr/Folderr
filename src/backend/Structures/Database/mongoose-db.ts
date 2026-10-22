@@ -163,9 +163,9 @@ export default class Mongoosedb extends DBClass {
 		return this.#schemas.Ban.find({}).exec();
 	}
 
-	async removeBan(email: string): Promise<boolean> {
+	async removeBan(email: string): Promise<number> {
 		const remove = await this.#schemas.Ban.deleteOne({ email }).exec();
-		return remove.acknowledged ?? remove.deletedCount > 0;
+		return remove.deletedCount;
 	}
 
 	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {

@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { Core } from "../../../internals";
 
-export const path = "/admin/ban/:id";
+export const path = "/ban/:id";
 export const enabled = true;
 export const rewrites = "/admin/ban/:id";
 export const method = "POST";
@@ -58,7 +58,7 @@ export async function route(fastify: FastifyInstance, core: Core) {
 			reply: FastifyReply,
 		) {
 			const auth = await core.Utils.checkAuth(request, true);
-			if (!auth) {
+			if (auth.code !== 200) {
 				return reply.status(core.codes.unauth).send({
 					code: core.codes.unauth,
 					message: "Authorization failed.",

@@ -74,7 +74,7 @@ class Unban extends Path {
 		response: FastifyReply
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin || user.owner)
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
@@ -83,7 +83,7 @@ class Unban extends Path {
 			});
 		}
 
-		if (this.core.emailer.validateEmail(request.body.email)) {
+		if (!this.core.emailer.validateEmail(request.body.email)) {
 			return response.status(this.codes.badReq).send({
 				code: this.codes.badReq,
 				message: "Missing or invalid requirements",
@@ -95,7 +95,7 @@ class Unban extends Path {
 			return response
 				.status(this.codes.ok)
 				.send({ code: this.codes.ok, message: "OK" });
-		}
+    }
 
 		return response.status(this.codes.notAccepted).send({
 			code: this.codes.notAccepted,

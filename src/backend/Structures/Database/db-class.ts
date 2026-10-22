@@ -150,7 +150,7 @@ export class DBClass {
 		);
 	}
 
-	async removeBan(email: string): Promise<boolean> {
+	async removeBan(email: string): Promise<number> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method removeBan is not implemented!"
 		);
