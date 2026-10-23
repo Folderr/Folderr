@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&display=swap')
 layer(base);
 
-@import 'tailwindcss';
+@import 'tailwindcss' source('../');
 
 @plugin '@tailwindcss/forms';
 
@@ -25,7 +25,7 @@ layer(base);
   --color-disabled: #757575;
   --color-disabled-red: #590015;
 
-  --breakpoint-3xl: 1500rem;
+  --breakpoint-3xl: 150rem;
 }
 
 /*
