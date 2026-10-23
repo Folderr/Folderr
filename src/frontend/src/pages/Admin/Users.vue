@@ -271,7 +271,7 @@
 						verifyingUsers.length > 0 &&
 						filter === 'Verifying Users'
 					"
-					class="mx-10 lg:mx-32 justify-center grid grid-cols-2 md:grid-cols-3 grid-flow-dense mt-10"
+					class="mx-10 lg:mx-28 justify-center grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-flow-dense mt-10"
 				>
 					<!-- eslint-enable max-len -->
 					<h2 class="">Profile</h2>
@@ -324,14 +324,14 @@
 					v-else-if="
 						userList && userList.length >= 0 && filter === 'Users'
 					"
-					class="mx-10 grid grid-cols-2 md:grid-cols-3 xl-grid-cols-4 2xl:grid-cols-5 grid-flow-dense mt-10 gap-x-4"
+					class="mx-10 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 grid-flow-dense mt-10 gap-x-4"
 				>
 					<!-- eslint-enable max-len -->
 					<h2 class="w-fit">Profile</h2>
 					<h2 class="hidden md:block w-fit">Email</h2>
-					<h2 class="hidden xl:block w-fit">Statistics</h2>
+					<h2 class="hidden 2xl:block w-fit">Statistics</h2>
 					<h2 class="hidden xl:block w-fit">Role</h2>
-					<h2>Actions</h2>
+					<h2 class="w-fit">Actions</h2>
 					<!-- eslint-disable max-len -->
 					<ul
 						v-for="user of userList"
@@ -342,22 +342,22 @@
 						<li class="my-auto py-4 w-fit">
 							{{ user.username }}
 						</li>
-						<li class="hidden md:flex my-auto py-4">
+						<li class="hidden md:flex my-auto py-4 w-fit">
 							<MailIcon class="h-5 my-auto mr-2 text-brand" />
 							{{ user.email }}
 						</li>
-						<li class="hidden 2xl:flex my-auto py-4">
+						<li class="hidden 2xl:flex my-auto py-4 w-fit">
 							<DocumentIcon class="h-5 mr-2 text-brand my-auto" />
 							{{ user.statistics.files }} files,
 							<LinkIcon class="h-5 mx-2 text-brand my-auto" />
 							{{ user.statistics.links }} links
 						</li>
-						<li class="hidden xl:block my-auto py-4">
+						<li class="hidden xl:block my-auto py-4 w-fit">
 							{{
 								user.role[0].toUpperCase() + user.role.slice(1)
 							}}
 						</li>
-						<li class="flex space-x-2 h-fit my-auto py-4">
+						<li class="flex space-x-2 h-fit my-auto py-4 w-fit">
 							<AdminButton
 								class="hidden lg:block"
 								:button-disabled="user.role === 'owner'"
