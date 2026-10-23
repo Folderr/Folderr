@@ -47,3 +47,11 @@ layer(base);
     border-color: var(--color-gray-200, currentcolor);
   }
 }
+
+/* Tailwind CSS v4 gives buttons the default cursor; keep v3's pointer */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}

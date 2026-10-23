@@ -267,7 +267,7 @@ const isAllValid = computed(() => {
 		<button
 			ref="signupBtn"
 			:disabled="loading"
-			class="flex justify-center font-info font-extrabold text-bg-old bg-brand border-2 p-4 border-brand hover:bg-brand-darkened hover:border-brand-darkened rounded-lg w-full xl:w-80"
+			class="flex justify-center font-info font-extrabold text-bg-old bg-brand border-2 p-4 border-brand hover:bg-brand-darkened hover:border-brand-darkened rounded-xl w-full xl:w-80"
 			:class="[
 				{
 					'bg-disabled': loading,

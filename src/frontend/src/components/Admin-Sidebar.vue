@@ -26,7 +26,7 @@ defineProps<{ active?: string }>();
 				]"
 			>
 				<button
-					class="cursor-pointer text-xl leading-none border border-solid border-transparent rounded-sm bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
+					class="cursor-pointer text-xl leading-none border border-solid border-transparent rounded-md bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
 					:class="[
 						{
 							'my-auto': !isOpen,

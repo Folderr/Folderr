@@ -229,7 +229,7 @@
 						<Listbox v-model="filter">
 							<!-- eslint-disable max-len -->
 							<ListboxButton
-								class="flex grow my-auto text-secondary-text p-2 rounded-lg bg-bg-old"
+								class="flex grow my-auto text-secondary-text p-2 rounded-xl bg-bg-old"
 								><FilterIcon
 									class="rounded-lg h-5 lg:h-7 my-auto"
 								/>

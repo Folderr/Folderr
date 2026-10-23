@@ -14,7 +14,7 @@
 					Folderr
 				</router-link>
 				<button
-					class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-sm bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
+					class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-md bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
 					@click="showMenu = !showMenu"
 				>
 					<span
@@ -73,7 +73,7 @@
 						<div>
 							<Menu as="div" class="inline-block text-left">
 								<MenuButton
-									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-md"
+									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-lg"
 								>
 									<UserIcon
 										class="w-5 h-5 mr-2 text-inherit"
@@ -110,7 +110,7 @@
 										</MenuItem>
 										<MenuItem>
 											<button
-												class="leading-snug group flex rounded-md items-center w-full px-6 py-2 hover:bg-red-800 hover:text-text"
+												class="leading-snug group flex rounded-lg items-center w-full px-6 py-2 hover:bg-red-800 hover:text-text"
 												@click="logout"
 											>
 												<LogoutIcon
@@ -129,7 +129,7 @@
 						<div v-if="admin" class="w-auto">
 							<Menu as="div" class="inline-block text-left w-min">
 								<MenuButton
-									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-md"
+									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-lg"
 								>
 									<FingerPrintIcon
 										class="w-5 h-5 mr-2 text-inherit"

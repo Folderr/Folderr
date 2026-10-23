@@ -194,7 +194,7 @@
                                     my-2 p-2 px-4
                                     border-0
                                     hover:bg-none
-                                    rounded-xs
+                                    rounded-sm
                                     text-brand-darkened hover:text-brand bg-tertiary-bg"
                                 @click="downloadSharexConfig()"
                             >
@@ -206,7 +206,7 @@
                                     flex
                                     my-2 p-2 px-4 border-0
                                     hover:bg-none
-                                    rounded-xs
+                                    rounded-sm
                                     text-brand-darkened hover:text-brand bg-tertiary-bg
                                 "
                                 @click="copySharexConfig()"
@@ -226,20 +226,20 @@
                     class="text-brand text-3xl mb-10 font-headline"
                 ><b>Account Management</b></h1>
                 <!--- Mini-Nav -->
-                <div class="md:w-1/2 w-4/6 bg-tertiary-bg m-auto sticky top-2 z-10 font-info">
+                <div class="w-fit max-w-full rounded-md overflow-hidden bg-tertiary-bg m-auto sticky top-2 z-10 font-info">
                     <ul class="flex list-none">
                         <li
 class="p-5 text-secondary-text" :class="[{
                             'bg-[#303030]': activeSection == 'account'
                         }]">
-                            <button @click="scrollToTop()">Account Info</button>
+                            <button @click="selectSection('account'); scrollToTop()">Account Info</button>
                         </li>
                         <li
 class="p-5 text-secondary-text" :class="[{
                             'bg-[#303030]': activeSection == 'privacy'
                         }]">
                             <button
-                                @click="privacydiv?.scrollIntoView({ behavior: 'smooth' })"
+                                @click="selectSection('privacy'); privacydiv?.scrollIntoView({ behavior: 'smooth' })"
                             >Privacy</button>
                         </li>
                         <li
@@ -247,7 +247,7 @@ class="p-5 text-secondary-text" :class="[{
                             'bg-[#303030]': activeSection == 'tokens'
                         }]">
                             <button
-                                @click="tokendiv?.scrollIntoView({ behavior: 'smooth' })"
+                                @click="selectSection('tokens'); tokendiv?.scrollIntoView({ behavior: 'smooth' })"
                             >Token Management</button>
                         </li>
                         <li
@@ -258,7 +258,7 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                         </li>
                     </ul>
                 </div>
-                <div class="m-auto pt-10 text-justify w-5/6 md:w-1/2 font-info" >
+                <div ref="accountdiv" class="m-auto pt-10 text-justify w-5/6 md:w-1/2 font-info" >
                     <h1
                         class="text-text text-3xl bold lg:ml-20 font-headline"
                     ><b>Account Info</b></h1>
@@ -291,6 +291,7 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                                 mt-2 mb-2
                                 bg-tertiary-bg text-text
                                 p-4 w-4/5 xl:w-3/5
+                                border-0
                                 placeholder-secondary-text
                                 focus:ring-3 focus:outline-hidden
                                 rounded-lg max-w-lg"
@@ -310,7 +311,7 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                                         items-center
                                         px-4 py-2
                                         text-secondary-text hover:text-brand
-                                        rounded-lg w-full
+                                        rounded-xl w-full
                                         text-left flex"
                                     :class="
                                         open ?
@@ -452,7 +453,7 @@ for="newpassword"
                                         items-center
                                         px-4 py-2
                                         text-secondary-text hover:text-brand text-left
-                                        rounded-lg w-full
+                                        rounded-xl w-full
                                         flex"
                                     :class="
                                         open ?
@@ -658,7 +659,7 @@ for="newpassword"
 </template>
 
 <script setup lang="ts">
-import {ref, reactive, computed, onMounted} from 'vue';
+import {ref, reactive, computed, onMounted, onBeforeUnmount} from 'vue';
 import {
     ExclamationIcon,
     ClipboardCopyIcon,
@@ -729,10 +730,59 @@ type UpdateInfo = {
 const acct = ref<
     HTMLInputElement
 >();
+const accountdiv = ref<HTMLDivElement>();
 const tokendiv = ref<HTMLDivElement>();
 const top = ref<HTMLDivElement>();
 const usernameinp = ref<HTMLInputElement>();
 const activeSection = ref('account');
+
+// Highlight the last section whose heading has passed a reading line. The line starts a third
+// of the way down the screen and moves to the bottom as the page scrolls, so short sections
+// at the end still get highlighted, even on tall screens where the page barely scrolls.
+// After a tab is clicked, keep it highlighted while the page scrolls to it
+let keepSelectionUntil = 0;
+let pendingFrame = 0;
+
+const updateActiveSection = () => {
+    pendingFrame = 0;
+    if (Date.now() < keepSelectionUntil) {
+        return;
+    }
+
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = maxScroll > 0 ? Math.min(window.scrollY / maxScroll, 1) : 0;
+    const readingLine = window.innerHeight * ((1 + (2 * progress)) / 3);
+    const sections: Array<[HTMLElement | undefined, string]> = [
+        [accountdiv.value, 'account'],
+        [privacydiv.value as HTMLElement | undefined, 'privacy'],
+        [tokendiv.value, 'tokens'],
+    ];
+
+    let current = 'account';
+    for (const [element, name] of sections) {
+        if (!element) {
+            continue;
+        }
+
+        const {top} = element.getBoundingClientRect();
+        if (top <= readingLine) {
+            current = name;
+        }
+    }
+
+    activeSection.value = current;
+};
+
+const queueActiveSectionUpdate = () => {
+    if (!pendingFrame) {
+        pendingFrame = requestAnimationFrame(updateActiveSection);
+    }
+};
+
+const selectSection = (name: string) => {
+    activeSection.value = name;
+    keepSelectionUntil = Date.now() + 1000;
+};
 
 const updateInfo = async() => {
     if (isInfoSame.value) {
@@ -1217,23 +1267,16 @@ onMounted(async() => {
         }
     }
 
-    window.addEventListener('scroll', () => {
-        if (tokendiv.value && privacydiv.value) {
-            const privacyheight = privacydiv.value.offsetTop - privacydiv.value.offsetHeight - 100;
-            if(window.scrollY >= privacyheight) {
-                activeSection.value = 'privacy'
-            }
 
-            if (window.scrollY >= (tokendiv.value.offsetTop - 200)) {
-                activeSection.value = 'tokens';
-            }
-
-            if (window.scrollY < privacyheight) {
-                activeSection.value = 'account';
-            }
-        }
-    })
+    window.addEventListener('scroll', queueActiveSectionUpdate, {passive: true});
+    window.addEventListener('resize', queueActiveSectionUpdate);
 })
+
+onBeforeUnmount(() => {
+    window.removeEventListener('scroll', queueActiveSectionUpdate);
+    window.removeEventListener('resize', queueActiveSectionUpdate);
+    cancelAnimationFrame(pendingFrame);
+});
 </script>
 
 <style>
