@@ -12,11 +12,11 @@ defineProps<{ active?: string }>();
 		class="h-full"
 		:class="[
 			{
-				'bg-black bg-opacity-80 lg:bg-transparent fixed w-full': isOpen,
+				'bg-black/80 lg:bg-transparent fixed w-full': isOpen,
 			},
 		]"
 	>
-		<aside class="lg:w-64 flex flex-col grow-1 h-full" aria-label="Sidebar">
+		<aside class="lg:w-64 flex flex-col grow h-full" aria-label="Sidebar">
 			<div
 				class="overflow-y-hidden md:py-4 px-3 flex flex-col grow lg:sticky bg-bg-old h-full"
 				:class="[
@@ -26,7 +26,7 @@ defineProps<{ active?: string }>();
 				]"
 			>
 				<button
-					class="cursor-pointer text-xl leading-none border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
+					class="cursor-pointer text-xl leading-none border border-solid border-transparent rounded-md bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
 					:class="[
 						{
 							'my-auto': !isOpen,
@@ -35,13 +35,13 @@ defineProps<{ active?: string }>();
 					@click="isOpen = !isOpen"
 				>
 					<span
-						class="block relative w-6 h-px rounded-sm bg-brand"
+						class="block relative w-6 h-px rounded-xs bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
 					></span>
 				</button>
 				<div

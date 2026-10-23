@@ -9,22 +9,22 @@
 			>
 				<router-link
 					to="/"
-					class="text-2xl font-bold leading-relaxed inline-block mr-2 py-2 whitespace-nowrap text-brand hover:text-opacity-75"
+					class="text-2xl font-bold leading-relaxed inline-block mr-2 py-2 whitespace-nowrap text-brand hover:text-brand/75"
 				>
 					Folderr
 				</router-link>
 				<button
-					class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
+					class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-md bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
 					@click="showMenu = !showMenu"
 				>
 					<span
-						class="block relative w-6 h-px rounded-sm bg-brand"
+						class="block relative w-6 h-px rounded-xs bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
 					></span>
 				</button>
 			</div>
@@ -73,7 +73,7 @@
 						<div>
 							<Menu as="div" class="inline-block text-left">
 								<MenuButton
-									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-md"
+									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-lg"
 								>
 									<UserIcon
 										class="w-5 h-5 mr-2 text-inherit"
@@ -87,11 +87,11 @@
 								</MenuButton>
 								<transition
 									enter-active-class="transition duration-100 ease-out"
-									enter-from-class="transform scale-95 opacity-0"
-									enter-to-class="transform scale-100 opacity-100"
+									enter-from-class="scale-95 opacity-0"
+									enter-to-class="scale-100 opacity-100"
 									leave-active-class="transition duration-75 ease-in"
-									leave-from-class="transform scale-100 opacity-100"
-									leave-to-class="transform scale-95 opacity-0"
+									leave-from-class="scale-100 opacity-100"
+									leave-to-class="scale-95 opacity-0"
 								>
 									<MenuItems
 										class="absolute mt-2 rounded-md bg-[#303030]"
@@ -110,7 +110,7 @@
 										</MenuItem>
 										<MenuItem>
 											<button
-												class="leading-snug group flex rounded-md items-center w-full px-6 py-2 hover:bg-red-800 hover:text-text"
+												class="leading-snug group flex rounded-lg items-center w-full px-6 py-2 hover:bg-red-800 hover:text-text"
 												@click="logout"
 											>
 												<LogoutIcon
@@ -129,7 +129,7 @@
 						<div v-if="admin" class="w-auto">
 							<Menu as="div" class="inline-block text-left w-min">
 								<MenuButton
-									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-md"
+									class="text-md font-bold leading-snug inline-flex justify-center w-full hover:text-text hover:bg-tertiary-bg px-3 py-2 rounded-lg"
 								>
 									<FingerPrintIcon
 										class="w-5 h-5 mr-2 text-inherit"
@@ -143,11 +143,11 @@
 								</MenuButton>
 								<transition
 									enter-active-class="transition duration-100 ease-out"
-									enter-from-class="transform scale-95 opacity-0"
-									enter-to-class="transform scale-100 opacity-100"
+									enter-from-class="scale-95 opacity-0"
+									enter-to-class="scale-100 opacity-100"
 									leave-active-class="transition duration-75 ease-in"
-									leave-from-class="transform scale-100 opacity-100"
-									leave-to-class="transform scale-95 opacity-0"
+									leave-from-class="scale-100 opacity-100"
+									leave-to-class="scale-95 opacity-0"
 								>
 									<MenuItems
 										class="absolute mt-2 rounded-md bg-[#303030]"

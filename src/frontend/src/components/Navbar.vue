@@ -13,25 +13,25 @@
 			>
 				<router-link
 					to="/"
-					class="text-2xl font-bold leading-relaxed inline-block mr-0 md:py-2 whitespace-nowrap text-brand hover:text-opacity-75 md:px-0"
+					class="text-2xl font-bold leading-relaxed inline-block mr-0 md:py-2 whitespace-nowrap text-brand hover:text-brand/75 md:px-0"
 				>
 					<!-- eslint-enable max-len -->
 					Folderr
 				</router-link>
 				<!-- eslint-disable max-len -->
 				<button
-					class="ml-2 cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block md:hidden outline-none focus:outline-none hover:bg-tertiary-bg"
+					class="ml-2 cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-md bg-transparent block md:hidden outline-hidden focus:outline-hidden hover:bg-tertiary-bg"
 					@click="showMenu = !showMenu"
 				>
 					<!-- eslint-enable max-len -->
 					<span
-						class="block relative w-6 h-px rounded-sm bg-brand"
+						class="block relative w-6 h-px rounded-xs bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
 					></span>
 					<span
-						class="block relative w-6 h-px rounded-sm mt-1 bg-brand"
+						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
 					></span>
 				</button>
 			</div>
