@@ -1,6 +1,6 @@
 <template>
 	<!-- Monstrous yet fairly flexible modal -->
-	<Dialog :open="hide" @close="cancel" class="bg-opacity-50 bg-black right-0 top-0 w-full z-40 h-full fixed flex flex-col">
+	<Dialog :open="hide" @close="cancel" class="bg-black/50 right-0 top-0 w-full z-40 h-full fixed flex flex-col">
 		<DialogPanel class="bg-bg sm:w-4/5 lg:w-2/5 justify-center m-auto p-10 rounded-md border-2 border-bg overflow-auto">
 			<span class="float-right text-text hover:cursor-pointer hover:text-secondary-text" v-on:click="cancel()">&times;</span>
 			<DialogTitle class="text-brand text-lg">{{header}}</DialogTitle>

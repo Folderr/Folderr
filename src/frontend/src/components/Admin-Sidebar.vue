@@ -12,7 +12,7 @@ defineProps<{ active?: string }>();
 		class="h-full"
 		:class="[
 			{
-				'bg-black bg-opacity-80 lg:bg-transparent fixed w-full': isOpen,
+				'bg-black/80 lg:bg-transparent fixed w-full': isOpen,
 			},
 		]"
 	>

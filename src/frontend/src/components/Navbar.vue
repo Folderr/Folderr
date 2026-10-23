@@ -13,7 +13,7 @@
 			>
 				<router-link
 					to="/"
-					class="text-2xl font-bold leading-relaxed inline-block mr-0 md:py-2 whitespace-nowrap text-brand hover:text-opacity-75 md:px-0"
+					class="text-2xl font-bold leading-relaxed inline-block mr-0 md:py-2 whitespace-nowrap text-brand hover:text-brand/75 md:px-0"
 				>
 					<!-- eslint-enable max-len -->
 					Folderr

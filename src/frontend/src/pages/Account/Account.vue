@@ -573,7 +573,7 @@ for="newpassword"
                                     block m-4
                                     text-brand border-brand ring-offset-gray-800
                                     focus:ring-brand focus:ring-offset-gray-800
-                                    intermediate:ring-offset-gray-800 checked:ring-1
+                                    indeterminate:ring-offset-gray-800 checked:ring-1
                                     checked:ring-offset-gray-800 bg-tertiary-bg
                                     ring-brand checked:ring-brand
                                     checked:bg-brand rounded-xs

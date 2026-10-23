@@ -9,7 +9,7 @@
 			>
 				<router-link
 					to="/"
-					class="text-2xl font-bold leading-relaxed inline-block mr-2 py-2 whitespace-nowrap text-brand hover:text-opacity-75"
+					class="text-2xl font-bold leading-relaxed inline-block mr-2 py-2 whitespace-nowrap text-brand hover:text-brand/75"
 				>
 					Folderr
 				</router-link>
