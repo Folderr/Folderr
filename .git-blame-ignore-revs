@@ -1,0 +1,5 @@
+# Mass reformats; skip them in git blame with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: Format with Biome
+330e46e495086bcde7b2c68c6be03022a266f709
