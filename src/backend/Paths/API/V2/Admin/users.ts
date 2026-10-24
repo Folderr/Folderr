@@ -109,14 +109,14 @@ class Users extends Path {
 		}
 
 		const array: Array<{
-			title?: string | boolean;
+			title: string;
 			username: string;
 			files: number;
 			links: number;
 			id: string;
 			created: number;
 		}> = users.map((user: User) => ({
-			title: user.owner ? "owner" : ((user.admin && "admin") ?? "user"),
+			title: user.owner ? "owner" : user.admin ? "admin" : "user",
 			username: user.username,
 			email: user.email,
 			files: user.files,
