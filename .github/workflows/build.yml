@@ -1,21 +1,25 @@
 name: Test Build
 on: [pull_request, push]
 
+permissions:
+    contents: read
+
 jobs:
     typecheck:
         runs-on: ubuntu-latest
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Setup Node
-              uses: actions/setup-node@v4.0.2
+              uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
                   node-version: 22
+                  cache: npm
 
             - name: Install Dependencies
-              run: npm i -D
+              run: npm ci
 
             - name: Typecheck
               run: npm run typecheck
@@ -25,15 +29,16 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Setup Node
-              uses: actions/setup-node@v4.0.2
+              uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
                   node-version: 22
+                  cache: npm
 
             - name: Install Dependencies
-              run: npm i -D
+              run: npm ci
 
-            - name: Typecheck
+            - name: Build
               run: npm run build
