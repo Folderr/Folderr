@@ -43,7 +43,7 @@
 						<button
 							type="button"
 							class="w-fit"
-							:on-click="closeUserDialog"
+							@click="closeUserDialog"
 						>
 							<span class="sr-only">Close User Info Modal</span>
 							<XIcon class="h-5 text-white" />
