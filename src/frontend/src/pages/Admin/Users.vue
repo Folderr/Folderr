@@ -40,7 +40,11 @@
 						<DialogTitle class="text-brand font-bold text-xl"
 							>User Info</DialogTitle
 						>
-						<button class="w-fit" :onClick="closeUserDialog">
+						<button
+							type="button"
+							class="w-fit"
+							:on-click="closeUserDialog"
+						>
 							<span class="sr-only">Close User Info Modal</span>
 							<XIcon class="h-5 text-white" />
 						</button>
@@ -125,7 +129,7 @@
 							<AdminButton
 								v-if="
 									store.owner &&
-									selectedUser.user.role == 'admin'
+									selectedUser.user.role === 'admin'
 								"
 								:on-click="
 									() =>

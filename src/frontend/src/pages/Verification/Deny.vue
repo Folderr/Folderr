@@ -10,6 +10,7 @@
 			</div>
 			<div v-else-if="verificationSuccess">
 				<svg
+					aria-hidden="true"
 					class="m-auto w-20 h-20 mb-4"
 					width="45"
 					height="45"
@@ -41,6 +42,7 @@
 			</div>
 			<div v-else>
 				<svg
+					aria-hidden="true"
 					class="m-auto w-20 h-20 mb-4"
 					width="45"
 					height="45"
@@ -78,12 +80,11 @@
 <script setup lang="ts">
 import * as FolderrSDK from "fldrr-web-sdk";
 import { onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import Spinner from "../../components/Spinner.vue";
 
 const sdk = FolderrSDK.setup();
 const route = useRoute();
-const router = useRouter();
 
 const loading = ref(true);
 const verificationSuccess = ref(false);

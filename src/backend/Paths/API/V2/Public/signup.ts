@@ -252,7 +252,7 @@ class Signup extends Path {
 		}
 
 		// Hash the password and catch errors
-		let pswd;
+		let pswd: string;
 		try {
 			pswd = await this.Utils.hashPass(password);
 		} catch (error: unknown) {

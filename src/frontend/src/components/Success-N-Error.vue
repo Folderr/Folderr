@@ -3,7 +3,7 @@
 		v-if="successes.length || errors.length"
 		class="mt-4 z-50 fixed right-4 top-20"
 	>
-		<div v-for="success of successes" v-bind:key="success">
+		<div v-for="success of successes" :key="success">
 			<div
 				:class="[
 					'justify-center',
@@ -24,6 +24,7 @@
 			>
 				<p>{{ success }}</p>
 				<button
+					type="button"
 					@click="removeSuccess(getSuccessIndex(success))"
 					class="bg-none border-none text-black ml-4"
 				>
@@ -31,7 +32,7 @@
 				</button>
 			</div>
 		</div>
-		<div v-for="error of errors" v-bind:key="error">
+		<div v-for="error of errors" :key="error">
 			<div
 				:class="[
 					'justify-center',
@@ -52,6 +53,7 @@
 			>
 				<p>{{ error }}</p>
 				<button
+					type="button"
 					@click="removeError(getErrorIndex(error))"
 					class="bg-none border-none text-black ml-4"
 				>

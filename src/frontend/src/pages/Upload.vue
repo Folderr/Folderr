@@ -39,9 +39,11 @@
 				>
 					<img
 						v-if="file?.type.startsWith('image')"
+						alt="Preview of the file to upload"
 						class="m-auto"
 						:src="filePreview"
 					/>
+					<!-- biome-ignore lint/a11y/useMediaCaption: previews the file the user is about to upload, which has no caption track -->
 					<video
 						v-if="file?.type.startsWith('video')"
 						:src="filePreview"
@@ -52,6 +54,7 @@
 						Your browser can't play this video :(
 						<br />No preview for you
 					</video>
+					<!-- biome-ignore lint/a11y/useMediaCaption: previews the file the user is about to upload, which has no caption track -->
 					<audio
 						v-if="file?.type.startsWith('audio')"
 						controls
@@ -81,6 +84,7 @@
 				>
 					{{ link }}
 					<button
+						type="button"
 						v-if="link"
 						class="ml-4 text-brand p-2 px-4"
 						@click="copy(link)"
@@ -97,6 +101,7 @@
 						/>
 					</button>
 					<button
+						type="button"
 						v-if="link"
 						class="text-brand pr-4"
 						@click="link = ''"

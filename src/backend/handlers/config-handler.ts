@@ -619,8 +619,8 @@ const configHandler = {
 
 		// Validate ports
 		const maxPort = 65_535;
-		let failedPort;
-		let failedSignups;
+		let failedPort: boolean | undefined;
+		let failedSignups: string | undefined;
 		if (
 			!coreConfig.port ||
 			coreConfig.port > maxPort ||

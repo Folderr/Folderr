@@ -15,6 +15,7 @@
 					Folderr
 				</router-link>
 				<button
+					type="button"
 					class="ml-2 cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-md bg-transparent block md:hidden outline-hidden focus:outline-hidden hover:bg-tertiary-bg"
 					@click="showMenu = !showMenu"
 				>
@@ -57,6 +58,7 @@
 					<li>
 						<a
 							href="https://github.com/Folderr/Folderr"
+							aria-label="Folderr on GitHub"
 							class="px-6 md:px-3 py-2 mr-2 flex grow items-center w-full border-b-2 md:border-none border-brand-darkened hover:bg-black md:hover:bg-transparent text-md font-bold leading-snug hover:text-text"
 						>
 							<Icon :icon="github" height="20" class="mr-2" />
@@ -130,7 +132,7 @@ import {
 } from "@heroicons/vue/solid";
 import { Icon } from "@iconify/vue";
 import github from "@iconify-icons/codicon/github-inverted";
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 
 const props = defineProps<{
 	url?: "/" | "/info" | "/signup" | "/account/deny" | "/account/verify";
@@ -147,8 +149,4 @@ onMounted(() => {
 const showMenu = ref(false);
 
 console.log(props.url && ["/"].includes(props.url));
-
-const toggleNavbar = () => {
-	showMenu.value = !showMenu.value;
-};
 </script>

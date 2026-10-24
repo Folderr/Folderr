@@ -38,11 +38,11 @@
 					ref="linkBox"
 				/>
 				<FButton
-					v-bind:onClick="shorten"
+					:on-click="shorten"
 					buttontitle="Shorten the Link!"
-					v-bind:buttonDisabled="!isLinkValid"
+					:button-disabled="!isLinkValid"
 					class="p-4 ml-2"
-					v-bind:colorDisabled="!isLinkValid"
+					:color-disabled="!isLinkValid"
 					>Shorten It!</FButton
 				>
 				<div
@@ -51,6 +51,7 @@
 				>
 					{{ shortenedLink }}
 					<button
+						type="button"
 						ref="copyButton"
 						v-if="shortenedLink"
 						@click="copy(shortenedLink)"
@@ -68,6 +69,7 @@
 						/>
 					</button>
 					<button
+						type="button"
 						@click="
 							() => {
 								shortenedLink = '';

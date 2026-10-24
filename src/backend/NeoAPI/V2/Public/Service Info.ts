@@ -1,7 +1,8 @@
 // This is the new path standard for Folderr
-import type Core from "../../../Structures/core.js";
-import pkg from "../../../../../package.json" assert { type: "json" };
+
 import type { FastifyInstance } from "fastify";
+import pkg from "../../../../../package.json" with { type: "json" };
+import type Core from "../../../Structures/core.js";
 
 // We have a name here for in case we decide to map these
 
@@ -51,7 +52,7 @@ export function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		handler(request, reply) {
+		handler(_request, reply) {
 			const out: {
 				message: {
 					version: string;

@@ -69,13 +69,11 @@ class Eval extends Path {
 
 		try {
 			// biome-ignore lint/security/noGlobalEval: owner-only debug endpoint that evaluates code by design, enabled only in dev
-			let evaled: string | Record<string, unknown> = await eval(
-				request.body.eval,
-			);
-			evaled =
-				typeof evaled === "object"
-					? (evaled = inspect(evaled, { depth: 0, showHidden: true }))
-					: (evaled = String(evaled));
+			const result: unknown = await eval(request.body.eval);
+			const evaled =
+				typeof result === "object"
+					? inspect(result, { depth: 0, showHidden: true })
+					: String(result);
 
 			if (!evaled || evaled.length === 0) {
 				return await response.status(this.codes.noContent).send({

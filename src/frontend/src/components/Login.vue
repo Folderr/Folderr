@@ -6,18 +6,17 @@ import * as api from "../wrappers/api.js";
 import type SuccessesErrors from "./Success-N-Error.vue";
 import UInput from "./Underline-Input.vue";
 
-// Initialize refs for the actual logging in.
-const username = ref("");
-const password = ref("");
-const loading = ref(false);
-const signups = ref(false);
-
 const props = defineProps<{
 	sne?: InstanceType<typeof SuccessesErrors> & {
 		addError: (messaage: string, time?: number) => void;
 		addSuccess: (message: string, time?: number) => void;
 	};
 }>();
+
+// Initialize refs for the actual logging in.
+const username = ref("");
+const password = ref("");
+const loading = ref(false);
 
 // Initialize refs
 const passw = ref<HTMLInputElement>();
@@ -112,6 +111,7 @@ const jumpToLogin = () => {
 			@keyup.enter="jumpToLogin()"
 		/>
 		<button
+			type="button"
 			ref="loginBtn"
 			class="
                     flex justify-center

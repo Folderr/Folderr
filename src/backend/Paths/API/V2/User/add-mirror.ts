@@ -22,6 +22,7 @@
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Response } from "got";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -122,9 +123,9 @@ class MirrorAdd extends Path {
 			});
 		}
 
-		let r;
-		let id;
-		let u;
+		let r: Response<MirrorResponse> | undefined;
+		let id: string | undefined;
+		let u: string | undefined;
 		try {
 			u = await this.Utils.determineHomeURL(request);
 			const out = await this.Utils.authorization.genMirrorKey(

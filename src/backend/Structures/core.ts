@@ -72,12 +72,6 @@ ee.on("fail", (code: number) => {
 
 // Since we decorate the fastify instance we need to add that as a type.
 
-interface LogOptions extends pino.LoggerOptions {
-	customLevels: {
-		startup: 35;
-	};
-}
-
 declare module "fastify" {
 	interface FastifyInstance {
 		codes: typeof StatusCodes;
@@ -512,12 +506,11 @@ export default class Core {
 			"core.registerNewApi Prefix Grouping",
 		);
 
-		const initQueue = [];
 		// impl: Faster import
 		performance.mark("core.registerNewApi Registering APIs");
 		for (const [prefix, files] of groups) {
 			this.app.register(
-				async (instance, opts) => {
+				async (instance, _opts) => {
 					const endpoints = files.map(async (file) => {
 						const imported: {
 							name: string;
@@ -762,7 +755,7 @@ export default class Core {
 	}
 
 	async initFrontend() {
-		console.log("Node Env: " + process.env.NODE_ENV);
+		console.log(`Node Env: ${process.env.NODE_ENV}`);
 		if (process.env.NODE_ENV !== "dev") {
 			this.logger.debug("Using production build for frontend");
 

@@ -102,14 +102,14 @@ export async function route(fastify: FastifyInstance, core: Core) {
 							);
 
 					return response.status(result.httpCode).send(result.msg);
-				} catch (error: unknown) {
+				} catch {
 					// Handle signup error
 					return response.status(core.codes.internalErr).send({
 						code: core.Utils.foldCodes.unkownError,
 						message: "An internal error occurred while signing up!",
 					});
 				}
-			} catch (error: unknown) {
+			} catch {
 				// Handle signup error
 			}
 
@@ -223,7 +223,7 @@ async function noEmailSignup(
 		hash: string;
 		token: string;
 	},
-	response: FastifyReply,
+	_response: FastifyReply,
 ): Promise<{
 	httpCode: 500 | 201;
 	msg: { code: number; message: string };

@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 import type { Span, Transaction } from "@sentry/types";
-import type { FastifyPluginAsync, FastifyPluginOptions } from "fastify";
+import type { FastifyPluginAsync } from "fastify";
 import fp from "fastify-plugin";
 import process from "process";
 

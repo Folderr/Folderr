@@ -24,7 +24,7 @@ export async function getUser(
 	}
 }
 
-export async function noUser(to: RouteLocationNormalized) {
+export async function noUser(_to: RouteLocationNormalized) {
 	try {
 		const store = useUserStore();
 		if (!store.id) {

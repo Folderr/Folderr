@@ -9,6 +9,7 @@ defineProps<{
 </script>
 <template>
 	<button
+		type="button"
 		v-if="!type"
 		:title="buttonTitle"
 		:disabled="buttonDisabled"
@@ -31,6 +32,7 @@ defineProps<{
 		<slot></slot>
 	</button>
 	<button
+		type="button"
 		v-else-if="type === 'neutral'"
 		:title="buttonTitle"
 		:disabled="buttonDisabled"
@@ -53,6 +55,7 @@ defineProps<{
 		<slot></slot>
 	</button>
 	<button
+		type="button"
 		v-else
 		:disabled="buttonDisabled"
 		:class="[

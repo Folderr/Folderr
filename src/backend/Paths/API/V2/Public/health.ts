@@ -4,7 +4,7 @@ import type { Core } from "../../../../internals.js";
 export const type = "GET";
 export const label = "Health Check";
 export const url = "/health";
-export default (fastify: FastifyInstance, core: Core) =>
+export default (fastify: FastifyInstance, _core: Core) =>
 	fastify.route({
 		method: "GET",
 		schema: {
@@ -19,7 +19,7 @@ export default (fastify: FastifyInstance, core: Core) =>
 			},
 		},
 		url,
-		handler(request, reply) {
+		handler(_request, reply) {
 			if (fastify.db.status !== "ok") {
 				return reply.send({
 					code: fastify.utils.foldCodes.dbError,

@@ -90,5 +90,15 @@
 	"assist": {
 		"enabled": true,
 		"actions": { "source": { "organizeImports": "on" } }
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["src/backend/Structures/Database/db-class.ts"],
+			"linter": {
+				"rules": {
+					"correctness": { "noUnusedFunctionParameters": "off" }
+				}
+			}
+		}
+	]
 }

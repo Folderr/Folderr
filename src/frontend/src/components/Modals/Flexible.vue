@@ -8,11 +8,14 @@
 		<DialogPanel
 			class="bg-bg sm:w-4/5 lg:w-2/5 justify-center m-auto p-10 rounded-md border-2 border-bg overflow-auto"
 		>
-			<span
+			<button
+				type="button"
+				aria-label="Close"
 				class="float-right text-text hover:cursor-pointer hover:text-secondary-text"
-				v-on:click="cancel()"
-				>&times;</span
+				@click="cancel()"
 			>
+				&times;
+			</button>
 			<DialogTitle class="text-brand text-lg">{{ header }}</DialogTitle>
 			<!-- Allow for completely custom warnings and other information -->
 			<slot name="warning"></slot>
@@ -27,11 +30,11 @@
 					},
 				]"
 				class="mt-4 mb-4 border-none bg-tertiary-bg text-text p-4 w-4/5 xl:w-full placeholder-secondary-text focus:outline-hidden focus:ring-3 rounded-xs"
-				v-bind:placeholder="placeholder"
-				v-bind:title="title"
-				v-bind:type="type"
+				:placeholder="placeholder"
+				:title="title"
+				:type="type"
 				v-model="inputText"
-				v-on:keyup.enter="
+				@keyup.enter="
 					needInput || (needInput && inputText?.length > 0)
 						? cont(inputText)
 						: false
@@ -40,7 +43,7 @@
 			<div class="flex mt-5 m-auto justify-center">
 				<FButton
 					v-if="!noCancel"
-					v-bind:onClick="cancel"
+					:on-click="cancel"
 					title="Cancel"
 					type="neutral"
 					class="mr-4"
@@ -49,13 +52,13 @@
 				<!-- "What color would you like your confirm button sir? We have green or red." -->
 				<!-- inputText is sent here so it doesn't need to be a prop. -->
 				<FButton
-					v-bind:buttonDisabled="
+					:button-disabled="
 						needInput ? !(inputText?.length > 0) : false
 					"
-					v-bind:onClick="() => cont(inputText)"
-					v-bind:type="!greenContinue ? 'red' : undefined"
+					:on-click="() => cont(inputText)"
+					:type="!greenContinue ? 'red' : undefined"
 					class="ml-5"
-					v-bind:colorDisabled="
+					:color-disabled="
 						needInput ? !(inputText?.length > 0) : false
 					"
 					>{{
@@ -68,12 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	Dialog,
-	DialogDescription,
-	DialogPanel,
-	DialogTitle,
-} from "@headlessui/vue";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 import { ref } from "vue";
 
 interface Props {
@@ -95,7 +93,7 @@ interface Props {
 	placeholder?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
 	continueText: "Continue",
 	greenContinue: false,
 	showInput: false,

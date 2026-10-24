@@ -13,6 +13,7 @@
 					Folderr
 				</router-link>
 				<button
+					type="button"
 					class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-md bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
 					@click="showMenu = !showMenu"
 				>
@@ -109,6 +110,7 @@
 										</MenuItem>
 										<MenuItem>
 											<button
+												type="button"
 												class="leading-snug group flex rounded-lg items-center w-full px-6 py-2 hover:bg-red-800 hover:text-text"
 												@click="logout"
 											>
@@ -191,20 +193,15 @@ import { useRouter } from "vue-router";
 import { useUserStore } from "../stores/user.js";
 import * as api from "../wrappers/api.js";
 
+const emit = defineEmits<(e: "error", error: Error | string) => void>();
+
 const router = useRouter();
 
 const store = useUserStore();
 
-const username = ref(store.username ?? "");
 const admin = ref(store.admin);
 
-const emit = defineEmits<(e: "error", error: Error | string) => void>();
-
 const showMenu = ref(false);
-
-const toggleNavbar = () => {
-	showMenu.value = !showMenu.value;
-};
 
 const logout = async (): Promise<void> => {
 	const output = await api.logout();

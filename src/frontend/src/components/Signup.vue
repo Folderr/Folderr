@@ -7,20 +7,19 @@ import { emailRegex, passwordRegex, usernameRegex } from "../utils/regexs";
 import * as api from "../wrappers/api.js";
 import UInput from "./Underline-Input.vue";
 
-// Initialize refs for the actual logging in.
-const username = ref("");
-const password = ref("");
-const email = ref("");
-const repasswd = ref("");
-const loading = ref(false);
-const signups = ref(false);
-
 const props = defineProps<{
 	sne?: InstanceType<typeof SuccessesErrors> & {
 		addError: (messaage: string, time?: number) => void;
 		addSuccess: (message: string, time?: number) => void;
 	};
 }>();
+
+// Initialize refs for the actual logging in.
+const username = ref("");
+const password = ref("");
+const email = ref("");
+const repasswd = ref("");
+const loading = ref(false);
 
 // Initialize refs
 const passw = ref();
@@ -256,6 +255,7 @@ const isAllValid = computed(() => {
 		</p>
 		<p v-if="isAllValid" class="text-brand mb-4">All items are valid</p>
 		<button
+			type="button"
 			ref="signupBtn"
 			:disabled="loading"
 			class="flex justify-center font-info font-extrabold text-bg-old bg-brand border-2 p-4 border-brand hover:bg-brand-darkened hover:border-brand-darkened rounded-xl w-full xl:w-80"

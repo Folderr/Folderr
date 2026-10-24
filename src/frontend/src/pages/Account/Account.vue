@@ -141,6 +141,7 @@
                             "
 						/>
 						<button
+							type="button"
 							class="text-brand hover:text-brand-darkened mx-4"
 							title="Copy the token"
 							@click="copy(tokenInfo.token)"
@@ -209,6 +210,7 @@
 						<!-- Client side ability to download or copy the config. -->
 						<div class="flex space-x-2">
 							<button
+								type="button"
 								class="
                                     flex
                                     my-2 p-2 px-4
@@ -225,6 +227,7 @@
 								<b>Download Config!</b>
 							</button>
 							<button
+								type="button"
 								class="
                                     flex
                                     my-2 p-2 px-4 border-0
@@ -261,11 +264,12 @@
 							class="p-5 text-secondary-text"
 							:class="[
 								{
-									'bg-[#303030]': activeSection == 'account',
+									'bg-[#303030]': activeSection === 'account',
 								},
 							]"
 						>
 							<button
+								type="button"
 								@click="
 									selectSection('account');
 									scrollToTop();
@@ -278,11 +282,12 @@
 							class="p-5 text-secondary-text"
 							:class="[
 								{
-									'bg-[#303030]': activeSection == 'privacy',
+									'bg-[#303030]': activeSection === 'privacy',
 								},
 							]"
 						>
 							<button
+								type="button"
 								@click="
 									selectSection('privacy');
 									privacydiv?.scrollIntoView({
@@ -297,11 +302,12 @@
 							class="p-5 text-secondary-text"
 							:class="[
 								{
-									'bg-[#303030]': activeSection == 'tokens',
+									'bg-[#303030]': activeSection === 'tokens',
 								},
 							]"
 						>
 							<button
+								type="button"
 								@click="
 									selectSection('tokens');
 									tokendiv?.scrollIntoView({
@@ -318,7 +324,7 @@
 							:class="[
 								{
 									'bg-[#303030]':
-										activeSection == 'integrations',
+										activeSection === 'integrations',
 								},
 							]"
 						>
@@ -637,10 +643,10 @@
 							>
 						</p>
 						<FButton
-							:buttonDisabled="owner"
+							:button-disabled="owner"
 							:on-click="() => (modals.deleteAccount = true)"
 							buttontitle="Delete Your Account"
-							:colorDisabled="owner"
+							:color-disabled="owner"
 							class="mt-2"
 							type="red"
 							>Delete Account</FButton
@@ -759,6 +765,7 @@
 									<br />Description: {{ token.description }}
 								</p>
 								<button
+									type="button"
 									class="text-secondary-accent border-none w-min m-auto mr-8"
 									@click="revokeToken(token.id)"
 								>
@@ -860,7 +867,6 @@ type UpdateInfo =
 	  };
 
 // Refs for managing the "active" class of the mini nav
-const acct = ref<HTMLInputElement>();
 const accountdiv = ref<HTMLDivElement>();
 const tokendiv = ref<HTMLDivElement>();
 const top = ref<HTMLDivElement>();
@@ -1184,10 +1190,6 @@ const deleteAccount = async (confirmed: boolean) => {
 			sne.value?.addError(deleted.error);
 		}
 	}
-};
-
-const cancelDeleteAccount = () => {
-	modals.deleteAccount = false;
 };
 
 const confirmDeleteAccount = async () => {

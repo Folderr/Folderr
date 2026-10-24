@@ -20,7 +20,6 @@
  */
 
 import * as Sentry from "@sentry/node";
-import exp from "constants";
 import type {
 	FastifyReply,
 	FastifyRequest,
@@ -121,8 +120,8 @@ class Path {
 	 * @param {Object} response Some object used for sending data back
 	 */
 	async execute(
-		request: FastifyRequest,
-		response: FastifyReply,
+		_request: FastifyRequest,
+		_response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		throw new Error("Not implemented!");
 	}
@@ -152,7 +151,7 @@ class Path {
 				);
 			}
 		} catch (error: unknown) {
-			if (error instanceof Error && error.message == "Invalid Token") {
+			if (error instanceof Error && error.message === "Invalid Token") {
 				if (reply)
 					this.core.logger.debug(
 						"Invalidated auth of a request with an invalid token",
@@ -162,16 +161,14 @@ class Path {
 					const expires = new Date();
 					expires.setTime(expires.getTime() - 1000 * 60 * 60 * 48);
 					reply?.setCookie("token", "", { expires });
-					return;
 				}
-				return;
 			} else if (error instanceof Error) {
 				this.core.logger.error(error.message);
 			}
-		} finally {
-			if (authorized) return authorized;
-			return;
 		}
+
+		if (authorized) return authorized;
+		return;
 	}
 
 	async checkAuthAdmin(request: FastifyRequest): Promise<User | void> {
@@ -447,7 +444,7 @@ class Path {
 		},
 	): FastifyReply | void {
 		const ops = options ?? { noIncrease: false, noResponse: false };
-		let severity;
+		let severity: string | undefined;
 		const errorFromatted = error.message;
 		if (!errorFromatted.startsWith("[ERROR]") && !ops.noIncrease) {
 			if (this.fatalErrors > 2) {

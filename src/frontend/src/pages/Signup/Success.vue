@@ -12,6 +12,7 @@
 			class="m-auto"
 		>
 			<svg
+				aria-hidden="true"
 				class="m-auto w-20 h-20 mb-4"
 				width="45"
 				height="45"
@@ -48,6 +49,7 @@
 		</div>
 		<div v-else class="m-auto">
 			<svg
+				aria-hidden="true"
 				class="m-auto w-20 h-20 mb-4"
 				width="45"
 				height="45"

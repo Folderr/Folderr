@@ -338,13 +338,12 @@ class Utils {
 	async genValidationToken(): Promise<TokenReturn> {
 		// Generate random bytes, gen more random bytes
 		// Oh and get a base64 date in milliseconds
-		const r = crypto.randomBytes(this.byteSize);
 		const random: string = crypto
 			.randomBytes(this.byteSize)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
 		const date = buffer.Buffer.from(
-			(new Date().getTime() / 1000).toFixed(0).toString(),
+			(Date.now() / 1000).toFixed(0).toString(),
 		)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
@@ -489,7 +488,7 @@ class Utils {
 
 	async determineHomeURL(request: FastifyRequest): Promise<string> {
 		const protocol = `${request.protocol || "http"}://`;
-		let host;
+		let host: string | undefined;
 
 		// In the event of a correctly formatted hostname, set host to it
 		if (request.hostname?.split(".").length > 1) {

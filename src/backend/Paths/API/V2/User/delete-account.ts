@@ -89,7 +89,7 @@ class DelAccount extends Path {
 	 * @async
 	 * @returns {DelReturns}
 	 */
-	async deleteAccount(auth: User, id: string): Promise<DelReturns> {
+	async deleteAccount(_auth: User, id: string): Promise<DelReturns> {
 		try {
 			// Delete account by uID, and delete their pictures
 			await this.core.db.purgeUser(id);
@@ -121,7 +121,7 @@ class DelAccount extends Path {
 	 * @async
 	 * @returns {DelReturns}
 	 */
-	async beginDeleteAccount(auth: User, id: string): Promise<DelReturns> {
+	async beginDeleteAccount(_auth: User, id: string): Promise<DelReturns> {
 		try {
 			// Delete account by uID, and delete their pictures
 			await this.core.db.markUserForDeletion(id);
@@ -178,7 +178,7 @@ class DelAccount extends Path {
 			});
 		}
 
-		let out;
+		let out: DelReturns;
 		// If you are an admin you can delete someones account by ID
 		if (needAdmin) {
 			// Find the user, and if not return a not found

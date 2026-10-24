@@ -108,7 +108,7 @@ class Manage extends Path {
 
 			const f = await promises.readFile("./package.json");
 			const af: Record<string, string> = JSON.parse(f.toString());
-			let v;
+			let v: string;
 			const vers = {
 				af: Number(af.version.split(".").join(" ")),
 				old: Number(oPackage.version.split(".").join(" ")),

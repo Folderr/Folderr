@@ -19,11 +19,11 @@
  *
  */
 import childProcess from "child_process";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import util from "util";
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../internals.js";
+import Package from "../../../../../package.json" with { type: "json" };
+import type { Core } from "../../../internals.js";
 import Path from "../../../Structures/path.js";
-import Package from "../../../../../package.json" assert { type: "json" };
 
 const exec = util.promisify(childProcess.exec);
 
@@ -61,7 +61,7 @@ export default class Info extends Path {
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth || typeof auth === "string") {
