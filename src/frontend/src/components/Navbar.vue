@@ -148,7 +148,7 @@ import {
 	UserAddIcon,
 } from "@heroicons/vue/solid";
 import { Icon } from "@iconify/vue";
-import github from "@iconify/icons-codicon/github-inverted";
+import github from "@iconify-icons/codicon/github-inverted";
 
 const props = defineProps<{
 	url?: "/" | "/info" | "/signup" | "/account/deny" | "/account/verify";

@@ -20,7 +20,7 @@
 	},
 	"type": "module",
 	"engines": {
-		"node": ">=20"
+		"node": "^20.19.0 || >=22.12.0"
 	},
 	"repository": {
 		"type": "git",
@@ -42,7 +42,7 @@
 		"@fastify/swagger": "^9.7.0",
 		"@headlessui/vue": "^1.7.23",
 		"@heroicons/vue": "^1.0.6",
-		"@iconify/icons-codicon": "^1.2.30",
+		"@iconify-icons/codicon": "^2.0.8",
 		"@iconify/vue": "^3.2.1",
 		"@scalar/fastify-api-reference": "^1.48.0",
 		"@sentry/integrations": "^7.120.3",
@@ -82,9 +82,9 @@
 		"@types/jsonwebtoken": "^8.5.9",
 		"@types/mime-types": "^2.1.4",
 		"@types/moment-duration-format": "^2.2.6",
-		"@types/node": "^18.19.76",
+		"@types/node": "^22.20.5",
 		"@types/nodemailer": "^8.0.2",
-		"@vitejs/plugin-vue": "^5.2.1",
+		"@vitejs/plugin-vue": "^6.0.10",
 		"eslint": "^9.20.1",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-config-xo": "^0.46.0",
@@ -99,7 +99,7 @@
 		"swc": "^1.0.11",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^5.9.3",
-		"vite": "^5.4.14",
+		"vite": "^8.3.5",
 		"vue-router": "^4.5.0",
 		"vue-tsc": "^2.2.2"
 	},
