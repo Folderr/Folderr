@@ -1,6 +1,3 @@
-/* eslint max-len: ["error", { "code": 150 }] */
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const EMAILER_TEXTS = {
 	verify(username: string, verifyLink: string) {
 		return (
@@ -11,7 +8,7 @@ const EMAILER_TEXTS = {
 			"The link will expire in 48 hours.\n" +
 			`If you did not request an account click this link to deny the account request: ${verifyLink.replace(
 				"verify",
-				"deny"
+				"deny",
 			)}.`
 		);
 	},
@@ -60,7 +57,6 @@ const EMAILER_TEXTS = {
 	},
 };
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const MONGOOSE = {
 	expectedQueries(expected: number, actual?: number) {
 		return `MongooseDB > Input > findFullUser - Expected ${expected} queries in array but got ${
@@ -69,12 +65,9 @@ const MONGOOSE = {
 	},
 };
 
-/* eslint-disable @typescript-eslint/naming-convention */
 const TEMPLATES = {
 	EMAILER_TEXTS,
 	MONGOOSE,
 };
-
-/* eslint-enable @typescript-eslint/naming-convention */
 
 export default TEMPLATES;

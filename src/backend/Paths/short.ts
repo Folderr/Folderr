@@ -19,8 +19,8 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../internals.js";
 import Path from "../Structures/path.js";
 
 /**
@@ -59,7 +59,7 @@ class Short extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send("Missing short ID");
@@ -67,7 +67,7 @@ class Short extends Path {
 
 		const short = await this.core.db.findLink(
 			{ id: request.params.id },
-			"link owner"
+			"link owner",
 		);
 		if (!short) {
 			return response.status(this.codes.notFound).send("404 Not Found");

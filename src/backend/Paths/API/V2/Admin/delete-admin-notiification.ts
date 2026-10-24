@@ -44,7 +44,6 @@ class DelAdminNotify extends Path {
 					},
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -63,7 +62,6 @@ class DelAdminNotify extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -71,7 +69,7 @@ class DelAdminNotify extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Authorize the user as admin, or throw error.
 		const auth = await this.checkAuthAdmin(request);
@@ -111,7 +109,7 @@ class DelAdminNotify extends Path {
 		// Remove the admin notification and tell the admin it was removed
 		await this.core.db.purgeAdminNotify({ id: request.params.id });
 		this.core.logger.info(
-			`[SYSTEM] Admin notification ${notify.id} removed by ${auth.username}!`
+			`[SYSTEM] Admin notification ${notify.id} removed by ${auth.username}!`,
 		);
 		return response
 			.status(this.codes.ok)

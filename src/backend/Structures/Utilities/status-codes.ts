@@ -38,7 +38,7 @@ const codes: Codes = {
 	internalErr: 500,
 	notAccepted: 406,
 	accepted: 202,
-	notImplemented: 501
+	notImplemented: 501,
 };
 
 export interface Codes {

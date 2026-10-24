@@ -1,15 +1,14 @@
 import {
-	httpCodes,
 	badResponseHandler,
 	type GenericFetchReturn,
 	genericCatch,
+	httpCodes,
 } from "../utils/request-helpers.js";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const BASE_URL = "/api/manage/";
 
 export async function promoteUserToAdmin(
-	id: string
+	id: string,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch(`${BASE_URL}admin/${id}`, {
@@ -22,7 +21,6 @@ export async function promoteUserToAdmin(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -61,7 +59,7 @@ export async function promoteUserToAdmin(
 
 export async function demoteUserToAdmin(
 	id: string,
-	reason: string
+	reason: string,
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {
@@ -79,7 +77,6 @@ export async function demoteUserToAdmin(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		console.log(json);

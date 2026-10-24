@@ -51,7 +51,6 @@ class Ban extends Path {
 					required: ["id"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -70,7 +69,6 @@ class Ban extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -81,7 +79,7 @@ class Ban extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
@@ -109,7 +107,7 @@ class Ban extends Path {
 		const ban = await this.core.db.addBan(
 			user.email,
 			user.id,
-			request.body.reason
+			request.body.reason,
 		);
 		if (ban) {
 			if (this.core.emailer.active) {
@@ -118,7 +116,7 @@ class Ban extends Path {
 					user.email,
 					request.body.reason,
 					user.username,
-					url
+					url,
 				);
 			}
 

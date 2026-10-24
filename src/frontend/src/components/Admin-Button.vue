@@ -8,6 +8,7 @@ defineProps<{
 </script>
 <template>
 	<button
+		type="button"
 		:title="buttonTitle"
 		:disabled="buttonDisabled"
 		:class="[
@@ -15,13 +16,13 @@ defineProps<{
 				'text-secondary-bg hover:cursor-not-allowed bg-disabled border-disabled':
 					buttonDisabled,
 				'hover:border-brand-darkened hover:bg-brand-darkened bg-brand border-brand':
-					(!type || type != 'red') && !buttonDisabled,
+					(!type || type !== 'red') && !buttonDisabled,
 				'text-text hover:bg-secondary-accent hover:border-secondary-accent':
 					type && type === 'red' && !buttonDisabled,
 				'bg-secondary-accent-dark border-secondary-accent-dark':
 					type && type === 'red' && !buttonDisabled,
 				'text-secondary-bg':
-					(!type || type != 'red') && !buttonDisabled,
+					(!type || type !== 'red') && !buttonDisabled,
 			},
 		]"
 		class="px-2 rounded-sm p-1 border-2 font-semibold"

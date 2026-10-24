@@ -1,6 +1,7 @@
 // This is the new path standard for Folderr
-import type Core from "../../../Structures/core.js";
+
 import type { FastifyInstance } from "fastify";
+import type Core from "../../../Structures/core.js";
 
 export const name = "Hello World";
 

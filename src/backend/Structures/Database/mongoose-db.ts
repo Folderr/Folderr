@@ -20,21 +20,21 @@
  */
 
 import { existsSync, promises as fs } from "fs";
-import process from "process";
 import mongoose from "mongoose";
+import process from "process";
 import * as Schemas from "../../Schemas/index.js";
-import logger from "../logger.js";
 import * as constants from "../constants/index.js";
+import logger from "../logger.js";
 import type {
-	User,
-	Tokendb,
-	Link,
-	PendingMember,
-	Upload,
-	Notification,
-	Folderr,
-	Statistics,
 	Ban,
+	Folderr,
+	Link,
+	Notification,
+	PendingMember,
+	Statistics,
+	Tokendb,
+	Upload,
+	User,
 } from "./db-class";
 import { DBClass } from "./db-class.js";
 
@@ -62,7 +62,6 @@ export default class Mongoosedb extends DBClass {
 
 		this.status = "offline";
 		this.#schemas = {
-			/* eslint-disable @typescript-eslint/naming-convention */
 			User: Schemas.User,
 			Token: Schemas.JwtToken,
 			Link: Schemas.Short,
@@ -71,7 +70,6 @@ export default class Mongoosedb extends DBClass {
 			AdminNotification: Schemas.AdminNotifications,
 			Folderr: Schemas.Folderr,
 			Ban: Schemas.Ban,
-			/* eslint-enable @typescript-eslint/naming-convention */
 		};
 		this.#internals = {
 			connection: mongoose.connection,
@@ -105,7 +103,7 @@ export default class Mongoosedb extends DBClass {
 						"[FATAL - DB] MongoDB connection error!\n" +
 							error.message +
 							"\n[FATAL] Folderr is unable to work without a database!" +
-							"\nFolderr process terminated."
+							"\nFolderr process terminated.",
 					);
 					process.exit(1);
 				}
@@ -113,7 +111,7 @@ export default class Mongoosedb extends DBClass {
 				logger.error(
 					"[FATAL - DB] MongoDB connection error!" +
 						"\n[FATAL] Folderr is unable to work without a database!" +
-						"\nFolderr process terminated."
+						"\nFolderr process terminated.",
 				);
 				process.exit(1);
 			}
@@ -125,7 +123,7 @@ export default class Mongoosedb extends DBClass {
 					"[FATAL - DB] MongoDB connection error!\n" +
 						error.message +
 						"\n[FATAL] Folderr is unable to work without a database!" +
-						"\nFolderr process terminated."
+						"\nFolderr process terminated.",
 				);
 				process.exit(1);
 			}
@@ -140,7 +138,7 @@ export default class Mongoosedb extends DBClass {
 						"[FATAL - DB] MongoDB connection error!\n" +
 							error.message +
 							"\n[FATAL] Folderr is unable to work without a database!" +
-							"\nFolderr process terminated."
+							"\nFolderr process terminated.",
 					);
 					process.exit(1);
 				}
@@ -172,7 +170,7 @@ export default class Mongoosedb extends DBClass {
 		const fldr = await this.#schemas.Folderr.findOne(query).lean().exec();
 		if (!fldr) {
 			throw new Error(
-				"Folderr DB entry not found, Folderr DB entry is required."
+				"Folderr DB entry not found, Folderr DB entry is required.",
 			);
 		}
 
@@ -188,7 +186,6 @@ export default class Mongoosedb extends DBClass {
 			return fldrr;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const fldr = new this.#schemas.Folderr({ bans: [], publicKeyJWT });
 		await fldr.save();
 		return fldr;
@@ -198,7 +195,7 @@ export default class Mongoosedb extends DBClass {
 		username: string,
 		password: string,
 		id: string,
-		email: string
+		email: string,
 	): Promise<User | void> {
 		const ownr = await this.findUser({ owner: true }, "owner");
 		if (ownr) {
@@ -228,7 +225,7 @@ export default class Mongoosedb extends DBClass {
 	/* ---- USER RELATED METHODS ---- */
 	async findUser(
 		query: Record<string, unknown>,
-		selector?: string
+		selector?: string,
 	): Promise<User | undefined> {
 		return (
 			(selector
@@ -246,7 +243,7 @@ export default class Mongoosedb extends DBClass {
 			sort?: Record<string, unknown>;
 			limit?: number;
 			selector?: string;
-		}
+		},
 	): Promise<User[]> {
 		const qoptions: { limit?: number; sort?: Record<string, unknown> } = {};
 		if (options?.limit) {
@@ -274,11 +271,14 @@ export default class Mongoosedb extends DBClass {
 			user?: string;
 			file?: string;
 			link?: string;
-		}
+		},
 	): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
 		if (!queries || queries.length < 2 || queries.length > 2) {
 			throw new Error(
-				constants.TEMPLATES.MONGOOSE.expectedQueries(2, queries?.length)
+				constants.TEMPLATES.MONGOOSE.expectedQueries(
+					2,
+					queries?.length,
+				),
 			);
 		}
 
@@ -305,7 +305,7 @@ export default class Mongoosedb extends DBClass {
 	async findAndUpdateUser(
 		query: Record<string, unknown>,
 		update: Record<string, unknown>,
-		selector?: string
+		selector?: string,
 	): Promise<User | undefined> {
 		if (selector) {
 			return (
@@ -329,7 +329,7 @@ export default class Mongoosedb extends DBClass {
 
 	async updateUser(
 		query: Record<string, unknown>,
-		update: Record<string, unknown>
+		update: Record<string, unknown>,
 	): Promise<boolean> {
 		const upd = await this.#schemas.User.updateOne(query, update).exec();
 		return Boolean(upd?.modifiedCount && upd.modifiedCount > 0);
@@ -344,11 +344,11 @@ export default class Mongoosedb extends DBClass {
 		},
 		options?: {
 			admin?: boolean;
-		}
+		},
 	): Promise<User | undefined> {
 		const cUser = await this.findUser(
 			{ username: userInfo.username },
-			"username"
+			"username",
 		);
 		if (cUser) {
 			return undefined;
@@ -368,7 +368,7 @@ export default class Mongoosedb extends DBClass {
 	async markUserForDeletion(id: string): Promise<boolean> {
 		const account = await this.#schemas.User.updateOne(
 			{ id },
-			{ $set: { markedForDeletion: true } }
+			{ $set: { markedForDeletion: true } },
 		);
 
 		return account.modifiedCount === 1;
@@ -382,14 +382,14 @@ export default class Mongoosedb extends DBClass {
 
 		return {
 			account: Boolean(
-				account?.deletedCount && account?.deletedCount > 0
+				account?.deletedCount && account?.deletedCount > 0,
 			),
 			links: Boolean(links?.deletedCount && links?.deletedCount > 0),
 		};
 	}
 
 	async findVerify(
-		query: Record<string, unknown>
+		query: Record<string, unknown>,
 	): Promise<PendingMember | undefined> {
 		return (
 			(await this.#schemas.PendingMember.findOne(query).lean().exec()) ??
@@ -399,7 +399,7 @@ export default class Mongoosedb extends DBClass {
 
 	async findVerifies(
 		query: Record<string, unknown>,
-		selector?: string
+		selector?: string,
 	): Promise<PendingMember[]> {
 		return this.#schemas.PendingMember.find(query, selector)
 			.sort({ createdAt: 1 })
@@ -409,7 +409,7 @@ export default class Mongoosedb extends DBClass {
 
 	async verifyUser(
 		id: string,
-		options?: { admin?: boolean }
+		options?: { admin?: boolean },
 	): Promise<User | undefined> {
 		const verify = await this.#schemas.PendingMember.findOneAndDelete({
 			id,
@@ -430,7 +430,7 @@ export default class Mongoosedb extends DBClass {
 				password: verify.password,
 				email: verify.email,
 			},
-			options
+			options,
 		);
 	}
 
@@ -471,7 +471,7 @@ export default class Mongoosedb extends DBClass {
 			password: string;
 			email: string;
 		},
-		validationToken: string
+		validationToken: string,
 	): Promise<PendingMember> {
 		const verify = new this.#schemas.PendingMember({
 			id: userInfo.id,
@@ -487,7 +487,7 @@ export default class Mongoosedb extends DBClass {
 	/* ---- FILE RELATED METHODS ---- */
 	async findFile(
 		query: Record<string, unknown>,
-		selector?: string
+		selector?: string,
 	): Promise<Upload | undefined> {
 		return (
 			(selector
@@ -500,7 +500,7 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async findAndDeleteFile(
-		query: Record<string, unknown>
+		query: Record<string, unknown>,
 	): Promise<Upload | undefined> {
 		return (
 			(await this.#schemas.Upload.findOneAndDelete(query)
@@ -515,7 +515,7 @@ export default class Mongoosedb extends DBClass {
 			limit?: number;
 			selector?: string;
 			sort?: Record<string, unknown>;
-		}
+		},
 	): Promise<Upload[]> {
 		const queryOptions: { limit?: number; sort?: Record<string, unknown> } =
 			{};
@@ -534,7 +534,7 @@ export default class Mongoosedb extends DBClass {
 
 	async updateFile(
 		query: Record<string, unknown>,
-		update: Record<string, unknown>
+		update: Record<string, unknown>,
 	): Promise<boolean | undefined> {
 		const upd = await this.#schemas.Upload.updateOne(query, update).exec();
 		if (upd?.modifiedCount && upd.modifiedCount > 0) {
@@ -548,7 +548,7 @@ export default class Mongoosedb extends DBClass {
 		id: string,
 		owner: string,
 		path: string,
-		types: { generic: string; mimetype: string }
+		types: { generic: string; mimetype: string },
 	): Promise<Upload> {
 		const file = new this.#schemas.Upload({
 			id,
@@ -584,12 +584,12 @@ export default class Mongoosedb extends DBClass {
 				if (error instanceof Error) {
 					logger.error(
 						`Database could not delete file ${file.path}. See error below.\n` +
-							`Error: ${error.message}`
+							`Error: ${error.message}`,
 					);
 				}
 
 				logger.error(
-					`Database could not delete file ${file.path}. Unknown Error`
+					`Database could not delete file ${file.path}. Unknown Error`,
 				);
 			}
 		}
@@ -605,7 +605,7 @@ export default class Mongoosedb extends DBClass {
 	 */
 	async purgeFiles(
 		query: Record<string, unknown>,
-		expectedDeletions?: number
+		expectedDeletions?: number,
 	): Promise<boolean> {
 		const files = await this.#schemas.Upload.deleteMany(query)
 			.lean()
@@ -618,7 +618,7 @@ export default class Mongoosedb extends DBClass {
 	/* ---- LINK RELATED METHODS ---- */
 	async findLink(
 		query: Record<string, unknown>,
-		selector?: string
+		selector?: string,
 	): Promise<Link | undefined> {
 		return (
 			(selector
@@ -631,7 +631,7 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async findAndDeleteLink(
-		query: Record<string, unknown>
+		query: Record<string, unknown>,
 	): Promise<Link | undefined> {
 		return (
 			(await this.#schemas.Link.findOneAndDelete(query).lean().exec()) ??
@@ -645,7 +645,7 @@ export default class Mongoosedb extends DBClass {
 			limit?: number;
 			selector?: string;
 			sort?: Record<string, unknown>;
-		}
+		},
 	): Promise<Link[]> {
 		const qoptions: { limit?: number; sort?: Record<string, unknown> } = {};
 		if (options?.limit) {
@@ -659,13 +659,13 @@ export default class Mongoosedb extends DBClass {
 		return this.#schemas.Link.find(
 			query,
 			options?.selector,
-			qoptions
+			qoptions,
 		).lean();
 	}
 
 	async updateLink(
 		query: Record<string, unknown>,
-		update: Record<string, unknown>
+		update: Record<string, unknown>,
 	): Promise<boolean> {
 		const out = await this.#schemas.Upload.updateOne(query, update).exec();
 		return Boolean(out?.modifiedCount && out.modifiedCount > 0);
@@ -688,12 +688,11 @@ export default class Mongoosedb extends DBClass {
 		userID: string,
 		options?: {
 			web?: boolean;
-		}
+		},
 	): Promise<Tokendb | undefined> {
 		return (
 			(await this.#schemas.Token.findOne({
 				id: tokenID,
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				userID,
 				web: options?.web ?? false,
 			})
@@ -704,10 +703,9 @@ export default class Mongoosedb extends DBClass {
 
 	async findTokens(
 		userID: string,
-		options?: { web?: boolean }
+		options?: { web?: boolean },
 	): Promise<Tokendb[]> {
 		return this.#schemas.Token.find({
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web ?? false,
 		})
@@ -721,13 +719,12 @@ export default class Mongoosedb extends DBClass {
 		options?: {
 			web?: boolean;
 			description?: string;
-		}
+		},
 	): Promise<Tokendb | undefined> {
 		const date = new Date();
 		date.setDate(date.getDate() + 2 * 7);
 		const tken = new this.#schemas.Token({
 			id: tokenID,
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web ?? false,
 			expireAt: options?.web ? date : undefined,
@@ -740,11 +737,10 @@ export default class Mongoosedb extends DBClass {
 	async purgeToken(
 		tokenID: string,
 		userID: string,
-		options?: { web?: boolean }
+		options?: { web?: boolean },
 	): Promise<boolean> {
 		const del = await this.#schemas.Token.deleteOne({
 			id: tokenID,
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web,
 		}).exec();
@@ -753,12 +749,11 @@ export default class Mongoosedb extends DBClass {
 
 	async purgeTokens(
 		userID: string,
-		web?: boolean
+		web?: boolean,
 	): Promise<number | undefined> {
-		const del = web // eslint-disable-next-line @typescript-eslint/naming-convention
+		const del = web
 			? await this.#schemas.Token.deleteMany({ userID, web }).exec()
-			: // eslint-disable-next-line @typescript-eslint/naming-convention
-			  await this.#schemas.Token.deleteMany({ userID }).exec();
+			: await this.#schemas.Token.deleteMany({ userID }).exec();
 		return del.deletedCount;
 	}
 
@@ -766,7 +761,7 @@ export default class Mongoosedb extends DBClass {
 	async makeAdminNotify(
 		id: string,
 		notify: string,
-		title: string
+		title: string,
 	): Promise<Notification> {
 		const notif = new this.#schemas.AdminNotification({
 			id,
@@ -778,7 +773,7 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async findAdminNotify(
-		query: Record<string, unknown>
+		query: Record<string, unknown>,
 	): Promise<Notification | undefined> {
 		return (
 			(await this.#schemas.AdminNotification.findOne(query).lean()) ??
@@ -787,7 +782,7 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async findAdminNotifies(
-		query: Record<string, unknown>
+		query: Record<string, unknown>,
 	): Promise<Notification[]> {
 		return this.#schemas.AdminNotification.find(query)
 			.sort({ createdAt: -1 })
@@ -796,9 +791,8 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
-		const del = await this.#schemas.AdminNotification.deleteOne(
-			query
-		).exec();
+		const del =
+			await this.#schemas.AdminNotification.deleteOne(query).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 

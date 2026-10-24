@@ -19,7 +19,7 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -44,7 +44,6 @@ class MirrorRemove extends Path {
 					required: ["mirror"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -63,7 +62,6 @@ class MirrorRemove extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -71,7 +69,7 @@ class MirrorRemove extends Path {
 				mirror: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Check auth
 		const auth = await this.checkAuth(request);
@@ -96,10 +94,9 @@ class MirrorRemove extends Path {
 			{ id: auth.id },
 			{
 				$pullAll: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					cURLs: request.body.mirror,
 				},
-			}
+			},
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,

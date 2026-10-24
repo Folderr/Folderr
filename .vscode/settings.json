@@ -1,15 +1,10 @@
 {
-  "vetur.format.options.useTabs": true,
-  "eslint.enable": true,
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-  "editor.tabSize": 4,
-  "editor.insertSpaces": false,
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "prettier.useTabs": true,
-  "prettier.tabWidth": 4,
-  "[vue]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  }
+	"vetur.format.options.useTabs": true,
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.codeActionsOnSave": {
+		"source.fixAll.biome": "explicit",
+		"source.organizeImports.biome": "explicit"
+	},
+	"editor.tabSize": 4,
+	"editor.insertSpaces": false
 }

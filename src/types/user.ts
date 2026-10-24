@@ -1,4 +1,4 @@
-import type {Notification} from '../backend/Structures/Database/db-class';
+import type { Notification } from "../backend/Structures/Database/db-class";
 
 export type AccountReturn = {
 	username: string;

@@ -1,9 +1,8 @@
-import { defineStore } from "pinia";
 import { setUser } from "@sentry/vue";
-import * as api from "../wrappers/api.js";
+import { defineStore } from "pinia";
 import type { AccountReturn } from "../../../types/user.js";
+import * as api from "../wrappers/api.js";
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface UserStore {
 	id?: string;
 	username?: string;

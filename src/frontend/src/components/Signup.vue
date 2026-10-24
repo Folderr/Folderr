@@ -1,19 +1,11 @@
 <script setup lang="ts">
 import { CheckCircleIcon, UserAddIcon } from "@heroicons/vue/solid";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
-import * as api from "../wrappers/api.js";
 import type SuccessesErrors from "../components/Success-N-Error.vue";
+import { emailRegex, passwordRegex, usernameRegex } from "../utils/regexs";
+import * as api from "../wrappers/api.js";
 import UInput from "./Underline-Input.vue";
-import { passwordRegex, usernameRegex, emailRegex } from "../utils/regexs";
-
-// Initialize refs for the actual logging in.
-const username = ref("");
-const password = ref("");
-const email = ref("");
-const repasswd = ref("");
-const loading = ref(false);
-const signups = ref(false);
 
 const props = defineProps<{
 	sne?: InstanceType<typeof SuccessesErrors> & {
@@ -21,6 +13,13 @@ const props = defineProps<{
 		addSuccess: (message: string, time?: number) => void;
 	};
 }>();
+
+// Initialize refs for the actual logging in.
+const username = ref("");
+const password = ref("");
+const email = ref("");
+const repasswd = ref("");
+const loading = ref(false);
 
 // Initialize refs
 const passw = ref();
@@ -54,25 +53,21 @@ const signup = async () => {
 	}
 
 	if (missing.length > 0) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		props.sne?.addError(`Error: Missing ${missing.join(" & ")}`);
 		return;
 	}
 
 	if (repasswd.value !== password.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		props.sne?.addError("Need passwords to be the same");
 		return;
 	}
 
 	if (!usernameRegex.test(username.value)) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		props.sne?.addError("Username not valid");
 		return;
 	}
 
 	if (!passwordRegex.test(password.value)) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		props.sne?.addError("Password not valid");
 	}
 
@@ -80,12 +75,11 @@ const signup = async () => {
 	const output = await api.signup(
 		username.value,
 		password.value,
-		email.value
+		email.value,
 	);
 	if (output.error) {
 		// Oh no, login failed.
 		if (typeof output.error === "string") {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			props.sne?.addError(output.error);
 		}
 
@@ -101,18 +95,15 @@ const signup = async () => {
 
 const jumpToPassword = () => {
 	// Focuses to the password input
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	passw.value?.$el.focus();
 };
 
 const jumpToEmail = () => {
 	// Focuses to the password input
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	emailEl.value?.$el?.focus();
 };
 
 const jumpToRetype = () => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	passw2.value?.$el?.focus();
 };
 
@@ -263,8 +254,8 @@ const isAllValid = computed(() => {
 			Valid Password
 		</p>
 		<p v-if="isAllValid" class="text-brand mb-4">All items are valid</p>
-		<!-- eslint-disable max-len -->
 		<button
+			type="button"
 			ref="signupBtn"
 			:disabled="loading"
 			class="flex justify-center font-info font-extrabold text-bg-old bg-brand border-2 p-4 border-brand hover:bg-brand-darkened hover:border-brand-darkened rounded-xl w-full xl:w-80"
@@ -279,13 +270,9 @@ const isAllValid = computed(() => {
 			]"
 			@click="signup()"
 		>
-			<!-- eslint-enable max-len -->
-			<UserAddIcon
-				v-if="!loading"
-				class="w-5 my-auto mr-2"
-			/><CheckCircleIcon v-else class="w-5 my-auto mr-2" />{{
-				loading ? "Signing Up" : "Sign Up"
-			}}
+			<UserAddIcon v-if="!loading" class="w-5 my-auto mr-2" />
+			<CheckCircleIcon v-else class="w-5 my-auto mr-2" />
+			{{ loading ? "Signing Up" : "Sign Up" }}
 		</button>
 	</div>
 </template>

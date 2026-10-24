@@ -68,7 +68,6 @@ export type FoldCodesI = {
 	emailFailed: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const FoldCodes: FoldCodesI = {
 	fileParserError: 1000,
 	noFile: 1001,

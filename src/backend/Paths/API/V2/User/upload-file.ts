@@ -19,13 +19,13 @@
  *
  */
 
-import process from "process";
-import { join } from "path";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { createWriteStream } from "fs";
-import { promisify } from "util";
-import { pipeline } from "stream";
 import { unlink } from "fs/promises";
-import type { FastifyRequest, FastifyReply } from "fastify";
+import { join } from "path";
+import process from "process";
+import { pipeline } from "stream";
+import { promisify } from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -47,7 +47,6 @@ class Image extends Path {
 		this.options = {
 			schema: {
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -69,7 +68,6 @@ class Image extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -77,7 +75,7 @@ class Image extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
@@ -153,7 +151,7 @@ class Image extends Path {
 				}),
 				this.core.db.updateUser(
 					{ id: auth.id },
-					{ $inc: { files: 1 } }
+					{ $inc: { files: 1 } },
 				),
 			]);
 		} catch (error: unknown) {
@@ -166,12 +164,14 @@ class Image extends Path {
 				`${
 					typeof request.headers?.responseURL === "string" &&
 					auth.cURLs.includes(request.headers.responseURL) &&
-					(await this.Utils.testMirrorURL(
-						request.headers.responseURL!
-					))
+					(
+						await this.Utils.testMirrorURL(
+							request.headers.responseURL!,
+						)
+					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${name}.${fext}`
+				}/${type[0]}/${name}.${fext}`,
 			);
 	}
 }

@@ -1,69 +1,65 @@
 // Node modules
-import { join, normalize } from "path";
-import { platform } from "os";
-import { EventEmitter } from "events";
-import type { ServerOptions } from "https";
-import { fork } from "child_process";
-import fs from "fs";
-import process from "process";
-import { PerformanceObserver, performance } from "perf_hooks";
-import type { ChildProcess } from "child_process";
 
+import cookie from "@fastify/cookie";
+import fastifyCors from "@fastify/cors";
+import helmet from "@fastify/helmet";
+import multipart from "@fastify/multipart";
+import ratelimit from "@fastify/rate-limit";
+import fastifyStatic from "@fastify/static";
+import * as Sentry from "@sentry/node";
+import type { ChildProcess } from "child_process";
+import { fork } from "child_process";
+import { EventEmitter } from "events";
+import fg from "fast-glob";
+import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 // Fastify imports
 import fastify from "fastify";
-import cookie from "@fastify/cookie";
-import helmet from "@fastify/helmet";
-import fastifyStatic from "@fastify/static";
-import ratelimit from "@fastify/rate-limit";
-import fastifyCors from "@fastify/cors";
-import multipart from "@fastify/multipart";
-import type { FastifyBaseLogger, FastifyInstance } from "fastify";
-
+import fs from "fs";
+import type { Got } from "got";
 // Other imports
 import got from "got";
-import type { Got } from "got";
-import * as Sentry from "@sentry/node";
+import type { ServerOptions } from "https";
+import { platform } from "os";
+import { join, normalize } from "path";
+import { PerformanceObserver, performance } from "perf_hooks";
 import type pino from "pino";
-import fg from "fast-glob";
-
+import process from "process";
+import pkg from "../../../package.json" with { type: "json" };
+import type {
+	ActEmailConfig,
+	CoreConfig,
+	DbConfig,
+	KeyConfig,
+} from "../handlers/config-handler.js";
 // Local files
 // Handlers
 import Configurer from "../handlers/config-handler.js";
-import type {
-	CoreConfig,
-	DbConfig,
-	ActEmailConfig,
-	KeyConfig,
-} from "../handlers/config-handler.js";
-// Structs, classes
-import * as endpointsImport from "../Paths/index.js";
-import * as APIs from "../Paths/API/index.js";
 import {
 	Emailer,
-	Utils,
 	MongoDB,
 	Regexs,
 	codes as StatusCodes,
+	Utils,
 } from "../internals.js";
-import pkg from "../../../package.json" with { type: "json" };
+import * as APIs from "../Paths/API/index.js";
+// Structs, classes
+import * as endpointsImport from "../Paths/index.js";
 import DelQueue from "./Utilities/db-queue.js";
 
 const version = pkg.version;
 
+import fastifySwagger from "@fastify/swagger";
 import type { Path } from "../internals.js";
-
+import type { LoggerLevels } from "./logger.js";
 // Other utilities
 import logger from "./logger.js";
-import type { LoggerLevels } from "./logger.js";
-
-// Local Fastify plugins
-import SentryPlugin from "./plugins/sentry.js";
 import type {
 	ErrorHandlerWithSeverity,
 	supressErrorHandlerRoute,
 } from "./plugins/errorHandler.js";
 import errorHandlerPlugin from "./plugins/errorHandler.js";
-import fastifySwagger from "@fastify/swagger";
+// Local Fastify plugins
+import SentryPlugin from "./plugins/sentry.js";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -76,15 +72,7 @@ ee.on("fail", (code: number) => {
 
 // Since we decorate the fastify instance we need to add that as a type.
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-interface LogOptions extends pino.LoggerOptions {
-	customLevels: {
-		startup: 35;
-	};
-}
-
 declare module "fastify" {
-	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface FastifyInstance {
 		codes: typeof StatusCodes;
 		got: Got;
@@ -96,9 +84,6 @@ declare module "fastify" {
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const isTSNode =
 	Boolean(process.env.TS_NODE_DEV) || Boolean(process.env.TS_NODE);
 
@@ -131,7 +116,6 @@ export default class Core {
 
 	public readonly codes: typeof StatusCodes;
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public readonly Utils: Utils;
 
 	public readonly got: Got;
@@ -247,7 +231,6 @@ export default class Core {
 			{
 				parseAs: "string",
 			},
-			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
 			(_request, body, done) => done(null, body),
 		);
 	}
@@ -451,7 +434,10 @@ export default class Core {
 			};
 		}
 
-		if (process.env.NODE_ENV === "production" && !this.config.trustProxies) {
+		if (
+			process.env.NODE_ENV === "production" &&
+			!this.config.trustProxies
+		) {
 			this.logger.error("HTTPS required in production. Shuting down");
 			this.shutdownServer("Core.initServer", "No HTTPS Certificate");
 			throw new Error("HTTPS required in production. Shuting down");
@@ -494,8 +480,8 @@ export default class Core {
 			"core.registerNewApi File Pathing Start",
 		);
 		const filebase = `${process.cwd()}`;
-		let prefixes = new Map<string, string>();
-		let groups = new Map<string, string[]>(); // A group of files
+		const prefixes = new Map<string, string>();
+		const groups = new Map<string, string[]>(); // A group of files
 		performance.mark("core.registerNewApi Prefix Grouping");
 		for (const file of files) {
 			const directory = normalize(join(file, "../"));
@@ -520,12 +506,11 @@ export default class Core {
 			"core.registerNewApi Prefix Grouping",
 		);
 
-		const initQueue = [];
 		// impl: Faster import
 		performance.mark("core.registerNewApi Registering APIs");
 		for (const [prefix, files] of groups) {
 			this.app.register(
-				async (instance, opts) => {
+				async (instance, _opts) => {
 					const endpoints = files.map(async (file) => {
 						const imported: {
 							name: string;
@@ -585,10 +570,8 @@ export default class Core {
 
 			void this.app.register(
 				(instance, _options, done) => {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					for (const EndpointType of Object.values(api.endpoints)) {
 						const endpoint = new EndpointType(this);
-						// eslint-disable-next-line prefer-destructuring
 						const label = endpoint.label;
 						if (
 							!endpoint.enabled ||
@@ -731,7 +714,7 @@ export default class Core {
 				continue;
 			}
 
-			const base = endpoint; // eslint-disable-next-line @typescript-eslint/naming-convention
+			const base = endpoint;
 			const ActualEndpoint = endpoints[endpoint];
 			const path = new ActualEndpoint(this);
 			const endpointName =
@@ -758,7 +741,6 @@ export default class Core {
 
 				this.internalInitPath(path);
 
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				this.logger.startup(
 					`Initalized path ${
 						path.label
@@ -768,13 +750,12 @@ export default class Core {
 			}
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		this.logger.startup(`Initalized ${pathCount} paths`);
 		return true;
 	}
 
 	async initFrontend() {
-		console.log("Node Env: " + process.env.NODE_ENV);
+		console.log(`Node Env: ${process.env.NODE_ENV}`);
 		if (process.env.NODE_ENV !== "dev") {
 			this.logger.debug("Using production build for frontend");
 

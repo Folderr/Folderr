@@ -31,7 +31,7 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 		import.meta.env.DEV
 	) {
 		console.log(
-			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 		);
 		console.log(error);
 	}
@@ -48,7 +48,7 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 export async function signup(
 	username: string,
 	password: string,
-	email: string
+	email: string,
 ) {
 	try {
 		const response = await fetch("/api/signup", {
@@ -108,7 +108,7 @@ export async function signup(
 
 export async function login(
 	username: string,
-	password: string
+	password: string,
 ): Promise<GenericFetchReturn> {
 	try {
 		const response = await fetch("/api/authorize", {
@@ -165,7 +165,6 @@ export async function fetchUser(): Promise<UserReturn> {
 			return { error: "Request failed", user: undefined };
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const output: { code: number; message: AccountReturn } =
 			await response.json();
 		return { error: undefined, user: output.message };
@@ -176,7 +175,7 @@ export async function fetchUser(): Promise<UserReturn> {
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 			);
 		}
 
@@ -189,7 +188,7 @@ type UpdateInfoParameterOptions =
 	| { email: string; username?: string };
 
 export async function updateInfo(
-	input: UpdateInfoParameterOptions
+	input: UpdateInfoParameterOptions,
 ): Promise<GenericFetchReturn> {
 	const info: {
 		username?: string;
@@ -214,7 +213,6 @@ export async function updateInfo(
 		});
 
 		if (response.status === 226) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -235,7 +233,6 @@ export async function updateInfo(
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -246,7 +243,6 @@ export async function updateInfo(
 		}
 
 		if (response.status === 406) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -257,7 +253,6 @@ export async function updateInfo(
 		}
 
 		if (response.status === 501) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -302,7 +297,6 @@ export async function updatePassword(info: {
 			method: "PATCH",
 			body: JSON.stringify({ password: info.newPassword }),
 			headers: {
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				Accept: "application/json",
 				"Content-Type": "application/json",
 			},
@@ -318,7 +312,6 @@ export async function updatePassword(info: {
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -329,7 +322,6 @@ export async function updatePassword(info: {
 		}
 
 		if (response.status === 501) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -362,14 +354,13 @@ type PrivacyUpdateOptions = {
 };
 
 export async function updatePrivacy(
-	info: PrivacyUpdateOptions
+	info: PrivacyUpdateOptions,
 ): Promise<GenericFetchReturn> {
 	try {
 		const response = await fetch("/api/account", {
 			method: "PATCH",
 			body: JSON.stringify({ privacy: info }),
 			headers: {
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				Accept: "application/json",
 				"Content-Type": "application/json",
 			},
@@ -385,7 +376,6 @@ export async function updatePrivacy(
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -396,7 +386,6 @@ export async function updatePrivacy(
 		}
 
 		if (response.status === 501) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -438,7 +427,6 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -461,7 +449,6 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 500) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -504,7 +491,6 @@ export async function logout(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -518,7 +504,6 @@ export async function logout(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 500) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -548,7 +533,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 }
 
 export async function deleteAccount(
-	userID?: string
+	userID?: string,
 ): Promise<GenericFetchReturn> {
 	let url = "/api/account";
 	if (userID) {
@@ -569,7 +554,6 @@ export async function deleteAccount(
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -592,7 +576,6 @@ export async function deleteAccount(
 		}
 
 		if (response.status === 403) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -605,7 +588,6 @@ export async function deleteAccount(
 		}
 
 		if (response.status === 500) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -648,7 +630,6 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			credentials: "same-origin",
 		});
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string | Token[] } | undefined =
 			await response.json();
 
@@ -709,7 +690,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 			);
 			console.log(error);
 		}
@@ -741,7 +722,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 }
 
 export async function createToken(
-	description: string
+	description: string,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch("/api/account/token", {
@@ -753,7 +734,6 @@ export async function createToken(
 			},
 		});
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 
@@ -804,7 +784,7 @@ export async function createToken(
 }
 
 export async function revokeToken(
-	id: string
+	id: string,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch(`/api/account/token/${id}`, {
@@ -812,7 +792,6 @@ export async function revokeToken(
 			credentials: "same-origin",
 		});
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 
@@ -863,7 +842,7 @@ export async function revokeToken(
 }
 
 export async function uploadFile(
-	data: FormData
+	data: FormData,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch("/api/file", {
@@ -882,7 +861,6 @@ export async function uploadFile(
 			};
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 		if (response.status === 500) {
@@ -925,7 +903,7 @@ export async function uploadFile(
 }
 
 export async function shortenLink(
-	url: URL
+	url: URL,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch("/api/link", {
@@ -947,7 +925,6 @@ export async function shortenLink(
 			};
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 		if (response.status === 500) {

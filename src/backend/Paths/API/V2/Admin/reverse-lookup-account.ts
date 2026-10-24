@@ -19,10 +19,10 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
-import Path from "../../../../Structures/path.js";
 import type { User } from "../../../../Structures/Database/db-class.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Allows admins to look up accounts
@@ -44,7 +44,6 @@ class LookupAccount extends Path {
 					required: ["id", "type"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -63,7 +62,6 @@ class LookupAccount extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -72,10 +70,10 @@ class LookupAccount extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
@@ -110,7 +108,7 @@ class LookupAccount extends Path {
 
 		const user = await this.core.db.findUser(
 			{ id: out.owner },
-			"id username email created"
+			"id username email created",
 		);
 		if (!user) {
 			return response.status(this.codes.ok).send({

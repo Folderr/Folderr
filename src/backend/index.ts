@@ -1,10 +1,10 @@
-import process, { env } from "process";
-import fs from "fs";
-import { join } from "path";
+import { RewriteFrames } from "@sentry/integrations";
 import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
-import { RewriteFrames } from "@sentry/integrations";
+import fs from "fs";
 import yaml from "js-yaml";
+import { join } from "path";
+import process, { env } from "process";
 import * as StartupHandler from "./handlers/startup-handler.js";
 
 const configPath = join(process.cwd(), "configs/server.yaml");
@@ -13,7 +13,7 @@ let dsn = env.SENTRY;
 let tracing = true;
 let rate = process.env.NODE_ENV === "dev" ? 1 : 0.2;
 
-if (env.SENTRY_TRACING && Boolean(env.SENTRY_TRACING)) {
+if (env.SENTRY_TRACING && env.SENTRY_TRACING) {
 	tracing = Boolean(env.SENTRY_TRACING);
 }
 
@@ -62,7 +62,7 @@ const integrations: any[] = [
 if (tracing) {
 	integrations.push(
 		new Sentry.Integrations.Http({ tracing: true }),
-		new Tracing.Integrations.Mongo({ useMongoose: true })
+		new Tracing.Integrations.Mongo({ useMongoose: true }),
 	);
 }
 

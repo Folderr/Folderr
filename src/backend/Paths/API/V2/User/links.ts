@@ -19,11 +19,11 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
+import type { Core } from "../../../../internals.js";
+import type { Link } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
-import { type Link } from "../../../../Structures/Database/db-class.js";
-import { type RequestGallery } from "../../../../../types/fastify-request-types.js";
 
 /**
  * @classdesc Allow a user to access their links
@@ -47,7 +47,6 @@ class Links extends Path {
 					},
 				},
 				response: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					"4xx": {
 						type: "object",
 						properties: {
@@ -55,7 +54,6 @@ class Links extends Path {
 							code: { type: "number" },
 						},
 					},
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					200: {
 						type: "object",
 						properties: {
@@ -75,7 +73,7 @@ class Links extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
@@ -126,7 +124,6 @@ class Links extends Path {
 		url = url.replace(/\/$/g, "");
 		const aShorts = shorts.map((short: Link) => ({
 			id: short.id,
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			points_to: short.link,
 			created: Math.round(short.createdAt.getTime() / 1000),
 			link: `${url}/${short.id}`,

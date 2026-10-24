@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-const isOpen = ref(false);
-
 defineProps<{ active?: string }>();
+
+const isOpen = ref(false);
 </script>
 
-<!-- eslint-disable max-len -->
 <template>
 	<div
 		class="h-full"
@@ -26,6 +25,7 @@ defineProps<{ active?: string }>();
 				]"
 			>
 				<button
+					type="button"
 					class="cursor-pointer text-xl leading-none border border-solid border-transparent rounded-md bg-transparent block lg:hidden outline-hidden focus:outline-hidden"
 					:class="[
 						{

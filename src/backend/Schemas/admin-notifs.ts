@@ -19,7 +19,7 @@
  *
  */
 
-import { Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
 import type { Notification } from "../Structures/Database/db-class.js";
 
 const adminNotifs = new Schema({

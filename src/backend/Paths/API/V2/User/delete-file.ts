@@ -43,7 +43,6 @@ class DeleteFile extends Path {
 					},
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -62,7 +61,6 @@ class DeleteFile extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -70,7 +68,7 @@ class DeleteFile extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {

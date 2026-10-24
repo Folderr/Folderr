@@ -19,9 +19,9 @@
  *
  */
 
-import { inspect } from "util";
-import process from "process";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import process from "process";
+import { inspect } from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -55,10 +55,10 @@ class Eval extends Path {
 				eval: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
+			Boolean(user.owner),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
@@ -68,16 +68,12 @@ class Eval extends Path {
 		}
 
 		try {
-			/* eslint-disable no-eval */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			let evaled: string | Record<string, unknown> = await eval(
-				request.body.eval
-			);
-			/* eslint-enable no-eval */
-			evaled =
-				typeof evaled === "object"
-					? (evaled = inspect(evaled, { depth: 0, showHidden: true }))
-					: (evaled = String(evaled));
+			// biome-ignore lint/security/noGlobalEval: owner-only debug endpoint that evaluates code by design, enabled only in dev
+			const result: unknown = await eval(request.body.eval);
+			const evaled =
+				typeof result === "object"
+					? inspect(result, { depth: 0, showHidden: true })
+					: String(result);
 
 			if (!evaled || evaled.length === 0) {
 				return await response.status(this.codes.noContent).send({

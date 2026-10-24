@@ -1,5 +1,5 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { Core } from "../../../internals";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../internals";
 
 export const path = "/ban/:id";
 export const enabled = true;

@@ -5,8 +5,11 @@
 		}
 	],
 	"settings": {
-		"eslint.enable": true,
-		"eslint.format.enable": true,
+		"editor.defaultFormatter": "biomejs.biome",
+		"editor.codeActionsOnSave": {
+			"source.fixAll.biome": "explicit",
+			"source.organizeImports.biome": "explicit"
+		},
 		"editor.insertSpaces": false,
 		"editor.quickSuggestions": {
 			"other": true,

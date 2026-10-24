@@ -1,12 +1,11 @@
 import {
-	httpCodes,
 	badResponseHandler,
 	type GenericFetchReturn,
 	genericCatch,
+	httpCodes,
 	requestHelper,
 } from "../utils/request-helpers.js";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const BASE_URL = "/api/admin/";
 
 type Stats = {
@@ -41,7 +40,7 @@ export async function getStats(): Promise<GenericFetchReturn<Stats>> {
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 			);
 		}
 
@@ -79,7 +78,7 @@ export async function getUsers(): Promise<
 			badResCodes: {
 				notFound: "No Users Found",
 			},
-		}
+		},
 	);
 	if (output.error) {
 		if (output.error instanceof Error) {
@@ -113,7 +112,6 @@ export async function getVerifyingUsers(): Promise<
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -152,7 +150,7 @@ export async function getVerifyingUsers(): Promise<
 }
 
 export async function denyAccount(
-	id: string
+	id: string,
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ id });
 	console.log(body);
@@ -171,7 +169,6 @@ export async function denyAccount(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -209,7 +206,7 @@ export async function denyAccount(
 }
 
 export async function acceptAccount(
-	id: string
+	id: string,
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ id });
 	try {
@@ -229,7 +226,6 @@ export async function acceptAccount(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -268,7 +264,7 @@ export async function acceptAccount(
 
 export async function deleteAccount(
 	id: string,
-	reason: string
+	reason: string,
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {
@@ -288,7 +284,6 @@ export async function deleteAccount(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -327,7 +322,7 @@ export async function deleteAccount(
 
 export async function warnUser(
 	id: string,
-	reason: string
+	reason: string,
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {
@@ -348,7 +343,6 @@ export async function warnUser(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -387,7 +381,7 @@ export async function warnUser(
 
 export async function banUser(
 	id: string,
-	reason: string
+	reason: string,
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {
@@ -408,7 +402,6 @@ export async function banUser(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -457,7 +450,7 @@ export async function getBans(): Promise<GenericFetchReturn<Ban[]>> {
 	const output = await requestHelper<Ban[]>(
 		"/api/admin/bans",
 		"GET",
-		"Array"
+		"Array",
 	);
 	if (output.error) {
 		console.log(
@@ -465,7 +458,7 @@ export async function getBans(): Promise<GenericFetchReturn<Ban[]>> {
 				typeof output.error === "string"
 					? output.error
 					: output.error.message
-			}`
+			}`,
 		);
 		return {
 			error: output.error,
@@ -493,7 +486,7 @@ export async function getBans(): Promise<GenericFetchReturn<Ban[]>> {
 }
 
 export async function unbanUser(
-	email: string
+	email: string,
 ): Promise<GenericFetchReturn<Ban>> {
 	const output = await requestHelper<Ban>(
 		"/api/admin/ban",
@@ -503,7 +496,7 @@ export async function unbanUser(
 			body: JSON.stringify({
 				email,
 			}),
-		}
+		},
 	);
 	if (output.error) {
 		console.log(
@@ -511,7 +504,7 @@ export async function unbanUser(
 				typeof output.error === "string"
 					? output.error
 					: output.error.message
-			}`
+			}`,
 		);
 		return {
 			error: output.error,

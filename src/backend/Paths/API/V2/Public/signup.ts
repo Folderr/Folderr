@@ -19,10 +19,10 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
-import Path from "../../../../Structures/path.js";
 import * as constants from "../../../../Structures/constants/index.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Allows users to signup
@@ -47,7 +47,6 @@ class Signup extends Path {
 					required: ["email", "username", "password"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -77,7 +76,6 @@ class Signup extends Path {
 	async genUID(): Promise<string> {
 		// Generate an ID, and do not allow a users id to be reused
 		const uID = this.Utils.genFolderrId();
-		/* eslint-enable @typescript-eslint/naming-convention */
 		const user = await this.core.db.findUser({ id: uID });
 		if (user) {
 			// If the user was found, retry
@@ -100,13 +98,12 @@ class Signup extends Path {
 			hash: string;
 			token: string;
 		},
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<{
 		httpCode: 500 | 201;
 		msg: { code: number; message: string };
 	}> {
 		// Find admin notifications, and generate an ID
-		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const notifyID = this.Utils.genNotifyID();
 		// Make a new notification and save to database
 		try {
@@ -117,7 +114,7 @@ class Signup extends Path {
 					`Username: ${userInfo.username}\n` +
 						`User ID: ${userInfo.id}\n` +
 						`Validation Token: ${validationToken.token}`,
-					"New user signup!"
+					"New user signup!",
 				),
 			]);
 		} catch (error: unknown) {
@@ -139,7 +136,7 @@ class Signup extends Path {
 
 		// Notify the console, and the user that the admins have been notified.
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 		);
 		return {
 			httpCode: this.codes.created,
@@ -163,7 +160,7 @@ class Signup extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<{
 		httpCode: 500 | 201;
 		msg: {
@@ -180,7 +177,7 @@ class Signup extends Path {
 			await this.core.emailer.verifyEmail(
 				userInfo.email,
 				`${url}/account/verify/${userInfo.id}/${validationToken.token}`,
-				userInfo.username
+				userInfo.username,
 			);
 			await this.core.db.makeVerify(userInfo, validationToken.hash);
 		} catch (error: unknown) {
@@ -211,7 +208,7 @@ class Signup extends Path {
 		}
 
 		this.core.logger.info(
-			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`
+			`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 		);
 		return {
 			httpCode: this.codes.created,
@@ -233,7 +230,7 @@ class Signup extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// If signups are closed, state that and do not allow them through
 		if (!this.core.config.signups) {
@@ -248,21 +245,21 @@ class Signup extends Path {
 		const isValid = await this.checkUserInput(
 			request.body.email,
 			username,
-			password
+			password,
 		);
 		if (typeof isValid !== "boolean") {
 			return response.status(isValid.httpCode).send(isValid.response);
 		}
 
 		// Hash the password and catch errors
-		let pswd;
+		let pswd: string;
 		try {
 			pswd = await this.Utils.hashPass(password);
 		} catch (error: unknown) {
 			// Errors shouldnt happen here, so notify the console.. Also notify the user
 			if (error instanceof Error) {
 				this.core.logger.error(
-					`[SIGNUP -  Create password] - ${error.message}`
+					`[SIGNUP -  Create password] - ${error.message}`,
 				);
 				return response.status(this.codes.internalErr).send({
 					code: this.codes.internalErr,
@@ -293,8 +290,8 @@ class Signup extends Path {
 						},
 						validationToken,
 						request,
-						response
-				  )
+						response,
+					)
 				: await this.noEmail(
 						{
 							username,
@@ -303,15 +300,15 @@ class Signup extends Path {
 							email,
 						},
 						validationToken,
-						response
-				  );
+						response,
+					);
 		return response.status(r.httpCode).send(r.msg);
 	}
 
 	private async checkUserInput(
 		email: string,
 		username: string,
-		password: string
+		password: string,
 	): Promise<
 		| {
 				httpCode: number;

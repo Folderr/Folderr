@@ -19,15 +19,14 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../internals.js";
 import Path from "../../../Structures/path.js";
 import Configurator from "../../../Structures/Utilities/sharex-configurator.js";
 
 /**
  * @classdesc Generate a sharex configuration
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 class ShareXConfigurator extends Path {
 	private readonly configurator: Configurator;
 
@@ -72,7 +71,7 @@ class ShareXConfigurator extends Path {
 				d?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
@@ -83,7 +82,7 @@ class ShareXConfigurator extends Path {
 		}
 
 		const compare = await this.Utils.authorization.verifyAccount(
-			request.body.token
+			request.body.token,
 		);
 		if (!compare) {
 			return response.status(this.codes.unauth).send({
@@ -100,7 +99,7 @@ class ShareXConfigurator extends Path {
 				.type("text/plain; charset=binary")
 				.header(
 					"Content-Disposition",
-					"attachment; filename=Folderr-Link-Config.sxcu"
+					"attachment; filename=Folderr-Link-Config.sxcu",
 				)
 				.status(this.codes.ok)
 				.send(config[0]);
@@ -111,7 +110,7 @@ class ShareXConfigurator extends Path {
 				.type("text/plain; charset=binary")
 				.header(
 					"Content-Disposition",
-					"attachment; filename=Folderr-Link-Config.sxcu"
+					"attachment; filename=Folderr-Link-Config.sxcu",
 				)
 				.status(this.codes.ok)
 				.send(config[1]);

@@ -17,7 +17,6 @@
 			:need-input="true"
 		>
 			<p class="text-secondary-text">
-				<!-- eslint-disable-next-line max-len-->
 				Please provide a reason
 			</p></FlexibleModal
 		>
@@ -41,7 +40,11 @@
 						<DialogTitle class="text-brand font-bold text-xl"
 							>User Info</DialogTitle
 						>
-						<button class="w-fit" :onClick="closeUserDialog">
+						<button
+							type="button"
+							class="w-fit"
+							@click="closeUserDialog"
+						>
 							<span class="sr-only">Close User Info Modal</span>
 							<XIcon class="h-5 text-white" />
 						</button>
@@ -126,7 +129,7 @@
 							<AdminButton
 								v-if="
 									store.owner &&
-									selectedUser.user.role == 'admin'
+									selectedUser.user.role === 'admin'
 								"
 								:on-click="
 									() =>
@@ -227,7 +230,6 @@
 					<!-- Impl filtering of user types -->
 					<div>
 						<Listbox v-model="filter">
-							<!-- eslint-disable max-len -->
 							<ListboxButton
 								class="flex grow my-auto text-secondary-text p-2 rounded-xl bg-bg-old"
 								><FilterIcon
@@ -236,7 +238,6 @@
 								<h1
 									class="font-bold my-auto text-base lg:text-xl p-2 bg-bg-old rounded-lg text-brand"
 								>
-									<!-- eslint-enable max-len -->
 									{{ filter }} Management
 								</h1>
 							</ListboxButton>
@@ -248,21 +249,19 @@
 									:key="option"
 									:value="option"
 									class="mt-1 text-secondary-text hover:text-text"
-									>{{ option }} Management</ListboxOption
+									>{{ option }}
+									Management</ListboxOption
 								>
 							</ListboxOptions>
 						</Listbox>
 					</div>
-					<!-- eslint-disable max-len -->
 					<div
 						class="hidden md:flex text-secondary-text w-64 p-2 px-8 border-b-2 border-brand h-fit"
 					>
-						<!-- eslint-enable max-len -->
 						<p>Search...</p>
 					</div>
 				</div>
 
-				<!-- eslint-disable max-len -->
 				<!-- Grid of users & their headers (for determing what info you're viewing) -->
 				<!-- Verifying Users -->
 				<div
@@ -273,7 +272,6 @@
 					"
 					class="mx-10 lg:mx-28 justify-center grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-flow-dense mt-10"
 				>
-					<!-- eslint-enable max-len -->
 					<h2 class="">Profile</h2>
 					<h2 class="hidden md:block">Email</h2>
 					<h2>Actions</h2>
@@ -319,26 +317,22 @@
 					</ul>
 				</div>
 				<!-- Users -->
-				<!-- eslint-disable max-len -->
 				<div
 					v-else-if="
 						userList && userList.length >= 0 && filter === 'Users'
 					"
 					class="mx-10 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 grid-flow-dense mt-10 gap-x-4"
 				>
-					<!-- eslint-enable max-len -->
 					<h2 class="w-fit">Profile</h2>
 					<h2 class="hidden md:block w-fit">Email</h2>
 					<h2 class="hidden 2xl:block w-fit">Statistics</h2>
 					<h2 class="hidden xl:block w-fit">Role</h2>
 					<h2 class="w-fit">Actions</h2>
-					<!-- eslint-disable max-len -->
 					<ul
 						v-for="user of userList"
 						:key="user.username"
 						class="grid grid-cols-subgrid col-span-2 md:col-span-3 xl:col-span-4 2xl:col-span-5 text-secondary-text"
 					>
-						<!-- eslint-enable max-len -->
 						<li class="my-auto py-4 w-fit">
 							{{ user.username }}
 						</li>
@@ -395,12 +389,10 @@
 						</li>
 					</ul>
 				</div>
-				<!-- eslint-disable max-len -->
 				<div
 					v-else
 					class="mx-auto font-bold text-lg md:text-2xl lg:text-4xl w-fit text-secondary-text my-20"
 				>
-					<!-- eslint-enable max-len -->
 					No Users Found Under
 					<span class="text-brand">{{ filter }}</span>
 				</div>
@@ -410,37 +402,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
 import {
-	Listbox,
-	ListboxButton,
-	ListboxOptions,
-	ListboxOption,
 	Dialog,
-	DialogTitle,
 	DialogDescription,
 	DialogPanel,
+	DialogTitle,
+	Listbox,
+	ListboxButton,
+	ListboxOption,
+	ListboxOptions,
 } from "@headlessui/vue";
-import { useUserStore } from "../../stores/user.js";
-import * as newAPI from "fldrr-web-sdk";
-import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
-import AdminSidebar from "../../components/Admin-Sidebar.vue";
-import AdminButton from "../../components/Admin-Button.vue";
-import FlexibleModal from "../../components/Modals/NewFlexible.vue";
-import SuccessNError from "../../components/Success-N-Error.vue";
 import {
 	BanIcon,
-	FlagIcon,
-	TrashIcon,
-	MailIcon,
 	DocumentIcon,
-	LinkIcon,
 	FilterIcon,
-	UserAddIcon,
+	FlagIcon,
+	LinkIcon,
+	MailIcon,
 	ShieldCheckIcon,
 	ShieldExclamationIcon,
+	TrashIcon,
+	UserAddIcon,
 	XIcon,
 } from "@heroicons/vue/solid";
+import * as newAPI from "fldrr-web-sdk";
+import { onMounted, ref, watch } from "vue";
+import AdminButton from "../../components/Admin-Button.vue";
+import AdminSidebar from "../../components/Admin-Sidebar.vue";
+import FlexibleModal from "../../components/Modals/NewFlexible.vue";
+import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
+import SuccessNError from "../../components/Success-N-Error.vue";
+import { useUserStore } from "../../stores/user.js";
 
 const api = newAPI.setup();
 
@@ -452,7 +444,6 @@ type ReasonModal = {
 	continue: (text: string | undefined) => any;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
 const sne = ref<InstanceType<typeof SuccessNError>>();
 const localReason = ref<ReasonModal>();
 
@@ -475,7 +466,6 @@ const reasonDelete = async (
 ) => {
 	if (!reason) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value?.addError(`Need a reason for that.`);
 		}
 
@@ -485,14 +475,11 @@ const reasonDelete = async (
 	const output = await api.Admin.user.deleteAccount(user.id, reason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error.message);
 		} else if (sne.value && !(output.error instanceof Error)) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error ?? "Unknown Error");
 		}
 	} else if (sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addSuccess(`Deleted ${user.username}`);
 	}
 
@@ -507,10 +494,8 @@ const reasonDelete = async (
 	await loadUsers();
 	const result = await deleteUser(user.id, reason);
 	if (result instanceof Error && sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addError(result.message);
 	} else if (sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addSuccess(`Deleted ${user.username}`);
 	}
 
@@ -521,7 +506,6 @@ const setReasonWarn = (userid: string) => {
 	const user = userList.value?.find((user) => user.id === userid);
 	if (!user) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value?.addError(`User not found ${userid}`);
 		}
 
@@ -542,7 +526,6 @@ const reasonWarn = async (
 ) => {
 	if (!localReason) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value?.addError(`Need a reason for that.`);
 		}
 
@@ -552,14 +535,11 @@ const reasonWarn = async (
 	const output = await api.Admin.user.warnUser(user.id, localReason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error.message);
 		} else if (sne.value && !(output.error instanceof Error)) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error ?? "Unknown Error");
 		}
 	} else if (sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addSuccess(`Warned ${user.username}`);
 	}
 
@@ -574,7 +554,6 @@ const setReasonBan = (userid: string) => {
 	const user = userList.value?.find((user) => user.id === userid);
 	if (!user) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value?.addError(`User not found ${userid}`);
 		}
 
@@ -590,7 +569,6 @@ const setReasonBan = (userid: string) => {
 const reasonBan = async (user: FilteredUsers, reason: string | undefined) => {
 	if (!reason) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value?.addError(`Need a reason for that.`);
 		}
 
@@ -600,14 +578,11 @@ const reasonBan = async (user: FilteredUsers, reason: string | undefined) => {
 	const output = await api.Admin.user.banUser(user.id, reason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error.message);
 		} else if (sne.value && !(output.error instanceof Error)) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error ?? "Unknown Error");
 		}
 	} else if (sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addSuccess(`Banned ${user.username}`);
 	}
 
@@ -627,7 +602,6 @@ const setReasonDemote = (userid: string) => {
 	const user = userList.value?.find((user) => user.id === userid);
 	if (!user) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value?.addError(`User not found ${userid}`);
 		}
 
@@ -646,7 +620,6 @@ const reasonDemote = async (
 ) => {
 	if (!reason) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value?.addError(`Need a reason for that.`);
 		}
 
@@ -662,14 +635,11 @@ const reasonDemote = async (
 	// Const output = await managementAPI.demoteUserToAdmin(user.id, reason);
 	if (output.error ?? !output.success) {
 		if (output.error instanceof Error && sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error.message);
 		} else if (sne.value && !(output.error instanceof Error)) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error ?? "Unknown Error");
 		}
 	} else if (sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addSuccess(`Demoted ${user.username}`);
 	}
 
@@ -806,7 +776,6 @@ async function denyUser(id: string): Promise<boolean | Error> {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
 			if (sne.value) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				sne.value.addError(output.error.message);
 			}
 
@@ -814,7 +783,6 @@ async function denyUser(id: string): Promise<boolean | Error> {
 		}
 
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error);
 		}
 
@@ -835,7 +803,6 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 	const user = userList.value?.find((user) => user.id === id);
 	if (!user) {
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(`User not found with id ${id}`);
 		}
 
@@ -853,7 +820,6 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
 			if (sne.value) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				sne.value.addError(output.error.message);
 			}
 
@@ -861,7 +827,6 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 		}
 
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error);
 		}
 
@@ -869,7 +834,6 @@ async function promoteUser(id: string): Promise<boolean | Error> {
 	}
 
 	if (sne.value) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		sne.value.addSuccess(`Promoted ${user.username} to Admin`);
 	}
 
@@ -891,7 +855,6 @@ async function acceptUser(id: string): Promise<boolean | Error> {
 		console.log(output.error ?? "Unknown Error");
 		if (output.error instanceof Error) {
 			if (sne.value) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				sne.value.addError(output.error.message);
 			}
 
@@ -899,7 +862,6 @@ async function acceptUser(id: string): Promise<boolean | Error> {
 		}
 
 		if (sne.value) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			sne.value.addError(output.error);
 		}
 

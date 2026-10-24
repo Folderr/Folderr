@@ -45,7 +45,6 @@ class DenyAccount extends Path {
 					required: ["id"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -64,7 +63,6 @@ class DenyAccount extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -72,7 +70,7 @@ class DenyAccount extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth by id/token
 		const auth = await this.checkAuthAdmin(request);
@@ -96,7 +94,7 @@ class DenyAccount extends Path {
 		await this.core.db.denyUser(user.id);
 		// Log that the account was denied by admin x, and tell the admin the account was denied
 		this.core.logger.info(
-			`User account denied by administrator (${user.username} - ${user.id})`
+			`User account denied by administrator (${user.username} - ${user.id})`,
 		);
 		return response
 			.status(this.codes.ok)

@@ -2,7 +2,7 @@ import type { RouteLocationNormalized } from "vue-router";
 import { useUserStore } from "../stores/user.js";
 
 export async function getUser(
-	to: RouteLocationNormalized
+	to: RouteLocationNormalized,
 ): Promise<string | boolean | Error> {
 	if (to.name === "NotFoundWild" || to.name === "NotFound") {
 		return true;
@@ -24,7 +24,7 @@ export async function getUser(
 	}
 }
 
-export async function noUser(to: RouteLocationNormalized) {
+export async function noUser(_to: RouteLocationNormalized) {
 	try {
 		const store = useUserStore();
 		if (!store.id) {

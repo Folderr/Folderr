@@ -21,8 +21,8 @@
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
-import Path from "../../../../Structures/path.js";
 import type { User } from "../../../../Structures/Database/db-class.js";
+import Path from "../../../../Structures/path.js";
 
 type DelReturns = {
 	code: number;
@@ -56,7 +56,6 @@ class DelAccount extends Path {
 				//	},
 				// },
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -82,7 +81,6 @@ class DelAccount extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	/**
 	 * @desc Delete the account, separate function to make things be CLEAN
@@ -91,7 +89,7 @@ class DelAccount extends Path {
 	 * @async
 	 * @returns {DelReturns}
 	 */
-	async deleteAccount(auth: User, id: string): Promise<DelReturns> {
+	async deleteAccount(_auth: User, id: string): Promise<DelReturns> {
 		try {
 			// Delete account by uID, and delete their pictures
 			await this.core.db.purgeUser(id);
@@ -104,8 +102,7 @@ class DelAccount extends Path {
 			const declaredError = error as Error;
 			const formattedError = declaredError.message || (error as string);
 			this.core.logger.error(
-				// eslint disable-next-line max-len
-				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
+				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`,
 			);
 			return {
 				code: this.codes.internalErr,
@@ -124,7 +121,7 @@ class DelAccount extends Path {
 	 * @async
 	 * @returns {DelReturns}
 	 */
-	async beginDeleteAccount(auth: User, id: string): Promise<DelReturns> {
+	async beginDeleteAccount(_auth: User, id: string): Promise<DelReturns> {
 		try {
 			// Delete account by uID, and delete their pictures
 			await this.core.db.markUserForDeletion(id);
@@ -141,8 +138,7 @@ class DelAccount extends Path {
 			const declaredError = error as Error;
 			const formattedError = declaredError.message || (error as string);
 			this.core.logger.fatal(
-				// eslint disable-next-line max-len
-				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
+				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`,
 			);
 			return {
 				code: this.codes.internalErr,
@@ -163,7 +159,7 @@ class DelAccount extends Path {
 				reason?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const needAdmin = typeof request.query.userid === "string";
@@ -182,7 +178,7 @@ class DelAccount extends Path {
 			});
 		}
 
-		let out;
+		let out: DelReturns;
 		// If you are an admin you can delete someones account by ID
 		if (needAdmin) {
 			// Find the user, and if not return a not found
@@ -215,8 +211,7 @@ class DelAccount extends Path {
 			// Delete the account
 			out = await this.deleteAccount(newAuth.user, request.query.userid!);
 			this.core.logger.info(
-				// eslint-disable-next-line max-len
-				`Account ${mem.id} deleted by administrator (${newAuth.user.username} - ${newAuth.user.id})`
+				`Account ${mem.id} deleted by administrator (${newAuth.user.username} - ${newAuth.user.id})`,
 			);
 			return response.status(out.code).send(out.mess);
 		}

@@ -19,8 +19,8 @@
  *
  */
 
-import moment from "moment";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import moment from "moment";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -46,7 +46,6 @@ class DelNotify extends Path {
 					required: ["id"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -72,7 +71,6 @@ class DelNotify extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -80,7 +78,7 @@ class DelNotify extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
@@ -109,7 +107,7 @@ class DelNotify extends Path {
 		}
 
 		const notify = notifs.find(
-			(notification) => notification.id === request.params.id
+			(notification) => notification.id === request.params.id,
 		);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
@@ -147,7 +145,7 @@ class DelNotify extends Path {
 			const formattedTime = moment
 				.duration(time)
 				.format(
-					"M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]"
+					"M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]",
 				);
 			return response.status(this.codes.forbidden).send({
 				code: this.codes.forbidden,
@@ -164,7 +162,7 @@ class DelNotify extends Path {
 						id: request.params.id,
 					},
 				},
-			}
+			},
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,

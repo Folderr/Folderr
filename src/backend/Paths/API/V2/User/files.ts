@@ -19,10 +19,10 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals.js";
-import { type Upload } from "../../../../Structures/Database/db-class.js";
-import { type RequestGallery } from "../../../../../types/fastify-request-types.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
+import type { Core } from "../../../../internals.js";
+import type { Upload } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
 
 /**
@@ -47,7 +47,6 @@ class Files extends Path {
 					},
 				},
 				response: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					"4xx": {
 						type: "object",
 						properties: {
@@ -55,7 +54,6 @@ class Files extends Path {
 							code: { type: "number" },
 						},
 					},
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					200: {
 						type: "object",
 						properties: {
@@ -75,7 +73,7 @@ class Files extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === "string") {

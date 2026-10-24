@@ -20,7 +20,7 @@
  */
 
 import type { Model } from "mongoose";
-import { Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
 import type { PendingMember } from "../Structures/Database/db-class.js";
 
 const user = new Schema({

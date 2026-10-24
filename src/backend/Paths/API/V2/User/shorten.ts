@@ -19,7 +19,7 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -44,7 +44,6 @@ class Shorten extends Path {
 					required: ["url"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -59,7 +58,6 @@ class Shorten extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -70,7 +68,7 @@ class Shorten extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
@@ -84,7 +82,6 @@ class Shorten extends Path {
 			const url = new URL(request.body.url);
 			await this.core.got.get(url.toString());
 		} catch (error: any) {
-			/* eslint-disable @typescript-eslint/no-unsafe-call */
 			if (
 				(error.code &&
 					typeof error.code === "string" &&
@@ -93,7 +90,6 @@ class Shorten extends Path {
 					typeof error.message === "string" &&
 					error.message.includes("EAI_AGAIN"))
 			) {
-				/* eslint-enable @typescript-eslint/no-unsafe-call */
 				return response.status(this.codes.notFound).send({
 					code: this.Utils.foldCodes.shortUrlNotFound,
 					message: "URL not found!",
@@ -110,7 +106,6 @@ class Shorten extends Path {
 			});
 		}
 
-		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const ID = await this.Utils.genShortId();
 		await Promise.all([
 			this.core.db.makeLink(ID, auth.id, request.body.url),
@@ -124,12 +119,14 @@ class Shorten extends Path {
 					request.headers?.responseURL &&
 					typeof request.headers.responseURL === "string" &&
 					auth.cURLs.includes(request.headers.responseURL) &&
-					(await this.Utils.testMirrorURL(
-						request.headers.responseURL
-					))
+					(
+						await this.Utils.testMirrorURL(
+							request.headers.responseURL,
+						)
+					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/l/${ID}`
+				}/l/${ID}`,
 			);
 	}
 }

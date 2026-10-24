@@ -1,13 +1,11 @@
 import fs from "fs";
 import { join } from "path";
-import process from "process";
-import pino, { multistream } from "pino";
-import { LoggerOptions } from "pino";
+import pino, { type LoggerOptions, multistream } from "pino";
 import pretty from "pino-pretty";
+import process from "process";
 
 export type LoggerLevels = "startup";
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface LogOptions extends LoggerOptions<"startup"> {
 	customLevels: {
 		startup: 35;
@@ -42,7 +40,6 @@ if (!fs.existsSync(error)) {
 	fs.closeSync(fs.openSync(error, "w"));
 }
 
-// eslint-disable-next-line spaced-comment
 /*const transport = pino.transport({
 	targets: [
 		{
@@ -143,14 +140,13 @@ const destination =
 					startup: 35,
 				},
 				minimumLevel: process.env.DEBUG ? "debug" : "info",
-		  })
-		: // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		  multistream(streams as any, {
+			})
+		: multistream(streams as any, {
 				levels: {
 					...pino.levels.values,
 					startup: 35,
 				},
-		  });
+			});
 
 const log = pino(options, destination);
 

@@ -1,5 +1,5 @@
-import { FastifyInstance, FastifyRequest } from "fastify";
-import { Core } from "../../../internals";
+import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { Core } from "../../../internals";
 
 export const path = "/notification/:id";
 
@@ -17,7 +17,6 @@ export async function route(fastify: FastifyInstance, core: Core) {
 			description: "Retrieve the notifications for administrators",
 			summary: "Admin notifications",
 			security: [{ apiKey: [] }],
-			/* eslint-disable @typescript-eslint/naming-convention */
 			params: {
 				type: "object",
 				properties: {
@@ -26,7 +25,6 @@ export async function route(fastify: FastifyInstance, core: Core) {
 				required: ["id"],
 			},
 			response: {
-				/* eslint-disable @typescript-eslint/naming-convention */
 				"4xx": {
 					type: "object",
 					properties: {

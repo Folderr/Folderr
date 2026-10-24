@@ -19,8 +19,8 @@
  *
  */
 
-import { type FastifyRequest, type FastifyReply } from "fastify";
-import { type Core } from "../../../../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
 /**
@@ -60,8 +60,8 @@ class Tokens extends Path {
 					request.cookies.token,
 					{
 						web: true,
-					}
-			  )
+					},
+				)
 			: await this.Utils.authPassword(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({

@@ -19,10 +19,10 @@
  *
  */
 
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { createReadStream } from "fs";
-import { type FastifyReply, type FastifyRequest } from "fastify";
 import mime from "mime-types";
-import { type Core } from "../internals.js";
+import type { Core } from "../internals.js";
 import Path from "../Structures/path.js";
 
 /**
@@ -61,7 +61,7 @@ class Videos extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send("Missing video ID");

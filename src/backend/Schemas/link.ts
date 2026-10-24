@@ -19,7 +19,7 @@
  *
  */
 
-import { Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
 import type { Link } from "../Structures/Database/db-class.js";
 
 const shortSchema = new Schema({

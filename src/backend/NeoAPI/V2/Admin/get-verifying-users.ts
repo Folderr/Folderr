@@ -1,5 +1,5 @@
-import type Core from "../../../Structures/core.js";
 import type { FastifyInstance } from "fastify";
+import type Core from "../../../Structures/core.js";
 
 export const path = "/verifying-users";
 export const enabled = true;
@@ -14,7 +14,6 @@ export function route(fastify: FastifyInstance, core: Core) {
 			description: "Show all the users that are awaiting verification",
 			summary: "Retrieve verifying user (list)",
 			security: [{ apiKey: [] }],
-			/* eslint-disable @typescript-eslint/naming-convention */
 			// How do you camelCase a number?
 			response: {
 				200: {
@@ -42,7 +41,6 @@ export function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 			},
-			/* eslint-enable @typescript-eslint/naming-convention */
 		},
 		async handler(request, reply) {
 			// Honestly the user is not important.

@@ -19,12 +19,12 @@
  *
  */
 
+import type { FastifyReply, FastifyRequest } from "fastify";
 import moment from "moment";
 import momentDurationFormatSetup from "moment-duration-format";
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals.js";
+import pkg from "../../../../../../package.json" with { type: "json" };
+import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
-import pkg from "../../../../../../package.json" assert { type: "json" };
 
 // @ts-expect-error, According to docs, this works.
 momentDurationFormatSetup(moment);
@@ -65,8 +65,8 @@ class Pong extends Path {
 	 * @desc PONG! Just a simple response, no auth needed
 	 */
 	async execute(
-		request: FastifyRequest,
-		response: FastifyReply
+		_request: FastifyRequest,
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const out: {
 			message: {
@@ -81,7 +81,7 @@ class Pong extends Path {
 				version: pkg.version,
 				node_version: process.version,
 				online_since: new Date(
-					Date.now() - process.uptime() * 1000
+					Date.now() - process.uptime() * 1000,
 				).getTime(),
 				message: "Pong!",
 			},

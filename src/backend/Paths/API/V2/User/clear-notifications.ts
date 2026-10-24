@@ -19,8 +19,8 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
 /**
@@ -58,7 +58,7 @@ class ClearNotifs extends Path {
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);

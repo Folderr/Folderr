@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/promise-function-async */
 import {
-	type RouteRecordRaw,
-	type RouteRecordName,
 	createRouter,
 	createWebHistory,
+	type RouteRecordName,
+	type RouteRecordRaw,
 } from "vue-router";
 
 // Navigation guards guards
 
-import * as userGuards from "./nav-gaurds/user-nav-guard.js";
 import * as adminNavGuards from "./nav-gaurds/admin-nav-guard.js";
 import * as userChecks from "./nav-gaurds/user-checks.js";
+import * as userGuards from "./nav-gaurds/user-nav-guard.js";
 
 const redirToSignup: RouteRecordName[] = [
 	"Index",

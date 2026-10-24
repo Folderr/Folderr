@@ -19,9 +19,10 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
+
 /**
  * @classdesc Remove an administrators admin status
  */
@@ -51,7 +52,6 @@ class RemoveAdmin extends Path {
 					required: ["reason"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -70,7 +70,6 @@ class RemoveAdmin extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -78,7 +77,7 @@ class RemoveAdmin extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Actually check auth, and make sure they are the owner
 		const auth = await this.Utils.checkAuth(request, true, true);
@@ -105,7 +104,7 @@ class RemoveAdmin extends Path {
 				$nor: [{ admin: false }, { owner: true }],
 			},
 			{ admin: false },
-			"admin"
+			"admin",
 		);
 		if (!user) {
 			return response.status(this.codes.notFound).send({
@@ -124,7 +123,7 @@ class RemoveAdmin extends Path {
 		const responsible = `${auth.user.username} (${auth.user.id})`;
 		const formerAdmin = `${user.username} (${user.id})`;
 		this.core.logger.info(
-			`Administator removed for ${formerAdmin} by ${responsible}`
+			`Administator removed for ${formerAdmin} by ${responsible}`,
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,

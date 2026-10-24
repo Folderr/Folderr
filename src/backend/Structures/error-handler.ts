@@ -19,7 +19,7 @@
  *
  */
 
-import { Path } from "../internals.js";
+import type { Path } from "../internals.js";
 
 export interface HandlerMessage {
 	culprit: string;
@@ -51,7 +51,7 @@ class ErrorHandler {
 	 * @returns {{severity: String, culprit: String, file: String, message: String}}
 	 */
 	handlePathError(error: Error, severity?: string): HandlerMessage {
-		if (!error || !error.stack) {
+		if (!error?.stack) {
 			throw new Error("[ERROR] - Missing error (REQUIRED)");
 		}
 

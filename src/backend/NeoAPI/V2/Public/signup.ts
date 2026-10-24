@@ -1,5 +1,5 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { Core } from "../../../internals";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../internals";
 import * as constants from "../../../Structures/constants/index";
 
 export const path = "/signup";
@@ -17,7 +17,6 @@ export async function route(fastify: FastifyInstance, core: Core) {
 			tags: ["public"],
 			summary: "Signup for Folderr",
 			description: "A simple endpoint to allow you to sign up to Folderr",
-			/* eslint-disable @typescript-eslint/naming-convention */
 			body: {
 				type: "object",
 				properties: {
@@ -28,7 +27,6 @@ export async function route(fastify: FastifyInstance, core: Core) {
 				required: ["email", "username", "password"],
 			},
 			response: {
-				/* eslint-disable @typescript-eslint/naming-convention */
 				"4xx": {
 					type: "object",
 					properties: {
@@ -104,14 +102,14 @@ export async function route(fastify: FastifyInstance, core: Core) {
 							);
 
 					return response.status(result.httpCode).send(result.msg);
-				} catch (error: unknown) {
+				} catch {
 					// Handle signup error
 					return response.status(core.codes.internalErr).send({
 						code: core.Utils.foldCodes.unkownError,
 						message: "An internal error occurred while signing up!",
 					});
 				}
-			} catch (error: unknown) {
+			} catch {
 				// Handle signup error
 			}
 
@@ -225,7 +223,7 @@ async function noEmailSignup(
 		hash: string;
 		token: string;
 	},
-	response: FastifyReply,
+	_response: FastifyReply,
 ): Promise<{
 	httpCode: 500 | 201;
 	msg: { code: number; message: string };

@@ -19,7 +19,7 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -45,7 +45,6 @@ class VerifyAccount extends Path {
 					required: ["id"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -64,7 +63,6 @@ class VerifyAccount extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -72,7 +70,7 @@ class VerifyAccount extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Handle authorization
 		const newAuth = await this.Utils.checkAuth(request, true);
@@ -99,8 +97,7 @@ class VerifyAccount extends Path {
 
 		// Alert the console and the admin that the user was verified
 		this.core.logger.info(
-			// eslint-disable-next-line max-len
-			`User account ${user.username} (${user.id}) granted by administrator ${auth.username} (${auth.id})`
+			`User account ${user.username} (${user.id}) granted by administrator ${auth.username} (${auth.id})`,
 		);
 		return response
 			.status(this.codes.created)

@@ -1,5 +1,5 @@
-import type Core from "../../../Structures/core.js";
 import type { FastifyInstance } from "fastify";
+import type Core from "../../../Structures/core.js";
 
 export const path = "/bans";
 export const enabled = true;
@@ -14,7 +14,6 @@ export function route(fastify: FastifyInstance, core: Core) {
 			description: "Shows all emails that are banned",
 			summary: "Retrieve bans",
 			security: [{ apiKey: [] }],
-			/* eslint-disable @typescript-eslint/naming-convention */
 			// How do you camelCase a number?
 			response: {
 				200: {
@@ -52,7 +51,6 @@ export function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 			},
-			/* eslint-enable @typescript-eslint/naming-convention */
 		},
 		async handler(request, reply) {
 			// Honestly the user is not important.

@@ -45,7 +45,6 @@ class AddAdmin extends Path {
 					required: ["id"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -64,7 +63,6 @@ class AddAdmin extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -72,7 +70,7 @@ class AddAdmin extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.checkAuth(request, true, true);
 		if (auth.code !== this.codes.ok) {
@@ -106,7 +104,7 @@ class AddAdmin extends Path {
 				$nor: [{ admin: true }, { owner: true }],
 			},
 			{ admin: true },
-			"admin"
+			"admin",
 		);
 		if (!user) {
 			return response.status(this.codes.notFound).send({
@@ -129,7 +127,7 @@ class AddAdmin extends Path {
 		// So all admins can see what every user has done.
 		user.admin = true;
 		this.core.logger.info(
-			`Administrator privileges granted to ${userFormatted} by ${responsible}`
+			`Administrator privileges granted to ${userFormatted} by ${responsible}`,
 		);
 		return response
 			.status(this.codes.ok)

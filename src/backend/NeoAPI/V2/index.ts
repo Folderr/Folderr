@@ -1,1 +1,1 @@
-export const prefix = '/';
+export const prefix = "/";

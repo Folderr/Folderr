@@ -20,10 +20,10 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals.js";
+import type { Notification } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
-import { type Notification } from "../../../../Structures/Database/db-class.js";
 
 /**
  * @classdesc Shows all user notifications
@@ -71,7 +71,7 @@ class Notifs extends Path {
 				admin?: boolean;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth by token/id
 		const auth = await this.checkAuth(request);
@@ -83,7 +83,6 @@ class Notifs extends Path {
 		}
 
 		// Grab the notifications from the user
-		// eslint-disable-next-line prefer-destructuring
 		let notifs: Notification[] | undefined = auth.notifs;
 		// If the user wants to view admin notifications
 		if (request.query && request.query.admin === true) {

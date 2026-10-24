@@ -19,13 +19,13 @@
  *
  */
 
-import process from "process";
 import argon2 from "argon2";
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import process from "process";
 import type { Core } from "../../../../internals.js";
-import Path from "../../../../Structures/path.js";
-import type { User } from "../../../../Structures/Database/db-class.js";
 import * as constants from "../../../../Structures/constants/index.js";
+import type { User } from "../../../../Structures/Database/db-class.js";
+import Path from "../../../../Structures/path.js";
 
 type UpdateAccBody =
 	| {
@@ -92,7 +92,6 @@ class UpdateAcc extends Path {
 					additionalProperties: false,
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -118,7 +117,6 @@ class UpdateAcc extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -127,7 +125,7 @@ class UpdateAcc extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Check pass/username auth
 		const base = await this.isValid(request);
@@ -172,7 +170,7 @@ class UpdateAcc extends Path {
 		if (request.body.username) {
 			const newUsername = await this.handleUsername(
 				auth.username,
-				request.body.username
+				request.body.username,
 			);
 
 			if (newUsername && typeof newUsername === "string") {
@@ -189,7 +187,7 @@ class UpdateAcc extends Path {
 			const emailUpdated = await this.handleEmailUpdate(
 				request,
 				auth.email,
-				auth
+				auth,
 			);
 			if (emailUpdated && !emailUpdated.accepted) {
 				return response
@@ -220,7 +218,7 @@ class UpdateAcc extends Path {
 								ip: false,
 								user: false,
 							},
-						}
+						},
 					);
 					return event;
 				});
@@ -246,7 +244,7 @@ class UpdateAcc extends Path {
 			}
 
 			this.core.logger.error(
-				`Database failed to update user - ${error.message}`
+				`Database failed to update user - ${error.message}`,
 			);
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.dbUnkownError,
@@ -327,7 +325,7 @@ class UpdateAcc extends Path {
 			}
 
 			this.core.logger.error(
-				`[Update Account - Password] - ${error.message}`
+				`[Update Account - Password] - ${error.message}`,
 			);
 			return {
 				httpCode: this.codes.badReq,
@@ -347,7 +345,7 @@ class UpdateAcc extends Path {
 			};
 		}>,
 		preEmail: string,
-		authUser: User
+		authUser: User,
 	): Promise<
 		| {
 				accepted: true;
@@ -451,7 +449,7 @@ class UpdateAcc extends Path {
 		await this.core.emailer.changeEmail(
 			request.body.email,
 			`${url}/confirm/${authUser.id}/${token.token}`,
-			authUser.username
+			authUser.username,
 		);
 		// Update
 		return {
@@ -463,7 +461,7 @@ class UpdateAcc extends Path {
 
 	private async handleUsername(
 		preUsername: string,
-		username?: string
+		username?: string,
 	): Promise<
 		| {
 				httpCode: 226 | 400;
@@ -536,7 +534,7 @@ class UpdateAcc extends Path {
 	private async isValid(
 		request: FastifyRequest<{
 			Body: UpdateAccBody;
-		}>
+		}>,
 	): Promise<
 		| {
 				httpCode: 400 | 401 | 403;

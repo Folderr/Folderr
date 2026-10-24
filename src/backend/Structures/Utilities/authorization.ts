@@ -23,13 +23,13 @@
  * @file Handles all token authorization in Folderr
  */
 
-import crypto from "crypto";
 import { Buffer } from "buffer";
+import crypto from "crypto";
 import jwt, { type Algorithm } from "jsonwebtoken";
+import AuthKeyHandler from "../../handlers/auth-key-handler.js";
 import type { Core } from "../../internals.js";
 import { logger } from "../../internals.js";
 import type { User } from "../Database/db-class.js";
-import AuthKeyHandler from "../../handlers/auth-key-handler.js";
 
 /**
  * @classdesc Handle token authorization.
@@ -74,7 +74,7 @@ export default class Authorization {
 				this.#core.shutdownServer(
 					"Utils/authorization.init",
 					"Utils/Authorization initialization failed",
-					1
+					1,
 				);
 			}
 			if (this.#core.app.sentry) {
@@ -107,11 +107,10 @@ export default class Authorization {
 
 			const verify = await this.#core.db.findToken(
 				result.jti,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				result.id,
 				{
 					web,
-				}
+				},
 			);
 			if (!verify) {
 				return;
@@ -135,7 +134,7 @@ export default class Authorization {
 		options?: {
 			fn?: (args0: User) => boolean;
 			web?: boolean;
-		}
+		},
 	): Promise<User | void> {
 		if (!token) {
 			return;
@@ -154,14 +153,14 @@ export default class Authorization {
 			const user = await this.#core.db.findUser({ id });
 			if (!user) {
 				this.#core.logger.debug(
-					`User with ID ${id} failed authentication. Reason: not found`
+					`User with ID ${id} failed authentication. Reason: not found`,
 				);
 				return;
 			}
 
 			if (options?.fn && !options.fn(user)) {
 				this.#core.logger.debug(
-					`User with ID ${id} failed authentication. Reason: failed fn check`
+					`User with ID ${id} failed authentication. Reason: failed fn check`,
 				);
 				return;
 			}
@@ -178,7 +177,7 @@ export default class Authorization {
 
 	public async revoke(
 		token: string,
-		web?: boolean
+		web?: boolean,
 	): Promise<boolean | void | 404> {
 		if (token.startsWith("Bearer: ")) {
 			web = true;
@@ -199,11 +198,10 @@ export default class Authorization {
 
 			const verifyDb = await this.#core.db.purgeToken(
 				result.jti,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				result.id,
 				{
 					web,
-				}
+				},
 			);
 			if (!verifyDb) {
 				return 404;
@@ -215,7 +213,7 @@ export default class Authorization {
 
 	public async revokeAll(
 		userID: string,
-		web?: boolean
+		web?: boolean,
 	): Promise<boolean | void> {
 		try {
 			const del = await this.#core.db.purgeTokens(userID, web);
@@ -228,7 +226,7 @@ export default class Authorization {
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				logger.debug(
-					`Authorization/Revoke All Error: ${error.message}`
+					`Authorization/Revoke All Error: ${error.message}`,
 				);
 			} else if (typeof error === "string") {
 				logger.debug(`Authorization/Revoke All Error: ${error}`);
@@ -259,14 +257,13 @@ export default class Authorization {
 
 	async genMirrorKey(
 		url: string,
-		mirrorURL: string
+		mirrorURL: string,
 	): Promise<{ key: string; id: string }> {
 		const id = this.genID();
 		return {
 			key: jwt.sign(
 				{
 					url,
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					mirrorURL,
 				},
 				this.#privKey,
@@ -275,7 +272,7 @@ export default class Authorization {
 					jwtid: id,
 					expiresIn: "1h",
 					algorithm: "PS256",
-				}
+				},
 			),
 			id,
 		};
@@ -288,7 +285,7 @@ export default class Authorization {
 		},
 		id: string,
 		url: string,
-		mirrorURL: string
+		mirrorURL: string,
 	): boolean {
 		const out = jwt.verify(message.token, this.#privKey, {
 			issuer: "folderr",
@@ -299,11 +296,10 @@ export default class Authorization {
 				out.jti === id &&
 				out.url === url &&
 				out.mirrorURL === mirrorURL &&
-				message.res === "Mirror Operational"
+				message.res === "Mirror Operational",
 		);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private genID(): string {
 		return `${
 			crypto.randomBytes(10).toString("hex") +

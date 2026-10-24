@@ -19,11 +19,11 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
-import type { Core } from "../../../../internals.js";
-import Path from "../../../../Structures/path.js";
-import type { User } from "../../../../Structures/Database/db-class.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
+import type { Core } from "../../../../internals.js";
+import type { User } from "../../../../Structures/Database/db-class.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Shows users to admins
@@ -38,7 +38,6 @@ class Users extends Path {
 		this.options = {
 			schema: {
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -64,13 +63,12 @@ class Users extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
 			Querystring: RequestGallery;
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
@@ -111,14 +109,14 @@ class Users extends Path {
 		}
 
 		const array: Array<{
-			title?: string | boolean;
+			title: string;
 			username: string;
 			files: number;
 			links: number;
 			id: string;
 			created: number;
 		}> = users.map((user: User) => ({
-			title: user.owner ? "owner" : (user.admin && "admin") ?? "user",
+			title: user.owner ? "owner" : user.admin ? "admin" : "user",
 			username: user.username,
 			email: user.email,
 			files: user.files,

@@ -19,14 +19,14 @@
  *
  */
 
+import fs from "node:fs";
 import { EventEmitter } from "events";
 import type { DbConfig } from "../../handlers/config-handler.js";
 import Configurer from "../../handlers/config-handler.js";
-import type { Upload } from "../Database/db-class.js";
-import type DB from "../Database/db-class.js";
-import MongoDB from "../Database/mongoose-db.js";
 import { logger } from "../../internals.js";
-import fs from "node:fs";
+import type DB from "../Database/db-class.js";
+import type { Upload } from "../Database/db-class.js";
+import MongoDB from "../Database/mongoose-db.js";
 
 /**
  * @classdesc Handles deleting files
@@ -84,7 +84,7 @@ export default class DbQueue extends EventEmitter {
 	 */
 	private async newRemoveFiles(
 		files: Upload[],
-		userID: string
+		userID: string,
 	): Promise<void> {
 		const deletions: Array<Promise<void>> = [];
 		files.forEach((file) => {
@@ -108,7 +108,7 @@ export default class DbQueue extends EventEmitter {
 		this.#queue.forEach(async (value) => {
 			const files = await this.#db.findFiles(
 				{ owner: value },
-				{ selector: "id, path" }
+				{ selector: "id, path" },
 			);
 			if (files.length > 0) {
 				await this.newRemoveFiles(files, value);

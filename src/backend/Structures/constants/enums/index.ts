@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint max-len: ["off"] */
-
 // We aren't going to force a length in our enums specifically because they are here due to
 // Large length and consistency
 

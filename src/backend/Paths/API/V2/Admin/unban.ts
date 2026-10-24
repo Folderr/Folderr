@@ -19,9 +19,9 @@
  *
  */
 
-import { type FastifyRequest, type FastifyReply } from "fastify";
-import { type Core } from "../../../../internals.js";
-import { type User } from "../../../../Structures/Database/db-class.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals.js";
+import type { User } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
 
 /**
@@ -44,7 +44,6 @@ class Unban extends Path {
 					required: ["email"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -59,7 +58,6 @@ class Unban extends Path {
 							code: { type: "number" },
 						},
 					},
-					/* eslint-enable @typescript-eslint/naming-convention */
 				},
 			},
 		};
@@ -71,10 +69,10 @@ class Unban extends Path {
 				email: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin || user.owner)
+			Boolean(user.admin || user.owner),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
@@ -95,7 +93,7 @@ class Unban extends Path {
 			return response
 				.status(this.codes.ok)
 				.send({ code: this.codes.ok, message: "OK" });
-    }
+		}
 
 		return response.status(this.codes.notAccepted).send({
 			code: this.codes.notAccepted,

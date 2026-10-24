@@ -20,9 +20,9 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type { AccountReturn } from "../../../../../types/user.js";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
-import type { AccountReturn } from "../../../../../types/user.js";
 
 /**
  * @classdesc View the authorized users account
@@ -39,7 +39,6 @@ class Account extends Path {
 		this.options = {
 			schema: {
 				response: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					401: {
 						type: "object",
 						properties: {
@@ -54,7 +53,7 @@ class Account extends Path {
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = await this.checkAuth(request, response);

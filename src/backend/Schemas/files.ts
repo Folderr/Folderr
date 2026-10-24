@@ -19,7 +19,7 @@
  *
  */
 
-import { Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
 import type { Upload } from "../Structures/Database/db-class.js";
 
 const file = new Schema({

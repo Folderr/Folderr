@@ -19,9 +19,9 @@
  *
  */
 import childProcess from "child_process";
-import util from "util";
-import { promises } from "fs";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { promises } from "fs";
+import util from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -58,10 +58,10 @@ class Manage extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
+			Boolean(user.owner),
 		);
 		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
@@ -72,11 +72,11 @@ class Manage extends Path {
 
 		if (request.query.type === "shutdown") {
 			this.core.logger.info(
-				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`
+				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`,
 			);
 			this.core.shutdownServer(
 				"API/Manage/Shutdown",
-				"Remote shutdown by owner"
+				"Remote shutdown by owner",
 			);
 			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
@@ -90,9 +90,8 @@ class Manage extends Path {
 				message: "Attempting update.",
 			});
 			const file = await promises.readFile("./package.json");
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const oPackage: Record<string, string> = JSON.parse(
-				file.toString()
+				file.toString(),
 			);
 			try {
 				await exec("npm run update"); // Eventually make file to handle this
@@ -108,9 +107,8 @@ class Manage extends Path {
 			}
 
 			const f = await promises.readFile("./package.json");
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const af: Record<string, string> = JSON.parse(f.toString());
-			let v;
+			let v: string;
 			const vers = {
 				af: Number(af.version.split(".").join(" ")),
 				old: Number(oPackage.version.split(".").join(" ")),

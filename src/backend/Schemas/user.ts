@@ -20,7 +20,7 @@
  */
 
 import type { Model } from "mongoose";
-import { Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
 import type { User } from "../Structures/Database/db-class.js";
 
 const userSchema = new Schema({
@@ -41,7 +41,6 @@ const userSchema = new Schema({
 		required: false,
 		default: [],
 	},
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	cURLs: { type: Array, default: [] },
 	files: { type: Number, default: 0 },
 	links: { type: Number, default: 0 },

@@ -1,9 +1,9 @@
-import process from "process"; // Shut.
 import * as Sentry from "@sentry/node";
+import process from "process"; // Shut.
 import Core from "../Structures/core.js";
 
 export async function startFolderr(): Promise<void> {
-	console.time('Startup');
+	console.time("Startup");
 	const core = new Core();
 	try {
 		await core.initDb();
@@ -14,7 +14,7 @@ export async function startFolderr(): Promise<void> {
 				"Folderr DB entry not found, Folderr DB entry is required."
 		) {
 			core.logger.error(
-				"Folderr has deemed that you have not set up this instance!"
+				"Folderr has deemed that you have not set up this instance!",
 			);
 			core.logger.warn("Folderr will exit as per protocol.");
 			process.exit(0);

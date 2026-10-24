@@ -19,18 +19,18 @@
  *
  */
 
-import { promisify } from "util";
-import crypto from "crypto";
-import buffer from "buffer";
-import argon2 from "argon2";
-import * as ulid from "ulidx";
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
+import argon2 from "argon2";
+import buffer from "buffer";
+import crypto from "crypto";
 import type { FastifyRequest } from "fastify";
-import type { User as UI, PendingMember, User } from "../Database/db-class.js";
+import * as ulid from "ulidx";
+import { promisify } from "util";
 import type { Core } from "../../internals.js";
 import { Authorization } from "../../internals.js";
 import * as constants from "../constants/index.js";
+import type { PendingMember, User as UI, User } from "../Database/db-class.js";
 import type { FoldCodesI } from "./fold-codes.js";
 import { FoldCodes } from "./fold-codes.js";
 
@@ -123,7 +123,7 @@ class Utils {
 	async checkAuth(
 		request: FastifyRequest,
 		admin?: boolean,
-		owner?: boolean
+		owner?: boolean,
 	): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
 		let account: User | void;
 		if (request.headers.authorization) {
@@ -131,7 +131,7 @@ class Utils {
 				request.headers.authorization,
 				{
 					fn: (user) => !user.markedForDeletion,
-				}
+				},
 			);
 		} else if (request.cookies.token) {
 			account = await this.authorization.verifyAccount(
@@ -139,7 +139,7 @@ class Utils {
 				{
 					web: true,
 					fn: (user) => !user.markedForDeletion,
-				}
+				},
 			);
 		} else {
 			return { code: 401 };
@@ -188,7 +188,7 @@ class Utils {
 	 * @param {string} [passphrase] The passphrase for the private key
 	 */
 	async genKeyPair(
-		passphrase?: string
+		passphrase?: string,
 	): Promise<{ privateKey: string; publicKey: string }> {
 		const privateKeyEncoding: {
 			format: "pem";
@@ -233,7 +233,7 @@ class Utils {
 		// Generate the user ID
 		for (let i = 0; i < number; i++) {
 			userid += String(
-				Math.floor(Math.random() * (maxChar - minChar + pad)) + minChar
+				Math.floor(Math.random() * (maxChar - minChar + pad)) + minChar,
 			);
 		}
 
@@ -295,21 +295,21 @@ class Utils {
 		// If password does not match the regex completely
 		const match: boolean = this.#core.regexs.password.test(password);
 		if (password.length < minPass || !match) {
-			throw new Error( // eslint disable-next-line max-len
-				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`
+			throw new Error(
+				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`,
 			);
 		}
 
 		// If the password is too long
 		if (password.length > maxPass) {
 			throw new Error(
-				`[PSW2] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED}`
+				`[PSW2] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED}`,
 			);
 		}
 
 		if (password.includes("\0")) {
 			throw new Error(
-				`[PSW3] ${constants.ENUMS.RESPONSES.PASSWORD.NO_NUL}`
+				`[PSW3] ${constants.ENUMS.RESPONSES.PASSWORD.NO_NUL}`,
 			);
 		}
 
@@ -324,7 +324,6 @@ class Utils {
 	 *
 	 * @returns {string}
 	 */
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	genNotifyID(): string {
 		return this.genFolderrId();
 	}
@@ -339,13 +338,12 @@ class Utils {
 	async genValidationToken(): Promise<TokenReturn> {
 		// Generate random bytes, gen more random bytes
 		// Oh and get a base64 date in milliseconds
-		const r = crypto.randomBytes(this.byteSize);
 		const random: string = crypto
 			.randomBytes(this.byteSize)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
 		const date = buffer.Buffer.from(
-			(new Date().getTime() / 1000).toFixed(0).toString()
+			(Date.now() / 1000).toFixed(0).toString(),
 		)
 			.toString("base64")
 			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
@@ -379,12 +377,12 @@ class Utils {
 	 */
 	async authPassword(
 		request: FastifyRequest,
-		fn?: (arg0: UI) => boolean
+		fn?: (arg0: UI) => boolean,
 	): Promise<UI | false> {
 		// Make sure all of the auth stuff is there
 		if (!request.headers.password || !request.headers.username) {
 			this.#core.logger.debug(
-				"Failed to authenticate user, missing headers."
+				"Failed to authenticate user, missing headers.",
 			);
 			return false;
 		}
@@ -407,7 +405,7 @@ class Utils {
 
 		const verify = await argon2.verify(
 			user.password,
-			request.headers.password
+			request.headers.password,
 		);
 		if (!verify) {
 			return false;
@@ -453,7 +451,7 @@ class Utils {
 	 */
 	async findVerifying(
 		validationToken: string,
-		userID: string
+		userID: string,
 	): Promise<PendingMember | false> {
 		const user: PendingMember | undefined = await this.#core.db.findVerify({
 			id: userID,
@@ -469,7 +467,6 @@ class Utils {
 		return user;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async testMirrorURL(url: string): Promise<boolean> {
 		try {
 			const test = await this.#core.got.get<MirrorResponse>(
@@ -477,7 +474,7 @@ class Utils {
 				{
 					responseType: "json",
 					parseJson: mirrorparse,
-				}
+				},
 			);
 			if (!test?.body) {
 				return false;
@@ -489,10 +486,9 @@ class Utils {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async determineHomeURL(request: FastifyRequest): Promise<string> {
 		const protocol = `${request.protocol || "http"}://`;
-		let host;
+		let host: string | undefined;
 
 		// In the event of a correctly formatted hostname, set host to it
 		if (request.hostname?.split(".").length > 1) {
@@ -519,7 +515,7 @@ class Utils {
 						// 2 second timeout should do the trick.
 						request: 2000,
 					},
-				}
+				},
 			);
 			if (!test) {
 				return `${protocol}${host}`;
