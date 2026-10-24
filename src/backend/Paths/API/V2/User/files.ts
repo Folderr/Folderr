@@ -124,10 +124,15 @@ class Files extends Path {
 		const files = images.map((image: Upload) => {
 			const split = image.path.split(".");
 			const type = split[split.length - 1];
+			const createdTime = image.createdAt
+				? new Date(image.createdAt).getTime()
+				: Date.now();
 			return {
 				id: image.id,
 				type: image.type,
-				created: Math.round(image.createdAt.getTime() / 1000),
+				mimetype: image.mimetype,
+				filename: `${image.id}.${type}`,
+				created: Math.round(createdTime / 1000),
 				link: `${url}/${image.type ? image.type[0] : "i"}/${
 					image.id
 				}.${type}`,

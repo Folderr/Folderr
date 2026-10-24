@@ -73,13 +73,17 @@ const errorHandlerPlugin: FastifyPluginAsync = async (
 			return reply;
 		}
 
-		if (severity === "fatal" || !severity) {
+		const statusCode = (error as { statusCode?: number }).statusCode || 500;
+
+		if (statusCode >= 500 && (severity === "fatal" || !severity)) {
 			errorCounts[route]++;
 		}
 		instance.log.error(
 			`Error occurred on route ${route}: ${error.message}`,
 		);
-		return reply.code(500).send({ error: error.message, code: 500 });
+		return reply
+			.code(statusCode)
+			.send({ error: error.message, code: statusCode });
 	};
 
 	const errorHandler = async (

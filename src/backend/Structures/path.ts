@@ -213,6 +213,7 @@ class Path {
 				query: {
 					$gt?: { created: Date };
 					$lt?: { created: Date };
+					createdAt?: { $gt?: Date; $lt?: Date };
 					owner: string;
 				};
 				options: {
@@ -224,15 +225,16 @@ class Path {
 		const query: {
 			$gt?: { created: Date };
 			$lt?: { created: Date };
+			createdAt?: { $gt?: Date; $lt?: Date };
 			owner: string;
 		} = { owner };
 		const options: {
 			sort?: Record<string, unknown>;
 			limit?: number;
-		} = request.query?.gallery ? { sort: { created: -1 } } : {};
+		} = { sort: { createdAt: -1, _id: -1 } };
 		const limits = {
-			max: 20,
-			middle: 15,
+			max: 100,
+			middle: 50,
 			min: 10,
 		};
 		let limit = request.query?.limit;
@@ -257,36 +259,32 @@ class Path {
 			}
 		}
 
-		if (request.query?.gallery && limit && typeof limit === "number") {
+		if (limit && typeof limit === "number") {
 			if (limit >= limits.max) {
 				options.limit = limits.max;
-			} else if (limit >= limits.middle) {
-				options.limit = limits.max;
-			} else if (limit >= limits.min && limit < limits.middle) {
-				options.limit = limits.min;
 			} else if (limit <= limits.min) {
 				options.limit = limits.min;
 			} else {
-				options.limit = limits.min;
+				options.limit = limit;
 			}
 		} else {
-			options.limit = 20;
+			options.limit = 50;
 		}
 
 		if (request.query?.before) {
-			if (request.query.before instanceof Date) {
-				query.$lt = { created: request.query.before };
-			} else if (typeof request.query.before === "number") {
-				query.$lt = { created: new Date(request.query.before) };
-			}
+			const b =
+				request.query.before instanceof Date
+					? request.query.before
+					: new Date(request.query.before);
+			query.createdAt = { ...query.createdAt, $lt: b };
 		}
 
 		if (request.query?.after) {
-			if (request.query.after instanceof Date) {
-				query.$gt = { created: request.query.after };
-			} else if (typeof request.query.after === "number") {
-				query.$gt = { created: new Date(request.query.after) };
-			}
+			const a =
+				request.query.after instanceof Date
+					? request.query.after
+					: new Date(request.query.after);
+			query.createdAt = { ...query.createdAt, $gt: a };
 		}
 
 		return { query, options, errored: false };
