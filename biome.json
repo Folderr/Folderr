@@ -1,34 +1,90 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
-	},
-	"files": {
-		"includes": ["**", "!!**/dist"]
-	},
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": { "includes": ["**", "!!**/dist", "!Files", "!configs"] },
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab"
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineEnding": "lf",
+		"lineWidth": 80,
+		"attributePosition": "auto",
+		"bracketSameLine": false,
+		"bracketSpacing": true,
+		"expand": "auto",
+		"useEditorconfig": true,
+		"includes": [
+			"**",
+			"!**/package-lock.json",
+			"!**/node_modules/",
+			"!**/build/",
+			"!**/dist/",
+			"!scripts/*.js",
+			"!Files/*",
+			"!logs/*.log",
+			"!**/configs/",
+			"!**/internal/"
+		]
 	},
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"preset": "recommended"
+			"preset": "recommended",
+			"style": {
+				"useNodejsImportProtocol": "off",
+				"useVueMultiWordComponentNames": "warn",
+				"noVueOptionsApi": "error",
+				"useVueConsistentDefinePropsDeclaration": {
+					"level": "error",
+					"options": { "style": "type" }
+				},
+				"useVueConsistentVBindStyle": {
+					"level": "error",
+					"options": { "style": "shorthand" }
+				},
+				"useVueConsistentVOnStyle": {
+					"level": "error",
+					"options": { "style": "shorthand" }
+				},
+				"useVueDefineMacrosOrder": "error",
+				"useVueHyphenatedAttributes": "error",
+				"useVueNextTickPromise": "error"
+			},
+			"nursery": {
+				"useVueConsistentEventHyphenation": {
+					"level": "error",
+					"options": { "hyphenation": "always" }
+				},
+				"useVueMatchingComponentFileName": "error"
+			}
 		}
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "double"
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"trailingCommas": "all",
+			"semicolons": "always",
+			"arrowParentheses": "always",
+			"bracketSameLine": false,
+			"quoteStyle": "double",
+			"attributePosition": "auto",
+			"bracketSpacing": true
+		}
+	},
+	"css": {
+		"parser": { "tailwindDirectives": true }
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"formatter": {
+			"indentScriptAndStyle": false,
+			"selfCloseVoidElements": "always"
 		}
 	},
 	"assist": {
 		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
+		"actions": { "source": { "organizeImports": "on" } }
 	}
 }
