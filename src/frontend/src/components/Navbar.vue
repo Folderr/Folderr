@@ -1,152 +1,102 @@
 <template>
 	<nav
-		class="fixed md:relative flex flex-wrap items-center justify-between md:px-2 py-3 w-full bg-bg md:bg-transparent"
+		class="sticky top-0 z-40 w-full bg-[#1e1e1e]/95 backdrop-blur-md border-b border-[#333333] transition-colors"
 	>
 		<div
-			class="container pr-4 m-auto flex flex-wrap items-center justify-between"
+			class="container mx-auto px-4 max-w-7xl flex items-center justify-between h-16"
 		>
+			<!-- Logo -->
+			<div class="flex items-center justify-between w-full md:w-auto">
+				<router-link
+					to="/"
+					class="flex items-center gap-2.5 text-2xl font-black tracking-tight text-brand hover:opacity-90 transition font-headline"
+				>
+					<span
+						class="w-8 h-8 rounded-lg bg-brand/10 border border-brand/30 flex items-center justify-center text-brand font-mono font-bold text-lg"
+					>
+						F
+					</span>
+					<span>Folderr</span>
+				</router-link>
+
+				<button
+					type="button"
+					class="p-2 rounded-lg text-secondary-text hover:text-text hover:bg-tertiary-bg md:hidden transition"
+					@click="showMenu = !showMenu"
+					aria-label="Toggle navigation menu"
+				>
+					<MenuIcon v-if="!showMenu" class="w-6 h-6" />
+					<XIcon v-else class="w-6 h-6" />
+				</button>
+			</div>
+
+			<!-- Navigation Links -->
 			<div
-				class="w-full relative flex-row-reverse flex justify-between md:w-auto px-8 md:px-4 pl-0 lg:static md:block md:justify-start"
+				:class="[
+					'md:flex md:items-center md:gap-3',
+					showMenu
+						? 'flex flex-col absolute top-16 left-0 w-full bg-[#1e1e1e] border-b border-[#333333] p-4 space-y-3 shadow-2xl md:relative md:top-0 md:p-0 md:border-none md:shadow-none md:space-y-0'
+						: 'hidden md:flex',
+				]"
 			>
 				<router-link
 					to="/"
-					class="text-2xl font-bold leading-relaxed inline-block mr-0 md:py-2 whitespace-nowrap text-brand hover:text-brand/75 md:px-0"
+					class="px-3.5 py-2 rounded-lg text-sm font-semibold transition text-secondary-text hover:text-text hover:bg-[#2c2c2c]"
+					@click="showMenu = false"
 				>
-					Folderr
+					Home
 				</router-link>
-				<button
-					type="button"
-					class="ml-2 cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded-md bg-transparent block md:hidden outline-hidden focus:outline-hidden hover:bg-tertiary-bg"
-					@click="showMenu = !showMenu"
+
+				<a
+					href="https://github.com/Folderr/Folderr"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-secondary-text hover:text-text hover:bg-[#2c2c2c] transition"
 				>
-					<span
-						class="block relative w-6 h-px rounded-xs bg-brand"
-					></span>
-					<span
-						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
-					></span>
-					<span
-						class="block relative w-6 h-px rounded-xs mt-1 bg-brand"
-					></span>
-				</button>
-			</div>
-			<div
-				:class="{ hidden: !showMenu, flex: showMenu }"
-				class="bg-secondary-bg w-full ml-4 md:bg-transparent md:flex md:grow items-center text-secondary-text rounded-lg sm:w-auto"
-			>
-				<ul
-					class="flex flex-col md:flex-row list-none md:ml-auto w-full sm:w-auto"
+					<Icon :icon="github" class="w-4 h-4" />
+					<span>GitHub</span>
+				</a>
+
+				<div
+					class="flex items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-[#333333]"
 				>
-					<li>
-						<router-link
-							to="/"
-							class="px-6 md:px-3 py-2 mr-2 flex grow items-center w-full border-b-2 md:border-none border-brand-darkened hover:bg-black md:hover:bg-transparent text-md font-bold leading-snug hover:text-text rounded-t-md"
-							:class="[
-								{
-									'text-text': url === '/',
-									'hover:text-brand': url === '/',
-								},
-							]"
-						>
-							<QuestionMarkCircleIcon
-								class="w-5 h-5 mr-2 text-inherit"
-								aria-hidden="true"
-							/>
-							why folderr
-						</router-link>
-					</li>
-					<li>
-						<a
-							href="https://github.com/Folderr/Folderr"
-							aria-label="Folderr on GitHub"
-							class="px-6 md:px-3 py-2 mr-2 flex grow items-center w-full border-b-2 md:border-none border-brand-darkened hover:bg-black md:hover:bg-transparent text-md font-bold leading-snug hover:text-text"
-						>
-							<Icon :icon="github" height="20" class="mr-2" />
-							learn more
-						</a>
-					</li>
-					<li>
-						<router-link
-							to="/info"
-							class="px-6 md:px-3 py-2 mr-2 flex grow items-center w-full border-b-2 md:border-none border-brand-darkened hover:bg-black md:hover:bg-transparent text-md font-bold leading-snug hover:text-text"
-							:class="[
-								{
-									'text-text': url === '/info',
-									'hover:text-brand': url === '/info',
-								},
-							]"
-						>
-							<InformationCircleIcon
-								class="w-5 h-5 mr-2 text-inherit"
-								aria-hidden="true"
-							/>
-							info
-						</router-link>
-					</li>
-					<li v-if="!url || !['/'].includes(url) || width <= 768">
-						<router-link
-							to="/#login"
-							class="px-6 md:px-3 py-2 mr-2 flex grow items-center w-full border-b-2 md:border-none border-brand-darkened hover:bg-black md:hover:bg-transparent text-md font-bold leading-snug hover:text-text rounded-t-md"
-						>
-							<ArrowNarrowRightIcon
-								class="w-5 h-5 mr-2 text-inherit"
-								aria-hidden="true"
-							/>
-							login
-						</router-link>
-					</li>
-					<li
-						v-if="
-							!url || !['/signup'].includes(url) || width <= 768
-						"
+					<router-link
+						to="/#login"
+						class="px-4 py-1.5 rounded-lg text-sm font-bold text-text border border-[#3e3e3e] hover:bg-[#2c2c2c] transition text-center"
+						@click="showMenu = false"
 					>
-						<router-link
-							to="/signup#signup"
-							class="px-6 md:px-3 py-2 mr-2 flex grow items-center w-full hover:bg-black md:hover:bg-transparent text-md font-bold leading-snug hover:text-text rounded-b-md"
-							:class="[
-								{
-									'text-text': url === '/signup',
-									'hover:text-brand': url === '/signup',
-								},
-							]"
-						>
-							<UserAddIcon
-								class="w-5 h-5 mr-2 text-inherit"
-								aria-hidden="true"
-							/>
-							signup
-						</router-link>
-					</li>
-				</ul>
+						Log In
+					</router-link>
+					<router-link
+						to="/signup#signup"
+						class="px-4 py-1.5 rounded-lg text-sm font-bold text-bg bg-brand hover:bg-brand-darkened shadow transition text-center"
+						@click="showMenu = false"
+					>
+						Sign Up
+					</router-link>
+				</div>
 			</div>
 		</div>
 	</nav>
 </template>
 
 <script setup lang="ts">
-import {
-	ArrowNarrowRightIcon,
-	InformationCircleIcon,
-	QuestionMarkCircleIcon,
-	UserAddIcon,
-} from "@heroicons/vue/solid";
+import { MenuIcon, XIcon } from "@heroicons/vue/solid";
 import { Icon } from "@iconify/vue";
 import github from "@iconify-icons/codicon/github-inverted";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 
-const props = defineProps<{
-	url?: "/" | "/info" | "/signup" | "/account/deny" | "/account/verify";
+defineProps<{
+	url?:
+		| "/"
+		| "/info"
+		| "/signup"
+		| "/signup/success"
+		| "/account/deny"
+		| "/account/verify"
+		| string;
+	width?: number;
 }>();
 
-const width = ref(window.innerWidth);
-
-onMounted(() => {
-	window.addEventListener("resize", () => {
-		width.value = window.innerWidth;
-	});
-});
-
 const showMenu = ref(false);
-
-console.log(props.url && ["/"].includes(props.url));
 </script>
