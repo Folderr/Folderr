@@ -45,7 +45,6 @@ class Takedown extends Path {
 					required: ["type", "id"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -71,7 +70,6 @@ class Takedown extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async takedownFile(
 		id: string,

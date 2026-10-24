@@ -73,7 +73,6 @@
 		"src/frontend/src/shims-vue.d.ts",
 		"src/frontend/src/**/.ts",
 		"package.json",
-		".eslintrc.js",
 		"internal/locations.json"
 	],
 	"exclude": ["node_modules", "src/frontend"]

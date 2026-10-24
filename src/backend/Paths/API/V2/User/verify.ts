@@ -46,7 +46,7 @@ class Verify extends Path {
 						token: { type: "string" },
 					},
 					required: ["userid", "token"],
-				} /* eslint-disable @typescript-eslint/naming-convention */,
+				} ,
 				response: {
 					200: {
 						type: "object",
@@ -63,7 +63,7 @@ class Verify extends Path {
 						},
 					},
 				},
-			} /* eslint-enable @typescript-eslint/naming-convention */,
+			} ,
 		};
 	}
 

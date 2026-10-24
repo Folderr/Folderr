@@ -56,7 +56,6 @@ class DelAccount extends Path {
 				//	},
 				// },
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -82,7 +81,6 @@ class DelAccount extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	/**
 	 * @desc Delete the account, separate function to make things be CLEAN
@@ -104,7 +102,6 @@ class DelAccount extends Path {
 			const declaredError = error as Error;
 			const formattedError = declaredError.message || (error as string);
 			this.core.logger.error(
-				// eslint disable-next-line max-len
 				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
 			);
 			return {
@@ -141,7 +138,6 @@ class DelAccount extends Path {
 			const declaredError = error as Error;
 			const formattedError = declaredError.message || (error as string);
 			this.core.logger.fatal(
-				// eslint disable-next-line max-len
 				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
 			);
 			return {
@@ -215,7 +211,6 @@ class DelAccount extends Path {
 			// Delete the account
 			out = await this.deleteAccount(newAuth.user, request.query.userid!);
 			this.core.logger.info(
-				// eslint-disable-next-line max-len
 				`Account ${mem.id} deleted by administrator (${newAuth.user.username} - ${newAuth.user.id})`
 			);
 			return response.status(out.code).send(out.mess);

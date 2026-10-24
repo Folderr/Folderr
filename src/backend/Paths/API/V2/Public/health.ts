@@ -9,7 +9,6 @@ export default (fastify: FastifyInstance, core: Core) =>
 		method: "GET",
 		schema: {
 			response: {
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				"2xx": {
 					type: "object",
 					properties: {

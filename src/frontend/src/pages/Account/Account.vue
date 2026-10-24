@@ -9,7 +9,7 @@
     <div v-if="oldUsername || oldEmail">
         <div ref="top" class="bg-bg grow flex flex-col scroll-smooth">
             <NavbarAuthenticated/>
-            <!-- eslint-disable vue/attribute-hyphenation -->
+            <!-- biome-ignore-start lint/style/useVueHyphenatedAttributes: modal props kept in camelCase, as under the ESLint disable -->
             <NFlexibleModal
                 :hide="modals.deleteAccount"
                 header="Delete Account Confirmation"
@@ -21,7 +21,7 @@
                 <p
                     class="text-secondary-text mt-10"
 
-                ><!-- eslint-disable-next-line max-len-->
+                >
                 This action will delete your account and all of its associated data <b>from this folderr instance.</b> Your files may take time to be removed from the service.<br></p>
                 <template #warning>
                     <div
@@ -112,7 +112,6 @@
                                 mr-4
                             "
                             aria-hidden="true"/>
-                        <!-- eslint-disable-next-line max-len -->
                         You will only see this token once. Store this token somewhere safe. Don't store on a shared PC.
                     </div>
                 </template>
@@ -170,10 +169,8 @@
                         <div class="bg-secondary-bg rounded-md p-4 truncate font-input text-sm">
                             <code>{<br>
                             &emsp;&emsp;"Version": "14.0.1",<br>
-                            <!-- eslint-disable max-len -->
                             &emsp;&emsp;"Name": "{{url.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')}} Image Host",<br>
                             &emsp;&emsp;"DestinationType": "ImageUploader, TextUploader, FileUploader",<br>
-                            <!-- eslint-enable max-len -->
                             &emsp;&emsp;"RequestMethod": "POST",<br>
                             &emsp;&emsp;"RequestURL": "{{url}}/api/file",<br>
                             &emsp;&emsp;"Headers": {<br>
@@ -185,7 +182,6 @@
                             </code>
                             <!-- I must say. That is a rather annoying break of style.-->
                         </div>
-                        <!-- eslint-enable vue/attribute-hypenation -->
                         <!-- Client side ability to download or copy the config. -->
                         <div class="flex space-x-2">
                             <button
@@ -219,6 +215,7 @@
                 </div>
 
             </FlexibleModal>
+            <!-- biome-ignore-end lint/style/useVueHyphenatedAttributes: modal props kept in camelCase, as under the ESLint disable -->
             <SuccessesErrors ref="sne" />
             <div class="m-auto text-center pt-10 md:pt-16 w-full h-1/5 grow mb-20">
                 <h1
@@ -268,11 +265,10 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                     <h3
                         v-if="emailerDisabled"
                         class="mt-2 text-text text-lg lg:ml-20"
-                    > <!-- eslint-disable-next-line max-len -->
+                    >
                         You can't change your email as there is no emailer configured to verify a new email.
                     </h3>
                     <div class="mt-10 lg:ml-20">
-                        <!-- eslint-disable max-len -->
                         <label
                             for="username"
                             class="text-secondary-text text-md block"
@@ -303,7 +299,6 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                             ]"
                             autocomplete="username"
                         >
-                        <!-- eslint-enable max-len -->
                         <div class="bg-[#303030] rounded-lg w-max max-w-lg mb-4">
                             <Disclosure v-slot=" { open }">
                                 <DisclosureButton
@@ -326,7 +321,6 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                                     />
                                 </DisclosureButton>
                                 <DisclosurePanel class="py-2 px-4 text-secondary-text">
-                                    <!-- eslint-disable-next-line max-len -->
                                     Usernames must have at least 3 characters, can be A-z, and can have underscores and numbers.
                                 </DisclosurePanel>
                             </Disclosure>
@@ -406,7 +400,6 @@ v-show="false" class="p-5 text-secondary-text" :class="[{
                             autocomplete="current-password"
                             @keyup.enter="() => newPasswordEl?.focus()"
                         >
-                        <!-- eslint-disable max-len -->
                         <label
 for="newpassword"
                             class="block text-secondary-text text-md"
@@ -445,7 +438,6 @@ for="newpassword"
                             autocomplete="new-password"
                             @keyup.enter="() => passwordConfirmEl?.focus()"
                         >
-                        <!-- eslint-enable max-len -->
                         <div class="bg-[#303030] rounded-lg w-max max-w-lg mb-4">
                             <Disclosure v-slot=" { open }">
                                 <DisclosureButton
@@ -468,7 +460,6 @@ for="newpassword"
                                     />
                                 </DisclosureButton>
                                 <DisclosurePanel class="py-2 px-4 text-secondary-text">
-                                    <!-- eslint-disable-next-line max-len -->
                                     Passwords must be between 8 and 256 characters, and must have either a lowercase or uppercase letter, and anything else.
                                 </DisclosurePanel>
                             </Disclosure>
@@ -522,7 +513,7 @@ for="newpassword"
                         ><b>The owner account cannot be deleted.</b></p>
                         <p
                             class="text-secondary-text text-md mt-2"
-                        > <!-- eslint-disable-next-line max-len -->
+                        >
                             This will remove all of your data from this instance of Folderr, including files and shortened URLs. Files and shortened links will not be deleted instantly.
                         </p>
                         <p
@@ -542,7 +533,7 @@ for="newpassword"
                         <h2 class="text-text text-2xl"><b>Logout everywhere</b></h2>
                         <p
                             class="text-secondary-text text-md mt-2"
-                        > <!-- eslint-disable-next-line max-len -->
+                        >
                             This will log you out of every location/device you are logged in at, including the one you’re currently at
                         </p>
                         <FButton
@@ -786,7 +777,6 @@ const selectSection = (name: string) => {
 
 const updateInfo = async() => {
     if (isInfoSame.value) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError('You need to update either your email or your username!');
         return;
     }
@@ -807,7 +797,6 @@ const updateInfo = async() => {
         if (updated.success) {
             oldEmail.value = email.value;
             oldUsername.value = username.value;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addSuccess('Information Updated!');
             userStore.$patch({
                 email: info.email ?? userStore.email,
@@ -822,7 +811,6 @@ const updateInfo = async() => {
                 emailerDisabled.value = true;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(
                 typeof updated.error === 'string' ?
                 updated.error :
@@ -831,19 +819,16 @@ const updateInfo = async() => {
         }
     } catch (error) {
         if (typeof error === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
             console.log(error);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error.message);
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError('Unknown Error Occured while updating your info');
         console.log(error);
         console.log(typeof error);
@@ -904,7 +889,6 @@ const confirmPasswordValid = computed(() => {
 
 const updatePassword = async() =>  {
     if (!isPasswordValid.value) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError('Password invalid!');
         return;
     }
@@ -918,7 +902,6 @@ const updatePassword = async() =>  {
         if (updated.success) {
             oldPassword.value = password.value;
             password.value = '';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addSuccess('Information Updated!');
         } else {
             if (
@@ -929,7 +912,6 @@ const updatePassword = async() =>  {
                 emailerDisabled.value = true;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(
                 typeof updated.error === 'string' ?
                 updated.error :
@@ -938,19 +920,16 @@ const updatePassword = async() =>  {
         }
     } catch (error) {
         if (typeof error === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
             console.log(error);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error.message);
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError('Unknown Error Occured while updating your password');
         console.log(error);
         console.log(typeof error);
@@ -967,7 +946,6 @@ const updatePrivacy = async() => {
     const privacy = await api.updatePrivacy({dataCollection: datacollection.value ?? false});
 
     if (privacy.success) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addSuccess('Updated your privacy settings');
         userStore.$patch({
             privacy: {
@@ -979,7 +957,6 @@ const updatePrivacy = async() => {
 
     if (privacy.error instanceof Error) {
         if (import.meta.env.DEV && privacy.response) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(privacy.error.message);
             console.log('Debug Response from API/Logout (everywhere)');
             console.log(privacy.response);
@@ -988,7 +965,6 @@ const updatePrivacy = async() => {
         return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     sne.value?.addError(privacy.error);
 
     if (import.meta.env.DEV && privacy.response) {
@@ -1007,7 +983,6 @@ const logoutEverywhere = async() => {
     }
 
     if (logout.error instanceof Error) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError(logout.error.message);
         if (import.meta.env.DEV && logout.response) {
             console.log('Debug Response from API/Logout (everywhere)');
@@ -1017,7 +992,6 @@ const logoutEverywhere = async() => {
         return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     sne.value?.addError(logout.error);
 
     if (import.meta.env.DEV && logout.response) {
@@ -1049,13 +1023,11 @@ const deleteAccount = async(confirmed: boolean) => {
 
     if (!deleted.success) {
         if (deleted.error instanceof Error) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(deleted.error.message);
             return;
         }
 
         if (typeof deleted.error === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(deleted.error);
 
         }
@@ -1088,7 +1060,6 @@ const tokenCreateModal = () => {
 
 const createToken = async(description: string) => {
     if (!description || typeof description !== 'string') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError('Description needed for the token');
         tokenCreateModal();
         return;
@@ -1097,7 +1068,6 @@ const createToken = async(description: string) => {
     const apitoken = await api.createToken(description);
     if (apitoken.error) {
         tokenCreateModal();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError(
             `Token creation failed. Error: ${
                 apitoken.error instanceof Error ?
@@ -1111,7 +1081,6 @@ const createToken = async(description: string) => {
     if (apitoken.success && apitoken.output) {
         tokenInfo.token = apitoken.output;
         tokenInfo.description = description;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addSuccess('Token Generated');
         await tokenStore.loadTokens();
         if (tokenStore.tokens) {
@@ -1127,7 +1096,6 @@ const createToken = async(description: string) => {
 const revokeToken = async(id: string) => {
     const apitoken = await api.revokeToken(id);
     if (apitoken.error) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError(
             `Token revokation failed. Error: ${
                 apitoken.error instanceof Error ?
@@ -1139,7 +1107,6 @@ const revokeToken = async(id: string) => {
     }
 
     if (apitoken.success) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addSuccess('Token Revoked');
         tokens.value = tokens.value.filter((token) => token.id !== id);
         tokenStore.setTokens(tokens.value);
@@ -1154,7 +1121,6 @@ const copied = ref(false);
 const copy = async(text: string) => {
     await navigator.clipboard.writeText(text);
     copied.value = true;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     sne.value?.addSuccess("Copied");
 }
 
@@ -1168,7 +1134,6 @@ const scrollToTop = () => {
 }
 
 const downloadSharexConfig = () => {
-    /* eslint-disable @typescript-eslint/naming-convention */
     const config = JSON.stringify({
        Version: '14.0.1',
        Name: `${url.value.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')} Image Host`,
@@ -1181,7 +1146,6 @@ const downloadSharexConfig = () => {
        Body: 'MultipartFormData',
        FileFormName: 'Image'
     });
-    /* eslint-enable @typescript-eslint/naming-convention */
     const bytes = new TextEncoder().encode(config);
     const blob = new Blob([bytes], {
         type: "application/json;charset=utf-8"
@@ -1194,12 +1158,10 @@ const downloadSharexConfig = () => {
     link.click();
     URL.revokeObjectURL(link.href);
     document.removeChild(link);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     sne.value?.addSuccess('Downloading Config!');
 }
 
 const copySharexConfig = async () => {
-    /* eslint-disable @typescript-eslint/naming-convention */
     const config = JSON.stringify({
        Version: '14.0.1',
        Name: `${url.value.replace(/http(s)?:\/\//, '').replace(/:[0-9]{0,6}/, '')} Image Host`,
@@ -1212,9 +1174,7 @@ const copySharexConfig = async () => {
        Body: 'MultipartFormData',
        FileFormName: 'Image'
     });
-    /* eslint-enable @typescript-eslint/naming-convention */
     await navigator.clipboard.writeText(config);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     sne.value?.addSuccess('Copied Config!');
 }
 

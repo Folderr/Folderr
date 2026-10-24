@@ -23,7 +23,6 @@ export function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Sends back basic information about the Folderr API, including an enabled feature-set",
 			response: {
-				/* eslint-disable @typescript-eslint/naming-convention */
 				200: {
 					type: "object",
 					properties: {
@@ -47,14 +46,12 @@ export function route(fastify: FastifyInstance, core: Core) {
 								},
 							},
 						},
-						/* eslint-enable @typescript-eslint/naming-convention */
 						code: { type: "number" },
 					},
 				},
 			},
 		},
 		handler(request, reply) {
-			/* eslint-disable @typescript-eslint/naming-convention */
 			const out: {
 				message: {
 					version: string;
@@ -88,7 +85,6 @@ export function route(fastify: FastifyInstance, core: Core) {
 				},
 				code: this.codes.ok,
 			};
-			/* eslint-enable @typescript-eslint/naming-convention */
 			return reply.status(fastify.codes.ok).send(out);
 		},
 	});

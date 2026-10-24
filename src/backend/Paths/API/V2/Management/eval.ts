@@ -68,12 +68,10 @@ class Eval extends Path {
 		}
 
 		try {
-			/* eslint-disable no-eval */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			// biome-ignore lint/security/noGlobalEval: owner-only debug endpoint that evaluates code by design, enabled only in dev
 			let evaled: string | Record<string, unknown> = await eval(
 				request.body.eval
 			);
-			/* eslint-enable no-eval */
 			evaled =
 				typeof evaled === "object"
 					? (evaled = inspect(evaled, { depth: 0, showHidden: true }))

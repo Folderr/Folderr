@@ -44,7 +44,6 @@ class MirrorRemove extends Path {
 					required: ["mirror"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -63,7 +62,6 @@ class MirrorRemove extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -96,7 +94,6 @@ class MirrorRemove extends Path {
 			{ id: auth.id },
 			{
 				$pullAll: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					cURLs: request.body.mirror,
 				},
 			}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 // Authorization locked  endpoints
 import Info from "./private-info.js";
 import ConfigureShareX from "./configurator.js";

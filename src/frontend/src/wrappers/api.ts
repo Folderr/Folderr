@@ -165,7 +165,6 @@ export async function fetchUser(): Promise<UserReturn> {
 			return { error: "Request failed", user: undefined };
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const output: { code: number; message: AccountReturn } =
 			await response.json();
 		return { error: undefined, user: output.message };
@@ -214,7 +213,6 @@ export async function updateInfo(
 		});
 
 		if (response.status === 226) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -235,7 +233,6 @@ export async function updateInfo(
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -246,7 +243,6 @@ export async function updateInfo(
 		}
 
 		if (response.status === 406) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -257,7 +253,6 @@ export async function updateInfo(
 		}
 
 		if (response.status === 501) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -302,7 +297,6 @@ export async function updatePassword(info: {
 			method: "PATCH",
 			body: JSON.stringify({ password: info.newPassword }),
 			headers: {
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				Accept: "application/json",
 				"Content-Type": "application/json",
 			},
@@ -318,7 +312,6 @@ export async function updatePassword(info: {
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -329,7 +322,6 @@ export async function updatePassword(info: {
 		}
 
 		if (response.status === 501) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -369,7 +361,6 @@ export async function updatePrivacy(
 			method: "PATCH",
 			body: JSON.stringify({ privacy: info }),
 			headers: {
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				Accept: "application/json",
 				"Content-Type": "application/json",
 			},
@@ -385,7 +376,6 @@ export async function updatePrivacy(
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -396,7 +386,6 @@ export async function updatePrivacy(
 		}
 
 		if (response.status === 501) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -438,7 +427,6 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -461,7 +449,6 @@ export async function logoutEverywhere(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 500) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -504,7 +491,6 @@ export async function logout(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -518,7 +504,6 @@ export async function logout(): Promise<GenericFetchReturn> {
 		}
 
 		if (response.status === 500) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -569,7 +554,6 @@ export async function deleteAccount(
 		}
 
 		if (response.status === 400) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -592,7 +576,6 @@ export async function deleteAccount(
 		}
 
 		if (response.status === 403) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -605,7 +588,6 @@ export async function deleteAccount(
 		}
 
 		if (response.status === 500) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const output: { message: string; code: number } | undefined =
 				await response.json();
 			return {
@@ -648,7 +630,6 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			credentials: "same-origin",
 		});
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string | Token[] } | undefined =
 			await response.json();
 
@@ -753,7 +734,6 @@ export async function createToken(
 			},
 		});
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 
@@ -812,7 +792,6 @@ export async function revokeToken(
 			credentials: "same-origin",
 		});
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 
@@ -882,7 +861,6 @@ export async function uploadFile(
 			};
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 		if (response.status === 500) {
@@ -947,7 +925,6 @@ export async function shortenLink(
 			};
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const body: { code: number; message: string } | undefined =
 			await response.json();
 		if (response.status === 500) {

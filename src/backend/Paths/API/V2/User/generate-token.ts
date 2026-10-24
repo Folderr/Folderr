@@ -50,7 +50,6 @@ class GenToken extends Path {
 					},
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -69,7 +68,6 @@ class GenToken extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -98,10 +96,8 @@ class GenToken extends Path {
 			return response.status(this.codes.forbidden).send({
 				// This is string
 				code: this.Utils.foldCodes.tokenSizeLimit,
-				/* eslint-disable max-len */
 				message:
 					'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url (This will delete the first one created).',
-				/* eslint-enable max-len */
 			});
 		}
 

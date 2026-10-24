@@ -45,7 +45,6 @@ class VerifyAccount extends Path {
 					required: ["id"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -64,7 +63,6 @@ class VerifyAccount extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -99,7 +97,6 @@ class VerifyAccount extends Path {
 
 		// Alert the console and the admin that the user was verified
 		this.core.logger.info(
-			// eslint-disable-next-line max-len
 			`User account ${user.username} (${user.id}) granted by administrator ${auth.username} (${auth.id})`
 		);
 		return response

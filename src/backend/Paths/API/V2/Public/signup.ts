@@ -47,7 +47,6 @@ class Signup extends Path {
 					required: ["email", "username", "password"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -77,7 +76,6 @@ class Signup extends Path {
 	async genUID(): Promise<string> {
 		// Generate an ID, and do not allow a users id to be reused
 		const uID = this.Utils.genFolderrId();
-		/* eslint-enable @typescript-eslint/naming-convention */
 		const user = await this.core.db.findUser({ id: uID });
 		if (user) {
 			// If the user was found, retry
@@ -106,7 +104,6 @@ class Signup extends Path {
 		msg: { code: number; message: string };
 	}> {
 		// Find admin notifications, and generate an ID
-		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const notifyID = this.Utils.genNotifyID();
 		// Make a new notification and save to database
 		try {

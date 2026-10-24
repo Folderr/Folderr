@@ -1,4 +1,3 @@
-/* eslint max-params: ["error", 6] */
 /**
  * @license
  *
@@ -20,7 +19,6 @@
  *
  */
 
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
 export interface Folderr {
 	bans: string[];
 	publicKeyJWT: Buffer;
@@ -107,7 +105,6 @@ export interface Upload {
 /**
  * @classdesc Base class for all Database handlers to extend
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export class DBClass {
 	public status!: string;
 	constructor() {
@@ -549,6 +546,5 @@ export class DBClass {
 	}
 }
 
-/* eslint-enable @typescript-eslint/consistent-type-definitions */
 
 export default DBClass;

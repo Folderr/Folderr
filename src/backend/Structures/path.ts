@@ -57,7 +57,6 @@ class Path {
 
 	public readonly core: Core;
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public Utils: Core["Utils"];
 	// Fuck doing all of that, I want to focus on the frontend.
 

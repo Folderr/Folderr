@@ -7,7 +7,6 @@ import pretty from "pino-pretty";
 
 export type LoggerLevels = "startup";
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface LogOptions extends LoggerOptions<"startup"> {
 	customLevels: {
 		startup: 35;
@@ -42,7 +41,6 @@ if (!fs.existsSync(error)) {
 	fs.closeSync(fs.openSync(error, "w"));
 }
 
-// eslint-disable-next-line spaced-comment
 /*const transport = pino.transport({
 	targets: [
 		{
@@ -144,7 +142,7 @@ const destination =
 				},
 				minimumLevel: process.env.DEBUG ? "debug" : "info",
 		  })
-		: // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		:
 		  multistream(streams as any, {
 				levels: {
 					...pino.levels.values,

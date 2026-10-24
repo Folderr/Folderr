@@ -295,7 +295,7 @@ class Utils {
 		// If password does not match the regex completely
 		const match: boolean = this.#core.regexs.password.test(password);
 		if (password.length < minPass || !match) {
-			throw new Error( // eslint disable-next-line max-len
+			throw new Error(
 				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`
 			);
 		}
@@ -324,7 +324,6 @@ class Utils {
 	 *
 	 * @returns {string}
 	 */
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	genNotifyID(): string {
 		return this.genFolderrId();
 	}
@@ -469,7 +468,6 @@ class Utils {
 		return user;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async testMirrorURL(url: string): Promise<boolean> {
 		try {
 			const test = await this.#core.got.get<MirrorResponse>(
@@ -489,7 +487,6 @@ class Utils {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	async determineHomeURL(request: FastifyRequest): Promise<string> {
 		const protocol = `${request.protocol || "http"}://`;
 		let host;

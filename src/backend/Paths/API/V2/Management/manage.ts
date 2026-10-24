@@ -90,7 +90,6 @@ class Manage extends Path {
 				message: "Attempting update.",
 			});
 			const file = await promises.readFile("./package.json");
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const oPackage: Record<string, string> = JSON.parse(
 				file.toString()
 			);
@@ -108,7 +107,6 @@ class Manage extends Path {
 			}
 
 			const f = await promises.readFile("./package.json");
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const af: Record<string, string> = JSON.parse(f.toString());
 			let v;
 			const vers = {

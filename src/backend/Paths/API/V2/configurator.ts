@@ -27,7 +27,6 @@ import Configurator from "../../../Structures/Utilities/sharex-configurator.js";
 /**
  * @classdesc Generate a sharex configuration
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 class ShareXConfigurator extends Path {
 	private readonly configurator: Configurator;
 

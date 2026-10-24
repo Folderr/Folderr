@@ -13,7 +13,6 @@ const loading = ref(false);
 const signups = ref(false);
 
 const props = defineProps<{
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     sne?: InstanceType<typeof SuccessesErrors> & {
         addError: (messaage: string, time?: number) => void,
         addSuccess: (message: string, time?: number) => void
@@ -41,7 +40,6 @@ const login = async() => {
             missing.push('password');
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         props.sne?.addError(`Error: Missing ${missing.join(' & ')}`);
         return;
     }
@@ -50,7 +48,6 @@ const login = async() => {
     const output = await api.login(username.value, password.value);
     if (output.error) { // Oh no, login failed.
         if (typeof output.error === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             props.sne?.addError(output.error);
         }
 

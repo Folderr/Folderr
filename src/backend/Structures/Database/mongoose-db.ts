@@ -62,7 +62,6 @@ export default class Mongoosedb extends DBClass {
 
 		this.status = "offline";
 		this.#schemas = {
-			/* eslint-disable @typescript-eslint/naming-convention */
 			User: Schemas.User,
 			Token: Schemas.JwtToken,
 			Link: Schemas.Short,
@@ -71,7 +70,6 @@ export default class Mongoosedb extends DBClass {
 			AdminNotification: Schemas.AdminNotifications,
 			Folderr: Schemas.Folderr,
 			Ban: Schemas.Ban,
-			/* eslint-enable @typescript-eslint/naming-convention */
 		};
 		this.#internals = {
 			connection: mongoose.connection,
@@ -188,7 +186,6 @@ export default class Mongoosedb extends DBClass {
 			return fldrr;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const fldr = new this.#schemas.Folderr({ bans: [], publicKeyJWT });
 		await fldr.save();
 		return fldr;
@@ -693,7 +690,6 @@ export default class Mongoosedb extends DBClass {
 		return (
 			(await this.#schemas.Token.findOne({
 				id: tokenID,
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				userID,
 				web: options?.web ?? false,
 			})
@@ -707,7 +703,6 @@ export default class Mongoosedb extends DBClass {
 		options?: { web?: boolean }
 	): Promise<Tokendb[]> {
 		return this.#schemas.Token.find({
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web ?? false,
 		})
@@ -727,7 +722,6 @@ export default class Mongoosedb extends DBClass {
 		date.setDate(date.getDate() + 2 * 7);
 		const tken = new this.#schemas.Token({
 			id: tokenID,
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web ?? false,
 			expireAt: options?.web ? date : undefined,
@@ -744,7 +738,6 @@ export default class Mongoosedb extends DBClass {
 	): Promise<boolean> {
 		const del = await this.#schemas.Token.deleteOne({
 			id: tokenID,
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			userID,
 			web: options?.web,
 		}).exec();
@@ -755,9 +748,9 @@ export default class Mongoosedb extends DBClass {
 		userID: string,
 		web?: boolean
 	): Promise<number | undefined> {
-		const del = web // eslint-disable-next-line @typescript-eslint/naming-convention
+		const del = web
 			? await this.#schemas.Token.deleteMany({ userID, web }).exec()
-			: // eslint-disable-next-line @typescript-eslint/naming-convention
+			:
 			  await this.#schemas.Token.deleteMany({ userID }).exec();
 		return del.deletedCount;
 	}

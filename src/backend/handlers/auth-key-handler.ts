@@ -36,14 +36,12 @@ export default class AuthKeyHandler {
 				try {
 					const data = crypto.publicEncrypt(
 						this.#publicKey,
-						// eslint-disable-next-line prettier/prettier
 						Buffer.from("Hi I'm Folderr!")
 					);
 					const decrypted = crypto.privateDecrypt(
 						this.#privateKey,
 						data
 					);
-					// eslint-disable-next-line prettier/prettier
 					if (decrypted.toString() !== "Hi I'm Folderr!") {
 						throw new Error(
 							"Private and public keys do not match."

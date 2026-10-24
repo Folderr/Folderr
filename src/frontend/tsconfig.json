@@ -17,7 +17,6 @@
 		"src/**/*.tsx",
 		"src/**/*.vue",
 		"src/*.vue",
-		"shims-vue.d.ts",
-		"../../.eslintrc.js"
+		"shims-vue.d.ts"
 	]
 }

@@ -3,7 +3,6 @@ import { setUser } from "@sentry/vue";
 import * as api from "../wrappers/api.js";
 import type { AccountReturn } from "../../../types/user.js";
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface UserStore {
 	id?: string;
 	username?: string;

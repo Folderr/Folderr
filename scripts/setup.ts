@@ -1,4 +1,3 @@
-/* eslint complexity: [1, {max: 24 }] */
 import fs from "fs/promises";
 import process from "process";
 import { Buffer } from "buffer";
@@ -69,7 +68,7 @@ async function getKeyLocation(redo?: boolean): Promise<string> {
 				resolve(getKeyLocation(true));
 			} else if (["quit", "q"].includes(answer)) {
 				rl.write("Exiting setup by user decision.");
-				rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+				rl.close();
 				process.exit();
 			} else if (!options.has(answer)) {
 				resolve(getKeyLocation(true));
@@ -95,7 +94,7 @@ async function askUsername(core: Core): Promise<string> {
 			return;
 		}
 
-		const q = // eslint-disable-next-line max-len
+		const q =
 			"What would you like your username to be? Note: Usernames can only contain lowercase letters, numbers, and an underscore\n> ";
 		rl.question(q, (answer: string) => {
 			if (!answer) {
@@ -105,7 +104,7 @@ async function askUsername(core: Core): Promise<string> {
 			}
 
 			if (answer === "q" || answer === "quit") {
-				rl.write("Quitting..."); // eslint-disable-next-line unicorn/no-process-exit
+				rl.write("Quitting...");
 				process.exit(); // This is a cli app, thanks.
 			}
 
@@ -151,7 +150,7 @@ async function askPassword(core: Core, confirm?: boolean): Promise<string> {
 			}
 
 			if (answer === "q" || answer === "quit") {
-				console.log("Quitting..."); // eslint-disable-next-line unicorn/no-process-exit
+				console.log("Quitting...");
 				process.exit(); // This is a cli app, thanks.
 			}
 
@@ -186,7 +185,7 @@ async function askEmail(core: Core): Promise<string> {
 			}
 
 			if (answer === "q" || answer === "quit") {
-				rl.write("Quitting..."); // eslint-disable-next-line unicorn/no-process-exit
+				rl.write("Quitting...");
 				process.exit(); // This is a cli app, thanks.
 			}
 
@@ -229,11 +228,10 @@ async function confirmDetails(
 	return new Promise<"yes" | "no">((resolve) => {
 		rl.question(question, (answer) => {
 			if (!answer) {
-				// eslint-disable-next-line @typescript-eslint/quotes
 				rl.write("I need confirmation. Let's try this again.");
 				resolve(confirmDetails(username, email, password));
 			} else if (answer === "q" || answer === "quit") {
-				rl.write("Quitting..."); // eslint-disable-next-line unicorn/no-process-exit
+				rl.write("Quitting...");
 				process.exit();
 			} else if (["yes", "y"].includes(answer)) {
 				resolve("yes");
@@ -255,14 +253,12 @@ async function keyGen(
 		try {
 			const data = crypto.publicEncrypt(
 				process.env.PUBLIC_KEY,
-				// eslint-disable-next-line prettier/prettier
 				Buffer.from("Hi! I'm Folderr!"),
 			);
 			const decrypted = crypto.privateDecrypt(
 				process.env.PRIVATE_KEY,
 				data,
 			);
-			// eslint-disable-next-line prettier/prettier
 			if (decrypted.toString() !== "Hi I'm Folderr") {
 				throw new Error("Public key and private key do not match!");
 			}
@@ -273,7 +269,6 @@ async function keyGen(
 			};
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				// eslint-disable-next-line unicorn/prefer-type-error
 				throw new Error(error.message, {
 					cause: error,
 				});
@@ -310,7 +305,7 @@ async function keyGen(
 				"See the Folderr documentation about file permissions at " +
 				"https://folderr.net/documentation/folderr/v2 for more details/guidance",
 		);
-		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+		rl.close();
 		process.exit();
 	}
 
@@ -319,7 +314,7 @@ async function keyGen(
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			rl.write(error.message);
-			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+			rl.close();
 			process.exit();
 		}
 	}
@@ -333,7 +328,7 @@ async function keyGen(
 		const folderr = await core.db.fetchFolderr();
 		if (folderr && keysConfigured) {
 			rl.write("Folderr appears to have been setup previously. Exiting");
-			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+			rl.close();
 			process.exit();
 		}
 	} catch (error: unknown) {
@@ -352,13 +347,12 @@ async function keyGen(
 					error.stack ?? "None"
 				}` +
 				"Folderr Setup will now exit.";
-			console.log(unknownError); // eslint-disable-next-line unicorn/no-process-exit
+			console.log(unknownError);
 			process.exit();
 		}
 	}
 
 	const owner = await core.db.findUser({ owner: true }, "owner id");
-	// eslint-disable-next-line @typescript-eslint/quotes
 	rl.write("You're not setup, lets fix that.");
 	let username: string | undefined;
 	let password: string | undefined;
@@ -388,14 +382,14 @@ async function keyGen(
 			rl.write(
 				'Invalid password, closing setup. Retry with "npm run setup"',
 			);
-			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+			rl.close();
 			process.exit();
 		}
 
 		const confirm = await confirmDetails(username, email, password);
 		if (confirm === "no") {
 			rl.write('To retry, re-run "npm run setup"');
-			rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+			rl.close();
 			process.exit();
 		}
 	}
@@ -432,7 +426,6 @@ async function keyGen(
 		console.log("Authorization keys created\n");
 		if (!username && !email && !password) {
 			rl.close();
-			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit();
 		}
 	}
@@ -447,7 +440,7 @@ async function keyGen(
 				`Username: ${username}\n` +
 				`Email address: ${email}\n`,
 		);
-		rl.close(); // eslint-disable-next-line unicorn/no-process-exit
+		rl.close();
 		process.exit();
 	}
 	console.log(

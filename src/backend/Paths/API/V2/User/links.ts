@@ -47,7 +47,6 @@ class Links extends Path {
 					},
 				},
 				response: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					"4xx": {
 						type: "object",
 						properties: {
@@ -55,7 +54,6 @@ class Links extends Path {
 							code: { type: "number" },
 						},
 					},
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					200: {
 						type: "object",
 						properties: {
@@ -126,7 +124,6 @@ class Links extends Path {
 		url = url.replace(/\/$/g, "");
 		const aShorts = shorts.map((short: Link) => ({
 			id: short.id,
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			points_to: short.link,
 			created: Math.round(short.createdAt.getTime() / 1000),
 			link: `${url}/${short.id}`,

@@ -45,7 +45,6 @@ class Deny extends Path {
 					required: ["userid", "token"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					200: {
 						type: "object",
 						properties: {
@@ -64,7 +63,6 @@ class Deny extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{

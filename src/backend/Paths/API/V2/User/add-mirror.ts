@@ -69,7 +69,6 @@ class MirrorAdd extends Path {
 					required: ["url"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -95,7 +94,6 @@ class MirrorAdd extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{
@@ -202,7 +200,6 @@ class MirrorAdd extends Path {
 			},
 			{
 				$addToSet: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					cURLs: request.body.url,
 				},
 			}

@@ -51,7 +51,6 @@ class RemoveAdmin extends Path {
 					required: ["reason"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -70,7 +69,6 @@ class RemoveAdmin extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{

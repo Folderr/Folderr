@@ -1,4 +1,3 @@
-/* eslint-disable n/prefer-global/buffer */
 /**
  * @license
  *
@@ -25,7 +24,6 @@ import type { Folderr } from "../Structures/Database/db-class.js";
 
 const folderr: Schema = new Schema({
 	bans: { type: Array, default: [], required: false },
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	publicKeyJWT: { type: Buffer, required: true },
 });
 

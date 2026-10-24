@@ -1,4 +1,3 @@
-<!-- eslint-disable max-len -->
 <template>
 	<nav class="relative flex flex-wrap items-center justify-between px-2 py-3">
 		<div

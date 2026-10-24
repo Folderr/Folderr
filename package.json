@@ -12,9 +12,9 @@
 		"start": "node --enable-source-maps dist/src/backend/index.js",
 		"setup": "node dist/scripts/setup.js",
 		"dev": "tsx watch --clear-screen=false --ignore \"**vite**\" src/backend/index.ts",
-		"test": "eslint --ext .vue,.ts && node dist/src/backend/index.js",
-		"lint": "eslint --ext .vue,.ts src/ scripts/ vite.config.ts",
-		"lint:fix": "eslint --ext .vue,.ts --fix src/ scripts/ vite.config.ts",
+		"test": "biome check . && node dist/src/backend/index.js",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
 		"typecheck": "tsc --noEmit --skipLibCheck && vue-tsc --noEmit -p src/frontend",
 		"installdev": "npm i -D && husky install"
 	},
@@ -74,7 +74,6 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.6.2",
-		"@eslint/eslintrc": "^2.1.4",
 		"@swc/cli": "^0.6.0",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/connect": "^3.4.38",
@@ -85,17 +84,8 @@
 		"@types/node": "^22.20.5",
 		"@types/nodemailer": "^8.0.2",
 		"@vitejs/plugin-vue": "^6.0.10",
-		"eslint": "^9.20.1",
-		"eslint-config-prettier": "^9.1.0",
-		"eslint-config-xo": "^0.46.0",
-		"eslint-config-xo-typescript": "^6.0.0",
-		"eslint-plugin-optimize-regex": "^1.2.1",
-		"eslint-plugin-prettier": "^5.2.3",
-		"eslint-plugin-unicorn": "^55.0.0",
-		"eslint-plugin-vue": "^9.32.0",
 		"husky": "^6.0.0",
 		"lint-staged": "^11.2.6",
-		"prettier": "^3.5.1",
 		"swc": "^1.0.11",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^5.9.3",
@@ -104,7 +94,6 @@
 		"vue-tsc": "^2.2.2"
 	},
 	"lint-staged": {
-		"*.{ts,vue}": "eslint --ext .vue,.ts --fix",
-		"*.{md,yaml}": "prettier --write"
+		"*.{js,ts,vue,css,json,jsonc,md,yaml,yml}": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
 	}
 }

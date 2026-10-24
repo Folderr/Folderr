@@ -17,7 +17,6 @@ export async function route(fastify: FastifyInstance, core: Core) {
 			tags: ["public"],
 			summary: "Signup for Folderr",
 			description: "A simple endpoint to allow you to sign up to Folderr",
-			/* eslint-disable @typescript-eslint/naming-convention */
 			body: {
 				type: "object",
 				properties: {
@@ -28,7 +27,6 @@ export async function route(fastify: FastifyInstance, core: Core) {
 				required: ["email", "username", "password"],
 			},
 			response: {
-				/* eslint-disable @typescript-eslint/naming-convention */
 				"4xx": {
 					type: "object",
 					properties: {

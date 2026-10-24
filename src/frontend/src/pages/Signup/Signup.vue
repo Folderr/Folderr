@@ -7,22 +7,18 @@
 				id="hero"
 				class="md:ml-32 mt-24 md:mt-20 flex flex-col md:w-[40%] ml-8"
 			>
-				<!-- eslint-disable max-len -->
 				<h1
 					class="text-text text-3xl md:text-5xl font-bold underline decoration-brand underline-offset-4 decoration-6 font-headline"
 				>
-					<!-- eslint-enable max-len -->
 					Folderr
 				</h1>
 				<p class="text-secondary-text text-md my-2 font-info">
 					easy to use and powerful link shortener and file host
 				</p>
-				<!-- eslint-disable max-len -->
 				<a
 					class="flex justify-center content-center my-5 mt-3 md:mt-7 bg-white px-10 py-3 md:py-5 w-max rounded-md font-semibold text-lg"
 					href="https://github.com/Folderr/Folderr"
 				>
-					<!-- eslint-enable max-len -->
 					<Icon
 						:icon="github"
 						color="#131313"
@@ -86,12 +82,10 @@
 					</div>
 				</div>
 			</div>
-			<!-- eslint-disable max-len -->
 			<div
 				id="signup"
 				class="m-auto bg-bg-old rounded-lg border-2 mt-8 md:mt-28 border-bg-old px-14 p-14 content-center justify-center"
 			>
-				<!-- eslint-enable max-len -->
 				<Signup :sne="sne" />
 				<div class="flex mt-2 justify-center w-full font-headline">
 					<p class="text-secondary-text">returning user?</p>

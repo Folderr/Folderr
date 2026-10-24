@@ -103,8 +103,6 @@ onMounted(() => {
   });
 })
 
-// eslint-disable-next-line max-len
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments, @typescript-eslint/no-redundant-type-constituents
 const sne = ref<InstanceType<typeof SuccessesErrors> & {
     addError: (messaage: string, time?: number) => void,
     addSuccess: (message: string, time?: number) => void

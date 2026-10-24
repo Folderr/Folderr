@@ -83,7 +83,6 @@ class Notifs extends Path {
 		}
 
 		// Grab the notifications from the user
-		// eslint-disable-next-line prefer-destructuring
 		let notifs: Notification[] | undefined = auth.notifs;
 		// If the user wants to view admin notifications
 		if (request.query && request.query.admin === true) {

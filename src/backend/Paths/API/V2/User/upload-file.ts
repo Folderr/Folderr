@@ -47,7 +47,6 @@ class Image extends Path {
 		this.options = {
 			schema: {
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -69,7 +68,6 @@ class Image extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{

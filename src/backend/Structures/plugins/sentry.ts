@@ -5,7 +5,6 @@ import fp from "fastify-plugin";
 import * as Sentry from "@sentry/node";
 
 declare module "fastify" {
-	/* eslint-disable @typescript-eslint/consistent-type-definitions */
 	interface FastifyRequest {
 		transaction: Transaction;
 		span?: Span;
@@ -14,7 +13,6 @@ declare module "fastify" {
 	interface FastifyInstance {
 		sentry: typeof Sentry;
 	}
-	/* eslint-enable @typescript-eslint/consistent-type-definitions */
 }
 
 type SentryOptions = {
@@ -45,8 +43,6 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 
 		Sentry.withScope((scope) => {
 			scope.addEventProcessor((event) => {
-				// eslint-disable-next-line max-len
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
 				return Sentry.addRequestDataToEvent(event, request.raw);
 			});
 			Sentry.captureException(error);
@@ -71,11 +67,8 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	fastify.decorateRequest("transaction");
 	fastify.addHook("onRequest", (request, _, done) => {
 		// Configure the scope
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		const scope = Sentry.getCurrentScope() as Sentry.Scope;
 		scope.addEventProcessor((sentryevent) => {
-			// eslint-disable-next-line max-len
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
 			Sentry.addRequestDataToEvent(sentryevent, request.raw);
 			sentryevent.contexts = {
 				...sentryevent.contexts,

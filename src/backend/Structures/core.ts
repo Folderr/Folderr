@@ -76,7 +76,6 @@ ee.on("fail", (code: number) => {
 
 // Since we decorate the fastify instance we need to add that as a type.
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface LogOptions extends pino.LoggerOptions {
 	customLevels: {
 		startup: 35;
@@ -84,7 +83,6 @@ interface LogOptions extends pino.LoggerOptions {
 }
 
 declare module "fastify" {
-	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface FastifyInstance {
 		codes: typeof StatusCodes;
 		got: Got;
@@ -96,9 +94,7 @@ declare module "fastify" {
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const isTSNode =
 	Boolean(process.env.TS_NODE_DEV) || Boolean(process.env.TS_NODE);
 
@@ -131,7 +127,6 @@ export default class Core {
 
 	public readonly codes: typeof StatusCodes;
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public readonly Utils: Utils;
 
 	public readonly got: Got;
@@ -247,7 +242,6 @@ export default class Core {
 			{
 				parseAs: "string",
 			},
-			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
 			(_request, body, done) => done(null, body),
 		);
 	}
@@ -585,10 +579,8 @@ export default class Core {
 
 			void this.app.register(
 				(instance, _options, done) => {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					for (const EndpointType of Object.values(api.endpoints)) {
 						const endpoint = new EndpointType(this);
-						// eslint-disable-next-line prefer-destructuring
 						const label = endpoint.label;
 						if (
 							!endpoint.enabled ||
@@ -731,7 +723,7 @@ export default class Core {
 				continue;
 			}
 
-			const base = endpoint; // eslint-disable-next-line @typescript-eslint/naming-convention
+			const base = endpoint;
 			const ActualEndpoint = endpoints[endpoint];
 			const path = new ActualEndpoint(this);
 			const endpointName =
@@ -758,7 +750,6 @@ export default class Core {
 
 				this.internalInitPath(path);
 
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				this.logger.startup(
 					`Initalized path ${
 						path.label
@@ -768,7 +759,6 @@ export default class Core {
 			}
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		this.logger.startup(`Initalized ${pathCount} paths`);
 		return true;
 	}

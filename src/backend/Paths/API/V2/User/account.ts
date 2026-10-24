@@ -39,7 +39,6 @@ class Account extends Path {
 		this.options = {
 			schema: {
 				response: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					401: {
 						type: "object",
 						properties: {

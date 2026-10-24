@@ -156,7 +156,6 @@ const copied = ref(false);
 const copy = async(text: string): Promise<void> => {
     await navigator.clipboard.writeText(text);
     copied.value = true;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     sne.value?.addSuccess("Copied!", 1000)
 }
 
@@ -181,7 +180,6 @@ const canPreview = computed(() => {
     return false;
 })
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const filePreviewURL = () => {
     if (!file.value) {
         return;
@@ -238,25 +236,21 @@ const upload = async() => {
             const err = uploaded.error instanceof Error ?
                 uploaded.error.message :
                 uploaded.error ?? 'Unknown Upload Error'
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(err);
             console.log(uploaded.response);
         }
     } catch (error) {
         if (typeof error === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error);
             return;
         }
 
         if (error instanceof Error) {
             console.log(error);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             sne.value?.addError(error.message);
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         sne.value?.addError('Unknown Error Occured while uploading your file');
         console.log(error);
         console.log(typeof error);

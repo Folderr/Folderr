@@ -24,7 +24,6 @@ import type { Tokendb } from "../Structures/Database/db-class.js";
 
 const jwtToken = new Schema({
 	id: { type: String, required: true, index: true },
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	userID: { type: String, required: true, index: true },
 	web: { type: Boolean, required: false, default: false },
 	createdAt: { type: Date, default: new Date() },

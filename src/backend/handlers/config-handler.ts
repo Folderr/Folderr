@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import fs, { existsSync } from "fs";
 import process from "process";
 import { join } from "path";
@@ -277,7 +276,6 @@ const configHandler = {
 		};
 	},
 
-	// eslint-disable-next-line complexity
 	verifyEmailer(
 		envEmailConfig: EnvEmailConfig,
 		email?: EmailConfig

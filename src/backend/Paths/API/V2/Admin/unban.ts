@@ -44,7 +44,6 @@ class Unban extends Path {
 					required: ["email"],
 				},
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -59,7 +58,6 @@ class Unban extends Path {
 							code: { type: "number" },
 						},
 					},
-					/* eslint-enable @typescript-eslint/naming-convention */
 				},
 			},
 		};

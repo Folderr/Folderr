@@ -6,7 +6,6 @@ const isOpen = ref(false);
 defineProps<{ active?: string }>();
 </script>
 
-<!-- eslint-disable max-len -->
 <template>
 	<div
 		class="h-full"

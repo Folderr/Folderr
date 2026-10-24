@@ -41,7 +41,6 @@ const userSchema = new Schema({
 		required: false,
 		default: [],
 	},
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	cURLs: { type: Array, default: [] },
 	files: { type: Number, default: 0 },
 	links: { type: Number, default: 0 },

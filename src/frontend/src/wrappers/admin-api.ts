@@ -6,7 +6,6 @@ import {
 	requestHelper,
 } from "../utils/request-helpers.js";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const BASE_URL = "/api/admin/";
 
 type Stats = {
@@ -113,7 +112,6 @@ export async function getVerifyingUsers(): Promise<
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -171,7 +169,6 @@ export async function denyAccount(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -229,7 +226,6 @@ export async function acceptAccount(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -288,7 +284,6 @@ export async function deleteAccount(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -348,7 +343,6 @@ export async function warnUser(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -408,7 +402,6 @@ export async function banUser(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {

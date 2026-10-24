@@ -5,7 +5,6 @@ import {
 	genericCatch,
 } from "../utils/request-helpers.js";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const BASE_URL = "/api/manage/";
 
 export async function promoteUserToAdmin(
@@ -22,7 +21,6 @@ export async function promoteUserToAdmin(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -79,7 +77,6 @@ export async function demoteUserToAdmin(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		console.log(json);

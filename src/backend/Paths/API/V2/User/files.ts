@@ -47,7 +47,6 @@ class Files extends Path {
 					},
 				},
 				response: {
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					"4xx": {
 						type: "object",
 						properties: {
@@ -55,7 +54,6 @@ class Files extends Path {
 							code: { type: "number" },
 						},
 					},
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					200: {
 						type: "object",
 						properties: {

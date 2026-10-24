@@ -60,7 +60,6 @@ export async function requestHelper<T>(
 			return check;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string | any } | undefined =
 			await response.json();
 		if (!json?.code) {
@@ -72,7 +71,7 @@ export async function requestHelper<T>(
 				return {
 					error: undefined,
 					success: true,
-					response, // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+					response,
 					output: json?.message ?? options.altMessage,
 				};
 			}
@@ -268,7 +267,6 @@ export async function badResponseHandler(
 	}
 
 	if (response.status === httpCodes.forbidden) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const json: { code: number; message: string } | undefined =
 			await response.json();
 		return {

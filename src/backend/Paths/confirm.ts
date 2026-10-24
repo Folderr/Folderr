@@ -40,7 +40,6 @@ class ConfirmAcc extends Path {
 		this.options = {
 			schema: {
 				response: {
-					/* eslint-disable @typescript-eslint/naming-convention */
 					"4xx": {
 						type: "object",
 						properties: {
@@ -66,7 +65,6 @@ class ConfirmAcc extends Path {
 			},
 		};
 	}
-	/* eslint-enable @typescript-eslint/naming-convention */
 
 	async execute(
 		request: FastifyRequest<{

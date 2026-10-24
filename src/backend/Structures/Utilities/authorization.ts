@@ -107,7 +107,6 @@ export default class Authorization {
 
 			const verify = await this.#core.db.findToken(
 				result.jti,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				result.id,
 				{
 					web,
@@ -199,7 +198,6 @@ export default class Authorization {
 
 			const verifyDb = await this.#core.db.purgeToken(
 				result.jti,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				result.id,
 				{
 					web,
@@ -266,7 +264,6 @@ export default class Authorization {
 			key: jwt.sign(
 				{
 					url,
-					// eslint-disable-next-line @typescript-eslint/naming-convention
 					mirrorURL,
 				},
 				this.#privKey,
@@ -303,7 +300,6 @@ export default class Authorization {
 		);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private genID(): string {
 		return `${
 			crypto.randomBytes(10).toString("hex") +
