@@ -76,7 +76,7 @@ const signup = async () => {
 	const output = await api.signup(
 		username.value,
 		password.value,
-		email.value
+		email.value,
 	);
 	if (output.error) {
 		// Oh no, login failed.
@@ -270,12 +270,9 @@ const isAllValid = computed(() => {
 			]"
 			@click="signup()"
 		>
-			<UserAddIcon
-				v-if="!loading"
-				class="w-5 my-auto mr-2"
-			/><CheckCircleIcon v-else class="w-5 my-auto mr-2" />{{
-				loading ? "Signing Up" : "Sign Up"
-			}}
+			<UserAddIcon v-if="!loading" class="w-5 my-auto mr-2" />
+			<CheckCircleIcon v-else class="w-5 my-auto mr-2" />
+			{{ loading ? "Signing Up" : "Sign Up" }}
 		</button>
 	</div>
 </template>

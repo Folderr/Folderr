@@ -106,7 +106,7 @@ const verifyAccount = async () => {
 
 	const verification = await sdk.Verification.self.verifySelf(
 		route.params.userid,
-		route.params.token
+		route.params.token,
 	);
 	if (verification.error) {
 		if (verification.error instanceof Error) {

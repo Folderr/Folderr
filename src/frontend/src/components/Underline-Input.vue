@@ -1,8 +1,8 @@
 <template>
 	<input
-        :value="modelValue"
+		:value="modelValue"
 		:disabled="disabled"
-        class="
+		class="
         	block font-input
             focus:outline-hidden border-0
             text-brand
@@ -12,32 +12,36 @@
             hover:border-brand hover:placeholder-text
             focus:placeholder-secondary-text
         "
-        :class="[
-            {
-                'focus:border-brand': correct ?? true,
-                'focus:border-secondary-accent': slightlyIncorrect ?? false,
-                'border-brand-darkened': correct ?? true,
-                'border-secondary-accent-dark': incorrect ?? false,
-                'hover:border-secondary-accent': incorrect ?? false,
-                'text-secondary-accent': incorrect ?? false,
-                'mb-4': bottomMargin,
-                'cursor-wait': disabled ?? false
-            }
-        ]"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-        @keyup.enter="jump"
-    >
+		:class="[
+			{
+				'focus:border-brand': correct ?? true,
+				'focus:border-secondary-accent': slightlyIncorrect ?? false,
+				'border-brand-darkened': correct ?? true,
+				'border-secondary-accent-dark': incorrect ?? false,
+				'hover:border-secondary-accent': incorrect ?? false,
+				'text-secondary-accent': incorrect ?? false,
+				'mb-4': bottomMargin,
+				'cursor-wait': disabled ?? false,
+			},
+		]"
+		@input="
+			$emit(
+				'update:modelValue',
+				($event.target as HTMLInputElement).value,
+			)
+		"
+		@keyup.enter="jump"
+	/>
 </template>
 <script setup lang="ts">
-
 defineProps<{
-	disabled?: boolean
-	bottomMargin: boolean
-	incorrect?: boolean
-	slightlyIncorrect?: boolean
-	correct?: boolean
-	modelValue: string
-	jump?: () => any
-}>()
-defineEmits(['update:modelValue'])
+	disabled?: boolean;
+	bottomMargin: boolean;
+	incorrect?: boolean;
+	slightlyIncorrect?: boolean;
+	correct?: boolean;
+	modelValue: string;
+	jump?: () => any;
+}>();
+defineEmits(["update:modelValue"]);
 </script>

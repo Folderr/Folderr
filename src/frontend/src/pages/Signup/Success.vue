@@ -84,8 +84,8 @@
 				class="text-text text-2xl max-w-prose w-fit mx-auto mt-2"
 			>
 				Please
-				<span class="text-brand-darkened">check your email</span> to
-				continue signing up
+				<span class="text-brand-darkened">check your email</span>
+				to continue signing up
 			</h2>
 			<h3
 				v-if="signupType === 'Email'"

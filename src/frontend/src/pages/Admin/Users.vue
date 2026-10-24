@@ -245,7 +245,8 @@
 									:key="option"
 									:value="option"
 									class="mt-1 text-secondary-text hover:text-text"
-									>{{ option }} Management</ListboxOption
+									>{{ option }}
+									Management</ListboxOption
 								>
 							</ListboxOptions>
 						</Listbox>

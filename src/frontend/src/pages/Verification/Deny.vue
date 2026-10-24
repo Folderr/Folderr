@@ -103,7 +103,7 @@ const verifyAccount = async () => {
 
 	const denial = await sdk.Verification.self.denySelf(
 		route.params.userid,
-		route.params.token
+		route.params.token,
 	);
 	if (denial.error) {
 		if (denial.error instanceof Error) {
