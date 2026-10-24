@@ -1,228 +1,290 @@
 <template>
-	<div v-if="loading">
-		<div class="bg-bg h-screen flex flex-col ">
-			<FNavbar />
-			<div
-				id="hero"
-				class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow"
-			>
-				<h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
-			</div>
+	<div v-if="loading" class="bg-bg min-h-screen flex flex-col">
+		<NavbarAuthenticated v-if="username" :username="username" :admin="admin" />
+		<FNavbar v-else />
+		<div class="m-auto text-center py-24 grow flex flex-col items-center justify-center">
+			<Spinner />
+			<h2 class="text-secondary-text text-xl mt-4 font-medium">Loading Folderr...</h2>
 		</div>
 		<FFooter />
 	</div>
-	<div v-if="username">
-		<div class="bg-bg grow flex flex-col min-h-screen">
-			<NavbarAuthenticated :username="username" :admin="admin" />
-			<SuccessesErrors ref="sne" />
-			<div
-				id="hero"
-				:class="[
-					'm-auto',
-					'text-center',
-					'w-full',
-					'mb-10',
-					{
-						'mt-10': canPreview,
-					},
-				]"
-			>
-				<h1 class="text-secondary-text text-3xl mb-8">Upload a File</h1>
-				<h1 v-if="file" class="text-brand text-xl mb-8">
-					File: {{ file.name }}
-				</h1>
-				<div
-					v-if="canPreview"
-					class="p-1  m-auto mb-8
-                        bg-tertiary-bg
-                        border-4 border-tertiary-bg text-center max-w-xl w-max"
-				>
-					<img
-						v-if="file?.type.startsWith('image')"
-						alt="Preview of the file to upload"
-						class="m-auto"
-						:src="filePreview"
-					/>
-					<!-- biome-ignore lint/a11y/useMediaCaption: previews the file the user is about to upload, which has no caption track -->
-					<video
-						v-if="file?.type.startsWith('video')"
-						:src="filePreview"
-						controls
-						class="m-auto"
-					>
-						<source :src="filePreview" :type="file?.type" />
-						Your browser can't play this video :(
-						<br />No preview for you
-					</video>
-					<!-- biome-ignore lint/a11y/useMediaCaption: previews the file the user is about to upload, which has no caption track -->
-					<audio
-						v-if="file?.type.startsWith('audio')"
-						controls
-						class="m-auto "
-						:src="filePreview"
-						:type="file?.type"
-					>
-						Your browser does not support this audio format :(
-					</audio>
+
+	<div v-else-if="username" class="bg-bg min-h-screen flex flex-col text-text">
+		<NavbarAuthenticated :username="username" :admin="admin" />
+		<SuccessesErrors ref="sne" />
+
+		<main class="container mx-auto px-4 py-8 grow flex flex-col max-w-5xl">
+			<!-- Page Header -->
+			<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+				<div>
+					<h1 class="text-3xl font-extrabold text-brand tracking-tight flex items-center gap-3">
+						<UploadIcon class="w-8 h-8 text-brand inline-block" />
+						Upload File
+					</h1>
+					<p class="text-secondary-text text-sm mt-1">
+						Upload images, videos, audio, and documents to your Folderr instance
+					</p>
 				</div>
+
+				<div class="flex items-center gap-3">
+					<router-link
+						to="/gallery"
+						class="flex items-center gap-2 px-4 py-2 rounded-lg bg-tertiary-bg hover:bg-[#383838] text-secondary-text hover:text-text border border-[#3c3c3c] text-sm transition font-medium"
+					>
+						<PhotographIcon class="w-4 h-4" />
+						<span>View Gallery</span>
+					</router-link>
+				</div>
+			</div>
+
+			<!-- Upload Card Container -->
+			<div class="bg-tertiary-bg/70 border border-[#383838] rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col gap-6">
+				<!-- Hidden File Input -->
 				<input
 					ref="fileInput"
 					type="file"
-					hidden="true"
-					label="File upload input box, hidden from view"
+					class="hidden"
+					aria-label="Upload file input"
 					@input="pickFile"
 				/>
+
+				<!-- Drag & Drop Zone (when no file selected yet) -->
+				<div
+					v-if="!file"
+					@dragover.prevent="isDragging = true"
+					@dragleave.prevent="isDragging = false"
+					@drop.prevent="onDrop"
+					@click="startSelection"
+					:class="[
+						'border-2 border-dashed rounded-xl p-10 sm:p-14 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center',
+						isDragging
+							? 'border-brand bg-brand/10 scale-[1.01]'
+							: 'border-[#444] hover:border-brand/70 bg-[#202020]/50 hover:bg-[#202020]'
+					]"
+				>
+					<div class="w-16 h-16 rounded-2xl bg-brand/10 border border-brand/20 text-brand flex items-center justify-center mb-4 shadow-inner">
+						<CloudUploadIcon class="w-8 h-8" />
+					</div>
+					<h3 class="text-lg font-bold text-text mb-1">
+						{{ isDragging ? "Drop your file to upload" : "Click to browse or drag and drop" }}
+					</h3>
+					<p class="text-secondary-text text-xs sm:text-sm max-w-sm mb-5">
+						Supports photos, videos, audio, and documents up to 10GB.
+					</p>
+					<button
+						type="button"
+						class="px-5 py-2.5 rounded-lg bg-brand hover:bg-brand-darkened text-bg font-bold text-sm shadow-md transition flex items-center gap-2"
+						@click.stop="startSelection"
+					>
+						<DocumentAddIcon class="w-4 h-4" />
+						<span>Select File</span>
+					</button>
+				</div>
+
+				<!-- Selected File Preview & Confirmation -->
+				<div v-else class="flex flex-col gap-6">
+					<!-- File Info Banner -->
+					<div class="bg-[#1c1c1c] border border-[#333] rounded-xl p-4 flex items-center justify-between gap-4">
+						<div class="flex items-center gap-3 overflow-hidden">
+							<div class="w-10 h-10 rounded-lg bg-brand/15 text-brand flex items-center justify-center flex-shrink-0">
+								<component :is="getFileTypeIcon()" class="w-6 h-6" />
+							</div>
+							<div class="overflow-hidden">
+								<p class="font-bold text-sm text-text truncate font-mono">{{ file.name }}</p>
+								<p class="text-xs text-secondary-text">{{ formatFileSize(file.size) }} • {{ file.type || "Unknown type" }}</p>
+							</div>
+						</div>
+						<button
+							@click="cancelFile"
+							class="p-2 text-secondary-text hover:text-red-400 hover:bg-white/5 rounded-lg transition"
+							title="Remove file"
+						>
+							<XIcon class="w-5 h-5" />
+						</button>
+					</div>
+
+					<!-- Visual Media Preview (Images, Videos, Audio) -->
+					<div v-if="canPreview" class="bg-[#161616] border border-[#2d2d2d] rounded-xl p-4 flex items-center justify-center max-h-[420px] overflow-hidden">
+						<img
+							v-if="file?.type.startsWith('image')"
+							:src="filePreview"
+							alt="Preview"
+							class="max-h-[380px] max-w-full rounded-lg object-contain shadow"
+						/>
+						<video
+							v-else-if="file?.type.startsWith('video')"
+							:src="filePreview"
+							controls
+							class="max-h-[380px] max-w-full rounded-lg shadow"
+						>
+							Your browser cannot play this video preview.
+						</video>
+						<audio
+							v-else-if="file?.type.startsWith('audio')"
+							:src="filePreview"
+							controls
+							class="w-full max-w-md my-4"
+						>
+							Your browser does not support audio playback.
+						</audio>
+					</div>
+
+					<!-- Upload Action Controls -->
+					<div class="flex items-center justify-end gap-3 pt-2">
+						<button
+							type="button"
+							@click="cancelFile"
+							:disabled="uploading"
+							class="px-5 py-2.5 rounded-lg bg-transparent hover:bg-[#333] text-secondary-text hover:text-text border border-[#3c3c3c] text-sm font-semibold transition"
+						>
+							Choose Different File
+						</button>
+						<button
+							type="button"
+							@click="upload"
+							:disabled="uploading"
+							class="px-6 py-2.5 rounded-lg bg-brand hover:bg-brand-darkened text-bg font-bold text-sm shadow-lg transition flex items-center gap-2 active:scale-95 disabled:opacity-50"
+						>
+							<Spinner v-if="uploading" class="w-4 h-4" />
+							<UploadIcon v-else class="w-4 h-4" />
+							<span>{{ uploading ? "Uploading..." : "Upload Now" }}</span>
+						</button>
+					</div>
+				</div>
+
+				<!-- Upload Success Result Box -->
 				<div
 					v-if="link"
-					class="
-                        flex justify-center shrink
-                        items-center bg-tertiary-bg
-                        mx-auto w-min p-2 mb-8
-                        border-2 rounded-lg
-                        border-tertiary-bg text-brand
-                    "
+					class="mt-2 bg-[#1b2b20] border border-brand/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in"
 				>
-					{{ link }}
-					<button
-						type="button"
-						v-if="link"
-						class="ml-4 text-brand p-2 px-4"
-						@click="copy(link)"
-					>
-						<ClipboardCopyIcon
-							v-if="!copied"
-							class="h-5 w-5 text-brand-darkened hover:text-brand"
-							aria-hidden="true"
-						/>
-						<ClipboardCheckIcon
-							v-if="copied"
-							class="h-5 w-5 text-brand-darkened hover:text-brand"
-							aria-hidden="true"
-						/>
-					</button>
-					<button
-						type="button"
-						v-if="link"
-						class="text-brand pr-4"
-						@click="link = ''"
-					>
-						<XIcon
-							class="text-brand hover:text-brand h-5 w-5"
-							aria-hidden="true"
-						/>
-					</button>
-				</div>
-				<div class="flex justify-center">
-					<FButton
-						:on-click="startSelection"
-						buttontitle="Pick a File to Upload"
-						class="px-4 p-2"
-						>Pick a file</FButton
-					>
-					<FButton
-						v-if="file"
-						:on-click="upload"
-						buttontitle="Shorten the Link!"
-						class="p-2 ml-4"
-						>Upload!</FButton
-					>
+					<div class="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+						<div class="w-9 h-9 rounded-full bg-brand/20 text-brand flex items-center justify-center flex-shrink-0">
+							<CheckCircleIcon class="w-5 h-5" />
+						</div>
+						<div class="overflow-hidden">
+							<p class="text-xs font-semibold text-brand">Uploaded Successfully!</p>
+							<a
+								:href="link"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-sm font-mono text-text hover:underline truncate block"
+							>
+								{{ link }}
+							</a>
+						</div>
+					</div>
+
+					<div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
+						<button
+							@click="copy(link)"
+							class="px-3.5 py-1.5 rounded-lg bg-brand/20 hover:bg-brand hover:text-bg text-brand font-bold text-xs transition flex items-center gap-1.5"
+						>
+							<ClipboardCheckIcon v-if="copied" class="w-4 h-4" />
+							<ClipboardCopyIcon v-else class="w-4 h-4" />
+							<span>{{ copied ? "Copied!" : "Copy URL" }}</span>
+						</button>
+						<a
+							:href="link"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="p-1.5 rounded-lg bg-[#243328] hover:bg-[#2c4032] text-brand transition"
+							title="Open in new tab"
+						>
+							<ExternalLinkIcon class="w-4 h-4" />
+						</a>
+						<button
+							@click="link = ''"
+							class="p-1.5 rounded-lg hover:bg-white/10 text-secondary-text hover:text-text transition"
+							title="Dismiss"
+						>
+							<XIcon class="w-4 h-4" />
+						</button>
+					</div>
 				</div>
 			</div>
-			<FFooter />
-		</div>
+		</main>
+
+		<FFooter />
 	</div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed } from "vue";
+import { useUserStore } from "../stores/user.js";
+import { useRouter } from "vue-router";
+import NavbarAuthenticated from "../components/Navbar-Authenticated.vue";
+import FNavbar from "../components/Navbar.vue";
+import FFooter from "../components/Footer.vue";
+import Spinner from "../components/Spinner.vue";
+import SuccessesErrors from "../components/Success-N-Error.vue";
+import * as api from "../wrappers/api.js";
 import {
-	ClipboardCheckIcon,
+	UploadIcon,
+	PhotographIcon,
+	VideoCameraIcon,
+	DocumentIcon,
+	DocumentAddIcon,
+	CloudUploadIcon,
 	ClipboardCopyIcon,
+	ClipboardCheckIcon,
+	ExternalLinkIcon,
+	CheckCircleIcon,
 	XIcon,
 } from "@heroicons/vue/solid";
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import SuccessesErrors from "../components/Success-N-Error.vue";
-import { useUserStore } from "../stores/user.js";
-import * as api from "../wrappers/api.js";
 
-// Setup store & router
 const store = useUserStore();
 const router = useRouter();
 
-// Setup components
-const sne = ref();
+const sne = ref<InstanceType<typeof SuccessesErrors> & {
+	addError: (msg: string, time?: number) => void;
+	addSuccess: (msg: string, time?: number) => void;
+}>();
 
-// Setup loading & user
 const loading = ref(true);
+const uploading = ref(false);
 const username = ref("");
 const admin = ref(false);
-
-// Setup component
-
-onMounted(async () => {
-	if (store.username) {
-		username.value = store.username;
-		loading.value = false;
-		admin.value = store.admin;
-		return;
-	}
-
-	await store.loadUser();
-	if (!store.username) {
-		return router.push("/404");
-	}
-
-	username.value = store.username;
-	loading.value = false;
-	admin.value = store.admin;
-});
-
-const copied = ref(false);
-
-// A small copy function to copy links
-const copy = async (text: string): Promise<void> => {
-	await navigator.clipboard.writeText(text);
-	copied.value = true;
-	sne.value?.addSuccess("Copied!", 1000);
-};
-
-// File stuff
+const isDragging = ref(false);
 
 const file = ref<File>();
 const filePreview = ref<string | undefined>("");
-const audioPreview = ref();
 const link = ref("");
+const copied = ref(false);
+const fileInput = ref<HTMLInputElement>();
 
 const canPreview = computed(() => {
-	console.log(file.value?.type);
-	if (
-		file.value &&
-		(file.value.type.startsWith("image") ||
-			file.value.type.startsWith("video") ||
-			file.value.type.startsWith("audio"))
-	) {
-		return true;
-	}
-
-	return false;
+	if (!file.value) return false;
+	const t = file.value.type;
+	return t.startsWith("image") || t.startsWith("video") || t.startsWith("audio");
 });
 
-const filePreviewURL = () => {
-	if (!file.value) {
-		return;
-	}
-
-	const previewer = new FileReader();
-	previewer.onload = (file) => {
-		filePreview.value = file.target?.result?.toString();
-		if (file.type.startsWith("audio")) {
-			audioPreview.value = file.target?.result;
-		}
-	};
-	previewer.readAsDataURL(file.value);
+const getFileTypeIcon = () => {
+	if (!file.value) return DocumentIcon;
+	if (file.value.type.startsWith("image")) return PhotographIcon;
+	if (file.value.type.startsWith("video")) return VideoCameraIcon;
+	return DocumentIcon;
 };
 
-const fileInput = ref<HTMLInputElement>();
+const formatFileSize = (bytes?: number): string => {
+	if (!bytes) return "0 B";
+	const units = ["B", "KB", "MB", "GB"];
+	let i = 0;
+	let val = bytes;
+	while (val >= 1024 && i < units.length - 1) {
+		val /= 1024;
+		i++;
+	}
+	return `${val.toFixed(1)} ${units[i]}`;
+};
+
+const filePreviewURL = () => {
+	if (!file.value) return;
+	const reader = new FileReader();
+	reader.onload = (e) => {
+		filePreview.value = e.target?.result?.toString();
+	};
+	reader.readAsDataURL(file.value);
+};
 
 const startSelection = () => {
 	fileInput.value?.click();
@@ -236,57 +298,77 @@ const pickFile = () => {
 	}
 };
 
-// Upload the file time!
+const onDrop = (e: DragEvent) => {
+	isDragging.value = false;
+	const files = e.dataTransfer?.files;
+	if (files?.[0]) {
+		file.value = files[0];
+		filePreviewURL();
+	}
+};
+
+const cancelFile = () => {
+	file.value = undefined;
+	filePreview.value = undefined;
+	if (fileInput.value) fileInput.value.value = "";
+};
+
+const copy = async (text: string): Promise<void> => {
+	try {
+		await navigator.clipboard.writeText(text);
+		copied.value = true;
+		sne.value?.addSuccess("Link copied to clipboard!", 2000);
+		setTimeout(() => {
+			copied.value = false;
+		}, 3000);
+	} catch {
+		sne.value?.addError("Failed to copy link", 2000);
+	}
+};
 
 const upload = async () => {
-	if (!file.value) {
-		return;
-	}
+	if (!file.value || uploading.value) return;
+	uploading.value = true;
 
 	const form = new FormData();
 	form.append("file", file.value);
 
 	try {
 		const uploaded = await api.uploadFile(form);
-
 		if (uploaded.success && uploaded.output) {
 			link.value = uploaded.output;
-			file.value = undefined;
-			filePreview.value = undefined;
-			if (fileInput.value) {
-				fileInput.value.value = "";
-			}
-
+			cancelFile();
 			await copy(link.value);
+			sne.value?.addSuccess("File uploaded successfully!", 3000);
 		} else {
-			const err =
-				uploaded.error instanceof Error
-					? uploaded.error.message
-					: (uploaded.error ?? "Unknown Upload Error");
-			sne.value?.addError(err);
-			console.log(uploaded.response);
+			const err = uploaded.error instanceof Error
+				? uploaded.error.message
+				: uploaded.error ?? "Upload failed";
+			sne.value?.addError(err, 3000);
 		}
-	} catch (error) {
-		if (typeof error === "string") {
-			sne.value?.addError(error);
-			return;
-		}
-
-		if (error instanceof Error) {
-			console.log(error);
-			sne.value?.addError(error.message);
-			return;
-		}
-
-		sne.value?.addError("Unknown Error Occured while uploading your file");
-		console.log(error);
-		console.log(typeof error);
+	} catch (error: unknown) {
+		const msg = error instanceof Error ? error.message : "Unexpected upload error";
+		sne.value?.addError(msg, 3000);
+	} finally {
+		uploading.value = false;
 	}
 };
-</script>
 
-<style>
-.active {
-	background-color: #282828;
-}
-</style>
+onMounted(async () => {
+	if (store.username) {
+		username.value = store.username;
+		admin.value = store.admin;
+		loading.value = false;
+		return;
+	}
+
+	await store.loadUser();
+	if (!store.username) {
+		return router.push("/404");
+	}
+
+	username.value = store.username;
+	admin.value = store.admin;
+	loading.value = false;
+});
+</script>

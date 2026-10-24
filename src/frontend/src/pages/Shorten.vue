@@ -1,135 +1,255 @@
 <template>
-	<div v-if="loading">
-		<div class="bg-bg h-screen flex flex-col ">
-			<FNavbar />
-			<div
-				id="hero"
-				class="m-auto text-center pt-20 md:pt-48 lg:pt-64 3xl:pt-96 w-full h-4/5 grow"
-			>
-				<h1 class="text-secondary-text text-3xl mb-8">Loading...</h1>
-			</div>
+	<div v-if="loading" class="bg-bg min-h-screen flex flex-col">
+		<NavbarAuthenticated v-if="username" :username="username" :admin="admin" />
+		<FNavbar v-else />
+		<div class="m-auto text-center py-24 grow flex flex-col items-center justify-center">
+			<Spinner />
+			<h2 class="text-secondary-text text-xl mt-4 font-medium">Loading Folderr...</h2>
 		</div>
 		<FFooter />
 	</div>
-	<div v-if="username">
-		<div class="bg-bg grow flex flex-col min-h-screen">
-			<NavbarAuthenticated />
-			<SuccessesErrors ref="sne" />
-			<div
-				id="hero"
-				:class="['m-auto', 'text-center', 'w-full', 'mb-10']"
-			>
-				<h1 class="text-secondary-text text-3xl mb-8">Shorten a URL</h1>
-				<input
-					required
-					type="url"
-					placeholder="Shorten a link!"
-					v-model="link"
-					class="border-0 mt-2 mb-4 bg-tertiary-bg text-text p-4 w-[200px] xl:w-2/5 placeholder-secondary-text focus:ring-3 focus:outline-hidden rounded-lg max-w-lg"
-					:class="[
-						{
-							'focus:ring-brand': isLinkValid,
-							'focus:ring-secondary-accent': !isLinkValid,
-						},
-					]"
-					@keyup.enter="
-						() => (isLinkValid ? shortenBtn?.click() : false)
-					"
-					ref="linkBox"
-				/>
-				<FButton
-					:on-click="shorten"
-					buttontitle="Shorten the Link!"
-					:button-disabled="!isLinkValid"
-					class="p-4 ml-2"
-					:color-disabled="!isLinkValid"
-					>Shorten It!</FButton
-				>
-				<div
-					v-if="shortenedLink"
-					class="flex justify-center shrink items-center bg-tertiary-bg mx-auto w-auto max-w-lg sm:max-w-sm p-2 mb-8 border-2 rounded-lg border-tertiary-bg text-brand"
-				>
-					{{ shortenedLink }}
-					<button
-						type="button"
-						ref="copyButton"
-						v-if="shortenedLink"
-						@click="copy(shortenedLink)"
-						class="ml-4 text-brand p-2 px-4 focus:outline-hidden focus:ring-3 focus:ring-brand rounded-sm"
+
+	<div v-else-if="username" class="bg-bg min-h-screen flex flex-col text-text">
+		<NavbarAuthenticated :username="username" :admin="admin" />
+		<SuccessesErrors ref="sne" />
+
+		<main class="container mx-auto px-4 py-8 grow flex flex-col max-w-5xl">
+			<!-- Page Header -->
+			<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+				<div>
+					<h1 class="text-3xl font-extrabold text-brand tracking-tight flex items-center gap-3">
+						<LinkIcon class="w-8 h-8 text-brand inline-block" />
+						Shorten Link
+					</h1>
+					<p class="text-secondary-text text-sm mt-1">
+						Generate fast, secure, and trackable shortened URLs instantly
+					</p>
+				</div>
+
+				<div class="flex items-center gap-3">
+					<router-link
+						to="/upload"
+						class="flex items-center gap-2 px-4 py-2 rounded-lg bg-tertiary-bg hover:bg-[#383838] text-secondary-text hover:text-text border border-[#3c3c3c] text-sm transition font-medium"
 					>
-						<ClipboardCopyIcon
-							v-if="!copied"
-							class="h-5 w-5 text-brand-darkened hover:text-brand"
-							aria-hidden="true"
-						/>
-						<ClipboardCheckIcon
-							v-if="copied"
-							class="h-5 w-5 text-brand-darkened hover:text-brand"
-							aria-hidden="true"
-						/>
-					</button>
-					<button
-						type="button"
-						@click="
-							() => {
-								shortenedLink = '';
-							}
-						"
-						class="bg-none border-none text-brand p-2"
+						<UploadIcon class="w-4 h-4" />
+						<span>Upload File</span>
+					</router-link>
+					<router-link
+						to="/gallery"
+						class="flex items-center gap-2 px-4 py-2 rounded-lg bg-tertiary-bg hover:bg-[#383838] text-secondary-text hover:text-text border border-[#3c3c3c] text-sm transition font-medium"
 					>
-						<XIcon
-							class="h-5 w-5 text-brand-darkened hover:text-brand"
-						/>
-					</button>
+						<PhotographIcon class="w-4 h-4" />
+						<span>View Gallery</span>
+					</router-link>
 				</div>
 			</div>
-			<FFooter />
-		</div>
+
+			<!-- Main Shortener Card -->
+			<div class="bg-tertiary-bg/70 border border-[#383838] rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col gap-6">
+				<form @submit.prevent="shorten" class="flex flex-col gap-4">
+					<label for="url-input" class="text-sm font-semibold text-secondary-text flex items-center gap-2">
+						<span>Target Destination URL</span>
+					</label>
+
+					<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+						<div class="relative grow">
+							<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-secondary-text">
+								<GlobeAltIcon class="w-5 h-5" />
+							</div>
+							<input
+								id="url-input"
+								ref="linkBox"
+								v-model="link"
+								type="url"
+								placeholder="https://example.com/very/long/destination/url"
+								required
+								:class="[
+									'w-full bg-[#181818] border rounded-xl pl-11 pr-10 py-3 text-sm text-text placeholder-secondary-text/60 focus:outline-none transition',
+									link && !isLinkValid
+										? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+										: 'border-[#383838] focus:border-brand focus:ring-1 focus:ring-brand'
+								]"
+							/>
+							<button
+								v-if="link"
+								type="button"
+								@click="link = ''"
+								class="absolute inset-y-0 right-0 pr-3 flex items-center text-secondary-text hover:text-text"
+							>
+								<XIcon class="w-4 h-4" />
+							</button>
+						</div>
+
+						<button
+							type="submit"
+							:disabled="!isLinkValid || isShortening"
+							class="px-7 py-3 rounded-xl bg-brand hover:bg-brand-darkened text-bg font-bold text-sm shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex-shrink-0"
+						>
+							<Spinner v-if="isShortening" class="w-4 h-4" />
+							<LinkIcon v-else class="w-4 h-4" />
+							<span>{{ isShortening ? "Shortening..." : "Shorten URL" }}</span>
+						</button>
+					</div>
+
+					<p v-if="link && !isLinkValid" class="text-xs text-red-400 pl-1">
+						Please enter a valid URL beginning with http:// or https://
+					</p>
+				</form>
+
+				<!-- Success Result Display -->
+				<div
+					v-if="shortenedLink"
+					class="mt-2 bg-[#1b2b20] border border-brand/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in"
+				>
+					<div class="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+						<div class="w-9 h-9 rounded-full bg-brand/20 text-brand flex items-center justify-center flex-shrink-0">
+							<CheckCircleIcon class="w-5 h-5" />
+						</div>
+						<div class="overflow-hidden">
+							<p class="text-xs font-semibold text-brand">Short Link Ready!</p>
+							<a
+								:href="shortenedLink"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-sm font-mono text-text hover:underline truncate block"
+							>
+								{{ shortenedLink }}
+							</a>
+						</div>
+					</div>
+
+					<div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
+						<button
+							@click="copy(shortenedLink)"
+							class="px-3.5 py-1.5 rounded-lg bg-brand/20 hover:bg-brand hover:text-bg text-brand font-bold text-xs transition flex items-center gap-1.5"
+						>
+							<ClipboardCheckIcon v-if="copied" class="w-4 h-4" />
+							<ClipboardCopyIcon v-else class="w-4 h-4" />
+							<span>{{ copied ? "Copied!" : "Copy Short URL" }}</span>
+						</button>
+						<a
+							:href="shortenedLink"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="p-1.5 rounded-lg bg-[#243328] hover:bg-[#2c4032] text-brand transition"
+							title="Test link in new tab"
+						>
+							<ExternalLinkIcon class="w-4 h-4" />
+						</a>
+						<button
+							@click="shortenedLink = ''"
+							class="p-1.5 rounded-lg hover:bg-white/10 text-secondary-text hover:text-text transition"
+							title="Dismiss"
+						>
+							<XIcon class="w-4 h-4" />
+						</button>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<FFooter />
 	</div>
 </template>
 
-<style>
-.active {
-	background-color: #282828;
-}
-</style>
 <script setup lang="ts">
+import { ref, onMounted, computed } from "vue";
+import { useUserStore } from "../stores/user.js";
+import { useRouter } from "vue-router";
+import NavbarAuthenticated from "../components/Navbar-Authenticated.vue";
+import FNavbar from "../components/Navbar.vue";
+import FFooter from "../components/Footer.vue";
+import Spinner from "../components/Spinner.vue";
+import SuccessesErrors from "../components/Success-N-Error.vue";
+import * as api from "../wrappers/api.js";
 import {
-	ClipboardCheckIcon,
+	LinkIcon,
+	GlobeAltIcon,
+	UploadIcon,
+	PhotographIcon,
 	ClipboardCopyIcon,
+	ClipboardCheckIcon,
+	ExternalLinkIcon,
+	CheckCircleIcon,
 	XIcon,
 } from "@heroicons/vue/solid";
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import SuccessesErrors from "../components/Success-N-Error.vue";
-import { useUserStore } from "../stores/user.js";
-import * as api from "../wrappers/api.js";
 
-// Setup store & router
 const store = useUserStore();
 const router = useRouter();
 
-// Setup components
-const sne = ref<
-	InstanceType<typeof SuccessesErrors> & {
-		addError: (messaage: string, time?: number) => void;
-		addSuccess: (message: string, time?: number) => void;
-	}
->();
-const shortenBtn = ref<HTMLButtonElement>();
+const sne = ref<InstanceType<typeof SuccessesErrors> & {
+	addError: (msg: string, time?: number) => void;
+	addSuccess: (msg: string, time?: number) => void;
+}>();
 
-// Setup loading & user
 const loading = ref(true);
+const isShortening = ref(false);
 const username = ref("");
 const admin = ref(false);
 
-// Setup component
+const link = ref("");
+const shortenedLink = ref("");
+const copied = ref(false);
+const linkBox = ref<HTMLInputElement>();
+
+const isLinkValid = computed(() => {
+	if (!link.value.trim()) return false;
+	try {
+		const u = new URL(link.value.trim());
+		return u.protocol === "http:" || u.protocol === "https:";
+	} catch {
+		return false;
+	}
+});
+
+const copy = async (text: string): Promise<void> => {
+	try {
+		await navigator.clipboard.writeText(text);
+		copied.value = true;
+		sne.value?.addSuccess("Short link copied to clipboard!", 2000);
+		setTimeout(() => {
+			copied.value = false;
+		}, 3000);
+	} catch {
+		sne.value?.addError("Unable to copy to clipboard", 2000);
+	}
+};
+
+const shorten = async () => {
+	if (!isLinkValid.value || isShortening.value) {
+		sne.value?.addError("Please enter a valid URL (e.g. https://example.com)", 2000);
+		return;
+	}
+
+	isShortening.value = true;
+
+	try {
+		const shortened = await api.shortenLink(new URL(link.value.trim()));
+		if (shortened.success && shortened.output) {
+			shortenedLink.value = shortened.output;
+			link.value = "";
+			await copy(shortened.output);
+			sne.value?.addSuccess("Link shortened successfully!", 2500);
+			linkBox.value?.blur();
+		} else {
+			const err = shortened.error instanceof Error
+				? shortened.error.message
+				: shortened.error ?? "Failed to shorten URL";
+			sne.value?.addError(err, 3000);
+		}
+	} catch (error: unknown) {
+		const msg = error instanceof Error ? error.message : "Unexpected error shortening URL";
+		sne.value?.addError(msg, 3000);
+	} finally {
+		isShortening.value = false;
+	}
+};
 
 onMounted(async () => {
 	if (store.username) {
 		username.value = store.username;
-		loading.value = false;
 		admin.value = store.admin;
+		loading.value = false;
 		return;
 	}
 
@@ -137,78 +257,9 @@ onMounted(async () => {
 	if (!store.username) {
 		return router.push("/404");
 	}
+
 	username.value = store.username;
-	loading.value = false;
 	admin.value = store.admin;
+	loading.value = false;
 });
-
-const copied = ref(false);
-
-// A small copy function to copy links
-const copy = async (text: string): Promise<void> => {
-	await navigator.clipboard.writeText(text);
-	copied.value = true;
-	sne.value?.addSuccess("Copied!", 1000);
-};
-
-// Time to shorten those links!
-const link = ref("");
-const shortenedLink = ref("");
-const linkBox = ref<HTMLInputElement>();
-
-const isLinkValid = computed(() => {
-	if (!link.value) {
-		return false;
-	}
-
-	try {
-		new URL(link.value);
-		return true;
-	} catch (_) {
-		return false;
-	}
-});
-
-const shorten = async () => {
-	if (!isLinkValid.value) {
-		sne.value?.addError("Link is a not a valid url!", 1000);
-		return false;
-	}
-
-	try {
-		const shortened = await api.shortenLink(new URL(link.value));
-
-		if (shortened.success && shortened.output) {
-			shortenedLink.value = shortened.output;
-			link.value = "";
-			copy(shortened.output);
-			linkBox.value?.blur();
-		} else {
-			const err =
-				shortened.error instanceof Error
-					? shortened.error.message
-					: shortened.error || "Unknown Error";
-			sne.value?.addError(err, 5000);
-			console.log(shortened.response);
-		}
-	} catch (error) {
-		if (typeof error === "string") {
-			sne.value?.addError(error, 5000);
-			return;
-		}
-
-		if (error instanceof Error) {
-			console.log(error);
-			sne.value?.addError(error.message, 5000);
-			return;
-		}
-		sne.value?.addError(
-			"Unknown Error Occured while shortening the url",
-			5000,
-		);
-		console.log(error);
-		console.log(typeof error);
-		return;
-	}
-};
 </script>
