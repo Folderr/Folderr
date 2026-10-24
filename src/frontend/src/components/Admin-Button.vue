@@ -8,24 +8,19 @@ defineProps<{
 </script>
 <template>
 	<button
-		type="button"
 		:title="buttonTitle"
 		:disabled="buttonDisabled"
 		:class="[
 			{
-				'text-secondary-bg hover:cursor-not-allowed bg-disabled border-disabled':
+				'text-secondary-text hover:cursor-not-allowed bg-disabled opacity-60':
 					buttonDisabled,
-				'hover:border-brand-darkened hover:bg-brand-darkened bg-brand border-brand':
-					(!type || type !== 'red') && !buttonDisabled,
-				'text-text hover:bg-secondary-accent hover:border-secondary-accent':
+				'hover:bg-brand-darkened bg-brand text-bg font-bold shadow-sm':
+					(!type || type != 'red') && !buttonDisabled,
+				'text-white hover:bg-red-700 bg-red-600 shadow-sm':
 					type && type === 'red' && !buttonDisabled,
-				'bg-secondary-accent-dark border-secondary-accent-dark':
-					type && type === 'red' && !buttonDisabled,
-				'text-secondary-bg':
-					(!type || type !== 'red') && !buttonDisabled,
 			},
 		]"
-		class="px-2 rounded-sm p-1 border-2 font-semibold"
+		class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 active:scale-95"
 		@click="onClick"
 	>
 		<slot></slot>
