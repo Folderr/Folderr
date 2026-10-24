@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import github from "@iconify/icons-codicon/github-inverted";
+import github from "@iconify-icons/codicon/github-inverted";
 import { ref, onMounted } from "vue";
 import SuccessesErrors from "../../components/Success-N-Error.vue";
 import Signup from "../../components/Signup.vue";
