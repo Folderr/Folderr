@@ -17,6 +17,7 @@ const redirToSignup: RouteRecordName[] = [
 	"Account",
 	"Upload File",
 	"Shorten Link",
+	"Gallery",
 ];
 
 const routes: RouteRecordRaw[] = [
@@ -42,6 +43,12 @@ const routes: RouteRecordRaw[] = [
 		path: "/account/farewell",
 		component: () => import("./pages/Account/Farewell.vue"),
 		name: "farewell",
+	},
+	{
+		path: "/gallery",
+		component: () => import("./pages/Gallery.vue"),
+		name: redirToSignup[5],
+		beforeEnter: userGuards.authGuard,
 	},
 	{
 		path: "/upload",

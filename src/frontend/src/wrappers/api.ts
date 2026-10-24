@@ -975,3 +975,98 @@ export async function shortenLink(
 		return genericCatch(error);
 	}
 }
+
+export type UserFile = {
+	id: string;
+	type: string;
+	ext?: string;
+	mimetype?: string;
+	filename?: string;
+	created: number;
+	link: string;
+};
+
+export async function getFiles(
+	gallery = true,
+	limit = 50,
+	before?: number,
+	after?: number,
+): Promise<ArrayFetchReturn<UserFile>> {
+	try {
+		const params = new URLSearchParams({
+			gallery: gallery.toString(),
+			limit: limit.toString(),
+		});
+		if (before) {
+			params.append("before", before.toString());
+		}
+		if (after) {
+			params.append("after", after.toString());
+		}
+
+		const response = await fetch(`/api/files?${params.toString()}`, {
+			credentials: "same-origin",
+		});
+
+		if (response.status === 401) {
+			return {
+				error: "Unauthorized",
+				success: false,
+				response,
+				message: undefined,
+			};
+		}
+
+		if (!/2\d{2}/.test(response.status.toString())) {
+			return {
+				error: "Failed to fetch files",
+				success: false,
+				response,
+				message: undefined,
+			};
+		}
+
+		const body: { code: number; message: UserFile[] } =
+			await response.json();
+		return {
+			error: undefined,
+			success: true,
+			response,
+			message: body.message || [],
+		};
+	} catch (error: unknown) {
+		return {
+			error:
+				error instanceof Error
+					? error.message
+					: "Failed to fetch files",
+			success: false,
+			message: undefined,
+		};
+	}
+}
+
+export async function deleteFile(id: string): Promise<GenericFetchReturn> {
+	try {
+		const response = await fetch(`/api/file/${id}`, {
+			method: "DELETE",
+			credentials: "same-origin",
+		});
+
+		if (/2\d{2}/.test(response.status.toString())) {
+			return { error: undefined, success: true, response };
+		}
+
+		const body = (await response.json().catch(() => ({}))) as {
+			message?: string;
+		};
+		return {
+			error: body?.message ?? "Failed to delete file",
+			success: false,
+			response,
+			output: undefined,
+		};
+	} catch (error: unknown) {
+		return genericCatch(error);
+	}
+}
