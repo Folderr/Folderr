@@ -1,5 +1,5 @@
-import { type FastifyInstance } from "fastify";
-import { type Core } from "../../../../internals.js";
+import type { FastifyInstance } from "fastify";
+import type { Core } from "../../../../internals.js";
 
 export const type = "GET";
 export const label = "Health Check";

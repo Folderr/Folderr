@@ -1,8 +1,8 @@
 import {
-	httpCodes,
 	badResponseHandler,
 	type GenericFetchReturn,
 	genericCatch,
+	httpCodes,
 	requestHelper,
 } from "../utils/request-helpers.js";
 

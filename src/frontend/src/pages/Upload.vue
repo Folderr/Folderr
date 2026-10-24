@@ -111,12 +111,12 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, computed} from 'vue';
-import {useUserStore} from '../stores/user.js';
+import {ClipboardCheckIcon, ClipboardCopyIcon, XIcon} from '@heroicons/vue/solid';
+import {computed, onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
-import {ClipboardCopyIcon, ClipboardCheckIcon, XIcon} from '@heroicons/vue/solid';
-import * as api from '../wrappers/api.js';
 import SuccessesErrors from "../components/Success-N-Error.vue";
+import {useUserStore} from '../stores/user.js';
+import * as api from '../wrappers/api.js';
 
 // Setup store & router
 const store = useUserStore();

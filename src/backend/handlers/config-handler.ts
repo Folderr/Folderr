@@ -1,17 +1,17 @@
-import fs, { existsSync } from "fs";
-import process from "process";
-import { join } from "path";
-import yaml from "js-yaml";
 import {
-	cleanEnv,
-	json,
-	port,
-	host,
 	bool,
-	num,
+	cleanEnv,
 	email as envemail,
+	host,
+	json,
+	num,
+	port,
 	str,
 } from "envalid";
+import fs, { existsSync } from "fs";
+import yaml from "js-yaml";
+import { join } from "path";
+import process from "process";
 import { logger } from "../internals.js";
 
 type CertOptions = {

@@ -1,8 +1,8 @@
-import process from "process";
-import type { Transaction, Span } from "@sentry/types";
+import * as Sentry from "@sentry/node";
+import type { Span, Transaction } from "@sentry/types";
 import type { FastifyPluginAsync, FastifyPluginOptions } from "fastify";
 import fp from "fastify-plugin";
-import * as Sentry from "@sentry/node";
+import process from "process";
 
 declare module "fastify" {
 	interface FastifyRequest {

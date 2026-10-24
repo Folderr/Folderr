@@ -19,9 +19,9 @@
  *
  */
 import childProcess from "child_process";
-import util from "util";
-import { promises } from "fs";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { promises } from "fs";
+import util from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 

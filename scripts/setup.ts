@@ -1,13 +1,13 @@
-import fs from "fs/promises";
-import process from "process";
 import { Buffer } from "buffer";
+import fs from "fs/promises";
 import os from "os";
 import { join } from "path";
+import process from "process";
 import readline from "readline";
 import { Writable } from "stream";
-import Core from "../src/backend/Structures/core.js";
 import locations from "../internal/locations.json" with { type: "json" };
 import ConfigHandler from "../src/backend/handlers/config-handler.js";
+import Core from "../src/backend/Structures/core.js";
 
 class MuteStreamHandler {
 	public muted: boolean;
@@ -288,7 +288,7 @@ async function keyGen(
 	return keys;
 }
 
-(async function () {
+(async () => {
 	rl.write(
 		"Welcome to the Folderr setup CLI!\nGive us a moment while we check setup status...",
 	);

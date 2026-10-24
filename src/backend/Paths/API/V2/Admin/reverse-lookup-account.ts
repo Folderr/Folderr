@@ -19,10 +19,10 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
-import Path from "../../../../Structures/path.js";
 import type { User } from "../../../../Structures/Database/db-class.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Allows admins to look up accounts

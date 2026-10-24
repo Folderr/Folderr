@@ -650,23 +650,24 @@ for="newpassword"
 </template>
 
 <script setup lang="ts">
-import {ref, reactive, computed, onMounted, onBeforeUnmount} from 'vue';
-import {
-    ExclamationIcon,
-    ClipboardCopyIcon,
-    ClipboardCheckIcon,
-    ChevronDownIcon,
-    TrashIcon,
-    DocumentDownloadIcon,
-} from "@heroicons/vue/solid";
 import {Disclosure, DisclosureButton, DisclosurePanel} from "@headlessui/vue";
+import {
+    ChevronDownIcon,
+    ClipboardCheckIcon,
+    ClipboardCopyIcon,
+    DocumentDownloadIcon,
+    ExclamationIcon,
+    TrashIcon,
+} from "@heroicons/vue/solid";
+import {computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import {useRouter} from 'vue-router';
-import {useUserStore} from '../../stores/user.js';
-import {useTokens} from '../../stores/tokens.js';
-import * as api from '../../wrappers/api.js';
-import {passwordRegex, usernameRegex} from '../../utils/regexs.js'
-import SuccessesErrors from "../../components/Success-N-Error.vue"; // Success & Error component
 import Spinner from "../../components/Spinner.vue"
+import SuccessesErrors from "../../components/Success-N-Error.vue"; // Success & Error component
+import {useTokens} from '../../stores/tokens.js';
+import {useUserStore} from '../../stores/user.js';
+import {passwordRegex, usernameRegex} from '../../utils/regexs.js'
+import * as api from '../../wrappers/api.js';
+
 const sne = ref();
 
 const url = computed(() => window.location.origin);

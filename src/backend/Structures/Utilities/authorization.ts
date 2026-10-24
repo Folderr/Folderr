@@ -23,13 +23,13 @@
  * @file Handles all token authorization in Folderr
  */
 
-import crypto from "crypto";
 import { Buffer } from "buffer";
+import crypto from "crypto";
 import jwt, { type Algorithm } from "jsonwebtoken";
+import AuthKeyHandler from "../../handlers/auth-key-handler.js";
 import type { Core } from "../../internals.js";
 import { logger } from "../../internals.js";
 import type { User } from "../Database/db-class.js";
-import AuthKeyHandler from "../../handlers/auth-key-handler.js";
 
 /**
  * @classdesc Handle token authorization.

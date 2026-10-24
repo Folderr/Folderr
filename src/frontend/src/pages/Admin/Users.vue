@@ -397,37 +397,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
 import {
-	Listbox,
-	ListboxButton,
-	ListboxOptions,
-	ListboxOption,
 	Dialog,
-	DialogTitle,
 	DialogDescription,
 	DialogPanel,
+	DialogTitle,
+	Listbox,
+	ListboxButton,
+	ListboxOption,
+	ListboxOptions,
 } from "@headlessui/vue";
-import { useUserStore } from "../../stores/user.js";
-import * as newAPI from "fldrr-web-sdk";
-import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
-import AdminSidebar from "../../components/Admin-Sidebar.vue";
-import AdminButton from "../../components/Admin-Button.vue";
-import FlexibleModal from "../../components/Modals/NewFlexible.vue";
-import SuccessNError from "../../components/Success-N-Error.vue";
 import {
 	BanIcon,
-	FlagIcon,
-	TrashIcon,
-	MailIcon,
 	DocumentIcon,
-	LinkIcon,
 	FilterIcon,
-	UserAddIcon,
+	FlagIcon,
+	LinkIcon,
+	MailIcon,
 	ShieldCheckIcon,
 	ShieldExclamationIcon,
+	TrashIcon,
+	UserAddIcon,
 	XIcon,
 } from "@heroicons/vue/solid";
+import * as newAPI from "fldrr-web-sdk";
+import { onMounted, ref, watch } from "vue";
+import AdminButton from "../../components/Admin-Button.vue";
+import AdminSidebar from "../../components/Admin-Sidebar.vue";
+import FlexibleModal from "../../components/Modals/NewFlexible.vue";
+import NavbarAuthenticated from "../../components/Navbar-Authenticated.vue";
+import SuccessNError from "../../components/Success-N-Error.vue";
+import { useUserStore } from "../../stores/user.js";
 
 const api = newAPI.setup();
 

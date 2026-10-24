@@ -1,9 +1,8 @@
 import fs from "fs";
 import { join } from "path";
-import process from "process";
-import pino, { multistream } from "pino";
-import { LoggerOptions } from "pino";
+import pino, { type LoggerOptions, multistream } from "pino";
 import pretty from "pino-pretty";
+import process from "process";
 
 export type LoggerLevels = "startup";
 

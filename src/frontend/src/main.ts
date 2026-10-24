@@ -1,21 +1,20 @@
-import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/tracing";
-import { createApp } from "vue";
+import * as Sentry from "@sentry/vue";
 import { createPinia } from "pinia";
-import { useUserStore } from "./stores/user.js";
-import router from "./router.js";
-import Navbar from "./components/Navbar.vue";
+import { createApp } from "vue";
+import Button from "./components/Button.vue";
 import Footer from "./components/Footer.vue";
+import Navbar from "./components/Navbar.vue";
 import NavbarAuthenticated from "./components/Navbar-Authenticated.vue";
 import SuccessNErrors from "./components/Success-N-Error.vue";
-import Button from "./components/Button.vue";
+import router from "./router.js";
+import { useUserStore } from "./stores/user.js";
 
 // Modals
 
+import App from "./App.vue";
 import FlexibleModal from "./components/Modals/Flexible.vue";
 import NewFlexible from "./components/Modals/NewFlexible.vue";
-
-import App from "./App.vue";
 
 import "./index.css";
 

@@ -19,19 +19,19 @@
  *
  */
 
-import { join } from "path";
-import process from "process";
+import * as Sentry from "@sentry/node";
+import exp from "constants";
 import type {
-	FastifyRequest,
 	FastifyReply,
+	FastifyRequest,
 	RouteShorthandOptions,
 } from "fastify";
-import * as Sentry from "@sentry/node";
+import { join } from "path";
+import process from "process";
 import type { RequestGallery } from "../../types/fastify-request-types.js";
-import type { Core, Codes } from "../internals.js";
-import { ErrorHandler, codes } from "../internals.js";
+import type { Codes, Core } from "../internals.js";
+import { codes, ErrorHandler } from "../internals.js";
 import type { User } from "./Database/db-class.js";
-import exp from "constants";
 
 /**
  * @classdesc Base class for handling endpoints (execution, state, and other things)
@@ -131,7 +131,7 @@ class Path {
 		request: FastifyRequest,
 		reply?: FastifyReply,
 	): Promise<User | void> {
-		let authorized: User | void | undefined = undefined;
+		let authorized: User | void | undefined;
 		try {
 			if (request.headers.authorization) {
 				authorized = await this.Utils.authorization.verifyAccount(

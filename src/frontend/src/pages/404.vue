@@ -16,8 +16,8 @@
 
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useUserStore} from '../stores/user.js';
 import NavbarAuthenticated from "../components/Navbar-Authenticated.vue";
+import {useUserStore} from '../stores/user.js';
 
 const store = useUserStore();
 const username = ref('');

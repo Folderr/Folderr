@@ -79,10 +79,10 @@
 </template>
 
 <script setup lang="ts">
-import Spinner from "../../components/Spinner.vue";
+import * as FolderrSDK from "fldrr-web-sdk";
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import * as FolderrSDK from "fldrr-web-sdk";
+import Spinner from "../../components/Spinner.vue";
 
 const sdk = FolderrSDK.setup();
 const route = useRoute();

@@ -63,11 +63,11 @@
 }
 </style>
 <script setup lang='ts'>
-import {onMounted, ref, computed} from 'vue';
-import {useUserStore} from '../stores/user.js';
+import {ClipboardCheckIcon, ClipboardCopyIcon, XIcon} from '@heroicons/vue/solid';
+import {computed, onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
-import {ClipboardCopyIcon, ClipboardCheckIcon, XIcon} from '@heroicons/vue/solid';
 import SuccessesErrors from "../components/Success-N-Error.vue";
+import {useUserStore} from '../stores/user.js';
 import * as api from '../wrappers/api.js';
 
 // Setup store & router

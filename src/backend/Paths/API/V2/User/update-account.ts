@@ -19,13 +19,13 @@
  *
  */
 
-import process from "process";
 import argon2 from "argon2";
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import process from "process";
 import type { Core } from "../../../../internals.js";
-import Path from "../../../../Structures/path.js";
-import type { User } from "../../../../Structures/Database/db-class.js";
 import * as constants from "../../../../Structures/constants/index.js";
+import type { User } from "../../../../Structures/Database/db-class.js";
+import Path from "../../../../Structures/path.js";
 
 type UpdateAccBody =
 	| {

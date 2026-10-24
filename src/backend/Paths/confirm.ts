@@ -19,8 +19,8 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
 import argon2 from "argon2";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../internals";
 import Path from "../Structures/path";
 

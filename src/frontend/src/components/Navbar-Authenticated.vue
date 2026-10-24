@@ -175,21 +175,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import * as api from "../wrappers/api.js";
-import { useRouter } from "vue-router";
-import { useUserStore } from "../stores/user.js";
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import {
-	LogoutIcon,
 	ChevronDownIcon,
 	CogIcon,
-	UserIcon,
 	FingerPrintIcon,
-	UploadIcon,
 	InformationCircleIcon,
 	LinkIcon,
+	LogoutIcon,
+	UploadIcon,
+	UserIcon,
 } from "@heroicons/vue/solid";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "../stores/user.js";
+import * as api from "../wrappers/api.js";
 
 const router = useRouter();
 

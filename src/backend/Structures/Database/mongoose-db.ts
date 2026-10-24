@@ -20,21 +20,21 @@
  */
 
 import { existsSync, promises as fs } from "fs";
-import process from "process";
 import mongoose from "mongoose";
+import process from "process";
 import * as Schemas from "../../Schemas/index.js";
-import logger from "../logger.js";
 import * as constants from "../constants/index.js";
+import logger from "../logger.js";
 import type {
-	User,
-	Tokendb,
-	Link,
-	PendingMember,
-	Upload,
-	Notification,
-	Folderr,
-	Statistics,
 	Ban,
+	Folderr,
+	Link,
+	Notification,
+	PendingMember,
+	Statistics,
+	Tokendb,
+	Upload,
+	User,
 } from "./db-class";
 import { DBClass } from "./db-class.js";
 

@@ -1,5 +1,5 @@
-import { FastifyInstance, FastifyRequest } from "fastify";
-import { Core } from "../../../internals";
+import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { Core } from "../../../internals";
 
 export const path = "/notification/:id";
 

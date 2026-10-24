@@ -19,7 +19,7 @@
  *
  */
 
-import { Path } from "../internals.js";
+import type { Path } from "../internals.js";
 
 export interface HandlerMessage {
 	culprit: string;

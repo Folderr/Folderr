@@ -1,5 +1,5 @@
-import process from "process"; // Shut.
 import * as Sentry from "@sentry/node";
+import process from "process"; // Shut.
 import Core from "../Structures/core.js";
 
 export async function startFolderr(): Promise<void> {

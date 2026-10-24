@@ -19,11 +19,11 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
+import type { Core } from "../../../../internals.js";
+import type { Link } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
-import { type Link } from "../../../../Structures/Database/db-class.js";
-import { type RequestGallery } from "../../../../../types/fastify-request-types.js";
 
 /**
  * @classdesc Allow a user to access their links

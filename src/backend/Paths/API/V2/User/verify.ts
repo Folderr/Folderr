@@ -20,8 +20,8 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import Path from "../../../../Structures/path.js";
 import type { Core } from "../../../../internals.js";
+import Path from "../../../../Structures/path.js";
 
 /**
  * @classdesc Allow users to verify themselves

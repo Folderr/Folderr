@@ -19,9 +19,9 @@
  *
  */
 
-import { inspect } from "util";
-import process from "process";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import process from "process";
+import { inspect } from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 

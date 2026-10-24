@@ -19,14 +19,14 @@
  *
  */
 
+import fs from "node:fs";
 import { EventEmitter } from "events";
 import type { DbConfig } from "../../handlers/config-handler.js";
 import Configurer from "../../handlers/config-handler.js";
-import type { Upload } from "../Database/db-class.js";
-import type DB from "../Database/db-class.js";
-import MongoDB from "../Database/mongoose-db.js";
 import { logger } from "../../internals.js";
-import fs from "node:fs";
+import type DB from "../Database/db-class.js";
+import type { Upload } from "../Database/db-class.js";
+import MongoDB from "../Database/mongoose-db.js";
 
 /**
  * @classdesc Handles deleting files

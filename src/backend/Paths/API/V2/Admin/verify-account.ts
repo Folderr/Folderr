@@ -19,7 +19,7 @@
  *
  */
 
-import type { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 

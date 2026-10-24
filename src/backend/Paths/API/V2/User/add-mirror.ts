@@ -19,9 +19,9 @@
  *
  */
 
-import type { FastifyReply, FastifyRequest } from "fastify";
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 

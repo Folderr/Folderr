@@ -1,7 +1,7 @@
-import { defineStore } from "pinia";
 import { setUser } from "@sentry/vue";
-import * as api from "../wrappers/api.js";
+import { defineStore } from "pinia";
 import type { AccountReturn } from "../../../types/user.js";
+import * as api from "../wrappers/api.js";
 
 interface UserStore {
 	id?: string;

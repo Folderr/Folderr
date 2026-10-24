@@ -38,13 +38,13 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue"
 import {
     Dialog,
+    DialogDescription,
     DialogPanel,
     DialogTitle,
-    DialogDescription,
 } from '@headlessui/vue'
+import {ref} from "vue"
 
 interface Props {
 	header: string;

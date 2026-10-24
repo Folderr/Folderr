@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { CheckCircleIcon, LoginIcon } from '@heroicons/vue/solid';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router';
 import * as api from '../wrappers/api.js';
 import type SuccessesErrors from './Success-N-Error.vue';
 import UInput from './Underline-Input.vue';
-import { LoginIcon, CheckCircleIcon } from '@heroicons/vue/solid';
 
 // Initialize refs for the actual logging in.
 const username = ref('');

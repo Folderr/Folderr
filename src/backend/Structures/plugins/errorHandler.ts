@@ -1,9 +1,9 @@
-import {
+import type {
 	FastifyInstance,
-	FastifyRequest,
-	FastifyReply,
 	FastifyPluginAsync,
 	FastifyPluginOptions,
+	FastifyReply,
+	FastifyRequest,
 } from "fastify";
 import fp from "fastify-plugin";
 

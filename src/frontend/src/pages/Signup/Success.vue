@@ -99,9 +99,9 @@
 </template>
 
 <script setup lang="ts">
-import Spinner from "../../components/Spinner.vue";
 import * as API from "fldrr-web-sdk";
-import { onMounted, ref, type Ref } from "vue";
+import { onMounted, type Ref, ref } from "vue";
+import Spinner from "../../components/Spinner.vue";
 
 const api = API.setup();
 

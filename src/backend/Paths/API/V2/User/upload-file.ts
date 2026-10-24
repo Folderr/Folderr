@@ -19,13 +19,13 @@
  *
  */
 
-import process from "process";
-import { join } from "path";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { createWriteStream } from "fs";
-import { promisify } from "util";
-import { pipeline } from "stream";
 import { unlink } from "fs/promises";
-import type { FastifyRequest, FastifyReply } from "fastify";
+import { join } from "path";
+import process from "process";
+import { pipeline } from "stream";
+import { promisify } from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 

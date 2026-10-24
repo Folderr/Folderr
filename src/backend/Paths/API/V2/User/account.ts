@@ -20,9 +20,9 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type { AccountReturn } from "../../../../../types/user.js";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
-import type { AccountReturn } from "../../../../../types/user.js";
 
 /**
  * @classdesc View the authorized users account

@@ -1,69 +1,65 @@
 // Node modules
-import { join, normalize } from "path";
-import { platform } from "os";
-import { EventEmitter } from "events";
-import type { ServerOptions } from "https";
-import { fork } from "child_process";
-import fs from "fs";
-import process from "process";
-import { PerformanceObserver, performance } from "perf_hooks";
-import type { ChildProcess } from "child_process";
 
+import cookie from "@fastify/cookie";
+import fastifyCors from "@fastify/cors";
+import helmet from "@fastify/helmet";
+import multipart from "@fastify/multipart";
+import ratelimit from "@fastify/rate-limit";
+import fastifyStatic from "@fastify/static";
+import * as Sentry from "@sentry/node";
+import type { ChildProcess } from "child_process";
+import { fork } from "child_process";
+import { EventEmitter } from "events";
+import fg from "fast-glob";
+import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 // Fastify imports
 import fastify from "fastify";
-import cookie from "@fastify/cookie";
-import helmet from "@fastify/helmet";
-import fastifyStatic from "@fastify/static";
-import ratelimit from "@fastify/rate-limit";
-import fastifyCors from "@fastify/cors";
-import multipart from "@fastify/multipart";
-import type { FastifyBaseLogger, FastifyInstance } from "fastify";
-
+import fs from "fs";
+import type { Got } from "got";
 // Other imports
 import got from "got";
-import type { Got } from "got";
-import * as Sentry from "@sentry/node";
+import type { ServerOptions } from "https";
+import { platform } from "os";
+import { join, normalize } from "path";
+import { PerformanceObserver, performance } from "perf_hooks";
 import type pino from "pino";
-import fg from "fast-glob";
-
+import process from "process";
+import pkg from "../../../package.json" with { type: "json" };
+import type {
+	ActEmailConfig,
+	CoreConfig,
+	DbConfig,
+	KeyConfig,
+} from "../handlers/config-handler.js";
 // Local files
 // Handlers
 import Configurer from "../handlers/config-handler.js";
-import type {
-	CoreConfig,
-	DbConfig,
-	ActEmailConfig,
-	KeyConfig,
-} from "../handlers/config-handler.js";
-// Structs, classes
-import * as endpointsImport from "../Paths/index.js";
-import * as APIs from "../Paths/API/index.js";
 import {
 	Emailer,
-	Utils,
 	MongoDB,
 	Regexs,
 	codes as StatusCodes,
+	Utils,
 } from "../internals.js";
-import pkg from "../../../package.json" with { type: "json" };
+import * as APIs from "../Paths/API/index.js";
+// Structs, classes
+import * as endpointsImport from "../Paths/index.js";
 import DelQueue from "./Utilities/db-queue.js";
 
 const version = pkg.version;
 
+import fastifySwagger from "@fastify/swagger";
 import type { Path } from "../internals.js";
-
+import type { LoggerLevels } from "./logger.js";
 // Other utilities
 import logger from "./logger.js";
-import type { LoggerLevels } from "./logger.js";
-
-// Local Fastify plugins
-import SentryPlugin from "./plugins/sentry.js";
 import type {
 	ErrorHandlerWithSeverity,
 	supressErrorHandlerRoute,
 } from "./plugins/errorHandler.js";
 import errorHandlerPlugin from "./plugins/errorHandler.js";
-import fastifySwagger from "@fastify/swagger";
+// Local Fastify plugins
+import SentryPlugin from "./plugins/sentry.js";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -490,8 +486,8 @@ export default class Core {
 			"core.registerNewApi File Pathing Start",
 		);
 		const filebase = `${process.cwd()}`;
-		let prefixes = new Map<string, string>();
-		let groups = new Map<string, string[]>(); // A group of files
+		const prefixes = new Map<string, string>();
+		const groups = new Map<string, string[]>(); // A group of files
 		performance.mark("core.registerNewApi Prefix Grouping");
 		for (const file of files) {
 			const directory = normalize(join(file, "../"));

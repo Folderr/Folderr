@@ -19,8 +19,8 @@
  *
  */
 
-import moment from "moment";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import moment from "moment";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 

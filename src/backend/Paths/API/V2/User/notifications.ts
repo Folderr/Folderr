@@ -20,10 +20,10 @@
  *
  */
 
-import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type Core } from "../../../../internals.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Core } from "../../../../internals.js";
+import type { Notification } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
-import { type Notification } from "../../../../Structures/Database/db-class.js";
 
 /**
  * @classdesc Shows all user notifications

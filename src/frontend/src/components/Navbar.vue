@@ -122,15 +122,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
 import {
+	ArrowNarrowRightIcon,
 	InformationCircleIcon,
 	QuestionMarkCircleIcon,
-	ArrowNarrowRightIcon,
 	UserAddIcon,
 } from "@heroicons/vue/solid";
 import { Icon } from "@iconify/vue";
 import github from "@iconify-icons/codicon/github-inverted";
+import { onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps<{
 	url?: "/" | "/info" | "/signup" | "/account/deny" | "/account/verify";

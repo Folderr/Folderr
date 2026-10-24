@@ -91,9 +91,9 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import github from '@iconify-icons/codicon/github-inverted';
-import { ref, onMounted } from 'vue';
-import SuccessesErrors from "../components/Success-N-Error.vue";
+import { onMounted, ref } from 'vue';
 import Login from '../components/Login.vue';
+import SuccessesErrors from "../components/Success-N-Error.vue";
 
 const width = ref(window.innerWidth);
 

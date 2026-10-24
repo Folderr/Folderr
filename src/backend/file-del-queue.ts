@@ -24,8 +24,8 @@
  */
 
 import process from "process";
-import DbQueue from "./Structures/Utilities/db-queue.js";
 import { logger } from "./internals.js";
+import DbQueue from "./Structures/Utilities/db-queue.js";
 
 const queuer = new DbQueue();
 
