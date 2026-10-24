@@ -39,18 +39,24 @@ app.use(pinia); // New, better store
 
 // Init sentry, if available.
 
+// Env values are strings, so "false" would otherwise count as switched on
+const envFlag = (value?: string) =>
+	Boolean(value) && !["0", "false", "no", "off"].includes(value!.toLowerCase());
+
+// Sentry sample rates must be between 0 and 1; anything else uses the default
+const envRate = (value?: string) => {
+	const rate = value ? Number(value) : Number.NaN;
+	return rate >= 0 && rate <= 1 ? rate : undefined;
+};
+
 if (import.meta.env.VITE_SENTRY) {
 	const store = useUserStore();
 	let options: Record<string, any> = {
 		dsn: import.meta.env.VITE_SENTRY,
 		environment: import.meta.env.MODE,
 	};
-	if (import.meta.env.VITE_SENTRY_TRACING) {
-		const rate =
-			import.meta.env.VITE_SENTRY_RATE >= 1 &&
-			import.meta.env.VITE_SENTRY_RATE <= 0
-				? import.meta.env.VITE_SENTRY_RATE
-				: undefined;
+	if (envFlag(import.meta.env.VITE_SENTRY_TRACING)) {
+		const rate = envRate(import.meta.env.VITE_SENTRY_RATE);
 		options = {
 			...options,
 			integrations: [
@@ -59,16 +65,12 @@ if (import.meta.env.VITE_SENTRY) {
 						Sentry.vueRouterInstrumentation(router),
 				}),
 			],
-			tracesSampleRate: rate ?? import.meta.env.DEV ? 1 : 0.2,
+			tracesSampleRate: rate ?? (import.meta.env.DEV ? 1 : 0.2),
 		};
 	}
 
-	if (import.meta.env.VITE_SENTRY_REPLAY) {
-		const rate =
-			import.meta.env.VITE_SENTRY_REPLAY_RATE >= 1 &&
-			import.meta.env.VITE_SENTRY_REPLAY_RATE <= 0
-				? import.meta.env.VITE_SENTRY_REPLAY_RATE
-				: undefined;
+	if (envFlag(import.meta.env.VITE_SENTRY_REPLAY)) {
+		const rate = envRate(import.meta.env.VITE_SENTRY_REPLAY_RATE);
 		options = {
 			...options,
 			replaysSessionSampleRate: rate ?? 0.2,

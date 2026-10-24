@@ -9,5 +9,6 @@ export default defineConfig({
 		outDir: '../../dist/src/frontend',
 		emptyOutDir: true,
 	},
-	envDir: '.',
+	// Relative to root, so this is the repo root: the same folder the dev server in core.ts uses
+	envDir: '../..',
 });
