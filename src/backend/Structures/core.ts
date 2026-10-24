@@ -355,10 +355,11 @@ export default class Core {
 			}
 		}
 
-		let maxReq = process.env.BENCHMARK === "true" ? 100_000_000 : 20;
-		if (process.env.NODE_ENV === "dev") {
-			maxReq = 100_000_000;
-		}
+		const maxReq = process.env.RATELIMIT_MAX
+			? parseInt(process.env.RATELIMIT_MAX, 10)
+			: process.env.BENCHMARK === "true" || process.env.NODE_ENV === "dev"
+				? 100_000_000
+				: 10_000;
 
 		this.logger.info(`Ratelimiting at ${maxReq} requests per 10s`);
 		await this.app.register(ratelimit, {

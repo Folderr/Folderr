@@ -45,6 +45,10 @@ const rl = readline.createInterface({
 });
 
 async function getKeyLocation(redo?: boolean): Promise<string> {
+	if (process.env.folderr_key_location) {
+		return process.env.folderr_key_location;
+	}
+
 	if (process.env.PUBLIC_KEY && process.env.PRIVATE_KEY) {
 		return "none";
 	}

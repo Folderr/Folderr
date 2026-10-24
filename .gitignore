@@ -21,3 +21,7 @@ internal/locations.json
 
 .idea/
 .fleet/
+
+# Local & generated files
+run.sh
+PULL_REQUEST.md
