@@ -70,7 +70,7 @@ class VerifyAccount extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Handle authorization
 		const newAuth = await this.Utils.checkAuth(request, true);
@@ -97,7 +97,7 @@ class VerifyAccount extends Path {
 
 		// Alert the console and the admin that the user was verified
 		this.core.logger.info(
-			`User account ${user.username} (${user.id}) granted by administrator ${auth.username} (${auth.id})`
+			`User account ${user.username} (${user.id}) granted by administrator ${auth.username} (${auth.id})`,
 		);
 		return response
 			.status(this.codes.created)

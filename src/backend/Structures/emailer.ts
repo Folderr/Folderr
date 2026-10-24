@@ -52,7 +52,7 @@ export default class Emailer {
 			port?: number;
 			secure?: boolean;
 		},
-		selfTest?: boolean
+		selfTest?: boolean,
 	) {
 		this.#core = core;
 		this.active = Boolean(options?.auth.pass);
@@ -110,7 +110,7 @@ export default class Emailer {
 	async verifyEmail(
 		email: string,
 		verifyLink: string,
-		username: string
+		username: string,
 	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
@@ -119,7 +119,7 @@ export default class Emailer {
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.VERIFY,
 				text: constants.TEMPLATES.EMAILER_TEXTS.verify(
 					username,
-					verifyLink
+					verifyLink,
 				),
 			});
 		}
@@ -130,7 +130,7 @@ export default class Emailer {
 	async welcomeEmail(
 		email: string,
 		username: string,
-		instanceLink: string
+		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
@@ -139,7 +139,7 @@ export default class Emailer {
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.WELCOME,
 				text: constants.TEMPLATES.EMAILER_TEXTS.welcome(
 					username,
-					instanceLink
+					instanceLink,
 				),
 			});
 		}
@@ -151,7 +151,7 @@ export default class Emailer {
 		email: string,
 		forgotLink: string,
 		username: string,
-		instanceLink: string
+		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
@@ -162,7 +162,7 @@ export default class Emailer {
 				text: constants.TEMPLATES.EMAILER_TEXTS.forgotPassword(
 					username,
 					instanceLink,
-					forgotLink
+					forgotLink,
 				),
 				priority: "high",
 			});
@@ -175,7 +175,7 @@ export default class Emailer {
 		email: string,
 		reason: string,
 		username: string,
-		instanceLink: string
+		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
@@ -185,7 +185,7 @@ export default class Emailer {
 				text: constants.TEMPLATES.EMAILER_TEXTS.warn(
 					username,
 					instanceLink,
-					reason
+					reason,
 				),
 				priority: "high",
 			});
@@ -198,7 +198,7 @@ export default class Emailer {
 		email: string,
 		reason: string,
 		username: string,
-		instanceLink: string
+		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
@@ -208,7 +208,7 @@ export default class Emailer {
 				text: constants.TEMPLATES.EMAILER_TEXTS.ban(
 					username,
 					instanceLink,
-					reason
+					reason,
 				),
 				priority: "high",
 			});
@@ -220,7 +220,7 @@ export default class Emailer {
 	async changeEmail(
 		email: string,
 		confirmLink: string,
-		username: string
+		username: string,
 	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
@@ -230,7 +230,7 @@ export default class Emailer {
 					constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.EMAIL_CHANGE,
 				text: constants.TEMPLATES.EMAILER_TEXTS.emailChange(
 					username,
-					confirmLink
+					confirmLink,
 				),
 				priority: "low",
 			});
@@ -251,7 +251,7 @@ export default class Emailer {
 			id: string;
 			type: string;
 		},
-		instanceLink: string
+		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
 		if (this.email && this.mailer) {
 			return this.mailer.sendMail({
@@ -262,7 +262,7 @@ export default class Emailer {
 					username,
 					type,
 					id,
-					instanceLink
+					instanceLink,
 				),
 				priority: "low",
 			});

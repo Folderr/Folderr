@@ -1,4 +1,3 @@
-
 const EMAILER_TEXTS = {
 	verify(username: string, verifyLink: string) {
 		return (
@@ -9,7 +8,7 @@ const EMAILER_TEXTS = {
 			"The link will expire in 48 hours.\n" +
 			`If you did not request an account click this link to deny the account request: ${verifyLink.replace(
 				"verify",
-				"deny"
+				"deny",
 			)}.`
 		);
 	},
@@ -70,6 +69,5 @@ const TEMPLATES = {
 	EMAILER_TEXTS,
 	MONGOOSE,
 };
-
 
 export default TEMPLATES;

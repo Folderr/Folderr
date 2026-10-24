@@ -61,7 +61,7 @@ class Files extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send("Missing file ID");
@@ -82,7 +82,7 @@ class Files extends Path {
 
 		const image = await this.core.db.findFile(
 			{ id: parts[0] },
-			"path type owner"
+			"path type owner",
 		);
 		if (image) {
 			const owner = await this.core.db.findUser({ id: image.owner });

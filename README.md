@@ -9,7 +9,6 @@ This is not final product, use at your own risk.
 ## Getting started
 
 Table of contents, with 2 options:
-
 - [1. Normal Setup](#normal)
 - [2. Mock Docker](#docker)
 - - [2a. Docker Prerequisites & Usage](#docker-prerequisites-and-usage)
@@ -31,11 +30,9 @@ This assumes you already have Folderr setup.
 #### Docker Prerequisites & Usage
 
 Prerequisites:
-
 - [docker](https://www.docker.com/)
 
 Usage:
-
 - Clone the repository (instructions below)
 
 ```sh

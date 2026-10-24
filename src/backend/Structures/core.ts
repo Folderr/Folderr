@@ -94,7 +94,6 @@ declare module "fastify" {
 	}
 }
 
-
 const isTSNode =
 	Boolean(process.env.TS_NODE_DEV) || Boolean(process.env.TS_NODE);
 
@@ -445,7 +444,10 @@ export default class Core {
 			};
 		}
 
-		if (process.env.NODE_ENV === "production" && !this.config.trustProxies) {
+		if (
+			process.env.NODE_ENV === "production" &&
+			!this.config.trustProxies
+		) {
 			this.logger.error("HTTPS required in production. Shuting down");
 			this.shutdownServer("Core.initServer", "No HTTPS Certificate");
 			throw new Error("HTTPS required in production. Shuting down");

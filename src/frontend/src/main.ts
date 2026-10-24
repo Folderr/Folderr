@@ -41,7 +41,8 @@ app.use(pinia); // New, better store
 
 // Env values are strings, so "false" would otherwise count as switched on
 const envFlag = (value?: string) =>
-	Boolean(value) && !["0", "false", "no", "off"].includes(value!.toLowerCase());
+	Boolean(value) &&
+	!["0", "false", "no", "off"].includes(value!.toLowerCase());
 
 // Sentry sample rates must be between 0 and 1; anything else uses the default
 const envRate = (value?: string) => {

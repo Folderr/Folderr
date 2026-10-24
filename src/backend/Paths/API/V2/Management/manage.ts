@@ -58,10 +58,10 @@ class Manage extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
+			Boolean(user.owner),
 		);
 		if (!auth || typeof auth === "string") {
 			return response.status(this.codes.unauth).send({
@@ -72,11 +72,11 @@ class Manage extends Path {
 
 		if (request.query.type === "shutdown") {
 			this.core.logger.info(
-				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`
+				`System shutdown initiated remotely by owner (${auth.username} - ${auth.id})`,
 			);
 			this.core.shutdownServer(
 				"API/Manage/Shutdown",
-				"Remote shutdown by owner"
+				"Remote shutdown by owner",
 			);
 			return response.status(this.codes.ok).send({
 				code: this.codes.ok,
@@ -91,7 +91,7 @@ class Manage extends Path {
 			});
 			const file = await promises.readFile("./package.json");
 			const oPackage: Record<string, string> = JSON.parse(
-				file.toString()
+				file.toString(),
 			);
 			try {
 				await exec("npm run update"); // Eventually make file to handle this

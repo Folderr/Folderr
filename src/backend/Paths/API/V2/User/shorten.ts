@@ -68,7 +68,7 @@ class Shorten extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
@@ -119,12 +119,14 @@ class Shorten extends Path {
 					request.headers?.responseURL &&
 					typeof request.headers.responseURL === "string" &&
 					auth.cURLs.includes(request.headers.responseURL) &&
-					(await this.Utils.testMirrorURL(
-						request.headers.responseURL
-					))
+					(
+						await this.Utils.testMirrorURL(
+							request.headers.responseURL,
+						)
+					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/l/${ID}`
+				}/l/${ID}`,
 			);
 	}
 }

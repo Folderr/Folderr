@@ -69,7 +69,7 @@ class MirrorRemove extends Path {
 				mirror: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Check auth
 		const auth = await this.checkAuth(request);
@@ -96,7 +96,7 @@ class MirrorRemove extends Path {
 				$pullAll: {
 					cURLs: request.body.mirror,
 				},
-			}
+			},
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,

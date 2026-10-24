@@ -73,7 +73,7 @@ class Links extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);

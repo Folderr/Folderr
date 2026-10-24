@@ -73,7 +73,7 @@ class Files extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth || typeof auth === "string") {

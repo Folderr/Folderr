@@ -60,8 +60,8 @@ class Tokens extends Path {
 					request.cookies.token,
 					{
 						web: true,
-					}
-			  )
+					},
+				)
 			: await this.Utils.authPassword(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({

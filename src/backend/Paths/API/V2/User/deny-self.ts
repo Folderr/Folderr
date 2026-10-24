@@ -71,7 +71,7 @@ class Deny extends Path {
 				token: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		if (!request.params?.userid || !request.params?.token) {
 			return response.status(this.codes.badReq).send({
@@ -82,7 +82,7 @@ class Deny extends Path {
 
 		const verify = await this.Utils.findVerifying(
 			request.params.token,
-			request.params.userid
+			request.params.userid,
 		);
 		if (!verify) {
 			return response.status(this.codes.badReq).send({

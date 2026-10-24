@@ -62,7 +62,7 @@ const integrations: any[] = [
 if (tracing) {
 	integrations.push(
 		new Sentry.Integrations.Http({ tracing: true }),
-		new Tracing.Integrations.Mongo({ useMongoose: true })
+		new Tracing.Integrations.Mongo({ useMongoose: true }),
 	);
 }
 

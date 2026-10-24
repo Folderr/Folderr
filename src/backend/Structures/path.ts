@@ -122,12 +122,15 @@ class Path {
 	 */
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		throw new Error("Not implemented!");
 	}
 
-	async checkAuth(request: FastifyRequest, reply?: FastifyReply): Promise<User | void> {
+	async checkAuth(
+		request: FastifyRequest,
+		reply?: FastifyReply,
+	): Promise<User | void> {
 		let authorized: User | void | undefined = undefined;
 		try {
 			if (request.headers.authorization) {
@@ -135,27 +138,30 @@ class Path {
 					request.headers.authorization,
 					{
 						fn: (user) => !user.markedForDeletion,
-					}
+					},
 				);
 			}
-	
+
 			if (request.cookies.token) {
 				authorized = await this.Utils.authorization.verifyAccount(
 					request.cookies.token,
 					{
 						web: true,
 						fn: (user) => !user.markedForDeletion,
-					}
+					},
 				);
 			}
 		} catch (error: unknown) {
 			if (error instanceof Error && error.message == "Invalid Token") {
-				if (reply) this.core.logger.debug("Invalidated auth of a request with an invalid token");
+				if (reply)
+					this.core.logger.debug(
+						"Invalidated auth of a request with an invalid token",
+					);
 				reply?.header("Authorization-Status", "Invalidated");
 				if (request.cookies.token) {
 					const expires = new Date();
 					expires.setTime(expires.getTime() - 1000 * 60 * 60 * 48);
-					reply?.setCookie("token", "", { expires })
+					reply?.setCookie("token", "", { expires });
 					return;
 				}
 				return;
@@ -175,7 +181,7 @@ class Path {
 				{
 					fn: (user) =>
 						Boolean(user.admin) && !user.markedForDeletion,
-				}
+				},
 			);
 		}
 
@@ -186,7 +192,7 @@ class Path {
 					web: true,
 					fn: (user) =>
 						Boolean(user.admin) && !user.markedForDeletion,
-				}
+				},
 			);
 		}
 	}
@@ -199,7 +205,7 @@ class Path {
 		request: FastifyRequest<{
 			Querystring?: RequestGallery;
 		}>,
-		owner: string
+		owner: string,
 	):
 		| {
 				httpCode: 406;
@@ -295,7 +301,7 @@ class Path {
 	generateGenericQuery(
 		request: FastifyRequest<{
 			Querystring?: RequestGallery;
-		}>
+		}>,
 	):
 		| {
 				httpCode: 406;
@@ -386,7 +392,7 @@ class Path {
 	async preHandler(
 		request: FastifyRequest,
 		response: FastifyReply,
-		done: () => void
+		done: () => void,
 	): Promise<FastifyReply | void> {
 		// If path is not enabled, and it is not lean... end the endpoint here
 		if (this.locked && !this.lean) {
@@ -438,7 +444,7 @@ class Path {
 		options?: {
 			noIncrease: boolean;
 			noResponse: boolean;
-		}
+		},
 	): FastifyReply | void {
 		const ops = options ?? { noIncrease: false, noResponse: false };
 		let severity;

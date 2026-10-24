@@ -18,7 +18,8 @@ class RegExpList {
 			/^([\w.\-$%#!+/=^;&'*]{2,})?@[a-z\d$-_.+!*’(,;:@&=/]{2,}\.[a-z]{2,}(.[a-z]{2,})?$/;
 		this.password = /(?=.*[A-Za-z-_])(?=.*[\p{M}\p{Z}\p{P}]).{8,256}/u;
 		this.username = /\w{3,16}/;
-		this.url = /http(s)?:\/\/[a-z\d$-_.!’(,;:@&=/]{2,}\.[a-z]{2,}(.[a-z]{2,})?/;
+		this.url =
+			/http(s)?:\/\/[a-z\d$-_.!’(,;:@&=/]{2,}\.[a-z]{2,}(.[a-z]{2,})?/;
 		this.gitAheadBehind = /ahead \d+|behind \d+/g;
 	}
 }

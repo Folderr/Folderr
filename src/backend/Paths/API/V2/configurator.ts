@@ -71,7 +71,7 @@ class ShareXConfigurator extends Path {
 				d?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
@@ -82,7 +82,7 @@ class ShareXConfigurator extends Path {
 		}
 
 		const compare = await this.Utils.authorization.verifyAccount(
-			request.body.token
+			request.body.token,
 		);
 		if (!compare) {
 			return response.status(this.codes.unauth).send({
@@ -99,7 +99,7 @@ class ShareXConfigurator extends Path {
 				.type("text/plain; charset=binary")
 				.header(
 					"Content-Disposition",
-					"attachment; filename=Folderr-Link-Config.sxcu"
+					"attachment; filename=Folderr-Link-Config.sxcu",
 				)
 				.status(this.codes.ok)
 				.send(config[0]);
@@ -110,7 +110,7 @@ class ShareXConfigurator extends Path {
 				.type("text/plain; charset=binary")
 				.header(
 					"Content-Disposition",
-					"attachment; filename=Folderr-Link-Config.sxcu"
+					"attachment; filename=Folderr-Link-Config.sxcu",
 				)
 				.status(this.codes.ok)
 				.send(config[1]);

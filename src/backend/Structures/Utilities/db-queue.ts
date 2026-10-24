@@ -84,7 +84,7 @@ export default class DbQueue extends EventEmitter {
 	 */
 	private async newRemoveFiles(
 		files: Upload[],
-		userID: string
+		userID: string,
 	): Promise<void> {
 		const deletions: Array<Promise<void>> = [];
 		files.forEach((file) => {
@@ -108,7 +108,7 @@ export default class DbQueue extends EventEmitter {
 		this.#queue.forEach(async (value) => {
 			const files = await this.#db.findFiles(
 				{ owner: value },
-				{ selector: "id, path" }
+				{ selector: "id, path" },
 			);
 			if (files.length > 0) {
 				await this.newRemoveFiles(files, value);

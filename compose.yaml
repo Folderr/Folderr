@@ -1,28 +1,28 @@
 services:
-  folderr:
-    build:
-      context: .
-      target: prod
-    environment:
-      - PRIVATE_KEY
-      - PORT
-      - URL
-      - TRUST_PROXIES
-      - SIGNUPS
-      - HTTPS_CERT_OPTIONS
-      - SENTRY
-      - SENTRY_RATE
-      - SENTRY_TRACING
-      - DB_URL
-      - AUTH
-      - HOST
-      - EMAIL_PORT
-      - SECURE
-      - IGNORE_TLS
-      - REQUIRE_TLS
-    volumes:
-      - folderr:/usr/fldrr/Files
-      - keys:/usr/fldrr/internal
+    folderr:
+        build:
+            context: .
+            target: prod
+        environment:
+            - PRIVATE_KEY
+            - PORT
+            - URL
+            - TRUST_PROXIES
+            - SIGNUPS
+            - HTTPS_CERT_OPTIONS
+            - SENTRY
+            - SENTRY_RATE
+            - SENTRY_TRACING
+            - DB_URL
+            - AUTH
+            - HOST
+            - EMAIL_PORT
+            - SECURE
+            - IGNORE_TLS
+            - REQUIRE_TLS
+        volumes:
+            - folderr:/usr/fldrr/Files
+            - keys:/usr/fldrr/internal
 volumes:
-  folderr:
-  keys:
+    folderr:
+    keys:

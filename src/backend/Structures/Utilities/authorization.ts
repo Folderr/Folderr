@@ -74,7 +74,7 @@ export default class Authorization {
 				this.#core.shutdownServer(
 					"Utils/authorization.init",
 					"Utils/Authorization initialization failed",
-					1
+					1,
 				);
 			}
 			if (this.#core.app.sentry) {
@@ -110,7 +110,7 @@ export default class Authorization {
 				result.id,
 				{
 					web,
-				}
+				},
 			);
 			if (!verify) {
 				return;
@@ -134,7 +134,7 @@ export default class Authorization {
 		options?: {
 			fn?: (args0: User) => boolean;
 			web?: boolean;
-		}
+		},
 	): Promise<User | void> {
 		if (!token) {
 			return;
@@ -153,14 +153,14 @@ export default class Authorization {
 			const user = await this.#core.db.findUser({ id });
 			if (!user) {
 				this.#core.logger.debug(
-					`User with ID ${id} failed authentication. Reason: not found`
+					`User with ID ${id} failed authentication. Reason: not found`,
 				);
 				return;
 			}
 
 			if (options?.fn && !options.fn(user)) {
 				this.#core.logger.debug(
-					`User with ID ${id} failed authentication. Reason: failed fn check`
+					`User with ID ${id} failed authentication. Reason: failed fn check`,
 				);
 				return;
 			}
@@ -177,7 +177,7 @@ export default class Authorization {
 
 	public async revoke(
 		token: string,
-		web?: boolean
+		web?: boolean,
 	): Promise<boolean | void | 404> {
 		if (token.startsWith("Bearer: ")) {
 			web = true;
@@ -201,7 +201,7 @@ export default class Authorization {
 				result.id,
 				{
 					web,
-				}
+				},
 			);
 			if (!verifyDb) {
 				return 404;
@@ -213,7 +213,7 @@ export default class Authorization {
 
 	public async revokeAll(
 		userID: string,
-		web?: boolean
+		web?: boolean,
 	): Promise<boolean | void> {
 		try {
 			const del = await this.#core.db.purgeTokens(userID, web);
@@ -226,7 +226,7 @@ export default class Authorization {
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				logger.debug(
-					`Authorization/Revoke All Error: ${error.message}`
+					`Authorization/Revoke All Error: ${error.message}`,
 				);
 			} else if (typeof error === "string") {
 				logger.debug(`Authorization/Revoke All Error: ${error}`);
@@ -257,7 +257,7 @@ export default class Authorization {
 
 	async genMirrorKey(
 		url: string,
-		mirrorURL: string
+		mirrorURL: string,
 	): Promise<{ key: string; id: string }> {
 		const id = this.genID();
 		return {
@@ -272,7 +272,7 @@ export default class Authorization {
 					jwtid: id,
 					expiresIn: "1h",
 					algorithm: "PS256",
-				}
+				},
 			),
 			id,
 		};
@@ -285,7 +285,7 @@ export default class Authorization {
 		},
 		id: string,
 		url: string,
-		mirrorURL: string
+		mirrorURL: string,
 	): boolean {
 		const out = jwt.verify(message.token, this.#privKey, {
 			issuer: "folderr",
@@ -296,7 +296,7 @@ export default class Authorization {
 				out.jti === id &&
 				out.url === url &&
 				out.mirrorURL === mirrorURL &&
-				message.res === "Mirror Operational"
+				message.res === "Mirror Operational",
 		);
 	}
 

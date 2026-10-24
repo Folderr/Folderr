@@ -225,17 +225,17 @@ const configHandler = {
 		const server =
 			existsSync(join(dir, "server.yaml")) &&
 			yaml.load(
-				fs.readFileSync(join(dir, "server.yaml"), { encoding: "utf8" })
+				fs.readFileSync(join(dir, "server.yaml"), { encoding: "utf8" }),
 			);
 		const db =
 			existsSync(join(dir, "db.yaml")) &&
 			yaml.load(
-				fs.readFileSync(join(dir, "db.yaml"), { encoding: "utf8" })
+				fs.readFileSync(join(dir, "db.yaml"), { encoding: "utf8" }),
 			);
 		const email =
 			existsSync(join(dir, "email.yaml")) &&
 			yaml.load(
-				fs.readFileSync(join(dir, "email.yaml"), { encoding: "utf8" })
+				fs.readFileSync(join(dir, "email.yaml"), { encoding: "utf8" }),
 			);
 
 		// Check if the configs exist
@@ -265,7 +265,7 @@ const configHandler = {
 		) {
 			console.log(`Invalid YAML config, missing: ${missing.join(", ")}`);
 			throw new Error(
-				`Invalid YAML config, missing: ${missing.join(", ")}\nDid you create (or copy) these files?`
+				`Invalid YAML config, missing: ${missing.join(", ")}\nDid you create (or copy) these files?`,
 			);
 		} // OK TS, shut up.
 
@@ -278,7 +278,7 @@ const configHandler = {
 
 	verifyEmailer(
 		envEmailConfig: EnvEmailConfig,
-		email?: EmailConfig
+		email?: EmailConfig,
 	): ActEmailConfig {
 		const emailConfig: ActEmailConfig = {};
 		if (email ?? envEmailConfig) {
@@ -288,11 +288,11 @@ const configHandler = {
 				Boolean(envEmailConfig.AUTH ?? email?.mailerOptions?.auth) &&
 				Boolean(
 					envEmailConfig.AUTH.PASS ??
-						email?.mailerOptions?.auth.password
+						email?.mailerOptions?.auth.password,
 				) &&
 				Boolean(
 					envEmailConfig.AUTH.USER ??
-						email?.mailerOptions?.auth.username
+						email?.mailerOptions?.auth.username,
 				);
 			emailConfig.selfTest =
 				envEmailConfig.SELF_TEST ?? email?.selfTest ?? true;
@@ -447,9 +447,9 @@ const configHandler = {
 			sentry: {
 				dsn: envCoreConfig.SENTRY.DSN ?? files.server?.sentry?.dsn,
 				rate:
-					envCoreConfig.SENTRY.RATE ??
+					(envCoreConfig.SENTRY.RATE ??
 					files.server?.sentry?.rate ??
-					process.env.NODE_ENV === "dev"
+					process.env.NODE_ENV === "dev")
 						? 1
 						: 0.2,
 				tracing:
@@ -472,7 +472,7 @@ const configHandler = {
 			coreConfig,
 			keyConfig,
 			emailConfig,
-			!noExitEmit
+			!noExitEmit,
 		);
 		if (typeof postCheck === "string") {
 			throw new TypeError(postCheck);
@@ -526,7 +526,7 @@ const configHandler = {
 			server: EnvServerConfig;
 			db: EnvDbConfig;
 			email: EnvEmailConfig;
-		}
+		},
 	): true | void {
 		const missingConfigs = {
 			server: [] as string[],
@@ -583,7 +583,7 @@ const configHandler = {
 			process.emitWarning("Config Error (config-handler:277)");
 
 			throw new Error(
-				`[CONFIG] Missing/Invalid Required Options:\n${error}`
+				`[CONFIG] Missing/Invalid Required Options:\n${error}`,
 			);
 		}
 
@@ -613,7 +613,7 @@ const configHandler = {
 		coreConfig: CoreConfig,
 		keyConfig: KeyConfig,
 		emailConfig: ActEmailConfig,
-		exitEmit?: boolean
+		exitEmit?: boolean,
 	): true | string | void {
 		const missingFiles = this.keyCheck(keyConfig);
 

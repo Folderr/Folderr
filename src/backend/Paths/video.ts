@@ -61,7 +61,7 @@ class Videos extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply | void> {
 		if (!request.params?.id) {
 			return response.status(this.codes.badReq).send("Missing video ID");

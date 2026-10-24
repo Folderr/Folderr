@@ -125,7 +125,7 @@ class UpdateAcc extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		// Check pass/username auth
 		const base = await this.isValid(request);
@@ -170,7 +170,7 @@ class UpdateAcc extends Path {
 		if (request.body.username) {
 			const newUsername = await this.handleUsername(
 				auth.username,
-				request.body.username
+				request.body.username,
 			);
 
 			if (newUsername && typeof newUsername === "string") {
@@ -187,7 +187,7 @@ class UpdateAcc extends Path {
 			const emailUpdated = await this.handleEmailUpdate(
 				request,
 				auth.email,
-				auth
+				auth,
 			);
 			if (emailUpdated && !emailUpdated.accepted) {
 				return response
@@ -218,7 +218,7 @@ class UpdateAcc extends Path {
 								ip: false,
 								user: false,
 							},
-						}
+						},
 					);
 					return event;
 				});
@@ -244,7 +244,7 @@ class UpdateAcc extends Path {
 			}
 
 			this.core.logger.error(
-				`Database failed to update user - ${error.message}`
+				`Database failed to update user - ${error.message}`,
 			);
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.dbUnkownError,
@@ -325,7 +325,7 @@ class UpdateAcc extends Path {
 			}
 
 			this.core.logger.error(
-				`[Update Account - Password] - ${error.message}`
+				`[Update Account - Password] - ${error.message}`,
 			);
 			return {
 				httpCode: this.codes.badReq,
@@ -345,7 +345,7 @@ class UpdateAcc extends Path {
 			};
 		}>,
 		preEmail: string,
-		authUser: User
+		authUser: User,
 	): Promise<
 		| {
 				accepted: true;
@@ -449,7 +449,7 @@ class UpdateAcc extends Path {
 		await this.core.emailer.changeEmail(
 			request.body.email,
 			`${url}/confirm/${authUser.id}/${token.token}`,
-			authUser.username
+			authUser.username,
 		);
 		// Update
 		return {
@@ -461,7 +461,7 @@ class UpdateAcc extends Path {
 
 	private async handleUsername(
 		preUsername: string,
-		username?: string
+		username?: string,
 	): Promise<
 		| {
 				httpCode: 226 | 400;
@@ -534,7 +534,7 @@ class UpdateAcc extends Path {
 	private async isValid(
 		request: FastifyRequest<{
 			Body: UpdateAccBody;
-		}>
+		}>,
 	): Promise<
 		| {
 				httpCode: 400 | 401 | 403;

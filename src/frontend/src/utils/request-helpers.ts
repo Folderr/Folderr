@@ -24,7 +24,7 @@ export async function requestHelper<T>(
 		altCode?: number;
 		altMessage?: string;
 		badResCodes?: BadResponseCodes;
-	}
+	},
 ): Promise<GenericFetchReturn<T>> {
 	if (options?.altCode && !options.altMessage) {
 		throw new Error("You must have an altMessage when you have an altCode");
@@ -54,7 +54,7 @@ export async function requestHelper<T>(
 		const response = await preResponse;
 		const check = await badResponseHandler(
 			response,
-			options?.badResCodes ?? {}
+			options?.badResCodes ?? {},
 		);
 		if (check) {
 			return check;
@@ -106,7 +106,7 @@ export async function requestHelper<T>(
 
 function handleArray<T>(
 	json: { code: number; message: string | any | T[] },
-	response: Response
+	response: Response,
 ): GenericFetchReturn<T> {
 	if (json?.message) {
 		switch (typeof json?.message) {
@@ -131,7 +131,7 @@ function handleArray<T>(
 					error: new Error(
 						`${
 							json.code
-						} Unknown Error. Message type: ${typeof json.message}`
+						} Unknown Error. Message type: ${typeof json.message}`,
 					),
 					success: false,
 					response,
@@ -150,7 +150,7 @@ function handleArray<T>(
 
 function handleString<T>(
 	json: { code: number; message: string | any },
-	response: Response
+	response: Response,
 ): GenericFetchReturn<T> {
 	if (json?.message) {
 		switch (typeof json?.message) {
@@ -167,7 +167,7 @@ function handleString<T>(
 					error: new Error(
 						`${
 							json.code
-						} Unknown Error. Message type: ${typeof json.message}`
+						} Unknown Error. Message type: ${typeof json.message}`,
 					),
 					success: false,
 					response,
@@ -185,7 +185,7 @@ function handleString<T>(
 }
 
 function checkAuthenticationError(
-	response: Response
+	response: Response,
 ): GenericFetchReturn<undefined> | undefined {
 	switch (response.status) {
 		case httpCodes.forbidden:
@@ -215,7 +215,7 @@ export function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 		import.meta.env.DEV
 	) {
 		console.log(
-			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 		);
 		console.log(error);
 	}
@@ -241,7 +241,7 @@ export function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 
 export async function badResponseHandler(
 	response: Response,
-	codeMessage: BadResponseCodes
+	codeMessage: BadResponseCodes,
 ): Promise<GenericFetchReturn<undefined> | undefined> {
 	const check = checkAuthenticationError(response);
 	if (check) {

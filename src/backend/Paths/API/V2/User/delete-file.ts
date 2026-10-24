@@ -68,7 +68,7 @@ class DeleteFile extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.checkAuth(request);
 		if (!auth) {

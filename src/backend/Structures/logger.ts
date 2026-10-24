@@ -141,14 +141,13 @@ const destination =
 					startup: 35,
 				},
 				minimumLevel: process.env.DEBUG ? "debug" : "info",
-		  })
-		:
-		  multistream(streams as any, {
+			})
+		: multistream(streams as any, {
 				levels: {
 					...pino.levels.values,
 					startup: 35,
 				},
-		  });
+			});
 
 const log = pino(options, destination);
 

@@ -76,7 +76,7 @@ class RemoveAdmin extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Actually check auth, and make sure they are the owner
 		const auth = await this.Utils.checkAuth(request, true, true);
@@ -103,7 +103,7 @@ class RemoveAdmin extends Path {
 				$nor: [{ admin: false }, { owner: true }],
 			},
 			{ admin: false },
-			"admin"
+			"admin",
 		);
 		if (!user) {
 			return response.status(this.codes.notFound).send({
@@ -122,7 +122,7 @@ class RemoveAdmin extends Path {
 		const responsible = `${auth.user.username} (${auth.user.id})`;
 		const formerAdmin = `${user.username} (${user.id})`;
 		this.core.logger.info(
-			`Administator removed for ${formerAdmin} by ${responsible}`
+			`Administator removed for ${formerAdmin} by ${responsible}`,
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,

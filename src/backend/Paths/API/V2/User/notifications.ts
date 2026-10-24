@@ -71,7 +71,7 @@ class Notifs extends Path {
 				admin?: boolean;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth by token/id
 		const auth = await this.checkAuth(request);

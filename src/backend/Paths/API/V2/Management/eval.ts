@@ -55,10 +55,10 @@ class Eval extends Path {
 				eval: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user) =>
-			Boolean(user.owner)
+			Boolean(user.owner),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({
@@ -70,7 +70,7 @@ class Eval extends Path {
 		try {
 			// biome-ignore lint/security/noGlobalEval: owner-only debug endpoint that evaluates code by design, enabled only in dev
 			let evaled: string | Record<string, unknown> = await eval(
-				request.body.eval
+				request.body.eval,
 			);
 			evaled =
 				typeof evaled === "object"

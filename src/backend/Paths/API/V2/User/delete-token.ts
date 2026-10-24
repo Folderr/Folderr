@@ -77,15 +77,15 @@ class DeleteToken extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = request.cookies?.token
 			? await this.Utils.authorization.verifyAccount(
 					request.cookies.token,
 					{
 						web: true,
-					}
-			  )
+					},
+				)
 			: await this.Utils.authPassword(request);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({

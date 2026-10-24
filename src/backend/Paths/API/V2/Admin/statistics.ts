@@ -67,7 +67,7 @@ class Statistics extends Path {
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuthAdmin(request);

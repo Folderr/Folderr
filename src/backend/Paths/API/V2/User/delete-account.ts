@@ -102,7 +102,7 @@ class DelAccount extends Path {
 			const declaredError = error as Error;
 			const formattedError = declaredError.message || (error as string);
 			this.core.logger.error(
-				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
+				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`,
 			);
 			return {
 				code: this.codes.internalErr,
@@ -138,7 +138,7 @@ class DelAccount extends Path {
 			const declaredError = error as Error;
 			const formattedError = declaredError.message || (error as string);
 			this.core.logger.fatal(
-				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`
+				`[SYSTEM ERROR] - Account deletion failure - ${formattedError}`,
 			);
 			return {
 				code: this.codes.internalErr,
@@ -159,7 +159,7 @@ class DelAccount extends Path {
 				reason?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const needAdmin = typeof request.query.userid === "string";
@@ -211,7 +211,7 @@ class DelAccount extends Path {
 			// Delete the account
 			out = await this.deleteAccount(newAuth.user, request.query.userid!);
 			this.core.logger.info(
-				`Account ${mem.id} deleted by administrator (${newAuth.user.username} - ${newAuth.user.id})`
+				`Account ${mem.id} deleted by administrator (${newAuth.user.username} - ${newAuth.user.id})`,
 			);
 			return response.status(out.code).send(out.mess);
 		}

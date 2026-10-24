@@ -53,7 +53,7 @@ class Account extends Path {
 
 	async execute(
 		request: FastifyRequest,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check headers, and check auth
 		const auth = await this.checkAuth(request, response);

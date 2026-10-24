@@ -1,3 +1,3 @@
 module.exports = {
-	projects: ['src/frontend']
+	projects: ["src/frontend"],
 };

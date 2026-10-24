@@ -73,7 +73,7 @@ class ConfirmAcc extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		console.log(request.params);
 		const user = await this.core.app.db.findUser({
@@ -82,7 +82,7 @@ class ConfirmAcc extends Path {
 		if (user?.pendingEmailToken) {
 			const verify = await argon2.verify(
 				user.pendingEmailToken,
-				request.params.verification
+				request.params.verification,
 			);
 			if (!verify) {
 				return response.code(this.core.app.codes.notAccepted).send({
@@ -93,7 +93,7 @@ class ConfirmAcc extends Path {
 
 			await this.core.app.db.updateUser(
 				{ id: user.id },
-				{ email: user.pendingEmail, pendingEmailToken: undefined }
+				{ email: user.pendingEmail, pendingEmailToken: undefined },
 			);
 			return response.status(this.core.app.codes.ok).send({
 				code: this.core.Utils.foldCodes.UserAccepted,

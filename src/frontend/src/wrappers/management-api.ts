@@ -8,7 +8,7 @@ import {
 const BASE_URL = "/api/manage/";
 
 export async function promoteUserToAdmin(
-	id: string
+	id: string,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch(`${BASE_URL}admin/${id}`, {
@@ -59,7 +59,7 @@ export async function promoteUserToAdmin(
 
 export async function demoteUserToAdmin(
 	id: string,
-	reason: string
+	reason: string,
 ): Promise<GenericFetchReturn<string>> {
 	const body = JSON.stringify({ reason });
 	try {

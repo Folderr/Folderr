@@ -75,7 +75,7 @@ class Image extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.checkAuth(request);
 		if (!auth) {
@@ -151,7 +151,7 @@ class Image extends Path {
 				}),
 				this.core.db.updateUser(
 					{ id: auth.id },
-					{ $inc: { files: 1 } }
+					{ $inc: { files: 1 } },
 				),
 			]);
 		} catch (error: unknown) {
@@ -164,12 +164,14 @@ class Image extends Path {
 				`${
 					typeof request.headers?.responseURL === "string" &&
 					auth.cURLs.includes(request.headers.responseURL) &&
-					(await this.Utils.testMirrorURL(
-						request.headers.responseURL!
-					))
+					(
+						await this.Utils.testMirrorURL(
+							request.headers.responseURL!,
+						)
+					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${name}.${fext}`
+				}/${type[0]}/${name}.${fext}`,
 			);
 	}
 }

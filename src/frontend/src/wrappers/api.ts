@@ -31,7 +31,7 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 		import.meta.env.DEV
 	) {
 		console.log(
-			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+			`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 		);
 		console.log(error);
 	}
@@ -48,7 +48,7 @@ function genericCatch<T>(error: unknown): GenericFetchReturn<T> {
 export async function signup(
 	username: string,
 	password: string,
-	email: string
+	email: string,
 ) {
 	try {
 		const response = await fetch("/api/signup", {
@@ -108,7 +108,7 @@ export async function signup(
 
 export async function login(
 	username: string,
-	password: string
+	password: string,
 ): Promise<GenericFetchReturn> {
 	try {
 		const response = await fetch("/api/authorize", {
@@ -175,7 +175,7 @@ export async function fetchUser(): Promise<UserReturn> {
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 			);
 		}
 
@@ -188,7 +188,7 @@ type UpdateInfoParameterOptions =
 	| { email: string; username?: string };
 
 export async function updateInfo(
-	input: UpdateInfoParameterOptions
+	input: UpdateInfoParameterOptions,
 ): Promise<GenericFetchReturn> {
 	const info: {
 		username?: string;
@@ -354,7 +354,7 @@ type PrivacyUpdateOptions = {
 };
 
 export async function updatePrivacy(
-	info: PrivacyUpdateOptions
+	info: PrivacyUpdateOptions,
 ): Promise<GenericFetchReturn> {
 	try {
 		const response = await fetch("/api/account", {
@@ -533,7 +533,7 @@ export async function logout(): Promise<GenericFetchReturn> {
 }
 
 export async function deleteAccount(
-	userID?: string
+	userID?: string,
 ): Promise<GenericFetchReturn> {
 	let url = "/api/account";
 	if (userID) {
@@ -690,7 +690,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 			import.meta.env.DEV
 		) {
 			console.log(
-				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`
+				`DEBUG Error Name: ${error.name}\nDEBUG Error: ${error.message}`,
 			);
 			console.log(error);
 		}
@@ -722,7 +722,7 @@ export async function getTokens(): Promise<ArrayFetchReturn<Token>> {
 }
 
 export async function createToken(
-	description: string
+	description: string,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch("/api/account/token", {
@@ -784,7 +784,7 @@ export async function createToken(
 }
 
 export async function revokeToken(
-	id: string
+	id: string,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch(`/api/account/token/${id}`, {
@@ -842,7 +842,7 @@ export async function revokeToken(
 }
 
 export async function uploadFile(
-	data: FormData
+	data: FormData,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch("/api/file", {
@@ -903,7 +903,7 @@ export async function uploadFile(
 }
 
 export async function shortenLink(
-	url: URL
+	url: URL,
 ): Promise<GenericFetchReturn<string>> {
 	try {
 		const response = await fetch("/api/link", {

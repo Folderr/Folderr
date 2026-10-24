@@ -78,7 +78,7 @@ class DelNotify extends Path {
 				id: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
@@ -107,7 +107,7 @@ class DelNotify extends Path {
 		}
 
 		const notify = notifs.find(
-			(notification) => notification.id === request.params.id
+			(notification) => notification.id === request.params.id,
 		);
 		// If no notification, tell the user that notification does not exist
 		if (!notify) {
@@ -145,7 +145,7 @@ class DelNotify extends Path {
 			const formattedTime = moment
 				.duration(time)
 				.format(
-					"M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]"
+					"M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]",
 				);
 			return response.status(this.codes.forbidden).send({
 				code: this.codes.forbidden,
@@ -162,7 +162,7 @@ class DelNotify extends Path {
 						id: request.params.id,
 					},
 				},
-			}
+			},
 		);
 		return response.status(this.codes.ok).send({
 			code: this.codes.ok,

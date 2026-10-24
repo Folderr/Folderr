@@ -68,7 +68,7 @@ class Users extends Path {
 		request: FastifyRequest<{
 			Querystring: RequestGallery;
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.checkAuthAdmin(request);
 		if (!auth) {
@@ -116,7 +116,7 @@ class Users extends Path {
 			id: string;
 			created: number;
 		}> = users.map((user: User) => ({
-			title: user.owner ? "owner" : (user.admin && "admin") ?? "user",
+			title: user.owner ? "owner" : ((user.admin && "admin") ?? "user"),
 			username: user.username,
 			email: user.email,
 			files: user.files,

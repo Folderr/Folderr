@@ -3,7 +3,6 @@
 As of 2026-10-22.
 
 Most admin calls in [fldrr-web-sdk](https://github.com/Folderr/fldrr-web-sdk) fail against the current Folderr backend. Some errors are in the SDK and some are in Folderr. The worst three:
-
 - a backend auth check rejects most admins
 - the SDK's `unbanEmail` sends a ban request
 - the NeoAPI ban route registers at a doubled path
@@ -12,32 +11,31 @@ These findings come from reading the code. No requests were run against a live s
 
 ## What was compared
 
-| Repo | Branch | Commit | Commit date |
-| --- | --- | --- | --- |
-| Folderr | `dev` | `2b2d160` ("ci: Fix the type magic") | 2026-03-08 |
-| fldrr-web-sdk | `main` (its only branch) | `4a2dad4` ("feat(src/user): Add user ability to retrieve user lists") | 2024-11-26 |
+| Repo          | Branch                   | Commit                                                                | Commit date |
+| ------------- | ------------------------ | --------------------------------------------------------------------- | ----------- |
+| Folderr       | `dev`                    | `2b2d160` ("ci: Fix the type magic")                                  | 2026-03-08  |
+| fldrr-web-sdk | `main` (its only branch) | `4a2dad4` ("feat(src/user): Add user ability to retrieve user lists") | 2024-11-26  |
 
 The SDK is over a year older than the backend. Some mismatches may come from backend changes since then, especially the NeoAPI rewrites. Folderr also has `master`, `frontend` and `new-history` branches. If the SDK was written against one of those, re-check against that branch.
 
 Files compared:
-
 - SDK: `src/admin/{general,user,verifying,consts}.ts`, `src/helpers/{handlers,request-handlers,types-and-consts}.ts`
 - Folderr: `src/backend/Paths/API/V2/Admin/*`, `src/backend/NeoAPI/V2/Admin/*`, `src/backend/Paths/API/V2/User/delete-account.ts`, `src/backend/Structures/Utilities/utils.ts` (`checkAuth`), `src/backend/Structures/core.ts` (route loading), `src/backend/Schemas/{ban,verifying-user}.ts`
 
 ## Endpoint by endpoint
 
-| SDK function | SDK sends | Server expects | Result |
-| --- | --- | --- | --- |
-| `general.getStats` | `GET /api/admin/statistics` | Same | Matches |
-| `general.getBans` | `GET /api/admin/bans` | Same | Path matches; non-owner admins get 403 (backend 1) |
-| `verifying.getVerfiyingUsers` | `GET /api/admin/verifying-users` | Same | Fails to parse: `createdAt` arrives as an ISO string (backend 7); also backend 1 |
-| `verifying.acceptAccount` | `POST /api/admin/verify` `{id}` | Same | Matches; backend 1 |
-| `verifying.denyAccount` | `DELETE /api/admin/verify` `{id}` | Same | Matches; backend 1 |
-| `user.getUsers` | `GET /api/admin/users` | Same | Fails to parse for normal users: `title` is `false` (backend 6) |
-| `user.warnUser` | `POST /api/admin/warn/:id` `{reason}` | Same | Matches; backend 1 |
-| `user.banUser` | `POST /api/admin/ban/:id` `{reason}` | Route lives at `/api/admin/admin/ban/:id` | 404 (backend 3) |
-| `user.unbanEmail` | `POST /api/admin/ban/:id` `{reason}` | `DELETE /api/admin/ban` `{email}` | Wrong method, path and body; it is a ban request (SDK 1) |
-| `user.deleteAccount` | `DELETE /api//account?userid=` `{reason}` | `DELETE /api/account?userid=` `{reason}` | 404 from the double slash (SDK 2); also backend 1 |
+| SDK function                  | SDK sends                                 | Server expects                            | Result                                                                           |
+| ----------------------------- | ----------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `general.getStats`            | `GET /api/admin/statistics`               | Same                                      | Matches                                                                          |
+| `general.getBans`             | `GET /api/admin/bans`                     | Same                                      | Path matches; non-owner admins get 403 (backend 1)                               |
+| `verifying.getVerfiyingUsers` | `GET /api/admin/verifying-users`          | Same                                      | Fails to parse: `createdAt` arrives as an ISO string (backend 7); also backend 1 |
+| `verifying.acceptAccount`     | `POST /api/admin/verify` `{id}`           | Same                                      | Matches; backend 1                                                               |
+| `verifying.denyAccount`       | `DELETE /api/admin/verify` `{id}`         | Same                                      | Matches; backend 1                                                               |
+| `user.getUsers`               | `GET /api/admin/users`                    | Same                                      | Fails to parse for normal users: `title` is `false` (backend 6)                  |
+| `user.warnUser`               | `POST /api/admin/warn/:id` `{reason}`     | Same                                      | Matches; backend 1                                                               |
+| `user.banUser`                | `POST /api/admin/ban/:id` `{reason}`      | Route lives at `/api/admin/admin/ban/:id` | 404 (backend 3)                                                                  |
+| `user.unbanEmail`             | `POST /api/admin/ban/:id` `{reason}`      | `DELETE /api/admin/ban` `{email}`         | Wrong method, path and body; it is a ban request (SDK 1)                         |
+| `user.deleteAccount`          | `DELETE /api//account?userid=` `{reason}` | `DELETE /api/account?userid=` `{reason}`  | 404 from the double slash (SDK 2); also backend 1                                |
 
 ## Errors in the SDK
 

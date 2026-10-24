@@ -2,7 +2,7 @@ import type { RouteLocationNormalized } from "vue-router";
 import { useUserStore } from "../stores/user.js";
 
 export async function authGuard(
-	to: RouteLocationNormalized
+	to: RouteLocationNormalized,
 ): Promise<string | boolean | Error> {
 	if (to.name === "NotFound") {
 		return true;
@@ -25,7 +25,7 @@ export async function authGuard(
 }
 
 export async function inverseAuthGuard(
-	to: RouteLocationNormalized
+	to: RouteLocationNormalized,
 ): Promise<string | boolean | Error> {
 	if (to.name === "NotFound") {
 		return true;

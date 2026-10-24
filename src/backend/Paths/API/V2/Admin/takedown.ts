@@ -81,7 +81,7 @@ class Takedown extends Path {
 			Headers: {
 				preferredURL?: string;
 			};
-		}>
+		}>,
 	): Promise<{
 		httpCode: 406 | 200;
 		msg: {
@@ -102,12 +102,12 @@ class Takedown extends Path {
 
 		await this.core.db.updateUser(
 			{ id: del.owner },
-			{ $inc: { files: -1 } }
+			{ $inc: { files: -1 } },
 		);
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
 				{ id: del.owner },
-				"id username email"
+				"id username email",
 			);
 			if (!user) {
 				return {
@@ -124,7 +124,7 @@ class Takedown extends Path {
 					id,
 					type: del.type,
 				},
-				url
+				url,
 			);
 		}
 
@@ -144,7 +144,7 @@ class Takedown extends Path {
 			Headers: {
 				preferredURL?: string;
 			};
-		}>
+		}>,
 	): Promise<{
 		httpCode: 406 | 200;
 		msg: {
@@ -165,12 +165,12 @@ class Takedown extends Path {
 
 		await this.core.db.updateUser(
 			{ id: del.owner },
-			{ $inc: { links: -1 } }
+			{ $inc: { links: -1 } },
 		);
 		if (this.core.emailer.active) {
 			const user = await this.core.db.findUser(
 				{ id: del.owner },
-				"id username email"
+				"id username email",
 			);
 			if (!user) {
 				return {
@@ -187,7 +187,7 @@ class Takedown extends Path {
 					id,
 					type: "Link",
 				},
-				url
+				url,
 			);
 		}
 
@@ -207,10 +207,10 @@ class Takedown extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({

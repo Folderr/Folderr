@@ -70,10 +70,10 @@ class Lookup extends Path {
 				type: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin)
+			Boolean(user.admin),
 		);
 		if (!auth) {
 			return response.status(this.codes.unauth).send({

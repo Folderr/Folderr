@@ -104,7 +104,7 @@ class MirrorAdd extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	): Promise<FastifyReply> {
 		// Check auth
 		const auth = await this.checkAuth(request);
@@ -129,7 +129,7 @@ class MirrorAdd extends Path {
 			u = await this.Utils.determineHomeURL(request);
 			const out = await this.Utils.authorization.genMirrorKey(
 				u,
-				request.body.url
+				request.body.url,
 			);
 			id = out.id;
 			r = await this.core.got.post<MirrorResponse>(
@@ -142,7 +142,7 @@ class MirrorAdd extends Path {
 						owner: auth.id,
 						token: out.key,
 					},
-				}
+				},
 			);
 		} catch (error: unknown) {
 			if (!error || !(error instanceof Error)) {
@@ -184,8 +184,8 @@ class MirrorAdd extends Path {
 						message,
 						id,
 						u,
-						request.body.url
-				  )
+						request.body.url,
+					)
 				: false;
 		if (!valid) {
 			return response.status(this.codes.notAccepted).send({
@@ -202,7 +202,7 @@ class MirrorAdd extends Path {
 				$addToSet: {
 					cURLs: request.body.url,
 				},
-			}
+			},
 		);
 		return response
 			.status(this.codes.ok)

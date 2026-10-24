@@ -81,7 +81,7 @@ class WarnUser extends Path {
 				preferredURL?: string;
 			};
 		}>,
-		response: FastifyReply
+		response: FastifyReply,
 	) {
 		const newAuth = await this.Utils.checkAuth(request, true);
 		if (newAuth.code !== this.core.codes.ok) {
@@ -117,7 +117,7 @@ class WarnUser extends Path {
 						notify: `You were warned for: ${request.body.reason}`,
 					},
 				},
-			}
+			},
 		);
 		if (!updated) {
 			return response.status(this.codes.notAccepted).send({
@@ -132,7 +132,7 @@ class WarnUser extends Path {
 				user.email,
 				request.body.reason,
 				user.username,
-				url
+				url,
 			);
 		}
 

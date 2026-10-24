@@ -42,21 +42,21 @@ class ShareXConfigurator {
 
 	constructor() {
 		this.image = {
-			Name: 'Folderr File',
-			DestinationType: 'ImageUploader, FileUploader',
-			RequestMethod: 'POST',
-			RequestURL: '*{URL}/api/upload',
+			Name: "Folderr File",
+			DestinationType: "ImageUploader, FileUploader",
+			RequestMethod: "POST",
+			RequestURL: "*{URL}/api/upload",
 			Headers: {
-				token: ''
+				token: "",
 			},
-			Body: 'MultipartFormData',
-			FileFormName: 'image'
+			Body: "MultipartFormData",
+			FileFormName: "image",
 		};
 	}
 
 	generateFiles(url: string, token: string, responseURL?: string): string[] {
 		if (!url || !token) {
-			throw new Error('[Configurator] - Missing parameters');
+			throw new Error("[Configurator] - Missing parameters");
 		}
 
 		const imgConfig = this.image;
@@ -67,10 +67,10 @@ class ShareXConfigurator {
 		}
 
 		const linkConfig = imgConfig;
-		linkConfig.Name = 'Folderr Link';
+		linkConfig.Name = "Folderr Link";
 		linkConfig.RequestURL = `${url}/api/link`;
-		linkConfig.DestinationType = 'URLShortener';
-		linkConfig.Body = 'JSON';
+		linkConfig.DestinationType = "URLShortener";
+		linkConfig.Body = "JSON";
 		linkConfig.Data = JSON.stringify('{"url":"$input$"}');
 		return [JSON.stringify(imgConfig), JSON.stringify(linkConfig)];
 	}
