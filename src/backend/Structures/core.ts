@@ -292,8 +292,8 @@ export default class Core {
 				},
 				servers: [
 					{
-						url: "http://localhost:8888",
-						description: "Development server",
+						url: this.config.url,
+						description: "This Folderr server",
 					},
 				],
 				tags: [
@@ -316,17 +316,6 @@ export default class Core {
 				},
 			},
 		});
-		await this.app.register(import("@scalar/fastify-api-reference"), {
-			routePrefix: "/api/reference",
-			configuration: {
-				theme: "purple",
-				title: "Folderr API Documentation",
-			},
-		});
-
-		this.app.get("/openapi.json", async (_) => {
-			return this.app.swagger();
-		});
 
 		await this.app.register(cookie);
 
@@ -334,29 +323,44 @@ export default class Core {
 
 		// Enable Sentry tracing
 		await this.app.register(SentryPlugin);
-
+		// Production specific
 		if (process.env.NODE_ENV !== "dev") {
 			const defaultSrc = ["'self'"];
+			const connectSrc = ["'self'"];
+			if (process.env.VITE_SENTRY) {
+				connectSrc.push(new URL(process.env.VITE_SENTRY).origin);
+			}
 			if (process.env.NODE_ENV !== "production") {
 				defaultSrc.push("ws://localhost:*");
 			}
 
-			if (process.env.BENCHMARK && process.env.BENCHMARK !== "true") {
-				this.logger.info("Enabling CSP");
-				await this.app.register(helmet, {
-					contentSecurityPolicy: {
-						directives: {
-							defaultSrc,
-
-							scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
-						},
+			this.logger.info("Enabling CSP");
+			await this.app.register(helmet, {
+				contentSecurityPolicy: {
+					directives: {
+						defaultSrc,
+						connectSrc,
+						mediaSrc: ["'self'", "data:", "blob:"],
+						scriptSrc: ["'self'"],
 					},
-				});
-			}
+				},
+			});
 		}
 
 		let maxReq = process.env.BENCHMARK === "true" ? 100_000_000 : 20;
+		// Dev specific
 		if (process.env.NODE_ENV === "dev") {
+			await this.app.register(import("@scalar/fastify-api-reference"), {
+				routePrefix: "/api/reference",
+				configuration: {
+					theme: "purple",
+					title: "Folderr API Documentation",
+				},
+			});
+
+			this.app.get("/openapi.json", async (_) => {
+				return this.app.swagger();
+			});
 			maxReq = 100_000_000;
 		}
 
@@ -368,7 +372,8 @@ export default class Core {
 
 		this.logger.info("Enabling CORS");
 		await this.app.register(fastifyCors, {
-			origin: "*",
+			// origin: "*",
+			origin: this.config.url,
 		});
 
 		this.logger.debug("Enabling Multipart");

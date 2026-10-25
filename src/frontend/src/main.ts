@@ -2,6 +2,7 @@ import { BrowserTracing } from "@sentry/tracing";
 import * as Sentry from "@sentry/vue";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
+import { z } from "zod";
 import Button from "./components/Button.vue";
 import Footer from "./components/Footer.vue";
 import Navbar from "./components/Navbar.vue";
@@ -20,6 +21,8 @@ import "./index.css";
 
 const pinia = createPinia();
 const app = createApp(App);
+
+z.config({ jitless: true });
 
 // The prefix "F" stands for Folderr.
 
