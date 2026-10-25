@@ -657,10 +657,16 @@ class Utils {
 		// a request, so one request's Host header can't leak into other users' links.
 		// Requests that arrive while a ping is in flight share it.
 		if (!this.#homeReachable || this.#homeReachable.expires <= Date.now()) {
-			this.#homeReachable = {
-				ok: this.#pingHome(),
-				expires: Date.now() + 3_600_000,
-			};
+			const ok = this.#pingHome();
+			// Shared while the ping is in flight. Once answered, a "yes" is trusted for
+			// 15 minutes and a "no" is retried after 30 seconds.
+			this.#homeReachable = { ok, expires: Number.POSITIVE_INFINITY };
+			void ok.then((reachable) => {
+				if (this.#homeReachable?.ok === ok) {
+					this.#homeReachable.expires =
+						Date.now() + (reachable ? 15 * 60_000 : 30_000);
+				}
+			});
 		}
 
 		return (await this.#homeReachable.ok)
