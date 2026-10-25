@@ -43,8 +43,9 @@ app.use(pinia); // New, better store
 
 // Env values are strings, so "false" would otherwise count as switched on
 const envFlag = (value?: string) =>
+	value &&
 	Boolean(value) &&
-	!["0", "false", "no", "off"].includes(value!.toLowerCase());
+	!["0", "false", "no", "off"].includes(value.toLowerCase());
 
 // Sentry sample rates must be between 0 and 1; anything else uses the default
 const envRate = (value?: string) => {
@@ -54,7 +55,7 @@ const envRate = (value?: string) => {
 
 if (import.meta.env.VITE_SENTRY) {
 	const store = useUserStore();
-	let options: Record<string, any> = {
+	let options: Record<string, unknown> = {
 		dsn: import.meta.env.VITE_SENTRY,
 		environment: import.meta.env.MODE,
 	};

@@ -523,7 +523,7 @@ export default class Core {
 							route: (
 								fastify: FastifyInstance,
 								core: Core,
-							) => any;
+							) => unknown;
 							method: string;
 							rewrites?: string;
 							enabled: boolean;
