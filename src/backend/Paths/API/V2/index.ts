@@ -15,7 +15,7 @@ import PVerify from "./Admin/verify-account.js";
 import Warn from "./Admin/warn-user.js";
 import ConfigureShareX from "./configurator.js";
 import AddAdmin from "./Management/add-admin.js";
-import Eval from "./Management/eval.js";
+// import Eval from "./Management/eval.js";
 // Authroization locked owner endpoints
 import OwnerManage from "./Management/manage.js";
 import DelAdmin from "./Management/remove-admin.js";
@@ -88,7 +88,7 @@ export const endpoints = {
 	Users,
 	Stats,
 	OwnerManage,
-	Eval,
+	// Eval,
 	AddAdmin,
 	DelAdmin,
 	Logout,
