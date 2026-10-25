@@ -170,7 +170,7 @@ class MirrorAdd extends Path {
 				error &&
 				error instanceof Error &&
 				error.message &&
-				/Not Found|\[FAIL]|URL DISALLOWED|ENOTFOUND|EBLOCKED/.test(
+				/Not Found|\[FAIL]|URL DISALLOWED|ENOTFOUND|EBLOCKED|Invalid URL/.test(
 					error.message,
 				)
 			) {
