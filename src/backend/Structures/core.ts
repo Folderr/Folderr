@@ -216,7 +216,7 @@ export default class Core {
 		);
 		this.codes = StatusCodes;
 		this.got = got.extend({
-			http2: true,
+			http2: false, // We don't actually need http/2 for anything
 			// Default for every outgoing request, so nothing can hang forever
 			timeout: 10_000,
 			headers: {

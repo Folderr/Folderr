@@ -92,7 +92,7 @@ class Shorten extends Path {
 			}
 
 			await this.core.got.head(url.href, {
-				timeout: 5000,
+				timeout: 3000,
 				retry: 0,
 				maxRedirects: 1,
 				// Rejects names that resolve to private addresses. IP literals never

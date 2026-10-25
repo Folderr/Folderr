@@ -107,6 +107,9 @@ class Utils {
 
 	readonly #ipBlocklist: BlockList;
 
+	/** Whether the configured URL answered its last ping, and when that answer expires */
+	#homeReachable?: { ok: Promise<boolean>; expires: number };
+
 	/**
 	 * @constructor
 	 *
@@ -120,7 +123,7 @@ class Utils {
 		this.#core = core;
 		this.authorization = new Authorization(core);
 		this.foldCodes = FoldCodes;
-		this.#resolver = new Resolver();
+		this.#resolver = new Resolver({ timeout: 2000, tries: 2 }); // Hey! We got stuff to do! No hanging the thread.
 		this.#resolver.setServers(["1.1.1.1", "1.0.0.1", "8.8.8.8"]);
 
 		// Addresses a user-supplied URL must never be allowed to reach.
@@ -597,6 +600,7 @@ class Utils {
 			const test = await this.#core.got.get<MirrorResponse>(
 				`${url}/api`,
 				{
+					// We can't wait forever to send a response
 					responseType: "json",
 					parseJson: mirrorparse,
 					lookup: this
@@ -611,6 +615,8 @@ class Utils {
 							},
 						],
 					},
+					timeout: 1000,
+					retry: 1,
 				},
 			);
 			if (!test?.body) {
@@ -623,6 +629,11 @@ class Utils {
 		}
 	}
 
+	/**
+	 * Works out the base URL for links Folderr hands out.
+	 * Uses the configured URL when the request came in on it, or when it answers a ping,
+	 * otherwise the host the request came in on.
+	 */
 	async determineHomeURL(request: FastifyRequest): Promise<string> {
 		const protocol = `${request.protocol || "http"}://`;
 		let host: string | undefined;
@@ -642,6 +653,23 @@ class Utils {
 			return `${this.#core.config.url}`;
 		}
 
+		// Only whether the configured URL answers is cached, never a URL built from
+		// a request, so one request's Host header can't leak into other users' links.
+		// Requests that arrive while a ping is in flight share it.
+		if (!this.#homeReachable || this.#homeReachable.expires <= Date.now()) {
+			this.#homeReachable = {
+				ok: this.#pingHome(),
+				expires: Date.now() + 3_600_000,
+			};
+		}
+
+		return (await this.#homeReachable.ok)
+			? this.#core.config.url
+			: `${protocol}${host}`;
+	}
+
+	/** Whether the configured URL answers as this Folderr instance */
+	async #pingHome(): Promise<boolean> {
 		try {
 			const test = await this.#core.got.get<ApiResponse>(
 				`${this.#core.config.url}/api/`,
@@ -652,19 +680,12 @@ class Utils {
 						// 2 second timeout should do the trick.
 						request: 2000,
 					},
+					retry: 0,
 				},
 			);
-			if (!test) {
-				return `${protocol}${host}`;
-			}
-
-			if (test.body.message.message === "Pong!") {
-				return this.#core.config.url;
-			}
-
-			return `${protocol}${host}`;
+			return test?.body?.message.message === "Pong!";
 		} catch {
-			return `${protocol}${host}`;
+			return false;
 		}
 	}
 }
