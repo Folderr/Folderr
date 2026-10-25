@@ -24,7 +24,10 @@ import AJV from "ajv/dist/jtd.js";
 import argon2 from "argon2";
 import buffer from "buffer";
 import crypto from "crypto";
+import type { LookupAddress, LookupOptions } from "dns";
+import { Resolver } from "dns";
 import type { FastifyRequest } from "fastify";
+import { BlockList, isIP } from "net";
 import * as ulid from "ulidx";
 import { promisify } from "util";
 import type { Core } from "../../internals.js";
@@ -99,6 +102,10 @@ class Utils {
 
 	readonly #core: Core;
 
+	readonly #resolver: Resolver;
+
+	readonly #ipBlocklist: BlockList;
+
 	/**
 	 * @constructor
 	 *
@@ -112,6 +119,37 @@ class Utils {
 		this.#core = core;
 		this.authorization = new Authorization(core);
 		this.foldCodes = FoldCodes;
+		this.#resolver = new Resolver();
+		this.#resolver.setServers(["1.1.1.1", "1.0.0.1", "8.8.8.8"]);
+
+		// Addresses a user-supplied URL must never be allowed to reach.
+		// BlockList also matches IPv4-mapped IPv6 addresses against the IPv4 ranges.
+		this.#ipBlocklist = new BlockList();
+		for (const [address, prefix] of [
+			["0.0.0.0", 8], // "this" network
+			["10.0.0.0", 8], // private
+			["100.64.0.0", 10], // carrier-grade NAT
+			["127.0.0.0", 8], // loopback
+			["169.254.0.0", 16], // link-local, including cloud metadata
+			["172.16.0.0", 12], // private
+			["192.0.0.0", 24], // IETF protocol assignments
+			["192.168.0.0", 16], // private
+			["198.18.0.0", 15], // benchmarking
+			["224.0.0.0", 4], // multicast
+			["240.0.0.0", 4], // reserved, including broadcast
+		] as const) {
+			this.#ipBlocklist.addSubnet(address, prefix, "ipv4");
+		}
+
+		for (const [address, prefix] of [
+			["::", 128], // unspecified
+			["::1", 128], // loopback
+			["fc00::", 7], // unique local
+			["fe80::", 10], // link-local
+			["ff00::", 8], // multicast
+		] as const) {
+			this.#ipBlocklist.addSubnet(address, prefix, "ipv6");
+		}
 	}
 
 	/**
@@ -182,6 +220,92 @@ class Utils {
 	async sleep(ms: number): Promise<void> {
 		await sleep(ms);
 	}
+
+	/** Strict IP checking */
+	isIPHost(rawUrl: string): boolean {
+		const { hostname } = new URL(rawUrl); // throws on an invalid URL
+		return isIP(hostname.replace(/^\[|\]$/g, "")) !== 0; // IPv6 keeps its [brackets]
+	}
+
+	/**
+	 * A `dns.lookup` replacement for user-supplied URLs, for `got`'s `lookup` option.
+	 * Resolves through public resolvers, so internal-only names (`localhost`, `mongo`) don't
+	 * resolve, and rejects any name with an address in the blocklist.
+	 * Every failure is reported as ENOTFOUND or EBLOCKED.
+	 *
+	 * IP literals never reach a lookup, so check those with `isIPHost`.
+	 */
+	noPrivateDnsLookup = (
+		hostname: string,
+		options: LookupOptions,
+		cb: (
+			err: NodeJS.ErrnoException | null,
+			address: string | LookupAddress[],
+			family?: number,
+		) => void,
+	): void => {
+		const family =
+			options.family === 6 || options.family === "IPv6"
+				? 6
+				: options.family === 4 || options.family === "IPv4"
+					? 4
+					: 0;
+		const methods: Array<"resolve4" | "resolve6"> =
+			family === 4
+				? ["resolve4"]
+				: family === 6
+					? ["resolve6"]
+					: ["resolve4", "resolve6"];
+		const fail = (err: NodeJS.ErrnoException) =>
+			options.all ? cb(err, []) : cb(err, "", 0);
+
+		const found: LookupAddress[] = [];
+		let pending = methods.length;
+
+		for (const method of methods) {
+			this.#resolver[method](hostname, (_err, addresses) => {
+				// An error or an empty answer just means no records of this family
+				for (const address of addresses ?? []) {
+					found.push({
+						address,
+						family: method === "resolve4" ? 4 : 6,
+					});
+				}
+
+				if (--pending > 0) {
+					return;
+				}
+
+				if (found.length === 0) {
+					return fail(
+						Object.assign(new Error(`ENOTFOUND ${hostname}`), {
+							code: "ENOTFOUND",
+							hostname,
+						}),
+					);
+				}
+
+				if (
+					found.some((a) =>
+						this.#ipBlocklist.check(
+							a.address,
+							a.family === 6 ? "ipv6" : "ipv4",
+						),
+					)
+				) {
+					return fail(
+						Object.assign(new Error("URL DISALLOWED"), {
+							code: "EBLOCKED",
+						}),
+					);
+				}
+
+				return options.all
+					? cb(null, found)
+					: cb(null, found[0].address, found[0].family);
+			});
+		}
+	};
 
 	/**
 	 * Generates a RSA2048 private & public key pair

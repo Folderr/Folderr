@@ -217,6 +217,8 @@ export default class Core {
 		this.codes = StatusCodes;
 		this.got = got.extend({
 			http2: true,
+			// Default for every outgoing request, so nothing can hang forever
+			timeout: 10_000,
 			headers: {
 				"User-Agent": `Folderr/${version} (github.com/Folderr/Folderr)`,
 			},

@@ -20,6 +20,7 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Options } from "got";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -78,37 +79,54 @@ class Shorten extends Path {
 			});
 		}
 
+		// Every way this can fail gets the same response, so it can't be used to
+		// probe which hosts exist or are reachable from this server
+		let url: URL;
 		try {
-			const url = new URL(request.body.url);
-			await this.core.got.get(url.toString());
-		} catch (error: any) {
+			url = new URL(request.body.url);
 			if (
-				(error.code &&
-					typeof error.code === "string" &&
-					error.code === "ENOTFOUND") ||
-				(error.message &&
-					typeof error.message === "string" &&
-					error.message.includes("EAI_AGAIN"))
+				!["http:", "https:"].includes(url.protocol) ||
+				this.Utils.isIPHost(url.href)
 			) {
-				return response.status(this.codes.notFound).send({
-					code: this.Utils.foldCodes.shortUrlNotFound,
-					message: "URL not found!",
-				});
+				throw new Error("URL DISALLOWED");
 			}
 
-			if (error.message && typeof error.message === "string") {
-				this.core.logger.debug(error.message);
+			await this.core.got.head(url.href, {
+				timeout: 5000,
+				retry: 0,
+				maxRedirects: 1,
+				// Rejects names that resolve to private addresses. IP literals never
+				// reach a lookup, so those are checked above and on every redirect.
+				// got types this as an overloaded function, but Node only ever calls
+				// the (hostname, options, callback) form that this implements
+				lookup: this.Utils
+					.noPrivateDnsLookup as unknown as Options["lookup"],
+				hooks: {
+					beforeRedirect: [
+						(options) => {
+							if (this.Utils.isIPHost(options.url.href)) {
+								throw new Error("URL DISALLOWED");
+							}
+						},
+					],
+				},
+			});
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				this.core.logger.debug(
+					`Shorten rejected a URL: ${error.message}`,
+				);
 			}
 
-			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.foldCodes.unkownError,
-				message: "Unknown error occured",
+			return response.status(this.codes.notFound).send({
+				code: this.Utils.foldCodes.shortUrlNotFound,
+				message: "URL not found!",
 			});
 		}
 
 		const ID = await this.Utils.genShortId();
 		await Promise.all([
-			this.core.db.makeLink(ID, auth.id, request.body.url),
+			this.core.db.makeLink(ID, auth.id, url.toString()),
 			this.core.db.updateUser({ id: auth.id }, { $inc: { links: 1 } }),
 		]);
 
