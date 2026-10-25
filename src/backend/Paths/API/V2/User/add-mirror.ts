@@ -22,7 +22,7 @@
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { Response } from "got";
+import type { Options, Response } from "got";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 
@@ -116,17 +116,23 @@ class MirrorAdd extends Path {
 			});
 		}
 
-		if (!/http(s)?:\/\//.test(request.body.url)) {
-			return response.status(this.codes.badReq).send({
-				code: this.Utils.foldCodes.mirrorInvalidUrl,
-				message: "Invalid Mirror URL",
-			});
-		}
-
 		let r: Response<MirrorResponse> | undefined;
 		let id: string | undefined;
 		let u: string | undefined;
 		try {
+			const url = new URL(request.body.url);
+			if (!url.protocol || !["http:", "https:"].includes(url.protocol)) {
+				return response.status(this.codes.badReq).send({
+					code: this.Utils.foldCodes.mirrorInvalidUrl,
+					message: "Invalid Mirror URL",
+				});
+			}
+			if (this.core.Utils.isIPHost(request.body.url)) {
+				return response.status(this.codes.badReq).send({
+					code: this.Utils.foldCodes.mirrorInvalidUrl,
+					message: "Invalid Mirror URL",
+				});
+			}
 			u = await this.Utils.determineHomeURL(request);
 			const out = await this.Utils.authorization.genMirrorKey(
 				u,
@@ -143,21 +149,30 @@ class MirrorAdd extends Path {
 						owner: auth.id,
 						token: out.key,
 					},
+					lookup: this.core.Utils
+						.noPrivateDnsLookup as unknown as Options["lookup"],
+					maxRedirects: 1, // In case of HTTP to HTTPS upgrade
+					hooks: {
+						beforeRedirect: [
+							(options) => {
+								if (
+									this.core.Utils.isIPHost(options.url.href)
+								) {
+									throw new Error("URL DISALLOWED");
+								}
+							},
+						],
+					},
 				},
 			);
 		} catch (error: unknown) {
-			if (!error || !(error instanceof Error)) {
-				return response.status(this.codes.internalErr).send({
-					code: this.Utils.foldCodes.unkownError,
-					message: "Unknown error occured",
-				});
-			}
-
 			if (
 				error &&
 				error instanceof Error &&
 				error.message &&
-				/Not Found|\[FAIL]/.test(error.message)
+				/Not Found|\[FAIL]|URL DISALLOWED|ENOTFOUND|EBLOCKED/.test(
+					error.message,
+				)
 			) {
 				return response.status(this.codes.notAccepted).send({
 					code: this.Utils.foldCodes.mirrorReject,

@@ -27,6 +27,7 @@ import crypto from "crypto";
 import type { LookupAddress, LookupOptions } from "dns";
 import { Resolver } from "dns";
 import type { FastifyRequest } from "fastify";
+import type { Options } from "got";
 import { BlockList, isIP } from "net";
 import * as ulid from "ulidx";
 import { promisify } from "util";
@@ -598,6 +599,18 @@ class Utils {
 				{
 					responseType: "json",
 					parseJson: mirrorparse,
+					lookup: this
+						.noPrivateDnsLookup as unknown as Options["lookup"],
+					maxRedirects: 1, // In case of HTTP to HTTPS upgrade
+					hooks: {
+						beforeRedirect: [
+							(options) => {
+								if (this.isIPHost(options.url.href)) {
+									throw new Error("URL DISALLOWED");
+								}
+							},
+						],
+					},
 				},
 			);
 			if (!test?.body) {
