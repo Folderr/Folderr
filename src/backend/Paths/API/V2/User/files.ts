@@ -24,7 +24,10 @@ import type { RequestGallery } from "../../../../../types/fastify-request-types.
 import type { Core } from "../../../../internals.js";
 import type { Upload } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
-import { uploadName } from "../../../../Structures/Utilities/upload-types.js";
+import {
+	routeType,
+	uploadName,
+} from "../../../../Structures/Utilities/upload-types.js";
 
 /**
  * @classdesc Send users their files
@@ -124,9 +127,9 @@ class Files extends Path {
 		url = url.replace(/\/$/g, "");
 		const files = images.map((image: Upload) => ({
 			id: image.id,
-			type: image.type,
+			type: routeType(image.contentType),
 			created: Math.round(image.createdAt.getTime() / 1000),
-			link: `${url}/${image.type ? image.type[0] : "i"}/${uploadName(
+			link: `${url}/${routeType(image.contentType)[0]}/${uploadName(
 				image.id,
 				image.ext,
 			)}`,

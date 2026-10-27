@@ -548,18 +548,13 @@ export default class Mongoosedb extends DBClass {
 	async makeFile(
 		id: string,
 		owner: string,
-		types: {
-			generic: string;
-			contentType: string;
-			ext: string;
-		},
+		fields: { contentType: string; ext: string },
 	): Promise<Upload> {
 		const file = new this.#schemas.Upload({
 			id,
 			owner,
-			type: types.generic,
-			contentType: types.contentType,
-			ext: types.ext,
+			contentType: fields.contentType,
+			ext: fields.ext,
 		});
 		await file.save();
 		return file;

@@ -183,12 +183,12 @@ class Image extends Path {
 		}
 
 		const { contentType } = checked;
+		// Only picks the link's /f, /i or /v prefix; any of them serves the file
 		const type = routeType(contentType);
 
 		try {
 			await Promise.all([
 				this.core.db.makeFile(id, auth.id, {
-					generic: type,
 					contentType,
 					ext: checked.ext,
 				}),

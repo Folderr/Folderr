@@ -95,7 +95,6 @@ export interface Statistics {
 export interface Upload {
 	id: string;
 	owner: string;
-	type: string;
 	createdAt: Date;
 	/** What the file really is, worked out at upload */
 	contentType: string;
@@ -358,11 +357,7 @@ export class DBClass {
 	async makeFile(
 		id: string,
 		owner: string,
-		types: {
-			generic: string;
-			contentType: string;
-			ext: string;
-		},
+		fields: { contentType: string; ext: string },
 	): Promise<Upload> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeFile is not implemented!",

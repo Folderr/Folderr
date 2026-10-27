@@ -25,7 +25,6 @@ import type { Upload } from "../Structures/Database/db-class.js";
 const file = new Schema({
 	id: { type: String, required: true, index: true },
 	owner: { type: String, required: true },
-	type: { type: String, required: true },
 	createdAt: { type: Date, default: new Date() },
 	// What the file really is, worked out at upload
 	contentType: { type: String, required: true },

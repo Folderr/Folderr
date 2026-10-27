@@ -28,13 +28,21 @@ import {
 } from "../Structures/Utilities/upload-types.js";
 
 /**
- * @classdesc Allow files to be accessed over the web
+ * @classdesc Serves uploads over the web. The /f, /i and /v prefixes all serve any
+ * upload; links use the one that suits the file's type, but it's only cosmetic.
  */
 class Files extends Path {
 	constructor(core: Core) {
 		super(core);
 		this.label = "Get file by id";
-		this.path = ["/file/:id", "/f/:id"];
+		this.path = [
+			"/file/:id",
+			"/f/:id",
+			"/image/:id",
+			"/i/:id",
+			"/videos/:id",
+			"/v/:id",
+		];
 
 		this.options = {
 			schema: {
@@ -55,7 +63,7 @@ class Files extends Path {
 	}
 
 	/**
-	 * @desc Display an image to the user, or the 404 page if image doesn't exist.
+	 * @desc Sends the upload, or a 404 if it doesn't exist.
 	 */
 	async execute(
 		request: FastifyRequest<{
@@ -68,7 +76,7 @@ class Files extends Path {
 		// The link names the file as <id>.<ext>, or just <id> when it has no extension
 		const { id, ext } = parseUploadName(request.params.id);
 		const upload = await this.core.db.findFile(
-			{ id, ext, type: "file" },
+			{ id, ext },
 			"id ext owner contentType",
 		);
 		if (!upload) {

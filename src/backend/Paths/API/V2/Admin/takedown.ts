@@ -23,6 +23,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
 import type { User } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
+import { routeType } from "../../../../Structures/Utilities/upload-types.js";
 
 /**
  * @classdesc Admin endpoint for removing a users content
@@ -122,7 +123,7 @@ class Takedown extends Path {
 					email: user.email,
 					username: user.username,
 					id,
-					type: del.type,
+					type: routeType(del.contentType),
 				},
 				url,
 			);
