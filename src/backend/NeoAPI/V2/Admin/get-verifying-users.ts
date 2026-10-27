@@ -22,10 +22,13 @@ export function route(fastify: FastifyInstance, core: Core) {
 						message: {
 							type: "array",
 							items: {
-								email: { type: "string" },
-								createdAt: { type: "number" },
-								username: { type: "string" },
-								id: { type: "string" },
+								type: "object",
+								properties: {
+									email: { type: "string" },
+									createdAt: { type: "number" },
+									username: { type: "string" },
+									id: { type: "string" },
+								},
 							},
 						},
 						code: { type: "number" },
@@ -77,7 +80,7 @@ export function route(fastify: FastifyInstance, core: Core) {
 				fastify.log.error(error);
 				return reply.code(core.codes.internalErr).send({
 					code: core.Utils.foldCodes.dbUnkownError,
-					message: error ?? "Unknown Error While Fetching Users",
+					message: "Unknown Error While Fetching Users",
 				});
 			}
 		},

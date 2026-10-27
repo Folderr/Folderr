@@ -55,7 +55,21 @@ class Users extends Path {
 					200: {
 						type: "object",
 						properties: {
-							message: { type: "array" },
+							message: {
+								type: "array",
+								items: {
+									type: "object",
+									properties: {
+										title: { type: "string" }, // Maybe change to `role` later
+										username: { type: "string" },
+										email: { type: "string" },
+										files: { type: "number" }, // Statistic / Count
+										links: { type: "number" }, // Stat / Count
+										id: { type: "string" }, // ULID
+										created: { type: "number" },
+									},
+								},
+							},
 							code: { type: "number" },
 						},
 					},
@@ -114,7 +128,7 @@ class Users extends Path {
 			files: number;
 			links: number;
 			id: string;
-			created: number;
+			created: Date; // Fastify will convert this
 		}> = users.map((user: User) => ({
 			title: user.owner ? "owner" : user.admin ? "admin" : "user",
 			username: user.username,
@@ -122,7 +136,7 @@ class Users extends Path {
 			files: user.files,
 			links: user.links,
 			id: user.id,
-			created: Math.round(user.createdAt.getTime() / 1000),
+			created: user.createdAt,
 		}));
 		return response
 			.status(this.codes.ok)

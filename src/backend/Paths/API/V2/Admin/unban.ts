@@ -21,7 +21,6 @@
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
-import type { User } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
 
 /**
@@ -35,6 +34,7 @@ class Unban extends Path {
 		this.path = "/admin/ban";
 		this.type = "delete";
 		this.options = {
+			// TODO: Add reason if/when Folderr gets an audit log
 			schema: {
 				body: {
 					type: "object",
@@ -71,12 +71,10 @@ class Unban extends Path {
 		}>,
 		response: FastifyReply,
 	) {
-		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin || user.owner),
-		);
-		if (!auth) {
-			return response.status(this.codes.unauth).send({
-				code: this.codes.unauth,
+		const auth = await this.Utils.checkAuth(request, true);
+		if (auth.code !== 200) {
+			return response.status(auth.code).send({
+				code: auth.code,
 				message: "Authorization failed.",
 			});
 		}

@@ -86,8 +86,8 @@ class VerifyAccount extends Path {
 		// Look for the user
 		const user = await this.core.db.findVerify({ id: request.body.id });
 		if (!user) {
-			return response.status(this.codes.notAccepted).send({
-				code: this.Utils.foldCodes.dbNotFound,
+			return response.status(this.codes.notFound).send({
+				code: this.Utils.foldCodes.noUserFound,
 				message: "User not found!",
 			});
 		}

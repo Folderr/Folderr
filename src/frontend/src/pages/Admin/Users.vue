@@ -479,6 +479,7 @@ const reasonDelete = async (
 		} else if (sne.value && !(output.error instanceof Error)) {
 			sne.value.addError(output.error ?? "Unknown Error");
 		}
+		return;
 	} else if (sne.value) {
 		sne.value.addSuccess(`Deleted ${user.username}`);
 	}
@@ -489,14 +490,6 @@ const reasonDelete = async (
 
 	if (selectedUser.value) {
 		closeUserDialog();
-	}
-
-	await loadUsers();
-	const result = await deleteUser(user.id, reason);
-	if (result instanceof Error && sne.value) {
-		sne.value.addError(result.message);
-	} else if (sne.value) {
-		sne.value.addSuccess(`Deleted ${user.username}`);
 	}
 
 	cancelReason();
@@ -895,36 +888,6 @@ async function acceptUser(id: string): Promise<boolean | Error> {
 
 	console.log(output.output);
 	return true;
-}
-
-async function deleteUser(
-	id: string,
-	reason: string,
-): Promise<boolean | Error> {
-	const output = await api.Admin.user.deleteAccount(id, reason);
-	if (output.error ?? !output.success) {
-		console.log(output.error ?? "Unknown Error");
-		if (output.error instanceof Error) {
-			return output.error;
-		}
-
-		return new Error(output.error ?? "Unknown Error");
-	}
-
-	userList.value = userList.value?.filter((user) => user.id !== id);
-
-	if (selectedUser.value) {
-		closeUserDialog();
-	}
-
-	await loadUsers();
-
-	if (output.success) {
-		console.log(output.output);
-		return true;
-	}
-
-	return false;
 }
 
 const store = useUserStore();
