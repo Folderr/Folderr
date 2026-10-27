@@ -20,9 +20,34 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import moment from "moment";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
+
+// How long a warning has to stay before the user can delete it
+const WARN_LOCK_MS = 90 * 24 * 60 * 60 * 1000;
+
+const DURATION_UNITS: Array<[string, number]> = [
+	["Days", 24 * 60 * 60 * 1000],
+	["Hours", 60 * 60 * 1000],
+	["Minutes", 60 * 1000],
+	["Seconds", 1000],
+];
+
+/**
+ * @desc Formats a length of time as e.g. "89 Days, 23 Hours, 5 Minutes".
+ */
+function formatDuration(ms: number): string {
+	const parts: string[] = [];
+	for (const [name, size] of DURATION_UNITS) {
+		const amount = Math.floor(ms / size);
+		ms -= amount * size;
+		if (amount > 0) {
+			parts.push(`${amount} ${name}`);
+		}
+	}
+
+	return parts.join(", ") || "0 Seconds";
+}
 
 /**
  * @classdesc User can delete a single notification
@@ -117,40 +142,15 @@ class DelNotify extends Path {
 			});
 		}
 
-		// Days * hours/day * minutes/hour * seconds/minute * milliseconds/second
-		const breakdown = {
-			days: 90,
-			hoursPerDay: 24,
-			minutesPerHour: 60,
-			secondsPerMinute: 60,
-			msPerSecond: 1000,
-		};
-		let limit = 0;
-		for (const setLimit of Object.values(breakdown)) {
-			if (Number.isNaN(limit)) {
-				return response.status(this.codes.internalErr).send({
-					code: this.codes.internalErr,
-					message: "Internal Math Error",
+		if (notify.title === "Warn") {
+			const remaining =
+				WARN_LOCK_MS - (Date.now() - notify.createdAt.getTime());
+			if (remaining > 0) {
+				return response.status(this.codes.forbidden).send({
+					code: this.codes.forbidden,
+					message: `Notification cannot be deleted for ${formatDuration(remaining)}`,
 				});
 			}
-
-			limit *= setLimit;
-		}
-
-		if (
-			notify?.title === "Warn" &&
-			Date.now() - notify.createdAt.getTime() < limit
-		) {
-			const time = new Date(Date.now() + limit).getTime() - Date.now();
-			const formattedTime = moment
-				.duration(time)
-				.format(
-					"M [Months], D [Days], H [Hours], m [Minutes, and] s [Seconds]",
-				);
-			return response.status(this.codes.forbidden).send({
-				code: this.codes.forbidden,
-				message: `Notification cannot be deleted for ${formattedTime}`,
-			});
 		}
 
 		// Remove the notification, update the users account, and return success

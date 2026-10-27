@@ -35,7 +35,7 @@ const userSchema = new Schema({
 				id: { type: String },
 				title: { type: String },
 				notify: { type: String },
-				created: { type: Date, default: Date.now },
+				createdAt: { type: Date, default: Date.now },
 			},
 		],
 		required: false,

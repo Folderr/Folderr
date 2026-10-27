@@ -20,14 +20,9 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import moment from "moment";
-import momentDurationFormatSetup from "moment-duration-format";
 import pkg from "../../../../../../package.json" with { type: "json" };
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
-
-// @ts-expect-error, According to docs, this works.
-momentDurationFormatSetup(moment);
 
 /**
  * @classdesc Shows overall information
