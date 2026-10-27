@@ -57,6 +57,7 @@
 		"fast-glob": "^3.3.3",
 		"fastify": "^5.8.2",
 		"fastify-plugin": "^4.5.1",
+		"file-type": "^21.3.4",
 		"fldrr-web-sdk": "github:Folderr/fldrr-web-sdk",
 		"got": "^11.8.6",
 		"js-yaml": "^4.1.0",
