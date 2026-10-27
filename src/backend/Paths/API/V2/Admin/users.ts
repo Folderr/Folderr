@@ -66,7 +66,7 @@ class Users extends Path {
 										files: { type: "number" }, // Statistic / Count
 										links: { type: "number" }, // Stat / Count
 										id: { type: "string" }, // ULID
-										created: { type: "number" },
+										createdAt: { type: "number" },
 									},
 								},
 							},
@@ -128,7 +128,7 @@ class Users extends Path {
 			files: number;
 			links: number;
 			id: string;
-			created: Date; // Fastify will convert this
+			createdAt: Date; // Fastify will convert this
 		}> = users.map((user: User) => ({
 			title: user.owner ? "owner" : user.admin ? "admin" : "user",
 			username: user.username,
@@ -136,7 +136,7 @@ class Users extends Path {
 			files: user.files,
 			links: user.links,
 			id: user.id,
-			created: user.createdAt,
+			createdAt: user.createdAt,
 		}));
 		return response
 			.status(this.codes.ok)

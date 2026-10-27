@@ -61,7 +61,7 @@ export type AdminUsersReturn = {
 	id: string;
 	email: string;
 	username: string;
-	created: number;
+	createdAt: number;
 };
 
 export async function getUsers(): Promise<

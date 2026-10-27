@@ -57,7 +57,18 @@ class Links extends Path {
 					200: {
 						type: "object",
 						properties: {
-							message: { type: "array" },
+							message: {
+								type: "array",
+								items: {
+									type: "object",
+									properties: {
+										id: { type: "string" },
+										points_to: { type: "string" },
+										createdAt: { type: "number" }, // Fastify converts the Date to milliseconds
+										link: { type: "string" },
+									},
+								},
+							},
 							code: { type: "number" },
 						},
 					},
@@ -125,7 +136,7 @@ class Links extends Path {
 		const aShorts = shorts.map((short: Link) => ({
 			id: short.id,
 			points_to: short.link,
-			created: Math.round(short.createdAt.getTime() / 1000),
+			createdAt: short.createdAt,
 			link: `${url}/${short.id}`,
 		}));
 

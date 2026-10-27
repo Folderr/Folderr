@@ -61,7 +61,18 @@ class Files extends Path {
 					200: {
 						type: "object",
 						properties: {
-							message: { type: "array" },
+							message: {
+								type: "array",
+								items: {
+									type: "object",
+									properties: {
+										id: { type: "string" },
+										type: { type: "string" },
+										createdAt: { type: "number" }, // Fastify converts the Date to milliseconds
+										link: { type: "string" },
+									},
+								},
+							},
 							code: { type: "number" },
 						},
 					},
@@ -128,7 +139,7 @@ class Files extends Path {
 		const files = images.map((image: Upload) => ({
 			id: image.id,
 			type: routeType(image.contentType),
-			created: Math.round(image.createdAt.getTime() / 1000),
+			createdAt: image.createdAt,
 			link: `${url}/${routeType(image.contentType)[0]}/${uploadName(
 				image.id,
 				image.ext,
