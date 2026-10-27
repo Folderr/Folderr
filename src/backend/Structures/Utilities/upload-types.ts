@@ -124,6 +124,121 @@ const TEXT_DETECTIONS = new Set([
 	"dat",
 ]);
 
+/** Programs, installers and scripts that an operating system runs when they're opened */
+const EXECUTABLE_EXTENSIONS = new Set([
+	// Windows
+	"exe",
+	"dll",
+	"sys",
+	"drv",
+	"ocx",
+	"scr",
+	"com",
+	"pif",
+	"cpl",
+	"msi",
+	"msp",
+	"mst",
+	"msix",
+	"msixbundle",
+	"appx",
+	"appxbundle",
+	"bat",
+	"cmd",
+	"ps1",
+	"psm1",
+	"psd1",
+	"vbs",
+	"vbe",
+	"js",
+	"jse",
+	"wsf",
+	"wsh",
+	"wsc",
+	"hta",
+	"reg",
+	"lnk",
+	"url",
+	"scf",
+	"inf",
+	"gadget",
+	"msc",
+	// macOS
+	"app",
+	"pkg",
+	"mpkg",
+	"command",
+	"dmg",
+	"kext",
+	"dylib",
+	"scpt",
+	"workflow",
+	"action",
+	// Linux and other Unix systems
+	"sh",
+	"bash",
+	"zsh",
+	"csh",
+	"ksh",
+	"fish",
+	"run",
+	"appimage",
+	"elf",
+	"so",
+	"deb",
+	"rpm",
+	"snap",
+	"flatpak",
+	// Java, Android, iOS, WebAssembly and browser extensions
+	"jar",
+	"class",
+	"apk",
+	"aab",
+	"xapk",
+	"ipa",
+	"wasm",
+	"swf",
+	"xpi",
+	"crx",
+]);
+
+/** Executable formats file-type recognises from their bytes, whatever the file is called */
+const EXECUTABLE_DETECTIONS = new Set([
+	"exe",
+	"elf",
+	"macho",
+	"wasm",
+	"class",
+	"jar",
+	"apk",
+	"xpi",
+	"crx",
+	"deb",
+	"rpm",
+	"dmg",
+	"lnk",
+	"swf",
+	"reg",
+]);
+
+/** Whether an upload's extension marks it as a program or script */
+export function isExecutableExtension(ext: string): boolean {
+	return EXECUTABLE_EXTENSIONS.has(ext);
+}
+
+/** Whether a file's bytes show it's a program or script, whatever it's called */
+function isExecutableContent(
+	firstBytes: Buffer,
+	detected?: { ext: string },
+): boolean {
+	if (detected && EXECUTABLE_DETECTIONS.has(detected.ext.toLowerCase())) {
+		return true;
+	}
+
+	// "#!" starts a script that Unix-like systems run with the interpreter it names
+	return firstBytes.subarray(0, 2).toString("latin1") === "#!";
+}
+
 /** Whether file-type should have recognised a file with this extension */
 function isBinaryFormat(ext: string): boolean {
 	if (TEXT_DETECTIONS.has(ext)) {
@@ -165,16 +280,25 @@ export type UploadType =
 			ext: string;
 			contentType: string;
 	  }
-	| { ok: false; reason: "mismatch" };
+	| { ok: false; reason: "mismatch" | "executable" };
 
 /**
  * Checks an upload's extension against what file-type found in its first bytes.
- * A file whose contents disagree with its extension is rejected.
+ * Programs and scripts are rejected, as is a file whose contents disagree with its
+ * extension.
  */
 export function checkUploadType(
 	ext: string,
+	firstBytes: Buffer,
 	detected?: { ext: string; mime: string },
 ): UploadType {
+	if (
+		isExecutableExtension(ext) ||
+		isExecutableContent(firstBytes, detected)
+	) {
+		return { ok: false, reason: "executable" };
+	}
+
 	const binary =
 		detected && !TEXT_DETECTIONS.has(detected.ext) ? detected : undefined;
 

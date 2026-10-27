@@ -32,6 +32,7 @@ import Path from "../../../../Structures/path.js";
 import {
 	checkUploadType,
 	FirstBytes,
+	isExecutableExtension,
 	routeType,
 	uploadExtension,
 } from "../../../../Structures/Utilities/upload-types.js";
@@ -112,6 +113,14 @@ class Image extends Path {
 			});
 		}
 
+		if (isExecutableExtension(ext)) {
+			file.file.resume();
+			return response.status(this.codes.badReq).send({
+				code: this.Utils.foldCodes.securityError,
+				message: "Executable files aren't allowed",
+			});
+		}
+
 		if (!file.mimetype) {
 			file.file.resume();
 			return response.status(this.codes.badReq).send({
@@ -158,13 +167,21 @@ class Image extends Path {
 		const detected = await fileTypeFromBuffer(firstBytes.bytes).catch(
 			() => undefined,
 		);
-		const checked = checkUploadType(ext, detected);
+		const checked = checkUploadType(ext, firstBytes.bytes, detected);
 		if (!checked.ok) {
 			await unlink(filePath);
-			return response.status(this.codes.badReq).send({
-				code: this.Utils.foldCodes.fileMimeError,
-				message: "The file's contents don't match its extension",
-			});
+			return response.status(this.codes.badReq).send(
+				checked.reason === "executable"
+					? {
+							code: this.Utils.foldCodes.securityError,
+							message: "Executable files aren't allowed",
+						}
+					: {
+							code: this.Utils.foldCodes.fileMimeError,
+							message:
+								"The file's contents don't match its extension",
+						},
+			);
 		}
 
 		// Store it under the extension its contents show (photo.jpeg -> .jpg)
