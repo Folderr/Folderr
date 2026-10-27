@@ -20,7 +20,7 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { fileTypeFromBuffer } from "file-type";
+import { fileTypeFromFile } from "file-type";
 import { createWriteStream } from "fs";
 import { rename, unlink } from "fs/promises";
 import { pipeline } from "stream";
@@ -29,8 +29,8 @@ import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 import {
 	checkUploadType,
-	FirstBytes,
 	isExecutableExtension,
+	readStart,
 	routeType,
 	uploadExtension,
 	uploadName,
@@ -122,11 +122,9 @@ class Image extends Path {
 
 		const id = await this.Utils.genShortId();
 		const filePath = uploadPath(id, ext);
-		// Keeps the first bytes as the file streams to disk, to check what it really is
-		const firstBytes = new FirstBytes();
 
 		try {
-			await pump(file.file, firstBytes, createWriteStream(filePath));
+			await pump(file.file, createWriteStream(filePath));
 		} catch (error: unknown) {
 			await unlink(filePath).catch(() => undefined);
 			if (
@@ -155,10 +153,15 @@ class Image extends Path {
 			});
 		}
 
-		const detected = await fileTypeFromBuffer(firstBytes.bytes).catch(
+		// Check what the saved file really is from its first bytes
+		const detected = await fileTypeFromFile(filePath).catch(
 			() => undefined,
 		);
-		const checked = checkUploadType(ext, firstBytes.bytes, detected);
+		const checked = checkUploadType(
+			ext,
+			await readStart(filePath, 2),
+			detected,
+		);
 		if (!checked.ok) {
 			await unlink(filePath);
 			return response.status(this.codes.badReq).send(

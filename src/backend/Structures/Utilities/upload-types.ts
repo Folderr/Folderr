@@ -29,17 +29,14 @@
 import type { FastifyReply } from "fastify";
 import { supportedExtensions } from "file-type";
 import { createReadStream } from "fs";
+import { open } from "fs/promises";
 import { join } from "path";
 import process from "process";
-import { Transform, type TransformCallback } from "stream";
 
 export const OCTET_STREAM = "application/octet-stream";
 
 /** Where uploads are stored */
 export const FILES_DIR = join(process.cwd(), "Files");
-
-/** Bytes to keep from the start of an upload, enough for file-type to identify it */
-export const SNIFF_BYTES = 4100;
 
 const EXTENSION = /^[a-z0-9]{1,10}$/;
 
@@ -360,37 +357,15 @@ export function routeType(contentType: string): "image" | "video" | "file" {
 	return "file";
 }
 
-/** Passes a stream through unchanged, keeping a copy of its first bytes */
-export class FirstBytes extends Transform {
-	readonly #limit: number;
-
-	readonly #chunks: Buffer[] = [];
-
-	#length = 0;
-
-	constructor(limit = SNIFF_BYTES) {
-		super();
-		this.#limit = limit;
-	}
-
-	get bytes(): Buffer {
-		return Buffer.concat(this.#chunks);
-	}
-
-	override _transform(
-		chunk: Buffer,
-		_encoding: BufferEncoding,
-		callback: TransformCallback,
-	): void {
-		if (this.#length < this.#limit) {
-			const part = Buffer.from(
-				chunk.subarray(0, this.#limit - this.#length),
-			);
-			this.#chunks.push(part);
-			this.#length += part.length;
-		}
-
-		callback(null, chunk);
+/** The first bytes of a saved upload */
+export async function readStart(path: string, length: number): Promise<Buffer> {
+	const handle = await open(path, "r");
+	try {
+		const buffer = Buffer.alloc(length);
+		const { bytesRead } = await handle.read(buffer, 0, length, 0);
+		return buffer.subarray(0, bytesRead);
+	} finally {
+		await handle.close();
 	}
 }
 
