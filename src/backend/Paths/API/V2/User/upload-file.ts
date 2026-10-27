@@ -138,11 +138,11 @@ class Image extends Path {
 				});
 			}
 
+			this.core.logger.error(error);
+
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.fileParserError,
-				message: `Parser error!\n${
-					error instanceof Error ? error.message : (error as string)
-				}`,
+				message: "File failed to be parsed!",
 			});
 		}
 
@@ -202,7 +202,7 @@ class Image extends Path {
 				),
 			]);
 		} catch (error: unknown) {
-			console.log(error);
+			this.core.logger.error(error);
 		}
 
 		return response
