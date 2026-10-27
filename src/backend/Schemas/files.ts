@@ -27,8 +27,6 @@ const file = new Schema({
 	owner: { type: String, required: true },
 	type: { type: String, required: true },
 	createdAt: { type: Date, default: new Date() },
-	// What the uploader claimed the file is
-	mimetype: { type: String, required: true },
 	// What the file really is, worked out at upload
 	contentType: { type: String, required: true },
 	// The extension it's stored and linked under; empty when it has none

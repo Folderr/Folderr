@@ -100,8 +100,8 @@ class Image extends Path {
 			});
 		}
 
-		// The name and type come from the upload's headers, so these checks run
-		// before any of the file is read. Draining it lets the request finish.
+		// The name comes from the upload's headers, so these checks run before any
+		// of the file is read. Draining it lets the request finish.
 		const ext = uploadExtension(file.filename);
 		// "" means no extension, which is fine; undefined means an unusable one
 		if (ext === undefined) {
@@ -117,14 +117,6 @@ class Image extends Path {
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.securityError,
 				message: "Executable files aren't allowed",
-			});
-		}
-
-		if (!file.mimetype) {
-			file.file.resume();
-			return response.status(this.codes.badReq).send({
-				code: this.Utils.foldCodes.fileMimeError,
-				message: "Invalid file!",
 			});
 		}
 
@@ -197,7 +189,6 @@ class Image extends Path {
 			await Promise.all([
 				this.core.db.makeFile(id, auth.id, {
 					generic: type,
-					mimetype: file.mimetype,
 					contentType,
 					ext: checked.ext,
 				}),

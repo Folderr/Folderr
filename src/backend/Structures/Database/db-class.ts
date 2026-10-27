@@ -95,11 +95,8 @@ export interface Statistics {
 export interface Upload {
 	id: string;
 	owner: string;
-	format: string;
 	type: string;
 	createdAt: Date;
-	/** What the uploader claimed the file is */
-	mimetype: string;
 	/** What the file really is, worked out at upload */
 	contentType: string;
 	/** The extension it's stored and linked under; empty when it has none */
@@ -363,7 +360,6 @@ export class DBClass {
 		owner: string,
 		types: {
 			generic: string;
-			mimetype: string;
 			contentType: string;
 			ext: string;
 		},

@@ -550,7 +550,6 @@ export default class Mongoosedb extends DBClass {
 		owner: string,
 		types: {
 			generic: string;
-			mimetype: string;
 			contentType: string;
 			ext: string;
 		},
@@ -559,7 +558,6 @@ export default class Mongoosedb extends DBClass {
 			id,
 			owner,
 			type: types.generic,
-			mimetype: types.mimetype,
 			contentType: types.contentType,
 			ext: types.ext,
 		});
