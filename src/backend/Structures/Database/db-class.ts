@@ -96,7 +96,6 @@ export interface Upload {
 	id: string;
 	owner: string;
 	format: string;
-	path: string;
 	type: string;
 	createdAt: Date;
 	/** What the uploader claimed the file is */
@@ -362,7 +361,6 @@ export class DBClass {
 	async makeFile(
 		id: string,
 		owner: string,
-		path: string,
 		types: {
 			generic: string;
 			mimetype: string;

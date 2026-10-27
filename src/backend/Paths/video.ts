@@ -69,7 +69,7 @@ class Videos extends Path {
 		const { id, ext } = parseUploadName(request.params.id);
 		const upload = await this.core.db.findFile(
 			{ id, ext, type: "video" },
-			"id ext path owner contentType",
+			"id ext owner contentType",
 		);
 		if (!upload) {
 			return response.status(this.codes.notFound).send("404 Not Found");

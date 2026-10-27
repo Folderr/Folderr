@@ -23,8 +23,6 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { fileTypeFromBuffer } from "file-type";
 import { createWriteStream } from "fs";
 import { rename, unlink } from "fs/promises";
-import { join } from "path";
-import process from "process";
 import { pipeline } from "stream";
 import { promisify } from "util";
 import type { Core } from "../../../../internals.js";
@@ -36,11 +34,10 @@ import {
 	routeType,
 	uploadExtension,
 	uploadName,
+	uploadPath,
 } from "../../../../Structures/Utilities/upload-types.js";
 
 const pump = promisify(pipeline);
-
-const dir = join(process.cwd(), "./Files/");
 
 /**
  * @classdesc Upload a file
@@ -132,7 +129,7 @@ class Image extends Path {
 		}
 
 		const id = await this.Utils.genShortId();
-		const filePath = `${dir}/${uploadName(id, ext)}`;
+		const filePath = uploadPath(id, ext);
 		// Keeps the first bytes as the file streams to disk, to check what it really is
 		const firstBytes = new FirstBytes();
 
@@ -189,7 +186,7 @@ class Image extends Path {
 		// Store it under the extension its contents show (photo.jpeg -> .jpg)
 		let storedPath = filePath;
 		if (checked.ext !== ext) {
-			storedPath = `${dir}/${uploadName(id, checked.ext)}`;
+			storedPath = uploadPath(id, checked.ext);
 			await rename(filePath, storedPath);
 		}
 
@@ -198,7 +195,7 @@ class Image extends Path {
 
 		try {
 			await Promise.all([
-				this.core.db.makeFile(id, auth.id, storedPath, {
+				this.core.db.makeFile(id, auth.id, {
 					generic: type,
 					mimetype: file.mimetype,
 					contentType,

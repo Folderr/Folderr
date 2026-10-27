@@ -29,9 +29,14 @@
 import type { FastifyReply } from "fastify";
 import { supportedExtensions } from "file-type";
 import { createReadStream } from "fs";
+import { join } from "path";
+import process from "process";
 import { Transform, type TransformCallback } from "stream";
 
 export const OCTET_STREAM = "application/octet-stream";
+
+/** Where uploads are stored */
+export const FILES_DIR = join(process.cwd(), "Files");
 
 /** Bytes to keep from the start of an upload, enough for file-type to identify it */
 export const SNIFF_BYTES = 4100;
@@ -269,6 +274,11 @@ export function uploadName(id: string, ext: string): string {
 	return ext ? `${id}.${ext}` : id;
 }
 
+/** Where an upload is stored on disk */
+export function uploadPath(id: string, ext: string): string {
+	return join(FILES_DIR, uploadName(id, ext));
+}
+
 /** Splits a link's last part back into the upload's ID and extension: "abc.png" -> abc, png */
 export function parseUploadName(name: string): { id: string; ext: string } {
 	const dot = name.indexOf(".");
@@ -391,7 +401,7 @@ export class FirstBytes extends Transform {
  */
 export function sendUpload(
 	reply: FastifyReply,
-	upload: { id: string; ext: string; path: string; contentType: string },
+	upload: { id: string; ext: string; contentType: string },
 ): FastifyReply {
 	const type = baseType(upload.contentType);
 	const inline = isInline(type);
@@ -412,5 +422,5 @@ export function sendUpload(
 				: `attachment; filename="${uploadName(upload.id, upload.ext)}"`,
 		)
 		.header("X-Content-Type-Options", "nosniff")
-		.send(createReadStream(upload.path));
+		.send(createReadStream(uploadPath(upload.id, upload.ext)));
 }
