@@ -26,7 +26,7 @@ const adminNotifs = new Schema({
 	title: { type: String, required: true },
 	notify: { type: String, required: true },
 	id: { type: String, required: true, index: true },
-	createdAt: { type: Date, default: new Date() },
+	createdAt: { type: Date, default: Date.now },
 });
 
 const mod = model<Notification>("admin_notifs", adminNotifs);

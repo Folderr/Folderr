@@ -26,7 +26,7 @@ const jwtToken = new Schema({
 	id: { type: String, required: true, index: true },
 	userID: { type: String, required: true, index: true },
 	web: { type: Boolean, required: false, default: false },
-	createdAt: { type: Date, default: new Date() },
+	createdAt: { type: Date, default: Date.now },
 	expireAt: { type: Date },
 	description: { type: String, default: "No description" },
 });

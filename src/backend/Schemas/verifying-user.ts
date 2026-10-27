@@ -29,7 +29,7 @@ const user = new Schema({
 	username: { type: String, required: true },
 	validationToken: { type: String, required: true },
 	email: { type: String, required: true },
-	createdAt: { type: Date, default: new Date() },
+	createdAt: { type: Date, default: Date.now },
 });
 
 const mod: Model<PendingMember> = model<PendingMember>("verifying_user", user);

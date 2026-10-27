@@ -6,7 +6,7 @@ const userSchema = new Schema({
 	id: { type: String, required: true },
 	email: { type: String, required: true, index: true },
 	reason: { type: String, required: true },
-	createdAt: { type: Date, default: new Date(), index: true },
+	createdAt: { type: Date, default: Date.now, index: true },
 });
 
 const mod: Model<Ban> = model<Ban>("ban", userSchema);

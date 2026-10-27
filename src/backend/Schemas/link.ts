@@ -26,7 +26,7 @@ const shortSchema = new Schema({
 	link: { type: String, required: true },
 	owner: { type: String, required: true },
 	id: { type: String, required: true, index: true },
-	createdAt: { type: Date, default: new Date() },
+	createdAt: { type: Date, default: Date.now },
 });
 
 const shortModel = model<Link>("short", shortSchema);

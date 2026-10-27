@@ -35,7 +35,7 @@ const userSchema = new Schema({
 				id: { type: String },
 				title: { type: String },
 				notify: { type: String },
-				created: { type: Date, default: new Date() },
+				created: { type: Date, default: Date.now },
 			},
 		],
 		required: false,
@@ -48,7 +48,7 @@ const userSchema = new Schema({
 	pendingEmail: { type: String },
 	pendingEmailToken: { type: String },
 	tokenExpiresAt: { type: Date },
-	createdAt: { type: Date, default: new Date() },
+	createdAt: { type: Date, default: Date.now },
 	privacy: {
 		dataCollection: { type: Boolean, default: false },
 	},
