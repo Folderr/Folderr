@@ -22,7 +22,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { fileTypeFromBuffer } from "file-type";
 import { createWriteStream } from "fs";
-import { unlink } from "fs/promises";
+import { rename, unlink } from "fs/promises";
 import { join } from "path";
 import process from "process";
 import { pipeline } from "stream";
@@ -30,8 +30,8 @@ import { promisify } from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
 import {
+	checkUploadType,
 	FirstBytes,
-	resolveContentType,
 	routeType,
 	uploadExtension,
 } from "../../../../Structures/Utilities/upload-types.js";
@@ -158,12 +158,28 @@ class Image extends Path {
 		const detected = await fileTypeFromBuffer(firstBytes.bytes).catch(
 			() => undefined,
 		);
-		const contentType = resolveContentType(ext, detected);
+		const checked = checkUploadType(ext, detected);
+		if (!checked.ok) {
+			await unlink(filePath);
+			return response.status(this.codes.badReq).send({
+				code: this.Utils.foldCodes.fileMimeError,
+				message: "The file's contents don't match its extension",
+			});
+		}
+
+		// Store it under the extension its contents show (photo.jpeg -> .jpg)
+		let storedPath = filePath;
+		if (checked.ext !== ext) {
+			storedPath = `${dir}/${id}.${checked.ext}`;
+			await rename(filePath, storedPath);
+		}
+
+		const { contentType } = checked;
 		const type = routeType(contentType);
 
 		try {
 			await Promise.all([
-				this.core.db.makeFile(id, auth.id, filePath, {
+				this.core.db.makeFile(id, auth.id, storedPath, {
 					generic: type,
 					mimetype: file.mimetype,
 					contentType,
@@ -190,7 +206,7 @@ class Image extends Path {
 					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${id}.${ext}`,
+				}/${type[0]}/${id}.${checked.ext}`,
 			);
 	}
 }

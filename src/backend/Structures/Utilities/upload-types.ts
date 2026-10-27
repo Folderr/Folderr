@@ -21,13 +21,14 @@
 
 /**
  * How uploads are typed and served.
- * Uploading records what a file really is (its contentType); serving decides,
- * from the allowlist below, whether that type may be shown inline.
+ * Uploading checks what a file really is and rejects it when that disagrees with
+ * its extension; serving decides, from the allowlist below, whether its type may
+ * be shown inline.
  */
 
 import type { FastifyReply } from "fastify";
+import { supportedExtensions } from "file-type";
 import { createReadStream } from "fs";
-import mime from "mime-types";
 import { extname } from "path";
 import { Transform, type TransformCallback } from "stream";
 
@@ -39,67 +40,104 @@ export const SNIFF_BYTES = 4100;
 const EXTENSION = /^[a-z0-9]{1,10}$/;
 
 /**
- * Types that are safe to show inline: they can't run scripts in a browser.
- * Anything else is sent as a download. Both spellings are listed where
- * file-type (new uploads) and mime-types (older uploads) name a format differently.
+ * Formats that are safe to show inline (they can't run scripts in a browser), by
+ * extension, with the type file-type reports for them. Anything else downloads.
  */
-const INLINE_TYPES = new Set([
+const INLINE_BY_EXTENSION: Record<string, string> = {
 	// Images
-	"image/png",
-	"image/jpeg",
-	"image/gif",
-	"image/webp",
-	"image/avif",
-	"image/apng",
-	"image/bmp",
-	"image/x-icon",
-	"image/vnd.microsoft.icon",
+	png: "image/png",
+	apng: "image/apng",
+	jpg: "image/jpeg",
+	jpeg: "image/jpeg",
+	gif: "image/gif",
+	webp: "image/webp",
+	avif: "image/avif",
+	bmp: "image/bmp",
+	ico: "image/x-icon",
 	// Video
-	"video/mp4",
-	"video/webm",
-	"video/ogg",
-	"video/quicktime",
-	"video/x-m4v",
-	"video/matroska",
-	"video/x-matroska",
+	mp4: "video/mp4",
+	m4v: "video/x-m4v",
+	webm: "video/webm",
+	ogv: "video/ogg",
+	mov: "video/quicktime",
+	mkv: "video/matroska",
 	// Audio
-	"audio/mpeg",
-	"audio/mp4",
-	"audio/x-m4a",
-	"audio/aac",
-	"audio/x-aac",
-	"audio/ogg",
-	"audio/opus",
-	"audio/wav",
-	"audio/wave",
-	"audio/x-wav",
-	"audio/flac",
-	"audio/x-flac",
-	"audio/webm",
+	mp3: "audio/mpeg",
+	m4a: "audio/x-m4a",
+	aac: "audio/aac",
+	ogg: "audio/ogg",
+	oga: "audio/ogg",
+	opus: "audio/ogg",
+	wav: "audio/wav",
+	flac: "audio/flac",
 	// Text
-	"text/plain",
+	txt: "text/plain",
+};
+
+const INLINE_TYPES = new Set([
+	...Object.values(INLINE_BY_EXTENSION),
+	// file-type reports audio-only MP4s as either of these
+	"audio/mp4",
 ]);
 
-/** The same formats under different names, so a detected type can be compared with a looked-up one */
-const ALIASES: Record<string, string> = {
-	"audio/wave": "audio/wav",
-	"audio/x-wav": "audio/wav",
-	"audio/x-flac": "audio/flac",
-	"audio/x-aac": "audio/aac",
-	"audio/x-m4a": "audio/mp4",
-	"image/vnd.microsoft.icon": "image/x-icon",
-	"video/x-matroska": "video/matroska",
-	"video/vnd.avi": "video/x-msvideo",
-};
+/** Extensions that name the same format, so "photo.jpeg" matches a detected "jpg" */
+const EXTENSION_FAMILIES = [
+	["jpg", "jpeg", "jpe", "jfif"],
+	["tif", "tiff"],
+	["png", "apng"],
+	["heic", "heif"],
+	["mp4", "m4v", "m4a", "m4b"],
+	["mov", "qt"],
+	["mkv", "mka"],
+	["webm", "weba"],
+	["ogg", "oga", "ogv", "opus", "spx", "ogx"],
+	["mid", "midi"],
+];
+
+const FAMILY = new Map(
+	EXTENSION_FAMILIES.flatMap((family) =>
+		family.map((ext) => [ext, family] as const),
+	),
+);
+
+function sameFormat(a: string, b: string): boolean {
+	return a === b || (FAMILY.get(a)?.includes(b) ?? false);
+}
+
+/**
+ * Text formats file-type can recognise, but not reliably: valid files often lack
+ * the header it looks for (XML without a <?xml …?> line), and an SVG that has one is
+ * reported as XML. These are checked by extension only. "dat" is a generic name.
+ */
+const TEXT_DETECTIONS = new Set([
+	"xml",
+	"ics",
+	"vcf",
+	"vtt",
+	"ps",
+	"eps",
+	"rtf",
+	"pgp",
+	"reg",
+	"stl",
+	"sav",
+	"dat",
+]);
+
+/** Whether file-type should have recognised a file with this extension */
+function isBinaryFormat(ext: string): boolean {
+	if (TEXT_DETECTIONS.has(ext)) {
+		return false;
+	}
+
+	return (FAMILY.get(ext) ?? [ext]).some((name) =>
+		supportedExtensions.has(name as never),
+	);
+}
 
 /** "Audio/OGG; codecs=opus" -> "audio/ogg" */
 export function baseType(type: string): string {
 	return type.split(";")[0].trim().toLowerCase();
-}
-
-function canonicalType(type: string): string {
-	const base = baseType(type);
-	return ALIASES[base] ?? base;
 }
 
 export function isInline(type: string): boolean {
@@ -120,31 +158,52 @@ export function uploadExtension(filename: string): string | undefined {
 	return EXTENSION.test(ext) ? ext : undefined;
 }
 
+export type UploadType =
+	| {
+			ok: true;
+			/** The extension to store the file under, as file-type names it when it recognised the file */
+			ext: string;
+			contentType: string;
+	  }
+	| { ok: false; reason: "mismatch" };
+
 /**
- * What an upload really is, from its extension and what file-type found in its first bytes.
- * A file whose bytes disagree with its extension is stored as a plain download.
+ * Checks an upload's extension against what file-type found in its first bytes.
+ * A file whose contents disagree with its extension is rejected.
  */
-export function resolveContentType(
+export function checkUploadType(
 	ext: string,
 	detected?: { ext: string; mime: string },
-): string {
-	const claimed = mime.lookup(ext) || undefined;
+): UploadType {
+	const binary =
+		detected && !TEXT_DETECTIONS.has(detected.ext) ? detected : undefined;
 
-	if (detected) {
-		const agrees =
-			detected.ext === ext ||
-			(claimed !== undefined &&
-				canonicalType(claimed) === canonicalType(detected.mime));
-		return agrees ? baseType(detected.mime) : OCTET_STREAM;
+	if (binary) {
+		const detectedExt = binary.ext.toLowerCase();
+		// A file uploaded without an extension takes the one its bytes show
+		if (ext === "bin" || sameFormat(ext, detectedExt)) {
+			return {
+				ok: true,
+				// A few detected names can't be used in a link ("tar.gz"), so keep the upload's
+				ext: EXTENSION.test(detectedExt) ? detectedExt : ext,
+				contentType: baseType(binary.mime),
+			};
+		}
+
+		return { ok: false, reason: "mismatch" };
 	}
 
-	// file-type only recognises binary formats. Without a match, the only inline
-	// type a file may claim is plain text, which has no signature to check.
-	if (!claimed || (isInline(claimed) && baseType(claimed) !== "text/plain")) {
-		return OCTET_STREAM;
+	// Nothing recognisable in the bytes. That's expected for text formats (txt, svg,
+	// csv, …), but a binary format file-type knows should have been recognised.
+	if (isBinaryFormat(ext)) {
+		return { ok: false, reason: "mismatch" };
 	}
 
-	return baseType(claimed);
+	return {
+		ok: true,
+		ext,
+		contentType: ext === "txt" ? "text/plain" : OCTET_STREAM,
+	};
 }
 
 /** Which link route an upload is served from */
@@ -207,12 +266,10 @@ export function sendUpload(
 	upload: { path: string; contentType?: string },
 	id: string,
 ): FastifyReply {
-	const rawExt = extname(upload.path).slice(1);
-	const ext = EXTENSION.test(rawExt.toLowerCase())
-		? rawExt.toLowerCase()
-		: "bin";
+	const rawExt = extname(upload.path).slice(1).toLowerCase();
+	const ext = EXTENSION.test(rawExt) ? rawExt : "bin";
 	const type = baseType(
-		upload.contentType ?? (mime.lookup(rawExt) || OCTET_STREAM),
+		upload.contentType ?? INLINE_BY_EXTENSION[rawExt] ?? OCTET_STREAM,
 	);
 	const inline = isInline(type);
 
