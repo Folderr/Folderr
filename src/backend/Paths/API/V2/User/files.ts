@@ -24,6 +24,7 @@ import type { RequestGallery } from "../../../../../types/fastify-request-types.
 import type { Core } from "../../../../internals.js";
 import type { Upload } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
+import { uploadName } from "../../../../Structures/Utilities/upload-types.js";
 
 /**
  * @classdesc Send users their files
@@ -121,18 +122,15 @@ class Files extends Path {
 				? request.headers.responseURL
 				: await this.Utils.determineHomeURL(request);
 		url = url.replace(/\/$/g, "");
-		const files = images.map((image: Upload) => {
-			const split = image.path.split(".");
-			const type = split[split.length - 1];
-			return {
-				id: image.id,
-				type: image.type,
-				created: Math.round(image.createdAt.getTime() / 1000),
-				link: `${url}/${image.type ? image.type[0] : "i"}/${
-					image.id
-				}.${type}`,
-			};
-		});
+		const files = images.map((image: Upload) => ({
+			id: image.id,
+			type: image.type,
+			created: Math.round(image.createdAt.getTime() / 1000),
+			link: `${url}/${image.type ? image.type[0] : "i"}/${uploadName(
+				image.id,
+				image.ext,
+			)}`,
+		}));
 		return response
 			.status(this.codes.ok)
 			.send({ code: this.codes.ok, message: files });

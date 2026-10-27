@@ -20,10 +20,12 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { extname } from "path";
 import type { Core } from "../internals.js";
 import Path from "../Structures/path.js";
-import { sendUpload } from "../Structures/Utilities/upload-types.js";
+import {
+	parseUploadName,
+	sendUpload,
+} from "../Structures/Utilities/upload-types.js";
 
 /**
  * @classdesc Allow users to access videos over the web
@@ -63,44 +65,23 @@ class Videos extends Path {
 		}>,
 		response: FastifyReply,
 	): Promise<FastifyReply | void> {
-		if (!request.params?.id) {
-			return response.status(this.codes.badReq).send("Missing video ID");
-		}
-
-		if (!/./.test(request.params.id)) {
-			return response
-				.status(this.codes.badReq)
-				.send("Missing file extension!");
-		}
-
-		const parts = request.params.id.split(".");
-		if (!parts[1]) {
-			return response
-				.status(this.codes.internalErr)
-				.send("500 Internal Error");
-		}
-
-		const image = await this.core.db.findFile({ id: parts[0] });
-		if (image) {
-			const owner = await this.core.db.findUser({ id: image.owner });
-			if (!owner) {
-				this.core.addDeleter(image.owner);
-				return response
-					.status(this.codes.notFound)
-					.send("404 Not Found");
-			}
-		}
-
-		if (!image || (image?.type && image.type !== "video")) {
+		// The link names the file as <id>.<ext>, or just <id> when it has no extension
+		const { id, ext } = parseUploadName(request.params.id);
+		const upload = await this.core.db.findFile(
+			{ id, ext, type: "video" },
+			"id ext path owner contentType",
+		);
+		if (!upload) {
 			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
-		// The link must use the file's real extension
-		if (extname(image.path).slice(1) !== parts[1]) {
+		const owner = await this.core.db.findUser({ id: upload.owner });
+		if (!owner) {
+			this.core.addDeleter(upload.owner);
 			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
-		return sendUpload(response, image, parts[0]);
+		return sendUpload(response, upload);
 	}
 }
 

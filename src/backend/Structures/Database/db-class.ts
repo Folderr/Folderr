@@ -101,8 +101,10 @@ export interface Upload {
 	createdAt: Date;
 	/** What the uploader claimed the file is */
 	mimetype: string;
-	/** What the file really is, worked out at upload. Missing on files uploaded before it existed */
-	contentType?: string;
+	/** What the file really is, worked out at upload */
+	contentType: string;
+	/** The extension it's stored and linked under; empty when it has none */
+	ext: string;
 }
 
 /**
@@ -361,7 +363,12 @@ export class DBClass {
 		id: string,
 		owner: string,
 		path: string,
-		types: { generic: string; mimetype: string; contentType: string },
+		types: {
+			generic: string;
+			mimetype: string;
+			contentType: string;
+			ext: string;
+		},
 	): Promise<Upload> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeFile is not implemented!",

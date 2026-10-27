@@ -29,7 +29,6 @@
 import type { FastifyReply } from "fastify";
 import { supportedExtensions } from "file-type";
 import { createReadStream } from "fs";
-import { extname } from "path";
 import { Transform, type TransformCallback } from "stream";
 
 export const OCTET_STREAM = "application/octet-stream";
@@ -40,44 +39,36 @@ export const SNIFF_BYTES = 4100;
 const EXTENSION = /^[a-z0-9]{1,10}$/;
 
 /**
- * Formats that are safe to show inline (they can't run scripts in a browser), by
- * extension, with the type file-type reports for them. Anything else downloads.
+ * Types that are safe to show inline: they can't run scripts in a browser.
+ * Anything else downloads. These are the names file-type reports.
  */
-const INLINE_BY_EXTENSION: Record<string, string> = {
-	// Images
-	png: "image/png",
-	apng: "image/apng",
-	jpg: "image/jpeg",
-	jpeg: "image/jpeg",
-	gif: "image/gif",
-	webp: "image/webp",
-	avif: "image/avif",
-	bmp: "image/bmp",
-	ico: "image/x-icon",
-	// Video
-	mp4: "video/mp4",
-	m4v: "video/x-m4v",
-	webm: "video/webm",
-	ogv: "video/ogg",
-	mov: "video/quicktime",
-	mkv: "video/matroska",
-	// Audio
-	mp3: "audio/mpeg",
-	m4a: "audio/x-m4a",
-	aac: "audio/aac",
-	ogg: "audio/ogg",
-	oga: "audio/ogg",
-	opus: "audio/ogg",
-	wav: "audio/wav",
-	flac: "audio/flac",
-	// Text
-	txt: "text/plain",
-};
-
 const INLINE_TYPES = new Set([
-	...Object.values(INLINE_BY_EXTENSION),
-	// file-type reports audio-only MP4s as either of these
+	// Images
+	"image/png",
+	"image/apng",
+	"image/jpeg",
+	"image/gif",
+	"image/webp",
+	"image/avif",
+	"image/bmp",
+	"image/x-icon",
+	// Video
+	"video/mp4",
+	"video/x-m4v",
+	"video/webm",
+	"video/ogg",
+	"video/quicktime",
+	"video/matroska",
+	// Audio
+	"audio/mpeg",
 	"audio/mp4",
+	"audio/x-m4a",
+	"audio/aac",
+	"audio/ogg",
+	"audio/wav",
+	"audio/flac",
+	// Text
+	"text/plain",
 ]);
 
 /** Extensions that name the same format, so "photo.jpeg" matches a detected "jpg" */
@@ -260,17 +251,30 @@ export function isInline(type: string): boolean {
 }
 
 /**
- * The extension to store an upload under: lowercase, "bin" when the name has none
+ * The extension to store an upload under: lowercase, "" when the name has none
  * (dotfiles included), or undefined when it isn't safe to use in a path or URL.
  */
 export function uploadExtension(filename: string): string | undefined {
 	const dot = filename.lastIndexOf(".");
 	if (dot <= 0) {
-		return "bin";
+		return "";
 	}
 
 	const ext = filename.slice(dot + 1).toLowerCase();
 	return EXTENSION.test(ext) ? ext : undefined;
+}
+
+/** An upload's file and link name: "<id>.<ext>", or just "<id>" when it has no extension */
+export function uploadName(id: string, ext: string): string {
+	return ext ? `${id}.${ext}` : id;
+}
+
+/** Splits a link's last part back into the upload's ID and extension: "abc.png" -> abc, png */
+export function parseUploadName(name: string): { id: string; ext: string } {
+	const dot = name.indexOf(".");
+	return dot === -1
+		? { id: name, ext: "" }
+		: { id: name.slice(0, dot), ext: name.slice(dot + 1) };
 }
 
 export type UploadType =
@@ -305,7 +309,7 @@ export function checkUploadType(
 	if (binary) {
 		const detectedExt = binary.ext.toLowerCase();
 		// A file uploaded without an extension takes the one its bytes show
-		if (ext === "bin" || sameFormat(ext, detectedExt)) {
+		if (ext === "" || sameFormat(ext, detectedExt)) {
 			return {
 				ok: true,
 				// A few detected names can't be used in a link ("tar.gz"), so keep the upload's
@@ -387,14 +391,9 @@ export class FirstBytes extends Transform {
  */
 export function sendUpload(
 	reply: FastifyReply,
-	upload: { path: string; contentType?: string },
-	id: string,
+	upload: { id: string; ext: string; path: string; contentType: string },
 ): FastifyReply {
-	const rawExt = extname(upload.path).slice(1).toLowerCase();
-	const ext = EXTENSION.test(rawExt) ? rawExt : "bin";
-	const type = baseType(
-		upload.contentType ?? INLINE_BY_EXTENSION[rawExt] ?? OCTET_STREAM,
-	);
+	const type = baseType(upload.contentType);
 	const inline = isInline(type);
 
 	let contentType = OCTET_STREAM;
@@ -408,7 +407,9 @@ export function sendUpload(
 		.header("Content-Type", contentType)
 		.header(
 			"Content-Disposition",
-			inline ? "inline" : `attachment; filename="${id}.${ext}"`,
+			inline
+				? "inline"
+				: `attachment; filename="${uploadName(upload.id, upload.ext)}"`,
 		)
 		.header("X-Content-Type-Options", "nosniff")
 		.send(createReadStream(upload.path));

@@ -35,6 +35,7 @@ import {
 	isExecutableExtension,
 	routeType,
 	uploadExtension,
+	uploadName,
 } from "../../../../Structures/Utilities/upload-types.js";
 
 const pump = promisify(pipeline);
@@ -105,7 +106,8 @@ class Image extends Path {
 		// The name and type come from the upload's headers, so these checks run
 		// before any of the file is read. Draining it lets the request finish.
 		const ext = uploadExtension(file.filename);
-		if (!ext) {
+		// "" means no extension, which is fine; undefined means an unusable one
+		if (ext === undefined) {
 			file.file.resume();
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.securityError,
@@ -130,7 +132,7 @@ class Image extends Path {
 		}
 
 		const id = await this.Utils.genShortId();
-		const filePath = `${dir}/${id}.${ext}`;
+		const filePath = `${dir}/${uploadName(id, ext)}`;
 		// Keeps the first bytes as the file streams to disk, to check what it really is
 		const firstBytes = new FirstBytes();
 
@@ -187,7 +189,7 @@ class Image extends Path {
 		// Store it under the extension its contents show (photo.jpeg -> .jpg)
 		let storedPath = filePath;
 		if (checked.ext !== ext) {
-			storedPath = `${dir}/${id}.${checked.ext}`;
+			storedPath = `${dir}/${uploadName(id, checked.ext)}`;
 			await rename(filePath, storedPath);
 		}
 
@@ -200,6 +202,7 @@ class Image extends Path {
 					generic: type,
 					mimetype: file.mimetype,
 					contentType,
+					ext: checked.ext,
 				}),
 				this.core.db.updateUser(
 					{ id: auth.id },
@@ -223,7 +226,7 @@ class Image extends Path {
 					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${id}.${checked.ext}`,
+				}/${type[0]}/${uploadName(id, checked.ext)}`,
 			);
 	}
 }
