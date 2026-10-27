@@ -35,6 +35,12 @@ import process from "process";
 
 export const OCTET_STREAM = "application/octet-stream";
 
+/** The largest upload accepted, in bytes */
+export const MAX_UPLOAD_BYTES = 10_000_000_000;
+
+/** The upload limit as people read it */
+export const MAX_UPLOAD_LABEL = `${MAX_UPLOAD_BYTES / 1_000_000_000} GB`;
+
 /** Where uploads are stored */
 export const FILES_DIR = join(process.cwd(), "Files");
 

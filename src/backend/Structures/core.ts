@@ -60,6 +60,7 @@ import type {
 import errorHandlerPlugin from "./plugins/errorHandler.js";
 // Local Fastify plugins
 import SentryPlugin from "./plugins/sentry.js";
+import { MAX_UPLOAD_BYTES } from "./Utilities/upload-types.js";
 
 const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
@@ -383,7 +384,7 @@ export default class Core {
 			limits: {
 				fields: 0,
 				files: 1,
-				fileSize: 10_000_000_000,
+				fileSize: MAX_UPLOAD_BYTES,
 			},
 		});
 		this.logger.debug("Enabling Fastify Static for dist/src/frontend");

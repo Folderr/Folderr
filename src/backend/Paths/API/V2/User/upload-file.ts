@@ -30,6 +30,7 @@ import Path from "../../../../Structures/path.js";
 import {
 	checkUploadType,
 	isExecutableExtension,
+	MAX_UPLOAD_LABEL,
 	readStart,
 	routeType,
 	uploadExtension,
@@ -133,7 +134,7 @@ class Image extends Path {
 			) {
 				return response.status(this.codes.badReq).send({
 					code: this.Utils.foldCodes.fileSizeLimit,
-					message: "File is over size. Max size is 1GB",
+					message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
 				});
 			}
 
@@ -149,7 +150,7 @@ class Image extends Path {
 			await unlink(filePath);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.fileSizeLimit,
-				message: "File is over size. Max size is 1GB",
+				message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
 			});
 		}
 
