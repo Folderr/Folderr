@@ -20,18 +20,25 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { fileTypeFromFile } from "file-type";
 import { createWriteStream } from "fs";
-import { unlink } from "fs/promises";
-import { join } from "path";
-import process from "process";
+import { rename, unlink } from "fs/promises";
 import { pipeline } from "stream";
 import { promisify } from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
+import {
+	checkUploadType,
+	isExecutableExtension,
+	MAX_UPLOAD_LABEL,
+	readStart,
+	routeType,
+	uploadExtension,
+	uploadName,
+	uploadPath,
+} from "../../../../Structures/Utilities/upload-types.js";
 
 const pump = promisify(pipeline);
-
-const dir = join(process.cwd(), "./Files/");
 
 /**
  * @classdesc Upload a file
@@ -94,60 +101,100 @@ class Image extends Path {
 			});
 		}
 
-		const ext = file.filename.split(".");
-		const fext = ext[ext.length - 1];
-		const name = await this.Utils.genShortId();
+		// The name comes from the upload's headers, so these checks run before any
+		// of the file is read. Draining it lets the request finish.
+		const ext = uploadExtension(file.filename);
+		// "" means no extension, which is fine; undefined means an unusable one
+		if (ext === undefined) {
+			file.file.resume();
+			return response.status(this.codes.badReq).send({
+				code: this.Utils.foldCodes.securityError,
+				message: "Unsupported file extension",
+			});
+		}
+
+		if (isExecutableExtension(ext)) {
+			file.file.resume();
+			return response.status(this.codes.badReq).send({
+				code: this.Utils.foldCodes.securityError,
+				message: "Executable files aren't allowed",
+			});
+		}
+
+		const id = await this.Utils.genShortId();
+		const filePath = uploadPath(id, ext);
 
 		try {
-			await pump(file.file, createWriteStream(`${dir}/${name}.${fext}`));
+			await pump(file.file, createWriteStream(filePath));
 		} catch (error: unknown) {
+			await unlink(filePath).catch(() => undefined);
 			if (
 				error instanceof
 				this.core.app.multipartErrors.RequestFileTooLargeError
 			) {
-				await unlink(`${dir}/${name}.${fext}`);
 				return response.status(this.codes.badReq).send({
 					code: this.Utils.foldCodes.fileSizeLimit,
-					message: "File is over size. Max size is 1GB",
+					message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
 				});
 			}
 
+			this.core.logger.error(error);
+
 			return response.status(this.codes.internalErr).send({
 				code: this.Utils.foldCodes.fileParserError,
-				message: `Parser error!\n${
-					error instanceof Error ? error.message : (error as string)
-				}`,
+				message: "File failed to be parsed!",
 			});
 		}
 
 		if (file.file.truncated) {
-			await unlink(`${dir}/${name}.${fext}`);
+			await unlink(filePath);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.fileSizeLimit,
-				message: "File is over size. Max size is 1GB",
+				message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
 			});
 		}
 
-		if (!file.mimetype) {
-			await unlink(`${dir}/${name}.${fext}`);
-			return response.status(this.codes.badReq).send({
-				code: this.Utils.foldCodes.fileMimeError,
-				message: "Invalid file!",
-			});
+		// Check what the saved file really is from its first bytes
+		const detected = await fileTypeFromFile(filePath).catch(
+			() => undefined,
+		);
+		const checked = checkUploadType(
+			ext,
+			await readStart(filePath, 2),
+			detected,
+		);
+		if (!checked.ok) {
+			await unlink(filePath);
+			return response.status(this.codes.badReq).send(
+				checked.reason === "executable"
+					? {
+							code: this.Utils.foldCodes.securityError,
+							message: "Executable files aren't allowed",
+						}
+					: {
+							code: this.Utils.foldCodes.fileMimeError,
+							message:
+								"The file's contents don't match its extension",
+						},
+			);
 		}
 
-		let type = "image";
-		if (file.mimetype.startsWith("video")) {
-			type = "video";
-		} else if (!file.mimetype.startsWith("image")) {
-			type = "file";
+		// Store it under the extension its contents show (photo.jpeg -> .jpg)
+		let storedPath = filePath;
+		if (checked.ext !== ext) {
+			storedPath = uploadPath(id, checked.ext);
+			await rename(filePath, storedPath);
 		}
+
+		const { contentType } = checked;
+		// Only picks the link's /f, /i or /v prefix; any of them serves the file
+		const type = routeType(contentType);
 
 		try {
 			await Promise.all([
-				this.core.db.makeFile(name, auth.id, `${dir}/${name}.${fext}`, {
-					generic: type,
-					mimetype: file.mimetype,
+				this.core.db.makeFile(id, auth.id, {
+					contentType,
+					ext: checked.ext,
 				}),
 				this.core.db.updateUser(
 					{ id: auth.id },
@@ -155,7 +202,7 @@ class Image extends Path {
 				),
 			]);
 		} catch (error: unknown) {
-			console.log(error);
+			this.core.logger.error(error);
 		}
 
 		return response
@@ -171,7 +218,7 @@ class Image extends Path {
 					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${name}.${fext}`,
+				}/${type[0]}/${uploadName(id, checked.ext)}`,
 			);
 	}
 }

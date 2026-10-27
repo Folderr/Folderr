@@ -27,6 +27,7 @@ import { logger } from "../../internals.js";
 import type DB from "../Database/db-class.js";
 import type { Upload } from "../Database/db-class.js";
 import MongoDB from "../Database/mongoose-db.js";
+import { uploadPath } from "./upload-types.js";
 
 /**
  * @classdesc Handles deleting files
@@ -88,8 +89,9 @@ export default class DbQueue extends EventEmitter {
 	): Promise<void> {
 		const deletions: Array<Promise<void>> = [];
 		files.forEach((file) => {
-			if (fs.existsSync(file.path)) {
-				deletions.push(fs.promises.unlink(file.path));
+			const path = uploadPath(file.id, file.ext);
+			if (fs.existsSync(path)) {
+				deletions.push(fs.promises.unlink(path));
 			}
 		});
 		await Promise.all(deletions);
@@ -108,7 +110,7 @@ export default class DbQueue extends EventEmitter {
 		this.#queue.forEach(async (value) => {
 			const files = await this.#db.findFiles(
 				{ owner: value },
-				{ selector: "id, path" },
+				{ selector: "id ext" },
 			);
 			if (files.length > 0) {
 				await this.newRemoveFiles(files, value);

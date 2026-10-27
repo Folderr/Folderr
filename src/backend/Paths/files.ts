@@ -20,19 +20,29 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { createReadStream } from "fs";
-import mime from "mime-types";
 import type { Core } from "../internals.js";
 import Path from "../Structures/path.js";
+import {
+	parseUploadName,
+	sendUpload,
+} from "../Structures/Utilities/upload-types.js";
 
 /**
- * @classdesc Allow files to be accessed over the web
+ * @classdesc Serves uploads over the web. The /f, /i and /v prefixes all serve any
+ * upload; links use the one that suits the file's type, but it's only cosmetic.
  */
 class Files extends Path {
 	constructor(core: Core) {
 		super(core);
 		this.label = "Get file by id";
-		this.path = ["/file/:id", "/f/:id"];
+		this.path = [
+			"/file/:id",
+			"/f/:id",
+			"/image/:id",
+			"/i/:id",
+			"/videos/:id",
+			"/v/:id",
+		];
 
 		this.options = {
 			schema: {
@@ -53,7 +63,7 @@ class Files extends Path {
 	}
 
 	/**
-	 * @desc Display an image to the user, or the 404 page if image doesn't exist.
+	 * @desc Sends the upload, or a 404 if it doesn't exist.
 	 */
 	async execute(
 		request: FastifyRequest<{
@@ -63,62 +73,23 @@ class Files extends Path {
 		}>,
 		response: FastifyReply,
 	): Promise<FastifyReply | void> {
-		if (!request.params?.id) {
-			return response.status(this.codes.badReq).send("Missing file ID");
-		}
-
-		if (!request.params.id.includes(".")) {
-			return response
-				.status(this.codes.badReq)
-				.send("Missing file extension!");
-		}
-
-		const parts = request.params.id.split(".");
-		if (!parts[1]) {
-			return response
-				.status(this.codes.badReq)
-				.send("Missing file extension!");
-		}
-
-		const image = await this.core.db.findFile(
-			{ id: parts[0] },
-			"path type owner",
+		// The link names the file as <id>.<ext>, or just <id> when it has no extension
+		const { id, ext } = parseUploadName(request.params.id);
+		const upload = await this.core.db.findFile(
+			{ id, ext },
+			"id ext owner contentType",
 		);
-		if (image) {
-			const owner = await this.core.db.findUser({ id: image.owner });
-			if (!owner) {
-				this.core.addDeleter(image.owner);
-				return response
-					.status(this.codes.notFound)
-					.send("404 Not Found");
-			}
-		}
-
-		if (!image || (image?.type && image.type !== "file")) {
+		if (!upload) {
 			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
-		let content = mime.contentType(image.path);
-		const array = image.path.split(".");
-		if (array[array.length - 1] !== parts[1]) {
-			return response.status(this.codes.internalErr);
+		const owner = await this.core.db.findUser({ id: upload.owner });
+		if (!owner) {
+			this.core.addDeleter(upload.owner);
+			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
-		if (!content) {
-			return response
-				.status(this.codes.notFound)
-				.send("File type not found!");
-		}
-
-		if (!array[array.length - 1].includes("html")) {
-			if (content === image.path) {
-				content = `text/${array[array.length - 1].toLowerCase()}`;
-			}
-
-			await response.header("Content-Type", content);
-		}
-
-		return response.status(200).send(createReadStream(image.path));
+		return sendUpload(response, upload);
 	}
 }
 

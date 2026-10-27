@@ -25,6 +25,7 @@ import process from "process";
 import * as Schemas from "../../Schemas/index.js";
 import * as constants from "../constants/index.js";
 import logger from "../logger.js";
+import { uploadPath } from "../Utilities/upload-types.js";
 import type {
 	Ban,
 	Folderr,
@@ -547,15 +548,13 @@ export default class Mongoosedb extends DBClass {
 	async makeFile(
 		id: string,
 		owner: string,
-		path: string,
-		types: { generic: string; mimetype: string },
+		fields: { contentType: string; ext: string },
 	): Promise<Upload> {
 		const file = new this.#schemas.Upload({
 			id,
 			owner,
-			path,
-			type: types.generic,
-			mimetype: types.mimetype,
+			contentType: fields.contentType,
+			ext: fields.ext,
 		});
 		await file.save();
 		return file;
@@ -569,7 +568,7 @@ export default class Mongoosedb extends DBClass {
 	 */
 	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
 		const file = await this.#schemas.Upload.findOneAndDelete(query, {
-			projection: "path",
+			projection: "id ext",
 		})
 			.lean()
 			.exec();
@@ -577,19 +576,20 @@ export default class Mongoosedb extends DBClass {
 			return false;
 		}
 
-		if (existsSync(file.path)) {
+		const path = uploadPath(file.id, file.ext);
+		if (existsSync(path)) {
 			try {
-				await fs.unlink(file.path);
+				await fs.unlink(path);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					logger.error(
-						`Database could not delete file ${file.path}. See error below.\n` +
+						`Database could not delete file ${path}. See error below.\n` +
 							`Error: ${error.message}`,
 					);
 				}
 
 				logger.error(
-					`Database could not delete file ${file.path}. Unknown Error`,
+					`Database could not delete file ${path}. Unknown Error`,
 				);
 			}
 		}

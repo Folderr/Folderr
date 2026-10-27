@@ -95,11 +95,11 @@ export interface Statistics {
 export interface Upload {
 	id: string;
 	owner: string;
-	format: string;
-	path: string;
-	type: string;
 	createdAt: Date;
-	mimetype: string;
+	/** What the file really is, worked out at upload */
+	contentType: string;
+	/** The extension it's stored and linked under; empty when it has none */
+	ext: string;
 }
 
 /**
@@ -357,8 +357,7 @@ export class DBClass {
 	async makeFile(
 		id: string,
 		owner: string,
-		path: string,
-		types: { generic: string; mimetype: string },
+		fields: { contentType: string; ext: string },
 	): Promise<Upload> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeFile is not implemented!",
