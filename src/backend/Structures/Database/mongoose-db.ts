@@ -548,7 +548,7 @@ export default class Mongoosedb extends DBClass {
 		id: string,
 		owner: string,
 		path: string,
-		types: { generic: string; mimetype: string },
+		types: { generic: string; mimetype: string; contentType: string },
 	): Promise<Upload> {
 		const file = new this.#schemas.Upload({
 			id,
@@ -556,6 +556,7 @@ export default class Mongoosedb extends DBClass {
 			path,
 			type: types.generic,
 			mimetype: types.mimetype,
+			contentType: types.contentType,
 		});
 		await file.save();
 		return file;

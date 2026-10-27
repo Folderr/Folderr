@@ -20,6 +20,7 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { fileTypeFromBuffer } from "file-type";
 import { createWriteStream } from "fs";
 import { unlink } from "fs/promises";
 import { join } from "path";
@@ -28,6 +29,12 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import type { Core } from "../../../../internals.js";
 import Path from "../../../../Structures/path.js";
+import {
+	FirstBytes,
+	resolveContentType,
+	routeType,
+	uploadExtension,
+} from "../../../../Structures/Utilities/upload-types.js";
 
 const pump = promisify(pipeline);
 
@@ -94,18 +101,38 @@ class Image extends Path {
 			});
 		}
 
-		const ext = file.filename.split(".");
-		const fext = ext[ext.length - 1];
-		const name = await this.Utils.genShortId();
+		// The name and type come from the upload's headers, so these checks run
+		// before any of the file is read. Draining it lets the request finish.
+		const ext = uploadExtension(file.filename);
+		if (!ext) {
+			file.file.resume();
+			return response.status(this.codes.badReq).send({
+				code: this.Utils.foldCodes.securityError,
+				message: "Unsupported file extension",
+			});
+		}
+
+		if (!file.mimetype) {
+			file.file.resume();
+			return response.status(this.codes.badReq).send({
+				code: this.Utils.foldCodes.fileMimeError,
+				message: "Invalid file!",
+			});
+		}
+
+		const id = await this.Utils.genShortId();
+		const filePath = `${dir}/${id}.${ext}`;
+		// Keeps the first bytes as the file streams to disk, to check what it really is
+		const firstBytes = new FirstBytes();
 
 		try {
-			await pump(file.file, createWriteStream(`${dir}/${name}.${fext}`));
+			await pump(file.file, firstBytes, createWriteStream(filePath));
 		} catch (error: unknown) {
+			await unlink(filePath).catch(() => undefined);
 			if (
 				error instanceof
 				this.core.app.multipartErrors.RequestFileTooLargeError
 			) {
-				await unlink(`${dir}/${name}.${fext}`);
 				return response.status(this.codes.badReq).send({
 					code: this.Utils.foldCodes.fileSizeLimit,
 					message: "File is over size. Max size is 1GB",
@@ -121,33 +148,25 @@ class Image extends Path {
 		}
 
 		if (file.file.truncated) {
-			await unlink(`${dir}/${name}.${fext}`);
+			await unlink(filePath);
 			return response.status(this.codes.badReq).send({
 				code: this.Utils.foldCodes.fileSizeLimit,
 				message: "File is over size. Max size is 1GB",
 			});
 		}
 
-		if (!file.mimetype) {
-			await unlink(`${dir}/${name}.${fext}`);
-			return response.status(this.codes.badReq).send({
-				code: this.Utils.foldCodes.fileMimeError,
-				message: "Invalid file!",
-			});
-		}
-
-		let type = "image";
-		if (file.mimetype.startsWith("video")) {
-			type = "video";
-		} else if (!file.mimetype.startsWith("image")) {
-			type = "file";
-		}
+		const detected = await fileTypeFromBuffer(firstBytes.bytes).catch(
+			() => undefined,
+		);
+		const contentType = resolveContentType(ext, detected);
+		const type = routeType(contentType);
 
 		try {
 			await Promise.all([
-				this.core.db.makeFile(name, auth.id, `${dir}/${name}.${fext}`, {
+				this.core.db.makeFile(id, auth.id, filePath, {
 					generic: type,
 					mimetype: file.mimetype,
+					contentType,
 				}),
 				this.core.db.updateUser(
 					{ id: auth.id },
@@ -171,7 +190,7 @@ class Image extends Path {
 					)
 						? request.headers.responseURL
 						: await this.Utils.determineHomeURL(request)
-				}/${type[0]}/${name}.${fext}`,
+				}/${type[0]}/${id}.${ext}`,
 			);
 	}
 }

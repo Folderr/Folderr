@@ -28,7 +28,10 @@ const file = new Schema({
 	path: { type: String, required: true },
 	type: { type: String, required: true },
 	createdAt: { type: Date, default: new Date() },
+	// What the uploader claimed the file is
 	mimetype: { type: String, required: true },
+	// What the file really is, worked out at upload. Missing on files uploaded before it existed
+	contentType: { type: String },
 });
 
 const mod = model<Upload>("file", file);
