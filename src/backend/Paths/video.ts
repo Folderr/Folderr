@@ -20,10 +20,10 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { createReadStream } from "fs";
-import mime from "mime-types";
+import { extname } from "path";
 import type { Core } from "../internals.js";
 import Path from "../Structures/path.js";
+import { sendUpload } from "../Structures/Utilities/upload-types.js";
 
 /**
  * @classdesc Allow users to access videos over the web
@@ -95,26 +95,12 @@ class Videos extends Path {
 			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
-		let content = mime.contentType(image.path);
-		const array = image.path.split(".");
-		if (array[array.length - 1] !== parts[1]) {
-			return response.status(this.codes.internalErr);
+		// The link must use the file's real extension
+		if (extname(image.path).slice(1) !== parts[1]) {
+			return response.status(this.codes.notFound).send("404 Not Found");
 		}
 
-		if (!content) {
-			return response
-				.status(this.codes.notFound)
-				.send("Video type not found!");
-		}
-
-		if (content === image.path) {
-			content = `video/${array[array.length - 1].toLowerCase()}`;
-		}
-
-		return response
-			.header("Content-Type", content)
-			.status(200)
-			.send(createReadStream(image.path));
+		return sendUpload(response, image, parts[0]);
 	}
 }
 
