@@ -23,7 +23,6 @@ import { model, Schema } from "mongoose";
 import type { Folderr } from "../Structures/Database/db-class.js";
 
 const folderr: Schema = new Schema({
-	bans: { type: Array, default: [], required: false },
 	publicKeyJWT: { type: Buffer, required: true },
 });
 

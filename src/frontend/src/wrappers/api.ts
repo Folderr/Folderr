@@ -295,7 +295,10 @@ export async function updatePassword(info: {
 	try {
 		const response = await fetch("/api/account", {
 			method: "PATCH",
-			body: JSON.stringify({ password: info.newPassword }),
+			body: JSON.stringify({
+				password: info.newPassword,
+				currentPassword: info.password,
+			}),
 			headers: {
 				Accept: "application/json",
 				"Content-Type": "application/json",
@@ -308,7 +311,14 @@ export async function updatePassword(info: {
 		}
 
 		if (response.status === 401) {
-			return { error: "Unauthorized", success: false, output: undefined };
+			// e.g. "Changing your password needs your current password"
+			const output: { message: string; code: number } | undefined =
+				await response.json().catch(() => undefined);
+			return {
+				error: output?.message ?? "Unauthorized",
+				success: false,
+				output: undefined,
+			};
 		}
 
 		if (response.status === 400) {
@@ -372,7 +382,14 @@ export async function updatePrivacy(
 		}
 
 		if (response.status === 401) {
-			return { error: "Unauthorized", success: false, output: undefined };
+			// e.g. "Changing your password needs your current password"
+			const output: { message: string; code: number } | undefined =
+				await response.json().catch(() => undefined);
+			return {
+				error: output?.message ?? "Unauthorized",
+				success: false,
+				output: undefined,
+			};
 		}
 
 		if (response.status === 400) {

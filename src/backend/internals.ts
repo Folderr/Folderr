@@ -2,9 +2,7 @@
 export { default as Core } from "./Structures/core.js";
 export { default as MongoDB } from "./Structures/Database/mongoose-db.js";
 export { default as Emailer } from "./Structures/emailer.js";
-export { default as ErrorHandler } from "./Structures/error-handler.js";
 export { default as logger } from "./Structures/logger.js";
-export { default as Path } from "./Structures/path.js";
 export { default as Authorization } from "./Structures/Utilities/authorization.js";
 export { default as Regexs } from "./Structures/Utilities/reg-exps.js";
 export * from "./Structures/Utilities/status-codes.js";

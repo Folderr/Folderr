@@ -167,6 +167,14 @@ export default class Mongoosedb extends DBClass {
 		return remove.deletedCount;
 	}
 
+	async isBanned(email: string): Promise<boolean> {
+		// Strength 2 compares letters without case, so Bob@x.com matches bob@x.com
+		const ban = await this.#schemas.Ban.exists({ email })
+			.collation({ locale: "en", strength: 2 })
+			.exec();
+		return Boolean(ban);
+	}
+
 	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
 		const fldr = await this.#schemas.Folderr.findOne(query).lean().exec();
 		if (!fldr) {
@@ -187,7 +195,7 @@ export default class Mongoosedb extends DBClass {
 			return fldrr;
 		}
 
-		const fldr = new this.#schemas.Folderr({ bans: [], publicKeyJWT });
+		const fldr = new this.#schemas.Folderr({ publicKeyJWT });
 		await fldr.save();
 		return fldr;
 	}
@@ -246,24 +254,17 @@ export default class Mongoosedb extends DBClass {
 			selector?: string;
 		},
 	): Promise<User[]> {
-		const qoptions: { limit?: number; sort?: Record<string, unknown> } = {};
+		// Oldest first unless the caller asks for another order
+		const qoptions: { limit?: number; sort: Record<string, unknown> } = {
+			sort: options?.sort ?? { createdAt: 1 },
+		};
 		if (options?.limit) {
 			qoptions.limit = options.limit;
 		}
 
-		if (options?.sort) {
-			qoptions.sort = options.sort;
-		}
-
-		return options
-			? this.#schemas.User.find(query, options?.selector, qoptions)
-					.sort({ createdAt: 1 })
-					.lean()
-					.exec()
-			: this.#schemas.User.find(query)
-					.sort({ createdAt: 1 })
-					.lean()
-					.exec();
+		return this.#schemas.User.find(query, options?.selector, qoptions)
+			.lean()
+			.exec();
 	}
 
 	async findFullUser(

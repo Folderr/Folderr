@@ -11,7 +11,12 @@ import type { ChildProcess } from "child_process";
 import { fork } from "child_process";
 import { EventEmitter } from "events";
 import fg from "fast-glob";
-import type { FastifyBaseLogger, FastifyInstance } from "fastify";
+import type {
+	FastifyBaseLogger,
+	FastifyInstance,
+	FastifyReply,
+	FastifyRequest,
+} from "fastify";
 // Fastify imports
 import fastify from "fastify";
 import fs from "fs";
@@ -41,28 +46,20 @@ import {
 	codes as StatusCodes,
 	Utils,
 } from "../internals.js";
-import * as APIs from "../Paths/API/index.js";
-// Structs, classes
-import * as endpointsImport from "../Paths/index.js";
 import DelQueue from "./Utilities/db-queue.js";
 
 const version = pkg.version;
 
 import fastifySwagger from "@fastify/swagger";
-import type { Path } from "../internals.js";
 import type { LoggerLevels } from "./logger.js";
 // Other utilities
 import logger from "./logger.js";
-import type {
-	ErrorHandlerWithSeverity,
-	supressErrorHandlerRoute,
-} from "./plugins/errorHandler.js";
+import type { NeoRoute } from "./neo-route.js";
+import type { ReportError } from "./plugins/errorHandler.js";
 import errorHandlerPlugin from "./plugins/errorHandler.js";
 // Local Fastify plugins
 import SentryPlugin from "./plugins/sentry.js";
 import { MAX_UPLOAD_BYTES } from "./Utilities/upload-types.js";
-
-const endpoints = endpointsImport as unknown as Record<string, typeof Path>; // TS fuckery.
 
 const ee = new EventEmitter();
 ee.on("fail", (code: number) => {
@@ -79,8 +76,7 @@ declare module "fastify" {
 		got: Got;
 		utils: Utils;
 		db: MongoDB;
-		handleError: ErrorHandlerWithSeverity;
-		supressErrorHandlerRoute: supressErrorHandlerRoute;
+		reportError: ReportError;
 		setRouteFailed: (route: string) => void;
 	}
 }
@@ -127,9 +123,10 @@ export default class Core {
 
 	public readonly debugLevel: debugLevels; // 0 = off, 1 = basic debug + performance, 2 = request + lvl 1. Dervied from both DEBUG and DEBUG_LEVEL env variables
 
-	readonly #rewritten: string[];
-
 	readonly #registeredEndpoints: Set<string>;
+
+	// Times route loading when debugging; shared by every registerRoutes call
+	#routeTimer?: PerformanceObserver;
 
 	readonly #deleter: ChildProcess | DelQueue;
 
@@ -160,8 +157,6 @@ export default class Core {
 			noRequests: true,
 		};
 
-		// For new paths rewritten under "NeoAPI" Folder
-		this.#rewritten = [];
 		this.#registeredEndpoints = new Set<string>();
 
 		// Init configs
@@ -286,12 +281,15 @@ export default class Core {
 		}
 		performance.mark("Basic Plugins");
 		await this.app.register(fastifySwagger, {
+			// Every API route has tags; this leaves out the docs page's own routes
+			hideUntagged: true,
 			openapi: {
 				openapi: "3.0.0",
 				info: {
 					title: "Folderr",
-					description: "Testing the Fastify swagger API",
-					version: "2.0.0-D",
+					description:
+						"Folderr's HTTP API. Every JSON response has the shape { code, message }: code is the HTTP status or a Folderr error code, and message is the result or an explanation. Timestamps are Unix time in milliseconds. Sign in with an API token in the Authorization header, or with the website's login cookie.",
+					version,
 				},
 				servers: [
 					{
@@ -300,9 +298,23 @@ export default class Core {
 					},
 				],
 				tags: [
-					{ name: "user", description: "User related end-points" },
-					{ name: "admin", description: "Administrative Endpoints" },
-					{ name: "public", description: "Public facing endpoints" },
+					{
+						name: "Public",
+						description: "No sign-in needed, public access",
+					},
+					{
+						name: "User",
+						description: "The signed-in user's account and content",
+					},
+					{
+						name: "Administration",
+						description:
+							"Moderation and administration, for admins",
+					},
+					{
+						name: "Management",
+						description: "Managing admins, for the owner only",
+					},
 				],
 				components: {
 					securitySchemes: {
@@ -310,6 +322,29 @@ export default class Core {
 							type: "apiKey",
 							name: "Authorization",
 							in: "header",
+							description:
+								"An API token, created from the Account page",
+						},
+						loginCookie: {
+							type: "apiKey",
+							name: "token",
+							in: "cookie",
+							description:
+								"The website's login cookie, set by POST /api/authorize",
+						},
+						username: {
+							type: "apiKey",
+							name: "username",
+							in: "header",
+							description:
+								"Sent together with the password header",
+						},
+						password: {
+							type: "apiKey",
+							name: "password",
+							in: "header",
+							description:
+								"Sent together with the username header",
 						},
 					},
 				},
@@ -321,6 +356,14 @@ export default class Core {
 		});
 
 		await this.app.register(cookie);
+
+		// Graceful shutdown waits until this set is empty (see shutdownServer). The raw response's
+		// "close" fires once it's finished or the client has gone, including for requests the
+		// dev server hands to Vite, which never reach Fastify's onResponse
+		this.app.addHook("onRequest", async (request, reply) => {
+			this.#requestIds.add(request.id);
+			reply.raw.once("close", () => this.removeRequestId(request.id));
+		});
 
 		await this.app.register(errorHandlerPlugin);
 
@@ -455,107 +498,114 @@ export default class Core {
 		return null;
 	}
 
-	async registerNewApi() {
-		const obs = new PerformanceObserver((list) => {
-			this.logger.debug(
-				`[PERFORMANCE] ${list.getEntries()[0].name} time taken: ${list.getEntries()[0].duration}ms`,
-			);
-		});
-		if (this.debugLevel >= 1) {
-			obs.observe({ type: "measure" });
-		} else {
-			obs.disconnect();
-		}
-		this.logger.debug("Automatically loading new APIs");
-		let basedir = "src/backend/NeoAPI";
-		let extension = ".ts";
-		if (process.env.NODE_ENV !== "dev") {
-			basedir = `dist/${basedir}`;
-			extension = ".js";
-		}
-
-		let osPrefix = "";
-		if (platform() === "win32") {
-			osPrefix = "file://";
+	/**
+	 * @desc Loads every route file in a folder. Each subfolder's index.ts exports its prefix,
+	 * which goes after basePrefix (API routes sit under /api, Routes at the site root).
+	 */
+	async registerRoutes(folder: string, basePrefix: string): Promise<void> {
+		// One observer for every registerRoutes call, so each timing is logged once.
+		// logRouteCount stops it when the server is ready.
+		if (!this.#routeTimer && this.debugLevel >= 1) {
+			this.#routeTimer = new PerformanceObserver((list) => {
+				for (const entry of list.getEntries()) {
+					this.logger.debug(
+						`[PERFORMANCE] ${entry.name} time taken: ${entry.duration}ms`,
+					);
+				}
+			});
+			this.#routeTimer.observe({ type: "measure" });
 		}
 
-		performance.mark("core.registerNewApi File Pathing Start");
+		const mark = `core.registerRoutes ${folder}`;
+		this.logger.debug(`Automatically loading routes from ${folder}`);
+		const dev = process.env.NODE_ENV === "dev";
+		const basedir = `${dev ? "" : "dist/"}src/backend/${folder}`;
+		const extension = dev ? ".ts" : ".js";
+		const osPrefix = platform() === "win32" ? "file://" : "";
+		const filebase = process.cwd();
+
+		performance.mark(`${mark} File Pathing Start`);
 		const files = await fg(`${basedir}/**/*${extension}`, {
 			ignore: ["**/index*"],
 		});
-		performance.measure(
-			"core.registerNewApi File Paths",
-			"core.registerNewApi File Pathing Start",
-		);
-		const filebase = `${process.cwd()}`;
-		const prefixes = new Map<string, string>();
-		const groups = new Map<string, string[]>(); // A group of files
-		performance.mark("core.registerNewApi Prefix Grouping");
+		performance.measure(`${mark} File Paths`, `${mark} File Pathing Start`);
+
+		// One group per folder; folders can share a prefix (Public and User are both "/")
+		performance.mark(`${mark} Prefix Grouping`);
+		const groups = new Map<string, { prefix: string; files: string[] }>();
 		for (const file of files) {
 			const directory = normalize(join(file, "../"));
-			let apiPrefix = prefixes.get(directory);
-			if (apiPrefix && groups.has(apiPrefix)) {
+			const group = groups.get(directory);
+			if (group) {
+				group.files.push(file);
 				continue;
 			}
-			if (!apiPrefix) {
-				const { prefix } = await import(
-					osPrefix + join(filebase, directory, `index${extension}`)
-				);
-				apiPrefix = prefix as string;
-				prefixes.set(directory, prefix);
-			}
-			const filteredFiles = files.filter((newfile) =>
-				normalize(newfile).startsWith(directory),
+
+			const { prefix } = await import(
+				osPrefix + join(filebase, directory, `index${extension}`)
 			);
-			groups.set(apiPrefix, filteredFiles);
+			groups.set(directory, { prefix: prefix as string, files: [file] });
 		}
 		performance.measure(
-			"core.registerNewApi Prefix Grouped",
-			"core.registerNewApi Prefix Grouping",
+			`${mark} Prefix Grouped`,
+			`${mark} Prefix Grouping`,
 		);
 
-		// impl: Faster import
-		performance.mark("core.registerNewApi Registering APIs");
-		for (const [prefix, files] of groups) {
-			this.app.register(
-				async (instance, _opts) => {
-					const endpoints = files.map(async (file) => {
-						const imported: {
-							name: string;
-							path: string;
-							route: (
-								fastify: FastifyInstance,
-								core: Core,
-							) => unknown;
-							method: string;
-							rewrites?: string;
-							enabled: boolean;
-						} = await import(osPrefix + join(filebase, file));
-						if (!imported.enabled) return;
-						if (imported.rewrites) {
-							this.logger.debug(
-								`Using new rewritten endpoint for ${imported.method}: ${imported.rewrites}`,
-							);
-							this.#rewritten.push(imported.rewrites);
-						}
+		performance.mark(`${mark} Registering`);
+		const registered = [...groups.values()].map(
+			({ prefix, files: groupFiles }) => {
+				const fullPrefix = `${basePrefix}${prefix}`;
+				return this.app.register(
+					async (instance) => {
+						await Promise.all(
+							groupFiles.map(async (file) => {
+								const { default: neo } = (await import(
+									osPrefix + join(filebase, file)
+								)) as { default?: NeoRoute };
+								if (!neo) {
+									instance.log.error(
+										`Route file ${file} has no default export and was skipped`,
+									);
+									return;
+								}
 
-						imported.route(instance, this);
-						this.#registeredEndpoints.add(
-							`${imported.method}:${imported.path}`,
+								const enabled =
+									typeof neo.enabled === "function"
+										? neo.enabled(this)
+										: neo.enabled;
+								if (!enabled) {
+									return;
+								}
+
+								neo.route(instance, this);
+								for (const url of [neo.path].flat()) {
+									this.#registeredEndpoints.add(
+										`${neo.method}:${fullPrefix}${url}`,
+									);
+								}
+							}),
 						);
-					});
-					await Promise.all(endpoints);
-				},
-				{
-					prefix: `/api${prefix}`,
-				},
-			);
-		}
-		performance.measure(
-			"core.registerNewApi Registered APIs",
-			"core.registerNewApi Registering APIs",
+					},
+					{ prefix: fullPrefix },
+				);
+			},
 		);
-		setTimeout(() => obs.disconnect(), 10);
+		// register() is lazy: awaiting it runs the plugins, so this measures the real registration
+		await Promise.all(registered);
+		performance.measure(`${mark} Registered`, `${mark} Registering`);
+	}
+
+	/**
+	 * @desc Logs how many routes loaded, once every plugin has registered.
+	 */
+	logRouteCount(): void {
+		this.app.addHook("onReady", async () => {
+			this.logger.startup(
+				`Initialized ${this.#registeredEndpoints.size} routes`,
+			);
+			// Observer callbacks are queued, so let the last timings log first
+			setTimeout(() => this.#routeTimer?.disconnect(), 10);
+		});
 	}
 
 	async initDb(): Promise<void> {
@@ -566,225 +616,31 @@ export default class Core {
 		);
 	}
 
-	async registerApis() {
-		this.logger.debug("Using fancy API register function");
-		for (const api of Object.values<{
-			version: string;
-			prefix: string;
-			endpoints: Record<string, typeof Path>;
-		}>(APIs)) {
-			const { version } = api;
-			let count = 0;
-
-			void this.app.register(
-				(instance, _options, done) => {
-					for (const EndpointType of Object.values(api.endpoints)) {
-						const endpoint = new EndpointType(this);
-						const label = endpoint.label;
-						if (
-							!endpoint.enabled ||
-							(endpoint.label.startsWith("DEBUG") &&
-								!this.debugLevel)
-						) {
-							continue;
-						}
-
-						// In the event that the API is rewritten by newer non-legacy code,
-						// skip the legacy code.
-						const path = Array.isArray(endpoint.path)
-							? endpoint.path[0]
-							: endpoint.path;
-						if (this.#rewritten.includes(path)) {
-							continue;
-						}
-
-						this.internalInitPath(endpoint, instance);
-						this.#registeredEndpoints.add(
-							`${endpoint.type}:` +
-								(Array.isArray(endpoint.path)
-									? endpoint.path[0]
-									: endpoint.path),
-						);
-
-						const method = endpoint.type.toUpperCase();
-
-						this.logger.startup(
-							`API Path ${label} v${version} initialized with method ${method}!`,
-						);
-						count++;
-					}
-
-					this.logger.info(
-						`${count} API v${version} initialized paths`,
-					);
-					this.logger.info(
-						`Initalized ${this.#registeredEndpoints.size} total endpoints!`,
-					);
-
-					done();
-				},
-				{
-					prefix: api.prefix,
-				},
-			);
-		}
-	}
-
-	internalInitPath(path: Path, instance = this.app) {
-		const app = instance;
-		if (Array.isArray(path.path)) {
-			for (const url of path.path) {
-				this.app.supressErrorHandlerRoute(
-					`${path.type.toUpperCase()}:${app.prefix}${url}`,
-				);
-				switch (path.type.toLowerCase()) {
-					case "post": {
-						app.post(
-							url,
-							path.options || {},
-							path.execute.bind(path),
-						);
-						break;
-					}
-					case "delete": {
-						app.delete(
-							url,
-							path.options || {},
-							path.execute.bind(path),
-						);
-						break;
-					}
-					case "patch": {
-						app.patch(
-							url,
-							path.options || {},
-							path.execute.bind(path),
-						);
-						break;
-					}
-					default: {
-						app.get(
-							url,
-							path.options || {},
-							path.execute.bind(path),
-						);
-					}
-				}
-			}
-		} else {
-			this.app.supressErrorHandlerRoute(
-				`${path.type.toUpperCase()}:${app.prefix}${path.path}`,
-			);
-			switch (path.type.toLowerCase()) {
-				case "post": {
-					app.post(
-						path.path,
-						path.options || {},
-						path.execute.bind(path),
-					);
-					break;
-				}
-				case "delete": {
-					app.delete(
-						path.path,
-						path.options || {},
-						path.execute.bind(path),
-					);
-					break;
-				}
-				case "patch": {
-					app.patch(
-						path.path,
-						path.options || {},
-						path.execute.bind(path),
-					);
-					break;
-				}
-				default: {
-					app.get(
-						path.path,
-						path.options || {},
-						path.execute.bind(path),
-					);
-				}
-			}
-		}
-	}
-
-	initPaths(): boolean {
-		let pathCount = 0;
-		for (const endpoint in endpoints) {
-			// This works TS, trust me.
-			if (
-				endpoint.toLowerCase().startsWith("debug") &&
-				!this.debugLevel
-			) {
-				continue;
-			}
-
-			const base = endpoint;
-			const ActualEndpoint = endpoints[endpoint];
-			const path = new ActualEndpoint(this);
-			const endpointName =
-				((typeof path.path === "string" && path.path) || path.label) ??
-				base;
-			if (path.enabled) {
-				if (!path.label || !path.path) {
-					this.logger.error(
-						`Path ${endpointName} label or endpoint not found, fail init of Path.`,
-					);
-					continue;
-				}
-
-				if (!path.execute) {
-					this.logger.error(
-						`Path ${endpointName} executable found, fail init of Path.`,
-					);
-					continue;
-				}
-
-				this.app.supressErrorHandlerRoute(
-					`${path.type.toUpperCase()}:${Array.isArray(path.path) ? path.path[0] : path.path}`,
-				);
-
-				this.internalInitPath(path);
-
-				this.logger.startup(
-					`Initalized path ${
-						path.label
-					} (${base}) with method ${path.type.toUpperCase()}`,
-				);
-				pathCount++;
-			}
+	/**
+	 * @desc Answers unknown URLs: JSON for the API (or everything when Folderr is API-only),
+	 * otherwise the frontend's index.html so its own router can show the page.
+	 */
+	private async notFound(
+		request: FastifyRequest,
+		reply: FastifyReply,
+	): Promise<FastifyReply> {
+		if (request.url.startsWith("/api") || this.config.apiOnly) {
+			return reply.status(404).send({
+				code: 404,
+				message: `${request.method}: ${request.url} Not Found`,
+			});
 		}
 
-		this.logger.startup(`Initalized ${pathCount} paths`);
-		return true;
+		return reply.sendFile("index.html");
 	}
 
 	async initFrontend() {
 		console.log(`Node Env: ${process.env.NODE_ENV}`);
 		if (process.env.NODE_ENV !== "dev") {
 			this.logger.debug("Using production build for frontend");
-
-			this.app.setNotFoundHandler(async (request, reply) => {
-				if (request.url.startsWith("/api")) {
-					return reply.status(404).send({
-						code: "404",
-						message: `${request.method}: ${request.url} Not Found`,
-					});
-				}
-
-				if (!this.config.apiOnly) {
-					return reply.sendFile("index.html");
-				}
-
-				return reply.status(404).send({
-					code: "404",
-					message: `${request.method}: ${request.url} Not Found`,
-				});
-			});
-
+			this.app.setNotFoundHandler((request, reply) =>
+				this.notFound(request, reply),
+			);
 			return;
 		}
 
@@ -799,8 +655,7 @@ export default class Core {
 		});
 		const publicPaths = fs.readdirSync("./src/frontend/public");
 		// Paths served by Fastify, matched as whole segments so "/login" still goes to Vite
-		const backendPaths =
-			/^\/(api|confirm|image|i|videos|v|file|f|link|l)(\/|$)/;
+		const backendPaths = /^\/(api|image|i|videos|v|file|f|link|l)(\/|$)/;
 		this.app.addHook("onRequest", (request, reply, done) => {
 			const { url } = request.raw;
 			if (!url) {
@@ -825,23 +680,9 @@ export default class Core {
 				reply.raw.end();
 			});
 		});
-		this.app.setNotFoundHandler(async (request, reply) => {
-			if (request.url.startsWith("/api")) {
-				return reply.status(404).send({
-					code: "404",
-					message: `${request.method}: ${request.url} Not Found`,
-				});
-			}
-
-			if (!this.config.apiOnly) {
-				return reply.sendFile("index.html");
-			}
-
-			return reply.status(404).send({
-				code: "404",
-				message: `${request.method}: ${request.url} Not Found`,
-			});
-		});
+		this.app.setNotFoundHandler((request, reply) =>
+			this.notFound(request, reply),
+		);
 
 		this.app.addContentTypeParser(
 			"text/json",
