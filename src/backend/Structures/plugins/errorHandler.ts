@@ -1,4 +1,5 @@
 import type {
+	FastifyError,
 	FastifyInstance,
 	FastifyPluginAsync,
 	FastifyPluginOptions,
@@ -62,6 +63,10 @@ const errorHandlerPlugin: FastifyPluginAsync = async (
 		}
 	});
 
+	/**
+	 * @desc Handles a server-side failure: logs it, reports it to Sentry, counts it towards
+	 * taking the route offline, and answers with a generic 500 that doesn't leak the error.
+	 */
 	const handlerWithSeverity = async (
 		error: Error,
 		request: FastifyRequest,
@@ -74,19 +79,40 @@ const errorHandlerPlugin: FastifyPluginAsync = async (
 		}
 
 		if (severity === "fatal" || !severity) {
-			errorCounts[route]++;
+			errorCounts[route] = (errorCounts[route] ?? 0) + 1;
 		}
-		instance.log.error(
-			`Error occurred on route ${route}: ${error.message}`,
-		);
-		return reply.code(500).send({ error: error.message, code: 500 });
+
+		instance.log.error(error, `Error occurred on route ${route}`);
+		instance.sentry.withScope((scope) => {
+			scope.addEventProcessor((event) =>
+				instance.sentry.addRequestDataToEvent(event, request.raw),
+			);
+			instance.sentry.captureException(error);
+		});
+
+		return reply.code(500).send({
+			code: 500,
+			message: "An internal error occurred",
+		});
 	};
 
+	/**
+	 * @desc The app's only error handler. Client mistakes, such as a request that fails its
+	 * schema, keep their 4xx status and message; they aren't server errors, so they're not
+	 * reported or counted (otherwise bad requests alone could take a route offline).
+	 */
 	const errorHandler = async (
-		error: Error,
+		error: FastifyError,
 		request: FastifyRequest,
 		reply: FastifyReply,
 	) => {
+		const status = error.statusCode ?? 500;
+		if (error.validation || (status >= 400 && status < 500)) {
+			return reply
+				.code(status)
+				.send({ code: status, message: error.message });
+		}
+
 		return handlerWithSeverity(error, request, reply);
 	};
 
