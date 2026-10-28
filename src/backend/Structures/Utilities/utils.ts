@@ -19,6 +19,7 @@
  *
  */
 
+import type { CookieSerializeOptions } from "@fastify/cookie";
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
 import argon2 from "argon2";
@@ -26,7 +27,7 @@ import buffer from "buffer";
 import crypto from "crypto";
 import type { LookupAddress, LookupOptions } from "dns";
 import { Resolver } from "dns";
-import type { FastifyRequest } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Options } from "got";
 import { BlockList, isIP } from "net";
 import * as ulid from "ulidx";
@@ -157,15 +158,35 @@ class Utils {
 	}
 
 	/**
+	 * @desc The options for the website's login cookie. Setting and clearing it must use the same ones.
+	 * Secure follows the request's own protocol, so plain-HTTP homelab and local installs still work
+	 * (behind a proxy this needs trustProxies, so the forwarded protocol is used).
+	 *
+	 * @param {Object<FastifyRequest>} request The request the cookie is being set or cleared on
+	 * @returns {CookieSerializeOptions}
+	 */
+	tokenCookieOptions(request: FastifyRequest): CookieSerializeOptions {
+		const dev = process.env.NODE_ENV === "dev";
+		return {
+			httpOnly: true,
+			secure: !dev && request.protocol === "https",
+			sameSite: dev ? undefined : "strict",
+		};
+	}
+
+	/**
 	 * Checks a request for an authorization token
 	 * @param {Object<FastifyRequest>} request The request to authenticate
 	 * @param {Boolean} admin Whether or not to check if the user is an admin
+	 * @param {Boolean} [owner] Whether or not to check if the user is the owner
+	 * @param {Object<FastifyReply>} [reply] Pass the reply to clear the login cookie when it holds an invalid token
 	 * @returns {Object} Either code 200 and a user, or code 4XX and no user
 	 */
 	async checkAuth(
 		request: FastifyRequest,
 		admin?: boolean,
 		owner?: boolean,
+		reply?: FastifyReply,
 	): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
 		let account: User | void;
 		try {
@@ -190,6 +211,17 @@ class Utils {
 		} catch (error: unknown) {
 			// A malformed or expired token is a failed sign-in, not a server error
 			if (error instanceof Error && error.message === "Invalid Token") {
+				// Clear a dead login cookie so the browser stops sending it
+				if (
+					reply &&
+					request.cookies.token &&
+					!request.headers.authorization
+				) {
+					reply
+						.header("Authorization-Status", "Invalidated")
+						.clearCookie("token", this.tokenCookieOptions(request));
+				}
+
 				return { code: 401 };
 			}
 
