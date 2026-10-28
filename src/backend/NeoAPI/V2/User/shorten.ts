@@ -106,7 +106,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				),
 			]);
 
-			const responseURL = request.headers.responseURL;
+			const responseURL = request.headers.responseurl;
 			const base =
 				typeof responseURL === "string" &&
 				auth.user.cURLs.includes(responseURL) &&

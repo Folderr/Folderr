@@ -91,7 +91,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					.send({ code: core.codes.ok, message: [] });
 			}
 
-			const responseURL = request.headers.responseURL;
+			const responseURL = request.headers.responseurl;
 			let url =
 				typeof responseURL === "string" &&
 				auth.user.cURLs.includes(responseURL) &&
