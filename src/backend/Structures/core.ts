@@ -489,26 +489,21 @@ export default class Core {
 			"core.registerNewApi File Pathing Start",
 		);
 		const filebase = `${process.cwd()}`;
-		const prefixes = new Map<string, string>();
-		const groups = new Map<string, string[]>(); // A group of files
+		// One group per folder; folders can share a prefix (Public and User are both "/")
+		const groups = new Map<string, { prefix: string; files: string[] }>();
 		performance.mark("core.registerNewApi Prefix Grouping");
 		for (const file of files) {
 			const directory = normalize(join(file, "../"));
-			let apiPrefix = prefixes.get(directory);
-			if (apiPrefix && groups.has(apiPrefix)) {
+			const group = groups.get(directory);
+			if (group) {
+				group.files.push(file);
 				continue;
 			}
-			if (!apiPrefix) {
-				const { prefix } = await import(
-					osPrefix + join(filebase, directory, `index${extension}`)
-				);
-				apiPrefix = prefix as string;
-				prefixes.set(directory, prefix);
-			}
-			const filteredFiles = files.filter((newfile) =>
-				normalize(newfile).startsWith(directory),
+
+			const { prefix } = await import(
+				osPrefix + join(filebase, directory, `index${extension}`)
 			);
-			groups.set(apiPrefix, filteredFiles);
+			groups.set(directory, { prefix: prefix as string, files: [file] });
 		}
 		performance.measure(
 			"core.registerNewApi Prefix Grouped",
@@ -517,7 +512,7 @@ export default class Core {
 
 		// impl: Faster import
 		performance.mark("core.registerNewApi Registering APIs");
-		for (const [prefix, files] of groups) {
+		for (const { prefix, files } of groups.values()) {
 			this.app.register(
 				async (instance, _opts) => {
 					const endpoints = files.map(async (file) => {

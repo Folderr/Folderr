@@ -168,23 +168,32 @@ class Utils {
 		owner?: boolean,
 	): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
 		let account: User | void;
-		if (request.headers.authorization) {
-			account = await this.authorization.verifyAccount(
-				request.headers.authorization,
-				{
-					fn: (user) => !user.markedForDeletion,
-				},
-			);
-		} else if (request.cookies.token) {
-			account = await this.authorization.verifyAccount(
-				request.cookies.token,
-				{
-					web: true,
-					fn: (user) => !user.markedForDeletion,
-				},
-			);
-		} else {
-			return { code: 401 };
+		try {
+			if (request.headers.authorization) {
+				account = await this.authorization.verifyAccount(
+					request.headers.authorization,
+					{
+						fn: (user) => !user.markedForDeletion,
+					},
+				);
+			} else if (request.cookies.token) {
+				account = await this.authorization.verifyAccount(
+					request.cookies.token,
+					{
+						web: true,
+						fn: (user) => !user.markedForDeletion,
+					},
+				);
+			} else {
+				return { code: 401 };
+			}
+		} catch (error: unknown) {
+			// A malformed or expired token is a failed sign-in, not a server error
+			if (error instanceof Error && error.message === "Invalid Token") {
+				return { code: 401 };
+			}
+
+			throw error;
 		}
 
 		if (!account) {
