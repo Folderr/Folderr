@@ -287,8 +287,9 @@ export default class Authorization {
 		url: string,
 		mirrorURL: string,
 	): boolean {
-		const out = jwt.verify(message.token, this.#privKey, {
+		const out = jwt.verify(message.token, this.#pubKey, {
 			issuer: "folderr",
+			algorithms: ["PS256"],
 		});
 		return Boolean(
 			out &&
