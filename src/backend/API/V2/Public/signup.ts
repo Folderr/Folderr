@@ -162,7 +162,7 @@ async function emailSignup(
 			preferredURL?: string;
 		};
 	}>,
-	response: FastifyReply,
+	_response: FastifyReply,
 ): Promise<{
 	httpCode: 500 | 201;
 	msg: {
