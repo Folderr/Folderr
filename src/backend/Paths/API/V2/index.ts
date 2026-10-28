@@ -1,7 +1,6 @@
 // Authorization locked  endpoints
 
 // Admin Authorization locked endpoints for administration & moderation features
-import Users from "./Admin/users.js";
 import ConfigureShareX from "./configurator.js";
 import AddAdmin from "./Management/add-admin.js";
 // Authroization locked owner endpoints
@@ -59,7 +58,6 @@ export const endpoints = {
 	Verify: VerifySelf,
 	Tokens,
 	DeleteToken,
-	Users,
 	OwnerManage,
 	AddAdmin,
 	DelAdmin,
