@@ -21,7 +21,6 @@
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../../internals.js";
-import type { User } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
 
 /**
@@ -72,13 +71,12 @@ class LookupAccount extends Path {
 		}>,
 		response: FastifyReply,
 	) {
-		const auth = await this.Utils.authPassword(request, (user: User) =>
-			Boolean(user.admin),
-		);
-		if (!auth) {
-			return response.status(this.codes.unauth).send({
-				code: this.codes.unauth,
-				message: "Authorization failed",
+		const auth = await this.Utils.checkAuth(request, true);
+		if (auth.code !== 200) {
+			return response.status(auth.code).send({
+				code: auth.code,
+				message:
+					auth.code === 401 ? "Authorization failed" : "Forbidden",
 			});
 		}
 
