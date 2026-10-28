@@ -2,7 +2,6 @@
 
 // Admin Authorization locked endpoints for administration & moderation features
 // Authroization locked owner endpoints
-import OwnerManage from "./Management/manage.js";
 // Public  endpoints
 import Account from "./User/account.js";
 import Login from "./User/authorize.js";
@@ -26,6 +25,5 @@ export const endpoints = {
 	Login,
 	Tokens,
 	DeleteToken,
-	OwnerManage,
 	Logout,
 };
