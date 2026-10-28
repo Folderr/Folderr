@@ -1,29 +1,7 @@
-// Authorization locked  endpoints
+import type Path from "../../../Structures/path.js";
 
-// Admin Authorization locked endpoints for administration & moderation features
-// Authroization locked owner endpoints
-// Public  endpoints
-import Account from "./User/account.js";
-import Login from "./User/authorize.js";
-import DelAccount from "./User/delete-account.js";
-import DeleteToken from "./User/delete-token.js";
-// User Flexible Authorization endpoints
-import Logout from "./User/logout.js";
-// Authorization locked User-related endpoints
-import Tokens from "./User/tokens.js";
-import UpdateAcc from "./User/update-account.js";
-import UploadFile from "./User/upload-file.js";
-
+// Every API route now lives in NeoAPI. This stays until the legacy loader (registerApis) is removed.
 export const version = "2";
 export const prefix = "/api";
 
-export const endpoints = {
-	DelAccount,
-	Account,
-	UpdateAcc,
-	UploadFile,
-	Login,
-	Tokens,
-	DeleteToken,
-	Logout,
-};
+export const endpoints: Record<string, typeof Path> = {};
