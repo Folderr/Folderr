@@ -1,9 +1,6 @@
 // Authorization locked  endpoints
 
 // Admin Authorization locked endpoints for administration & moderation features
-import Lookup from "./Admin/lookup-content.js";
-import AccountLookup from "./Admin/reverse-lookup-account.js";
-import Takedown from "./Admin/takedown.js";
 import Users from "./Admin/users.js";
 import ConfigureShareX from "./configurator.js";
 import AddAdmin from "./Management/add-admin.js";
@@ -62,9 +59,6 @@ export const endpoints = {
 	Verify: VerifySelf,
 	Tokens,
 	DeleteToken,
-	Takedown,
-	Lookup,
-	AccountLookup,
 	Users,
 	OwnerManage,
 	AddAdmin,
