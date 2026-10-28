@@ -24,10 +24,18 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Lists the signed-in user's uploads by upload time, newest first. Page with before and after (Unix milliseconds or an ISO date)",
 			summary: "List uploads",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			querystring: PAGINATION_SCHEMA,
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"Request poorly formed, the querystring is invalid",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -35,6 +43,26 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [
+						{
+							message: [
+								{
+									id: "01JB9K2M7P4R8T1V5XZQH3N6WB",
+									type: "image",
+									createdAt: 1730160000000,
+									link: "https://folderr.example.com/i/01JB9K2M7P4R8T1V5XZQH3N6WB.png",
+								},
+								{
+									id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
+									type: "video",
+									createdAt: 1730073600000,
+									link: "https://folderr.example.com/v/01JB8Z6Q3K4M9T2V7XWYH5N0RC.mp4",
+								},
+							],
+							code: 200,
+						},
+						{ code: 200, message: [] },
+					],
 					type: "object",
 					properties: {
 						message: {

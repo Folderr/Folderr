@@ -24,6 +24,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"2xx": {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +32,13 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"4xx": {
+					examples: [
+						{
+							code: 400,
+							message: "Malformed or otherwise invalid ID",
+						},
+						{ code: 1054, message: "User not found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },

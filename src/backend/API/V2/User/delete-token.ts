@@ -14,6 +14,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Revokes one of the signed-in user's API tokens, or a login session with web=true. Needs the website login or a username and password; API tokens can't use this",
 			summary: "Revoke API token",
+			security: [{ loginCookie: [] }, { username: [], password: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -29,6 +30,11 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed" },
+						{ code: 400, message: "Missing or invalid token ID!" },
+						{ code: 1054, message: "Token not deleted/found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -36,6 +42,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

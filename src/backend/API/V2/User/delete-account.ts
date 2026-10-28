@@ -27,7 +27,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Deletes the signed-in user's account. Admins can delete someone else's with ?userid= and a reason; nobody can delete the owner",
 			summary: "Delete account",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			querystring: {
 				type: "object",
 				properties: {
@@ -36,6 +36,19 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message: "Missing reason for account deletion",
+						},
+						{ code: 1054, message: "User not found!" },
+						{
+							code: 403,
+							message:
+								"You can not delete your account as you are the owner!",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -43,6 +56,9 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				500: {
+					examples: [
+						{ code: 500, message: "Account deletion failed" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -50,6 +66,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "Account deleted!" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

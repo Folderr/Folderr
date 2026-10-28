@@ -14,7 +14,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Removes a user's admin status. Only the owner can do this, and the owner can't be demoted",
 			summary: "Demote admin",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -31,6 +31,17 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"body must have required property 'reason'",
+						},
+						{ code: 400, message: "ID is not a valid Folderr ID" },
+						{ code: 1054, message: "User not found" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -38,6 +49,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

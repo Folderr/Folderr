@@ -15,12 +15,81 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Shows the signed-in user's account. A website login cookie holding an expired or invalid token is cleared",
 			summary: "View account",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			response: {
-				401: {
+				"4xx": {
+					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
+				200: {
+					examples: [
+						{
+							message: {
+								username: "aervy",
+								id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
+								admin: false,
+								owner: false,
+								files: 42,
+								links: 7,
+								email: "aervy@example.com",
+								notifications: [
+									{
+										id: "01JBA2C7RZ5V8N3Q6M1KXT4WDE",
+										title: "Welcome",
+										notify: "Welcome to Folderr!",
+										createdAt: 1730073600000,
+									},
+								],
+								customUrls: ["https://mirror.example.com"],
+								createdAt: 1730073600000,
+								privacy: { dataCollection: false },
+							},
+							code: 200,
+						},
+					],
+					type: "object",
+					properties: {
+						message: {
+							type: "object",
+							properties: {
+								username: { type: "string" },
+								id: { type: "string" },
+								admin: { type: "boolean" },
+								owner: { type: "boolean" },
+								files: { type: "number" },
+								links: { type: "number" },
+								email: { type: "string" },
+								// Set while an email change waits for confirmation
+								pendingEmail: { type: "string" },
+								notifications: {
+									type: "array",
+									items: {
+										type: "object",
+										properties: {
+											id: { type: "string" },
+											title: { type: "string" },
+											notify: { type: "string" },
+											createdAt: { type: "number" },
+										},
+									},
+								},
+								customUrls: {
+									type: "array",
+									items: { type: "string" },
+								},
+								createdAt: { type: "number" },
+								privacy: {
+									type: "object",
+									properties: {
+										dataCollection: { type: "boolean" },
+									},
+								},
+							},
+						},
 						code: { type: "number" },
 					},
 				},

@@ -13,7 +13,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			tags: ["admin"],
 			description: "Bans a user (via email) from the service",
 			summary: "Ban",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -30,6 +30,17 @@ async function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"body must have required property 'reason'",
+						},
+						{ code: 400, message: "Missing requirements" },
+						{ code: 1054, message: "User not found!" },
+						{ code: 406, message: "BAN FAILED" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -37,6 +48,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"2xx": {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

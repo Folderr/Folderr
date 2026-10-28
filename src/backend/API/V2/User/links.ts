@@ -20,10 +20,18 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Lists the signed-in user's short links by creation time, newest first. Page with before and after (Unix milliseconds or an ISO date)",
 			summary: "List links",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			querystring: PAGINATION_SCHEMA,
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"Request poorly formed, the querystring is invalid",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +39,27 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: [
+								{
+									id: "aB3xK9q",
+									points_to:
+										"https://example.com/some/long/article",
+									createdAt: 1730073600000,
+									link: "https://folderr.example.com/aB3xK9q",
+								},
+								{
+									id: "Zt7mP2",
+									points_to: "https://docs.example.org/guide",
+									createdAt: 1729987200000,
+									link: "https://folderr.example.com/Zt7mP2",
+								},
+							],
+						},
+						{ code: 200, message: [] },
+					],
 					type: "object",
 					properties: {
 						message: {

@@ -40,7 +40,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Deletes one of the signed-in user's notifications. Warnings can't be deleted for 90 days",
 			summary: "Delete notification",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -50,6 +50,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 1054, message: "Notification not found!" },
+						{
+							code: 403,
+							message:
+								"Notification cannot be deleted for 89 Days, 23 Hours, 5 Minutes",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -57,6 +66,9 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				500: {
+					examples: [
+						{ code: 500, message: "An internal error occurred" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -64,6 +76,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

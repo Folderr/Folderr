@@ -13,7 +13,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			tags: ["admin"],
 			description: "Retrieve the notifications for administrators",
 			summary: "Admin notifications",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -23,6 +23,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -30,6 +31,17 @@ async function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"2xx": {
+					examples: [
+						{
+							code: 200,
+							message: {
+								id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
+								title: "New user signup!",
+								notify: "Username: jamie\nUser ID: 01JB8Z7D2F5H8K1M4P6R9T3VWX",
+								createdAt: 1730073600000,
+							},
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -47,7 +59,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			reply,
 		) {
 			const auth = await core.Utils.checkAuth(request, true);
-			if (!auth) {
+			if (auth.code === 200) {
 				return reply.status(this.codes.unauth).send({
 					code: this.codes.unauth,
 					message: "Authorization failed.",

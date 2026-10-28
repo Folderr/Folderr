@@ -13,7 +13,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["admin"],
 			description: "Lifts the ban on an email, so it can sign up again",
 			summary: "Unban",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			// TODO: Add reason if/when Folderr gets an audit log
 			body: {
 				type: "object",
@@ -24,6 +24,18 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message: "body must have required property 'email'",
+						},
+						{
+							code: 400,
+							message: "Missing or invalid requirements",
+						},
+						{ code: 406, message: "UNBAN FAILED" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +43,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

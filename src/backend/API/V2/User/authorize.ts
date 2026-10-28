@@ -18,6 +18,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Signs in to the website with the username and password headers, and sets the login cookie",
 			summary: "Sign in",
+			security: [{ username: [], password: [] }],
 			headers: {
 				type: "object",
 				properties: {
@@ -28,6 +29,14 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"headers must have required property 'username'",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -35,6 +44,9 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				500: {
+					examples: [
+						{ code: 500, message: "failed to generate auth code" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -42,6 +54,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

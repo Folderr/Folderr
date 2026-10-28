@@ -13,7 +13,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["management"],
 			description: "Makes a user an admin. Only the owner can do this",
 			summary: "Promote to admin",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -23,6 +23,13 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Authorization failed." },
+						{ code: 400, message: "ID is not a valid Folderr ID" },
+						{ code: 1054, message: "User not found" },
+						{ code: 1053, message: "Promotion Failed" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -30,6 +37,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

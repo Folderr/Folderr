@@ -14,9 +14,37 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Signs out of the website. With everywhere=true, ends every website login for the account",
 			summary: "Sign out",
+			security: [{ loginCookie: [] }, { apiKey: [] }],
 			querystring: {
 				type: "object",
 				properties: { everywhere: { type: "boolean" } },
+			},
+			// Without a login cookie (and without everywhere=true) this redirects to the home page
+			response: {
+				"2xx": {
+					examples: [{ code: 200, message: "Logged out" }],
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
+				"4xx": {
+					examples: [{ code: 401, message: "Unauthorized" }],
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
+				500: {
+					examples: [{ code: 500, message: "Could not logout" }],
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
 			},
 		},
 		async handler(

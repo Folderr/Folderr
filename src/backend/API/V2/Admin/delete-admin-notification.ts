@@ -14,7 +14,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Deletes an admin notification. Signup notifications can't be deleted",
 			summary: "Delete admin notification",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -24,6 +24,14 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 1054, message: "Notification not found!" },
+						{
+							code: 403,
+							message: "Signup notifications cannot be removed!",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +39,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

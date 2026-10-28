@@ -13,9 +13,10 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["admin"],
 			description: "Counts the users, files, links and banned emails",
 			summary: "Retrieve statistics",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			response: {
 				"4xx": {
+					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -23,6 +24,18 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"2xx": {
+					examples: [
+						{
+							code: 200,
+							message: {
+								users: 42,
+								files: 1337,
+								links: 256,
+								bannedEmails: 3,
+								whitelistedEmails: 0,
+							},
+						},
+					],
 					type: "object",
 					properties: {
 						message: {

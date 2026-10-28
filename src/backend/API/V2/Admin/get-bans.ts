@@ -13,10 +13,24 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["admin"],
 			description: "Shows all emails that are banned",
 			summary: "Retrieve bans",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			// How do you camelCase a number?
 			response: {
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: [
+								{
+									id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
+									email: "spammer@example.com",
+									reason: "Uploading malware",
+									createdAt: 1730073600000,
+								},
+							],
+						},
+						{ code: 1054, message: [] },
+					],
 					type: "object",
 					properties: {
 						message: {
@@ -42,6 +56,14 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				default: {
+					examples: [
+						{ code: 401, message: "Unauthorized" },
+						{ code: 403, message: "Forbidden" },
+						{
+							code: 1053,
+							message: "Unknown Error While Fetching Bans",
+						},
+					],
 					type: "object",
 					properties: {
 						message: {

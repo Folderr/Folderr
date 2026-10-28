@@ -18,6 +18,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["public"],
 			response: {
 				200: {
+					examples: [{ message: "Hello World" }],
 					type: "object",
 					properties: {
 						message: { type: "string", value: "Hello World" },

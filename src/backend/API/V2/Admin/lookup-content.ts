@@ -14,7 +14,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Shows a file's or a link's record. Files include their content type and extension, links include where they point",
 			summary: "Look up content",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -25,6 +25,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed" },
+						{ code: 403, message: "Forbidden" },
+						{
+							code: 400,
+							message: "Missing or invalid requirements",
+						},
+						{ code: 1054, message: "File not found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -32,6 +41,13 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				500: {
+					examples: [
+						{
+							code: 1019,
+							message:
+								"Unknown error while looking up the content",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -39,6 +55,27 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: {
+								id: "abc123",
+								owner: "01JB8Z7D2F5H8K1M4P6R9T3VWX",
+								createdAt: 1730073600000,
+								contentType: "image/png",
+								ext: "png",
+							},
+						},
+						{
+							code: 200,
+							message: {
+								id: "xyz789",
+								owner: "01JB8Z7D2F5H8K1M4P6R9T3VWX",
+								createdAt: 1730160000000,
+								link: "https://example.com/some/long/page",
+							},
+						},
+					],
 					type: "object",
 					properties: {
 						message: {

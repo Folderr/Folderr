@@ -266,7 +266,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Changes the signed-in user's password, username, email or privacy setting. Changing the password needs currentPassword. Changing the email needs the website login or currentPassword. A new email must be confirmed from the link sent to it",
 			summary: "Update account",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -287,6 +287,25 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 401,
+							message:
+								"Changing your password needs your current password",
+						},
+						{
+							code: 1014,
+							message:
+								'Password must be 8-32 characters long, must contain 1 uppercase and lowercase letter, and 1 digit. Password may contain "_", "&", "."',
+						},
+						{
+							code: 1018,
+							message:
+								"Username must be between 3 and 12 characters!",
+						},
+						{ code: 1060, message: "Email banned" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -294,6 +313,18 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"5xx": {
+					examples: [
+						{
+							code: 1053,
+							message:
+								"An unknown error encountered while updating your account",
+						},
+						{
+							code: 1059,
+							message:
+								"Emailer not configured. Unable to update email.",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -301,6 +332,14 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"2xx": {
+					examples: [
+						{ code: 200, message: "OK" },
+						{
+							code: 1016,
+							message: "You already have this username",
+						},
+						{ code: 226, message: "Email used!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },

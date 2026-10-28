@@ -14,7 +14,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Warns a user. The warning shows in their notifications and, if the emailer is on, is emailed to them",
 			summary: "Warn",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -31,6 +31,20 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"body must have required property 'reason'",
+						},
+						{
+							code: 400,
+							message: "Requirements missing or invalid!",
+						},
+						{ code: 1054, message: "User not found!" },
+						{ code: 1052, message: "Warn failed" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -38,6 +52,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

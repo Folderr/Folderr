@@ -25,6 +25,27 @@ async function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{
+							code: 400,
+							message: "body must have required property 'email'",
+						},
+						{
+							code: 1018,
+							message:
+								"Username must be between 3 and 12 characters!",
+						},
+						{
+							code: 1058,
+							message: "Invalid or Unaccpetable Email!",
+						},
+						{ code: 1016, message: "Username or email taken!" },
+						{
+							code: 1012,
+							message:
+								'Password must be 8-32 characters long, must contain 1 uppercase and lowercase letter, and 1 digit. Password may contain "_", "&", "."',
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -32,6 +53,10 @@ async function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"2xx": {
+					examples: [
+						{ code: 201, message: "OK" },
+						{ code: 1061, message: "OK" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },

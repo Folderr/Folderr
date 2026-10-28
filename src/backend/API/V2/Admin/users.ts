@@ -20,10 +20,18 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Lists accounts by creation time, newest first. Page with before and after (Unix milliseconds or an ISO date)",
 			summary: "List users",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			querystring: PAGINATION_SCHEMA,
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"Request poorly formed, the querystring is invalid",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +39,9 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				500: {
+					examples: [
+						{ code: 500, message: "An internal error occurred" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -38,6 +49,32 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: [
+								{
+									title: "admin",
+									username: "aervy",
+									email: "aervy@example.com",
+									files: 120,
+									links: 14,
+									id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
+									createdAt: 1730073600000,
+								},
+								{
+									title: "user",
+									username: "jamie",
+									email: "jamie@example.com",
+									files: 3,
+									links: 0,
+									id: "01JB8Z7D2F5H8K1M4P6R9T3VWX",
+									createdAt: 1729987200000,
+								},
+							],
+						},
+						{ code: 1054, message: [] },
+					],
 					type: "object",
 					properties: {
 						message: {

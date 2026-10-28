@@ -14,7 +14,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Accepts a pending signup and turns it into an account",
 			summary: "Verify account",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -24,6 +24,14 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message: "body must have required property 'id'",
+						},
+						{ code: 1008, message: "User not found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +39,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				201: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

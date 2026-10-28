@@ -14,7 +14,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Unlinks a mirror (custom URL) from the signed-in user's account",
 			summary: "Remove mirror",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -24,6 +24,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message:
+								"body must have required property 'mirror'",
+						},
+						{ code: 1054, message: "Mirror not linked!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +40,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

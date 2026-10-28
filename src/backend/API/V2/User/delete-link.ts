@@ -13,7 +13,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["user"],
 			description: "Deletes one of the signed-in user's short links",
 			summary: "Delete link",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -23,6 +23,10 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 1054, message: "Link not found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -30,6 +34,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

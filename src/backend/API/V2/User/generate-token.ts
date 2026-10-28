@@ -26,7 +26,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["user"],
 			description: `Creates an API token for the signed-in user. Users can have ${TOKEN_LIMIT}; pass override=true to replace the oldest`,
 			summary: "Create API token",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -41,6 +41,14 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 1037,
+							message:
+								'You have maxed out your tokens! Either delete one or re-request with "?override=true" at the end of the url (This will delete the first one created).',
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -48,6 +56,12 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				201: {
+					examples: [
+						{
+							code: 200,
+							message: "eyJhbGciOiJIUzI1NiJ9.example.signature",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },

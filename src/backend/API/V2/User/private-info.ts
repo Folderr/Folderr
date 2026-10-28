@@ -31,9 +31,13 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Shows the running version, and the git branch and commit when Folderr runs from a git checkout",
 			summary: "Server version",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Authorization failed." },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -41,6 +45,24 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: {
+								version: "2.0.0",
+								branch: "dev",
+								commit: "605e9ff fix(API): Give the token and service info schemas their object type",
+							},
+						},
+						{
+							code: 200,
+							message: {
+								version: "2.0.0",
+								branch: null,
+								commit: null,
+							},
+						},
+					],
 					type: "object",
 					properties: {
 						message: {

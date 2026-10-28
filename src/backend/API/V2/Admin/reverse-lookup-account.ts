@@ -13,7 +13,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["admin"],
 			description: "Shows which account owns a file or a link",
 			summary: "Look up content owner",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -24,6 +24,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed" },
+						{
+							code: 400,
+							message: "Missing or invalid requirements",
+						},
+						{ code: 1054, message: "File not found!" },
+						{ code: 1008, message: "Owner not found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -31,6 +40,16 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: {
+								id: "01JB8Z7D2F5H8K1M4P6R9T3VWX",
+								username: "jamie",
+								createdAt: 1730073600000,
+							},
+						},
+					],
 					type: "object",
 					properties: {
 						message: {

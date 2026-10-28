@@ -31,9 +31,22 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Uploads a file (multipart) and returns its link. Executables, and files whose contents don't match their extension, are refused",
 			summary: "Upload file",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 1001, message: "File not found!" },
+						{
+							code: 1056,
+							message: "Executable files aren't allowed",
+						},
+						{
+							code: 1003,
+							message:
+								"The file's contents don't match its extension",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -41,6 +54,10 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				500: {
+					examples: [
+						{ code: 1000, message: "File failed to be parsed!" },
+						{ code: 1053, message: "The upload couldn't be saved" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -48,6 +65,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: ["https://folderr.example.com/i/aB3xK9q.png"],
 					type: "string",
 				},
 			},

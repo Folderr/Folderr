@@ -281,12 +281,15 @@ export default class Core {
 		}
 		performance.mark("Basic Plugins");
 		await this.app.register(fastifySwagger, {
+			// Every API route has tags; this leaves out the docs page's own routes
+			hideUntagged: true,
 			openapi: {
 				openapi: "3.0.0",
 				info: {
 					title: "Folderr",
-					description: "Testing the Fastify swagger API",
-					version: "2.0.0-D",
+					description:
+						"Folderr's HTTP API. Every JSON response has the shape { code, message }: code is the HTTP status or a Folderr error code, and message is the result or an explanation. Timestamps are Unix time in milliseconds. Sign in with an API token in the Authorization header, or with the website's login cookie.",
+					version,
 				},
 				servers: [
 					{
@@ -295,9 +298,23 @@ export default class Core {
 					},
 				],
 				tags: [
-					{ name: "user", description: "User related end-points" },
-					{ name: "admin", description: "Administrative Endpoints" },
-					{ name: "public", description: "Public facing endpoints" },
+					{
+						name: "Public",
+						description: "No sign-in needed, public access",
+					},
+					{
+						name: "User",
+						description: "The signed-in user's account and content",
+					},
+					{
+						name: "Administration",
+						description:
+							"Moderation and administration, for admins",
+					},
+					{
+						name: "Management",
+						description: "Managing admins, for the owner only",
+					},
 				],
 				components: {
 					securitySchemes: {
@@ -305,6 +322,29 @@ export default class Core {
 							type: "apiKey",
 							name: "Authorization",
 							in: "header",
+							description:
+								"An API token, created from the Account page",
+						},
+						loginCookie: {
+							type: "apiKey",
+							name: "token",
+							in: "cookie",
+							description:
+								"The website's login cookie, set by POST /api/authorize",
+						},
+						username: {
+							type: "apiKey",
+							name: "username",
+							in: "header",
+							description:
+								"Sent together with the password header",
+						},
+						password: {
+							type: "apiKey",
+							name: "password",
+							in: "header",
+							description:
+								"Sent together with the username header",
 						},
 					},
 				},

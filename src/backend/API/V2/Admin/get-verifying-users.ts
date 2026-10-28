@@ -13,10 +13,24 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["admin"],
 			description: "Show all the users that are awaiting verification",
 			summary: "Retrieve verifying user (list)",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			// How do you camelCase a number?
 			response: {
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: [
+								{
+									id: "01JB8Z7D2F5H8K1M4P6R9T3VWX",
+									username: "jamie",
+									email: "jamie@example.com",
+									createdAt: 1730073600000,
+								},
+							],
+						},
+						{ code: 1054, message: [] },
+					],
 					type: "object",
 					properties: {
 						message: {
@@ -35,6 +49,14 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				default: {
+					examples: [
+						{ code: 401, message: "Unauthorized" },
+						{ code: 403, message: "Forbidden" },
+						{
+							code: 1053,
+							message: "Unknown Error While Fetching Users",
+						},
+					],
 					type: "object",
 					properties: {
 						message: {

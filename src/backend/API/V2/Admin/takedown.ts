@@ -106,7 +106,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Removes a file or a link, and emails its owner if the emailer is on",
 			summary: "Take down content",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			params: {
 				type: "object",
 				properties: {
@@ -117,6 +117,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed" },
+						{ code: 403, message: "Forbidden" },
+						{
+							code: 400,
+							message: "Missing or invalid requirements",
+						},
+						{ code: 1054, message: "File not found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -124,6 +133,13 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				500: {
+					examples: [
+						{
+							code: 1052,
+							message:
+								"Unknown error while taking down the content",
+						},
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -131,6 +147,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

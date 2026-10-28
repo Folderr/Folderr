@@ -14,8 +14,10 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Lists the signed-in user's API tokens (not the tokens themselves, which Folderr doesn't keep). Needs the website login or a username and password; API tokens can't use this",
 			summary: "List API tokens",
+			security: [{ loginCookie: [] }, { username: [], password: [] }],
 			response: {
 				"4xx": {
+					examples: [{ code: 401, message: "Authorization failed" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -23,6 +25,25 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: [
+								{
+									created: 1730073600000,
+									id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
+									for_user: "01J9W4E7T5H2C8B3N6M1QK0DXF",
+									description: "ShareX on my laptop",
+								},
+								{
+									created: 1729987200000,
+									id: "01JB7XKD2R8F4N6P1QZ3W9M5TA",
+									for_user: "01J9W4E7T5H2C8B3N6M1QK0DXF",
+									description: "CLI uploads",
+								},
+							],
+						},
+					],
 					type: "object",
 					properties: {
 						message: {

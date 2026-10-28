@@ -15,7 +15,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Shortens a public http or https URL and returns the short link. Private, local and IP-address URLs are refused",
 			summary: "Shorten link",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -25,6 +25,14 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message: "body must have required property 'url'",
+						},
+						{ code: 1022, message: "URL not found!" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -32,6 +40,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: ["https://folderr.example.com/l/aB3xK9q"],
 					type: "string",
 				},
 			},

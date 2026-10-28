@@ -40,7 +40,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Links a mirror (custom URL) to the signed-in user's account, after checking that the mirror answers Folderr's verification request",
 			summary: "Add mirror",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -50,6 +50,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{
+							code: 400,
+							message: "body must have required property 'url'",
+						},
+						{ code: 1050, message: "Invalid Mirror URL" },
+						{ code: 1049, message: "Mirror failed Validation" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -57,6 +66,10 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"5xx": {
+					examples: [
+						{ code: 1052, message: "Something unknown happened." },
+						{ code: 500, message: "An internal error occurred" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -64,6 +77,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

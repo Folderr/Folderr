@@ -13,9 +13,10 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["user"],
 			description: "Deletes all of the signed-in user's notifications",
 			summary: "Clear notifications",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			response: {
 				"4xx": {
+					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -23,6 +24,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				200: {
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },

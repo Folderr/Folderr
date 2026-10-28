@@ -16,7 +16,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Builds ShareX upload configs for an API token. Pass d=file or d=link to download one as a .sxcu file",
 			summary: "ShareX config",
-			security: [{ apiKey: [] }],
+			security: [{ apiKey: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -27,7 +27,73 @@ function route(fastify: FastifyInstance, core: Core) {
 			querystring: {
 				type: "object",
 				properties: {
-					d: { type: "string" },
+					d: {
+						type: "string",
+						description:
+							'"file" or "link" downloads that config as a .sxcu file',
+					},
+				},
+			},
+			response: {
+				"4xx": {
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 406, message: "Invalid Token!" },
+						{
+							code: 400,
+							message: "body must have required property 'token'",
+						},
+					],
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
+				// With d=file or d=link the matching config is sent as a .sxcu download instead
+				200: {
+					examples: [
+						{
+							message: [
+								JSON.stringify({
+									Name: "Folderr File",
+									DestinationType:
+										"ImageUploader, FileUploader",
+									RequestMethod: "POST",
+									RequestURL:
+										"https://folderr.example.com/api/upload",
+									Headers: {
+										token: "eyJhbGciOiJFUzI1NiJ9.eyJ1aWQiOiIwMUpCOFo2UTNLNE05In0.c2lnbmF0dXJl",
+									},
+									Body: "MultipartFormData",
+									FileFormName: "image",
+								}),
+								JSON.stringify({
+									Name: "Folderr Link",
+									DestinationType: "URLShortener",
+									RequestMethod: "POST",
+									RequestURL:
+										"https://folderr.example.com/api/link",
+									Headers: {
+										token: "eyJhbGciOiJFUzI1NiJ9.eyJ1aWQiOiIwMUpCOFo2UTNLNE05In0.c2lnbmF0dXJl",
+									},
+									Body: "JSON",
+									Data: '{"url":"$input$"}',
+								}),
+							],
+							code: 200,
+						},
+					],
+					type: "object",
+					properties: {
+						message: {
+							description:
+								"The file upload config, then the link shortener config, as JSON text",
+							type: "array",
+							items: { type: "string" },
+						},
+						code: { type: "number" },
+					},
 				},
 			},
 		},

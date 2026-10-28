@@ -23,6 +23,23 @@ function route(fastify: FastifyInstance, core: Core) {
 				"Sends back basic information about the Folderr API, including an enabled feature-set",
 			response: {
 				200: {
+					examples: [
+						{
+							code: 200,
+							message: {
+								version: "2.0.0",
+								node_version: "v22.11.0",
+								online_since: 1730073600000,
+								message: "Pong!",
+								features: {
+									emailer: true,
+									dns_mirror: false,
+									signups: 2,
+								},
+								failedEndpoints: [],
+							},
+						},
+					],
 					type: "object",
 					properties: {
 						message: {
