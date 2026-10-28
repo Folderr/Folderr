@@ -525,7 +525,14 @@ export default class Core {
 							);
 							return;
 						}
-						if (!imported.default.enabled) return;
+						const { enabled } = imported.default;
+						if (
+							typeof enabled === "function"
+								? !enabled(this)
+								: !enabled
+						) {
+							return;
+						}
 						if (imported.default.rewrites) {
 							this.logger.debug(
 								`Using new rewritten endpoint for ${imported.default.method}: ${imported.default.rewrites}`,
