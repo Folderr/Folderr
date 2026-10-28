@@ -1,0 +1,93 @@
+import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { Core } from "../../../internals";
+import type { NeoRoute } from "../../../Structures/neo-route";
+
+const path = "/notification/:id";
+const method = "GET";
+
+async function route(fastify: FastifyInstance, core: Core) {
+	fastify.route({
+		method,
+		url: path,
+		schema: {
+			tags: ["admin"],
+			description: "Retrieve the notifications for administrators",
+			summary: "Admin notifications",
+			security: [{ apiKey: [] }],
+			params: {
+				type: "object",
+				properties: {
+					id: { type: "string" },
+				},
+				required: ["id"],
+			},
+			response: {
+				"4xx": {
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
+				"2xx": {
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
+			},
+		},
+		async handler(
+			request: FastifyRequest<{
+				Params: {
+					id: string;
+				};
+			}>,
+			reply,
+		) {
+			const auth = await core.Utils.checkAuth(request, true);
+			if (!auth) {
+				return reply.status(this.codes.unauth).send({
+					code: this.codes.unauth,
+					message: "Authorization failed.",
+				});
+			}
+
+			// Verify query
+			if (!request.params.id) {
+				return reply.status(this.codes.badReq).send({
+					code: this.codes.badReq,
+					message: "Notification ID required!",
+				});
+			}
+
+			// Find notification. If not found, return a not found status code
+			const notify = await core.db.findAdminNotify({
+				id: request.params.id,
+			});
+			if (!notify) {
+				return reply.status(this.codes.noContent).send({
+					code: core.Utils.foldCodes.dbNotFound,
+					message: [],
+				});
+			}
+
+			// Oh look a notification!
+			return reply
+				.status(this.codes.ok)
+				.send({ code: this.codes.ok, message: notify });
+		},
+	});
+	fastify.log.info(
+		undefined,
+		`Initialized GET Admin Notifications at ${path}`,
+	);
+}
+
+export default {
+	enabled: true,
+	path,
+	method,
+	route,
+} satisfies NeoRoute;
