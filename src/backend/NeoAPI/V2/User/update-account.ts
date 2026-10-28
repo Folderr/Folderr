@@ -12,6 +12,8 @@ type UpdateAccBody = {
 	email?: string;
 	username?: string;
 	password?: string;
+	/** The account's current password. Needed to change the password, and to change the email without a login cookie */
+	currentPassword?: string;
 	privacy?: {
 		dataCollection: boolean;
 	};
@@ -262,7 +264,7 @@ function route(fastify: FastifyInstance, core: Core) {
 		schema: {
 			tags: ["user"],
 			description:
-				"Changes the signed-in user's password, username, email or privacy setting. A new email must be confirmed from the link sent to it",
+				"Changes the signed-in user's password, username, email or privacy setting. Changing the password needs currentPassword. Changing the email needs the website login or currentPassword. A new email must be confirmed from the link sent to it",
 			summary: "Update account",
 			security: [{ apiKey: [] }],
 			body: {
@@ -270,6 +272,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				properties: {
 					email: { type: "string" },
 					password: { type: "string" },
+					currentPassword: { type: "string" },
 					username: { type: "string" },
 					privacy: {
 						type: "object",
@@ -327,6 +330,31 @@ function route(fastify: FastifyInstance, core: Core) {
 					code: core.codes.badReq,
 					message:
 						"BODY REQUIRES ONE OF password, username, privacy, OR email!",
+				});
+			}
+
+			// Sensitive changes need more than an API token
+			const passwordConfirmed =
+				typeof body.currentPassword === "string" &&
+				(await argon2.verify(auth.password, body.currentPassword));
+			// checkAuth only uses the login cookie when there's no Authorization header
+			const usedLoginCookie =
+				!request.headers.authorization &&
+				Boolean(request.cookies.token);
+
+			if (body.password && !passwordConfirmed) {
+				return reply.status(core.codes.unauth).send({
+					code: core.codes.unauth,
+					message:
+						"Changing your password needs your current password",
+				});
+			}
+
+			if (body.email && !passwordConfirmed && !usedLoginCookie) {
+				return reply.status(core.codes.unauth).send({
+					code: core.codes.unauth,
+					message:
+						"Changing your email needs the website login or your current password",
 				});
 			}
 
