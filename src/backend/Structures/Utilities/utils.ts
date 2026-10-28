@@ -188,7 +188,7 @@ class Utils {
 		owner?: boolean,
 		reply?: FastifyReply,
 	): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
-		let account: User | void;
+		let account: User | void | undefined;
 		try {
 			if (request.headers.authorization) {
 				account = await this.authorization.verifyAccount(
@@ -249,7 +249,7 @@ class Utils {
 		request: FastifyRequest,
 		reply?: FastifyReply,
 	): Promise<{ code: 401 } | { code: 200; user: User }> {
-		let account: User | void | false;
+		let account: User | void | false | undefined;
 		if (request.cookies.token) {
 			try {
 				account = await this.authorization.verifyAccount(
