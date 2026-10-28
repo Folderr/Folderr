@@ -1,8 +1,6 @@
 // Authorization locked  endpoints
 
-import AdminNotify from "./Admin/admin-notification.js";
 // Admin Authorization locked endpoints for administration & moderation features
-import Ban from "./Admin/ban.js";
 import DelAdminNotify from "./Admin/delete-admin-notiification.js";
 import DVerify from "./Admin/deny-account.js";
 import Lookup from "./Admin/lookup-content.js";
@@ -15,13 +13,10 @@ import PVerify from "./Admin/verify-account.js";
 import Warn from "./Admin/warn-user.js";
 import ConfigureShareX from "./configurator.js";
 import AddAdmin from "./Management/add-admin.js";
-// import Eval from "./Management/eval.js";
 // Authroization locked owner endpoints
 import OwnerManage from "./Management/manage.js";
 import DelAdmin from "./Management/remove-admin.js";
-import Pong from "./Public/pong.js";
 // Public  endpoints
-import Signup from "./Public/signup.js";
 import Info from "./private-info.js";
 import Account from "./User/account.js";
 import AddMirror from "./User/add-mirror.js";
@@ -53,13 +48,10 @@ export const prefix = "/api";
 export const endpoints = {
 	Info,
 	Configr: ConfigureShareX,
-	Signup,
-	Pong,
 	Notifs,
 	DelNotifs,
 	DelAccount,
 	Account,
-	AdminNotify,
 	DelNotify,
 	DelAdminNotify,
 	UpdateAcc,
@@ -78,7 +70,6 @@ export const endpoints = {
 	Verify: VerifySelf,
 	Tokens,
 	DeleteToken,
-	Ban,
 	Unban,
 	Warn,
 	Takedown,
@@ -88,7 +79,6 @@ export const endpoints = {
 	Users,
 	Stats,
 	OwnerManage,
-	// Eval,
 	AddAdmin,
 	DelAdmin,
 	Logout,
