@@ -26,6 +26,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					type: "object",
 					properties: {
 						message: {
+							type: "object",
 							properties: {
 								version: { type: "string" },
 								node_version: { type: "string" },

@@ -9,8 +9,17 @@ const method = "POST";
 // How many API tokens a user can have before they must delete one or override
 const TOKEN_LIMIT = 10;
 
+type TokenRequest = {
+	Querystring: {
+		override?: boolean;
+	};
+	Body: {
+		description?: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<TokenRequest>({
 		method,
 		url: path,
 		schema: {
@@ -18,8 +27,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			description: `Creates an API token for the signed-in user. Users can have ${TOKEN_LIMIT}; pass override=true to replace the oldest`,
 			summary: "Create API token",
 			security: [{ apiKey: [] }],
-			// No "type" here, so a request without a body is still allowed
 			body: {
+				type: "object",
 				properties: {
 					description: { type: "string", maxLength: 50 },
 				},
@@ -47,15 +56,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		// The body is optional; treat a missing one as empty so the schema still applies
+		async preValidation(request: FastifyRequest<TokenRequest>) {
+			request.body ??= {};
+		},
 		async handler(
-			request: FastifyRequest<{
-				Querystring: {
-					override?: boolean;
-				};
-				Body?: {
-					description?: string;
-				};
-			}>,
+			request: FastifyRequest<TokenRequest>,
 			reply: FastifyReply,
 		) {
 			const auth = await core.Utils.checkAuth(request);
