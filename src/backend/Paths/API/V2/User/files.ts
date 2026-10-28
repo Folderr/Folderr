@@ -20,10 +20,14 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
 import type { Core } from "../../../../internals.js";
 import type { Upload } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
+import {
+	generateTimePage,
+	PAGINATION_SCHEMA,
+	type PageQuery,
+} from "../../../../Structures/Utilities/pagination.js";
 import {
 	routeType,
 	uploadName,
@@ -41,15 +45,7 @@ class Files extends Path {
 
 		this.options = {
 			schema: {
-				querystring: {
-					type: "object",
-					properties: {
-						gallery: { type: "boolean" },
-						limit: { type: "number" },
-						before: { type: "object" },
-						after: { type: "object" },
-					},
-				},
+				querystring: PAGINATION_SCHEMA,
 				response: {
 					"4xx": {
 						type: "object",
@@ -83,7 +79,7 @@ class Files extends Path {
 
 	async execute(
 		request: FastifyRequest<{
-			Querystring: RequestGallery;
+			Querystring: PageQuery;
 			Headers: {
 				preferredURL?: string;
 			};
@@ -98,30 +94,26 @@ class Files extends Path {
 			});
 		}
 
-		const generated = this.generatePageQuery(request, auth.id);
-		if (generated.errored) {
-			const genType = generated as unknown as {
-				httpCode: 406;
-				json: Record<string, string | number>;
-				errored: boolean;
-			};
-			return response.status(genType.httpCode).send(genType.json);
+		const page = generateTimePage(
+			{
+				before: request.query.before,
+				after: request.query.after,
+				limit: request.query.limit,
+			},
+			auth.id,
+			request.query.ascending,
+		);
+		if (!page) {
+			return response.status(this.codes.badReq).send({
+				code: this.codes.badReq,
+				message: "Request poorly formed, the querystring is invalid",
+			});
 		}
 
-		const { query, options } = generated as unknown as {
-			query: {
-				$gt?: { created: Date };
-				$lt?: { created: Date };
-				owner: string;
-			};
-			options: {
-				sort?: Record<string, unknown>;
-				limit?: number;
-			};
-			errored: boolean;
-		};
-
-		const images: Upload[] = await this.core.db.findFiles(query, options);
+		const images: Upload[] = await this.core.db.findFiles(
+			page.filter,
+			page.options,
+		);
 		if (!images) {
 			return response
 				.status(this.codes.ok)

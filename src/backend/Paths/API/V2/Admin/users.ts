@@ -20,10 +20,14 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
 import type { Core } from "../../../../internals.js";
 import type { User } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
+import {
+	generateTimePage,
+	PAGINATION_SCHEMA,
+	type PageQuery,
+} from "../../../../Structures/Utilities/pagination.js";
 
 /**
  * @classdesc Shows users to admins
@@ -37,6 +41,7 @@ class Users extends Path {
 
 		this.options = {
 			schema: {
+				querystring: PAGINATION_SCHEMA,
 				response: {
 					"4xx": {
 						type: "object",
@@ -80,7 +85,7 @@ class Users extends Path {
 
 	async execute(
 		request: FastifyRequest<{
-			Querystring: RequestGallery;
+			Querystring: PageQuery;
 		}>,
 		response: FastifyReply,
 	) {
@@ -92,30 +97,27 @@ class Users extends Path {
 			});
 		}
 
-		const generated = this.generateGenericQuery(request);
-		if (generated.errored) {
-			const genType = generated as unknown as {
-				httpCode: number;
-				json: Record<string, string | number>;
-				errored: boolean;
-			};
-			return response.status(genType.httpCode).send(genType.json);
+		const page = generateTimePage(
+			{
+				before: request.query.before,
+				after: request.query.after,
+				limit: request.query.limit,
+			},
+			undefined,
+			request.query.ascending,
+		);
+		if (!page) {
+			return response.status(this.codes.badReq).send({
+				code: this.codes.badReq,
+				message: "Request poorly formed, the querystring is invalid",
+			});
 		}
-
-		const { query, options } = generated as unknown as {
-			query: {
-				$gt?: { created: Date };
-				$lt?: { created: Date };
-			};
-			options: {
-				sort?: Record<string, unknown>;
-				limit?: number;
-			};
-			errored: boolean;
-		};
-
-		const users: User[] = await this.core.db.findUsers(query, options);
+		const users: User[] = await this.core.db.findUsers(
+			page.filter,
+			page.options,
+		);
 		if (users.length === 0) {
+			// Users should never be 0 tbh. Could probably just delete this?
 			return response.status(this.codes.ok).send({
 				code: this.Utils.foldCodes.dbNotFound,
 				message: [],

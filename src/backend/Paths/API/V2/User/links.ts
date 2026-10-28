@@ -20,10 +20,14 @@
  */
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { RequestGallery } from "../../../../../types/fastify-request-types.js";
 import type { Core } from "../../../../internals.js";
 import type { Link } from "../../../../Structures/Database/db-class.js";
 import Path from "../../../../Structures/path.js";
+import {
+	generateTimePage,
+	PAGINATION_SCHEMA,
+	type PageQuery,
+} from "../../../../Structures/Utilities/pagination.js";
 
 /**
  * @classdesc Allow a user to access their links
@@ -37,15 +41,7 @@ class Links extends Path {
 
 		this.options = {
 			schema: {
-				querystring: {
-					type: "object",
-					properties: {
-						gallery: { type: "boolean" },
-						limit: { type: "number" },
-						before: { type: "object" },
-						after: { type: "object" },
-					},
-				},
+				querystring: PAGINATION_SCHEMA,
 				response: {
 					"4xx": {
 						type: "object",
@@ -79,7 +75,7 @@ class Links extends Path {
 
 	async execute(
 		request: FastifyRequest<{
-			Querystring: RequestGallery;
+			Querystring: PageQuery;
 			Headers: {
 				preferredURL?: string;
 			};
@@ -95,30 +91,26 @@ class Links extends Path {
 			});
 		}
 
-		const generated = this.generatePageQuery(request, auth.id);
-		if (generated.errored) {
-			const genType = generated as unknown as {
-				httpCode: 406;
-				json: Record<string, string | number>;
-				errored: boolean;
-			};
-			return response.status(genType.httpCode).send(genType.json);
+		const page = generateTimePage(
+			{
+				before: request.query.before,
+				after: request.query.after,
+				limit: request.query.limit,
+			},
+			auth.id,
+			request.query.ascending,
+		);
+		if (!page) {
+			return response.status(this.codes.badReq).send({
+				code: this.codes.badReq,
+				message: "Request poorly formed, the querystring is invalid",
+			});
 		}
 
-		const { query, options } = generated as unknown as {
-			query: {
-				$gt?: { created: Date };
-				$lt?: { created: Date };
-				owner: string;
-			};
-			options: {
-				sort?: Record<string, unknown>;
-				limit?: number;
-			};
-			errored: boolean;
-		};
-
-		const shorts: Link[] = await this.core.db.findLinks(query, options);
+		const shorts: Link[] = await this.core.db.findLinks(
+			page.filter,
+			page.options,
+		);
 		if (!shorts || shorts.length === 0) {
 			return response
 				.status(this.codes.ok)

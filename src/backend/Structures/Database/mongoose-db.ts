@@ -246,24 +246,17 @@ export default class Mongoosedb extends DBClass {
 			selector?: string;
 		},
 	): Promise<User[]> {
-		const qoptions: { limit?: number; sort?: Record<string, unknown> } = {};
+		// Oldest first unless the caller asks for another order
+		const qoptions: { limit?: number; sort: Record<string, unknown> } = {
+			sort: options?.sort ?? { createdAt: 1 },
+		};
 		if (options?.limit) {
 			qoptions.limit = options.limit;
 		}
 
-		if (options?.sort) {
-			qoptions.sort = options.sort;
-		}
-
-		return options
-			? this.#schemas.User.find(query, options?.selector, qoptions)
-					.sort({ createdAt: 1 })
-					.lean()
-					.exec()
-			: this.#schemas.User.find(query)
-					.sort({ createdAt: 1 })
-					.lean()
-					.exec();
+		return this.#schemas.User.find(query, options?.selector, qoptions)
+			.lean()
+			.exec();
 	}
 
 	async findFullUser(
