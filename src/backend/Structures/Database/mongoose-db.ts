@@ -167,6 +167,14 @@ export default class Mongoosedb extends DBClass {
 		return remove.deletedCount;
 	}
 
+	async isBanned(email: string): Promise<boolean> {
+		// Strength 2 compares letters without case, so Bob@x.com matches bob@x.com
+		const ban = await this.#schemas.Ban.exists({ email })
+			.collation({ locale: "en", strength: 2 })
+			.exec();
+		return Boolean(ban);
+	}
+
 	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
 		const fldr = await this.#schemas.Folderr.findOne(query).lean().exec();
 		if (!fldr) {
@@ -187,7 +195,7 @@ export default class Mongoosedb extends DBClass {
 			return fldrr;
 		}
 
-		const fldr = new this.#schemas.Folderr({ bans: [], publicKeyJWT });
+		const fldr = new this.#schemas.Folderr({ publicKeyJWT });
 		await fldr.save();
 		return fldr;
 	}

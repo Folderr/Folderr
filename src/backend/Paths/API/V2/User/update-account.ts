@@ -407,8 +407,7 @@ class UpdateAcc extends Path {
 			};
 		}
 
-		const bans = await this.core.db.fetchFolderr({});
-		if (bans.bans.includes(request.body.email)) {
+		if (await this.core.db.isBanned(request.body.email)) {
 			return {
 				httpCode: this.codes.forbidden,
 				message: {

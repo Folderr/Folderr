@@ -20,7 +20,6 @@
  */
 
 export interface Folderr {
-	bans: string[];
 	publicKeyJWT: Buffer;
 }
 
@@ -150,6 +149,15 @@ export class DBClass {
 	async removeBan(email: string): Promise<number> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method removeBan is not implemented!",
+		);
+	}
+
+	/**
+	 * @desc Whether an email is banned, ignoring letter case
+	 */
+	async isBanned(email: string): Promise<boolean> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method isBanned is not implemented!",
 		);
 	}
 

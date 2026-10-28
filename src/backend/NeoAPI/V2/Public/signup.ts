@@ -325,8 +325,7 @@ async function checkUserInput(
 		};
 	}
 
-	const bans = await core.db.fetchFolderr({});
-	if (bans.bans.includes(email)) {
+	if (await core.db.isBanned(email)) {
 		return {
 			httpCode: core.codes.forbidden,
 			response: {
