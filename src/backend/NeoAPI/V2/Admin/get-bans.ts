@@ -1,11 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type Core from "../../../Structures/core.js";
+import type { NeoRoute } from "../../../Structures/neo-route.js";
 
-export const path = "/bans";
-export const enabled = true;
-export const method = "GET";
+const path = "/bans";
+const method = "GET";
 
-export function route(fastify: FastifyInstance, core: Core) {
+function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
 		url: path,
@@ -91,3 +91,10 @@ export function route(fastify: FastifyInstance, core: Core) {
 	});
 	fastify.log.info(undefined, "Initialized GET bans");
 }
+
+export default {
+	path,
+	method,
+	enabled: true,
+	route,
+} satisfies NeoRoute;

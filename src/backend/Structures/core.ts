@@ -53,6 +53,7 @@ import type { Path } from "../internals.js";
 import type { LoggerLevels } from "./logger.js";
 // Other utilities
 import logger from "./logger.js";
+import type { NeoRoute } from "./neo-route";
 import type {
 	ErrorHandlerWithSeverity,
 	supressErrorHandlerRoute,
@@ -521,27 +522,25 @@ export default class Core {
 				async (instance, _opts) => {
 					const endpoints = files.map(async (file) => {
 						const imported: {
-							name: string;
-							path: string;
-							route: (
-								fastify: FastifyInstance,
-								core: Core,
-							) => unknown;
-							method: string;
-							rewrites?: string;
-							enabled: boolean;
+							default: NeoRoute;
 						} = await import(osPrefix + join(filebase, file));
-						if (!imported.enabled) return;
-						if (imported.rewrites) {
-							this.logger.debug(
-								`Using new rewritten endpoint for ${imported.method}: ${imported.rewrites}`,
+						if (!imported.default) {
+							instance.log.error(
+								`Path ${file} has no exported default and will be skipped`,
 							);
-							this.#rewritten.push(imported.rewrites);
+							return;
+						}
+						if (!imported.default.enabled) return;
+						if (imported.default.rewrites) {
+							this.logger.debug(
+								`Using new rewritten endpoint for ${imported.default.method}: ${imported.default.rewrites}`,
+							);
+							this.#rewritten.push(imported.default.rewrites);
 						}
 
-						imported.route(instance, this);
+						imported.default.route(instance, this);
 						this.#registeredEndpoints.add(
-							`${imported.method}:${imported.path}`,
+							`${imported.default.method}:${imported.default.path}`,
 						);
 					});
 					await Promise.all(endpoints);

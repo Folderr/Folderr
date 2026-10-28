@@ -3,18 +3,17 @@
 import type { FastifyInstance } from "fastify";
 import pkg from "../../../../../package.json" with { type: "json" };
 import type Core from "../../../Structures/core.js";
+import type { NeoRoute } from "../../../Structures/neo-route";
 
 // We have a name here for in case we decide to map these
-
-export const name = "Service Info";
+const name = "Service Info";
 
 // End path will be formatted something like "/api/v2/"
-export const path = "";
-export const rewrites = "/";
-export const enabled = true;
-export const method = "GET";
+const path = "";
+const method = "GET";
+const rewrites = "/";
 
-export function route(fastify: FastifyInstance, core: Core) {
+function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
 		url: path,
@@ -96,3 +95,12 @@ export function route(fastify: FastifyInstance, core: Core) {
 		`New API ${name} rewrites (and replaces) old endpoint /api${rewrites}`,
 	);
 }
+
+export default {
+	path,
+	name,
+	rewrites,
+	enabled: true,
+	method,
+	route,
+} satisfies NeoRoute;

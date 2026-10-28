@@ -1,11 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type Core from "../../../Structures/core.js";
+import type { NeoRoute } from "../../../Structures/neo-route.js";
 
-export const path = "/verifying-users";
-export const enabled = true;
-export const method = "GET";
+const path = "/verifying-users";
+const method = "GET";
 
-export function route(fastify: FastifyInstance, core: Core) {
+function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
 		url: path,
@@ -87,3 +87,10 @@ export function route(fastify: FastifyInstance, core: Core) {
 	});
 	fastify.log.info("Initializing GET Verifying Users");
 }
+
+export default {
+	path,
+	method,
+	enabled: true,
+	route,
+} satisfies NeoRoute;

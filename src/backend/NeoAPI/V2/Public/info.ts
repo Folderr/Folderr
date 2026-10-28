@@ -2,17 +2,14 @@
 
 import type { FastifyInstance } from "fastify";
 import type Core from "../../../Structures/core.js";
+import type { NeoRoute } from "../../../Structures/neo-route.js";
 
-export const name = "Hello World";
-
+const name = "Ping";
 // End path will be formatted something like "/api/v2/info"
-export const path = "/ping";
+const path = "/ping";
+const method = "GET";
 
-export const enabled = true;
-
-export const method = "GET";
-
-export function route(fastify: FastifyInstance, core: Core) {
+function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
 		schema: {
@@ -37,3 +34,11 @@ export function route(fastify: FastifyInstance, core: Core) {
 		`Initialized new API ${name} with method GET and path /api${path}`,
 	);
 }
+
+export default {
+	name,
+	enabled: true,
+	method,
+	path,
+	route,
+} satisfies NeoRoute;

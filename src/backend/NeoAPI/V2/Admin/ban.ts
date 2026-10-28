@@ -1,12 +1,11 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals";
+import type { NeoRoute } from "../../../Structures/neo-route";
 
-export const path = "/ban/:id";
-export const enabled = true;
-export const rewrites = "/admin/ban/:id";
-export const method = "POST";
+const path = "/ban/:id";
+const method = "POST";
 
-export async function route(fastify: FastifyInstance, core: Core) {
+async function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
 		url: path,
@@ -112,3 +111,11 @@ export async function route(fastify: FastifyInstance, core: Core) {
 	});
 	fastify.log.info(`Initialized POST Admin Ban at ${path}`);
 }
+
+export default {
+	enabled: true,
+	method,
+	path,
+	rewrites: "/admin/ban/:id",
+	route,
+} satisfies NeoRoute;

@@ -1,14 +1,11 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals";
+import type { NeoRoute } from "../../../Structures/neo-route";
 
-export const path = "/notification/:id";
+const path = "/notification/:id";
+const method = "GET";
 
-export const enabled = true;
-
-export const rewrites = "/notification/:id";
-export const method = "GET";
-
-export async function route(fastify: FastifyInstance, core: Core) {
+async function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
 		url: path,
@@ -87,3 +84,11 @@ export async function route(fastify: FastifyInstance, core: Core) {
 		`Initialized GET Admin Notifications at ${path}`,
 	);
 }
+
+export default {
+	enabled: true,
+	path,
+	method,
+	rewrites: "/notification/:id",
+	route,
+} satisfies NeoRoute;

@@ -1,15 +1,12 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals";
 import * as constants from "../../../Structures/constants/index";
+import type { NeoRoute } from "../../../Structures/neo-route";
 
-export const path = "/signup";
+const path = "/signup";
+const method = "POST";
 
-export const enabled = true;
-
-export const rewrites = "/signup";
-export const method = "POST";
-
-export async function route(fastify: FastifyInstance, core: Core) {
+async function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
 		url: path,
@@ -381,4 +378,10 @@ async function checkUserInput(
 	return true;
 }
 
-export default route;
+export default {
+	path,
+	method,
+	enabled: true,
+	rewrites: "/signup",
+	route,
+} satisfies NeoRoute;
