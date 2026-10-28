@@ -1,16 +1,10 @@
 // Authorization locked  endpoints
 
 // Admin Authorization locked endpoints for administration & moderation features
-import DelAdminNotify from "./Admin/delete-admin-notiification.js";
-import DVerify from "./Admin/deny-account.js";
 import Lookup from "./Admin/lookup-content.js";
 import AccountLookup from "./Admin/reverse-lookup-account.js";
-import Stats from "./Admin/statistics.js";
 import Takedown from "./Admin/takedown.js";
-import Unban from "./Admin/unban.js";
 import Users from "./Admin/users.js";
-import PVerify from "./Admin/verify-account.js";
-import Warn from "./Admin/warn-user.js";
 import ConfigureShareX from "./configurator.js";
 import AddAdmin from "./Management/add-admin.js";
 // Authroization locked owner endpoints
@@ -53,7 +47,6 @@ export const endpoints = {
 	DelAccount,
 	Account,
 	DelNotify,
-	DelAdminNotify,
 	UpdateAcc,
 	GenToken,
 	Shorten,
@@ -65,19 +58,14 @@ export const endpoints = {
 	Login,
 	AMirror: AddMirror,
 	DMirror: RemoveMirror,
-	DVerify,
 	DenySelf,
 	Verify: VerifySelf,
 	Tokens,
 	DeleteToken,
-	Unban,
-	Warn,
 	Takedown,
 	Lookup,
 	AccountLookup,
-	PVerify,
 	Users,
-	Stats,
 	OwnerManage,
 	AddAdmin,
 	DelAdmin,
