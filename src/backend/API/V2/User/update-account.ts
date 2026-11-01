@@ -42,9 +42,7 @@ async function handlePassword(
 		return await core.Utils.hashPass(password);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) {
-			if (process.env.DEBUG) {
-				core.logger.debug(error);
-			}
+			core.logger.debug(error);
 
 			return {
 				httpCode: core.codes.internalErr,
