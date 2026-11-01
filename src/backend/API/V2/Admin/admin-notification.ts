@@ -27,13 +27,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 					type: "object",
 					properties: {
 						message: {
-							type: "object",
-							properties: {
-								id: { type: "string" },
-								title: { type: "string" },
-								notify: { type: "string" },
-								createdAt: { type: "number" },
-							},
+							type: "string",
 						},
 						code: { type: "number" },
 					},
@@ -52,7 +46,15 @@ async function route(fastify: FastifyInstance, core: Core) {
 					],
 					type: "object",
 					properties: {
-						message: { type: "string" },
+						message: {
+							type: "object",
+							properties: {
+								id: { type: "string" },
+								title: { type: "string" },
+								notify: { type: "string" },
+								createdAt: { type: "number" },
+							},
+						},
 						code: { type: "number" },
 					},
 				},
