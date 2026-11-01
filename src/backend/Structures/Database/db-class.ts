@@ -114,7 +114,7 @@ export class DBClass {
 		}
 	}
 
-	async init(url: string): Promise<any> {
+	async init(url: string): Promise<void> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method init is not implemented!",
 		);
@@ -140,7 +140,10 @@ export class DBClass {
 		);
 	}
 
-	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
+	/**
+	 * @desc The instance's settings. There's only ever one
+	 */
+	async fetchFolderr(): Promise<Folderr> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method fetchFolderr is not implemented!",
 		);
@@ -166,7 +169,7 @@ export class DBClass {
 		password: string,
 		id: string,
 		email: string,
-	): Promise<User | void> {
+	): Promise<User | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeOwner is not implemented!",
 		);
@@ -196,22 +199,9 @@ export class DBClass {
 			limit?: number;
 			selector?: string;
 		},
-	): Promise<User[] | any[]> {
+	): Promise<User[]> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findUsers is not implemented!",
-		);
-	}
-
-	async findFullUser(
-		query: Array<Record<string, unknown>>,
-		selectors?: {
-			user?: string;
-			file?: string;
-			link?: string;
-		},
-	): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findFullUser is not implemented!",
 		);
 	}
 
@@ -387,14 +377,6 @@ export class DBClass {
 		);
 	}
 
-	async findAndDeleteFile(
-		query: Record<string, unknown>,
-	): Promise<Upload | undefined> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findAndDeleteFile is not implemented!",
-		);
-	}
-
 	async findFiles(
 		query: Record<string, unknown>,
 		options?: {
@@ -405,15 +387,6 @@ export class DBClass {
 	): Promise<Upload[]> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findFiles is not implemented!",
-		);
-	}
-
-	async updateFile(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean | undefined> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method updateFile is not implemented!",
 		);
 	}
 
@@ -482,15 +455,6 @@ export class DBClass {
 	): Promise<Link | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findAndDeleteLink is not implemented!",
-		);
-	}
-
-	async updateLink(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean | undefined> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method updateLink is not implemented!",
 		);
 	}
 

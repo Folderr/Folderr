@@ -93,7 +93,7 @@ export default class Mongoosedb extends DBClass {
 			await this.#schemas.Folderr.ensureIndexes();
 			await this.#schemas.Ban.ensureIndexes();
 			logger.debug("DB - Indexes ensured");
-			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
+			await this.fetchFolderr(); // Neglecting this potential error to handle elsewhere
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				if (
@@ -175,8 +175,8 @@ export default class Mongoosedb extends DBClass {
 		return Boolean(ban);
 	}
 
-	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
-		const fldr = await this.#schemas.Folderr.findOne(query).lean().exec();
+	async fetchFolderr(): Promise<Folderr> {
+		const fldr = await this.#schemas.Folderr.findOne({}).lean().exec();
 		if (!fldr) {
 			throw new Error(
 				"Folderr DB entry not found, Folderr DB entry is required.",
@@ -205,7 +205,7 @@ export default class Mongoosedb extends DBClass {
 		password: string,
 		id: string,
 		email: string,
-	): Promise<User | void> {
+	): Promise<User | undefined> {
 		const ownr = await this.findUser({ owner: true }, "owner");
 		if (ownr) {
 			throw new Error("DB > FORBIDDEN - Owner already created!");
@@ -265,43 +265,6 @@ export default class Mongoosedb extends DBClass {
 		return this.#schemas.User.find(query, options?.selector, qoptions)
 			.lean()
 			.exec();
-	}
-
-	async findFullUser(
-		queries: Array<Record<string, unknown>>,
-		selector?: {
-			user?: string;
-			file?: string;
-			link?: string;
-		},
-	): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
-		if (!queries || queries.length < 2 || queries.length > 2) {
-			throw new Error(
-				constants.TEMPLATES.MONGOOSE.expectedQueries(
-					2,
-					queries?.length,
-				),
-			);
-		}
-
-		const [account, files, links] = await Promise.all([
-			this.findUser(queries[0], selector?.user),
-			selector?.file
-				? this.#schemas.Upload.find(queries[1], selector.file)
-						.lean()
-						.exec()
-				: this.#schemas.Upload.find(queries[1]).lean().exec(),
-			selector?.link
-				? this.#schemas.Link.find(queries[1], selector.link)
-						.lean()
-						.exec()
-				: this.#schemas.Link.find(queries[1]).lean().exec(),
-		]);
-		if (!account) {
-			return undefined;
-		}
-
-		return { account, files, links };
 	}
 
 	async findAndUpdateUser(
@@ -617,16 +580,6 @@ export default class Mongoosedb extends DBClass {
 		);
 	}
 
-	async findAndDeleteFile(
-		query: Record<string, unknown>,
-	): Promise<Upload | undefined> {
-		return (
-			(await this.#schemas.Upload.findOneAndDelete(query)
-				.lean()
-				.exec()) ?? undefined
-		);
-	}
-
 	async findFiles(
 		query: Record<string, unknown>,
 		options?: {
@@ -648,18 +601,6 @@ export default class Mongoosedb extends DBClass {
 		return this.#schemas.Upload.find(query, options?.selector, queryOptions)
 			.lean()
 			.exec();
-	}
-
-	async updateFile(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean | undefined> {
-		const upd = await this.#schemas.Upload.updateOne(query, update).exec();
-		if (upd?.modifiedCount && upd.modifiedCount > 0) {
-			return true;
-		}
-
-		return undefined;
 	}
 
 	async makeFile(
@@ -778,14 +719,6 @@ export default class Mongoosedb extends DBClass {
 			options?.selector,
 			qoptions,
 		).lean();
-	}
-
-	async updateLink(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean> {
-		const out = await this.#schemas.Upload.updateOne(query, update).exec();
-		return Boolean(out?.modifiedCount && out.modifiedCount > 0);
 	}
 
 	async makeLink(id: string, owner: string, link: string): Promise<Link> {
