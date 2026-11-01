@@ -733,9 +733,10 @@ class Utils {
 		const protocol = `${request.protocol || "http"}://`;
 		let host: string | undefined;
 
-		// In the event of a correctly formatted hostname, set host to it
+		// The Host header only counts when it looks like a real domain or IP;
+		// request.host keeps any port (127.0.0.1:8888), request.hostname drops it
 		if (request.hostname?.split(".").length > 1) {
-			host = request.hostname;
+			host = request.host;
 		}
 
 		if (!host) {
