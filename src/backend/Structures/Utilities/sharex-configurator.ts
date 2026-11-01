@@ -23,56 +23,61 @@
  * @fileoverview Handle Making ShareX configs
  */
 
-interface ImageConfig {
-	FileFormName: string;
-	RequestMethod: string;
+/** A ShareX custom uploader (.sxcu), using the syntax of ShareX 13 and later */
+interface ShareXConfig {
+	Version: string;
+	Name: string;
+	DestinationType: string;
+	RequestMethod: "POST";
+	RequestURL: string;
 	Headers: {
-		token: string;
+		Authorization: string;
 		responseURL?: string;
 	};
-	RequestURL: string;
-	DestinationType: string;
-	Body: string;
+	Body: "MultipartFormData" | "JSON";
+	FileFormName?: string;
 	Data?: string;
-	Name: string;
+	/** Where ShareX finds the link to copy. Uploads and links answer with just the URL as text */
+	URL: string;
 }
 
 class ShareXConfigurator {
-	private readonly image: ImageConfig;
-
-	constructor() {
-		this.image = {
-			Name: "Folderr File",
-			DestinationType: "ImageUploader, FileUploader",
-			RequestMethod: "POST",
-			RequestURL: "*{URL}/api/upload",
-			Headers: {
-				token: "",
-			},
-			Body: "MultipartFormData",
-			FileFormName: "image",
-		};
-	}
-
+	/**
+	 * @desc Builds the file upload config, then the link shortener config, as JSON text
+	 */
 	generateFiles(url: string, token: string, responseURL?: string): string[] {
 		if (!url || !token) {
 			throw new Error("[Configurator] - Missing parameters");
 		}
 
-		const imgConfig = this.image;
-		imgConfig.RequestURL = `${url}/api/upload`;
-		imgConfig.Headers.token = token;
-		if (responseURL) {
-			imgConfig.Headers.responseURL = responseURL;
-		}
-
-		const linkConfig = imgConfig;
-		linkConfig.Name = "Folderr Link";
-		linkConfig.RequestURL = `${url}/api/link`;
-		linkConfig.DestinationType = "URLShortener";
-		linkConfig.Body = "JSON";
-		linkConfig.Data = JSON.stringify('{"url":"$input$"}');
-		return [JSON.stringify(imgConfig), JSON.stringify(linkConfig)];
+		// Fresh objects every call, so one user's token can never end up in another's config
+		const headers = () => ({
+			Authorization: token,
+			...(responseURL ? { responseURL } : {}),
+		});
+		const file: ShareXConfig = {
+			Version: "14.0.0",
+			Name: "Folderr File",
+			DestinationType: "ImageUploader, FileUploader",
+			RequestMethod: "POST",
+			RequestURL: `${url}/api/file`,
+			Headers: headers(),
+			Body: "MultipartFormData",
+			FileFormName: "file",
+			URL: "{response}",
+		};
+		const link: ShareXConfig = {
+			Version: "14.0.0",
+			Name: "Folderr Link",
+			DestinationType: "URLShortener",
+			RequestMethod: "POST",
+			RequestURL: `${url}/api/link`,
+			Headers: headers(),
+			Body: "JSON",
+			Data: '{"url":"{input}"}',
+			URL: "{response}",
+		};
+		return [JSON.stringify(file), JSON.stringify(link)];
 	}
 }
 

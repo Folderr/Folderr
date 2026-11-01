@@ -56,29 +56,35 @@ function route(fastify: FastifyInstance, core: Core) {
 						{
 							message: [
 								JSON.stringify({
+									Version: "14.0.0",
 									Name: "Folderr File",
 									DestinationType:
 										"ImageUploader, FileUploader",
 									RequestMethod: "POST",
 									RequestURL:
-										"https://folderr.example.com/api/upload",
+										"https://folderr.example.com/api/file",
 									Headers: {
-										token: "eyJhbGciOiJFUzI1NiJ9.eyJ1aWQiOiIwMUpCOFo2UTNLNE05In0.c2lnbmF0dXJl",
+										Authorization:
+											"eyJhbGciOiJFUzI1NiJ9.eyJ1aWQiOiIwMUpCOFo2UTNLNE05In0.c2lnbmF0dXJl",
 									},
 									Body: "MultipartFormData",
-									FileFormName: "image",
+									FileFormName: "file",
+									URL: "{response}",
 								}),
 								JSON.stringify({
+									Version: "14.0.0",
 									Name: "Folderr Link",
 									DestinationType: "URLShortener",
 									RequestMethod: "POST",
 									RequestURL:
 										"https://folderr.example.com/api/link",
 									Headers: {
-										token: "eyJhbGciOiJFUzI1NiJ9.eyJ1aWQiOiIwMUpCOFo2UTNLNE05In0.c2lnbmF0dXJl",
+										Authorization:
+											"eyJhbGciOiJFUzI1NiJ9.eyJ1aWQiOiIwMUpCOFo2UTNLNE05In0.c2lnbmF0dXJl",
 									},
 									Body: "JSON",
-									Data: '{"url":"$input$"}',
+									Data: '{"url":"{input}"}',
+									URL: "{response}",
 								}),
 							],
 							code: 200,
@@ -147,7 +153,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					.type("text/plain; charset=binary")
 					.header(
 						"Content-Disposition",
-						"attachment; filename=Folderr-Link-Config.sxcu",
+						`attachment; filename=Folderr-${request.query?.d === "file" ? "File" : "Link"}-Config.sxcu`,
 					)
 					.status(core.codes.ok)
 					.send(download);
