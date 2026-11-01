@@ -356,11 +356,12 @@ async function checkUserInput(
 		};
 	}
 
-	// See if the username is already taken. Fail if so.
-	const user =
-		(await core.db.findUser({ $or: [{ username }, { email }] })) ??
-		(await core.db.findVerify({ $or: [{ username }, { email }] }));
-	if (user) {
+	// Taken by an account or a pending signup, and for emails also an account's pending change
+	const [usernameTaken, emailTaken] = await Promise.all([
+		core.db.isUsernameTaken(username),
+		core.db.isEmailTaken(email),
+	]);
+	if (usernameTaken || emailTaken) {
 		return {
 			httpCode: core.codes.forbidden,
 			response: {

@@ -36,6 +36,7 @@ import type {
 	Tokendb,
 	Upload,
 	User,
+	UserFilter,
 } from "./db-class";
 import { DBClass } from "./db-class.js";
 
@@ -233,17 +234,32 @@ export default class Mongoosedb extends DBClass {
 
 	/* ---- USER RELATED METHODS ---- */
 	async findUser(
-		query: Record<string, unknown>,
+		filter: UserFilter,
 		selector?: string,
 	): Promise<User | undefined> {
 		return (
-			(selector
-				? await this.#schemas.User.findOne(query, selector)
-						.lean()
-						.exec()
-				: await this.#schemas.User.findOne(query).lean().exec()) ??
-			undefined
+			(await this.#schemas.User.findOne(filter, selector)
+				.lean()
+				.exec()) ?? undefined
 		);
+	}
+
+	async isUsernameTaken(username: string): Promise<boolean> {
+		const [user, signup] = await Promise.all([
+			this.#schemas.User.exists({ username }).exec(),
+			this.#schemas.PendingMember.exists({ username }).exec(),
+		]);
+		return Boolean(user ?? signup);
+	}
+
+	async isEmailTaken(email: string): Promise<boolean> {
+		const [user, signup] = await Promise.all([
+			this.#schemas.User.exists({
+				$or: [{ email }, { pendingEmail: email }],
+			}).exec(),
+			this.#schemas.PendingMember.exists({ email }).exec(),
+		]);
+		return Boolean(user ?? signup);
 	}
 
 	async findUsers(
@@ -267,26 +283,14 @@ export default class Mongoosedb extends DBClass {
 			.exec();
 	}
 
-	async findAndUpdateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-		selector?: string,
-	): Promise<User | undefined> {
-		if (selector) {
-			return (
-				(await this.#schemas.User.findOneAndUpdate(query, update, {
-					fields: selector,
-					new: true,
-				})
-					.lean()
-					.exec()) ?? undefined
-			);
-		}
-
+	async setAdmin(id: string, admin: boolean): Promise<User | undefined> {
+		// Only matches a user that isn't the owner and doesn't already have this setting
 		return (
-			(await this.#schemas.User.findOneAndUpdate(query, update, {
-				new: true,
-			})
+			(await this.#schemas.User.findOneAndUpdate(
+				{ id, owner: { $ne: true }, admin: { $ne: admin } },
+				{ admin },
+				{ new: true },
+			)
 				.lean()
 				.exec()) ?? undefined
 		);

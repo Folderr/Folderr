@@ -102,6 +102,17 @@ export interface Upload {
 }
 
 /**
+ * The ways a user can be looked up.
+ * markedForDeletion narrows any of them, e.g. sign-in skips accounts being deleted
+ */
+export type UserFilter = (
+	| { id: string }
+	| { username: string }
+	| { email: string }
+	| { owner: true }
+) & { markedForDeletion?: boolean };
+
+/**
  * @classdesc Base class for all Database handlers to extend
  */
 export class DBClass {
@@ -184,11 +195,30 @@ export class DBClass {
 	/* ---- USER RELATED METHODS ---- */
 
 	async findUser(
-		query: Record<string, unknown>,
+		filter: UserFilter,
 		selector?: string,
 	): Promise<User | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findUser is not implemented!",
+		);
+	}
+
+	/**
+	 * @desc Whether an account or a pending signup has this username
+	 */
+	async isUsernameTaken(username: string): Promise<boolean> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method isUsernameTaken is not implemented!",
+		);
+	}
+
+	/**
+	 * @desc Whether an account, an account's pending email change, or a pending signup
+	 * has this email
+	 */
+	async isEmailTaken(email: string): Promise<boolean> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method isEmailTaken is not implemented!",
 		);
 	}
 
@@ -205,13 +235,13 @@ export class DBClass {
 		);
 	}
 
-	async findAndUpdateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-		selector?: string,
-	): Promise<User | undefined> {
+	/**
+	 * @desc Makes a user an admin or takes it away. The owner is never changed
+	 * @returns The updated user, or undefined if there was nothing to change
+	 */
+	async setAdmin(id: string, admin: boolean): Promise<User | undefined> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findAndUpdateUser is not implemented!",
+			"DB > NOT IMPLEMENTED - Method setAdmin is not implemented!",
 		);
 	}
 

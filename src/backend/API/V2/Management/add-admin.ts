@@ -69,17 +69,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			// Why $nor includes owner: We don't modify the owner's admin status.
-			// Why $nor: So we don't get users that aren't admin. This way we only find the user if they
-			// 1. Aren't an admin and, 2. aren't the owner
-			const user = await core.db.findAndUpdateUser(
-				{
-					id: request.params.id,
-					$nor: [{ admin: true }, { owner: true }],
-				},
-				{ admin: true },
-				"id username admin",
-			);
+			// Only finds a user who isn't already an admin and isn't the owner
+			const user = await core.db.setAdmin(request.params.id, true);
 			if (!user) {
 				return reply.status(core.codes.notFound).send({
 					message: "User not found",

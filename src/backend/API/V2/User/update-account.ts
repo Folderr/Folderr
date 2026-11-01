@@ -166,13 +166,7 @@ async function handleEmailUpdate(
 	}
 
 	// Taken by an account, an account's pending change, or a pending signup
-	const [users, signups] = await Promise.all([
-		core.db.findUsers({
-			$or: [{ email }, { pendingEmail: email }],
-		}),
-		core.db.findVerifies({ email }),
-	]);
-	if (users.length > 0 || signups.length > 0) {
+	if (await core.db.isEmailTaken(email)) {
 		return {
 			httpCode: core.codes.used,
 			message: {
@@ -239,10 +233,7 @@ async function handleUsername(
 		};
 	}
 
-	const user =
-		(await core.db.findUser({ username })) ??
-		(await core.db.findVerify({ username }));
-	if (user) {
+	if (await core.db.isUsernameTaken(username)) {
 		return {
 			httpCode: core.codes.used,
 			message: {
