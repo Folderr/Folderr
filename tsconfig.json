@@ -64,6 +64,8 @@
 		"lib": ["ESNext", "DOM"],
 		// "types": [],
 		"incremental": true,
+		/* Kept outside dist so clearing a build doesn't throw away the typecheck cache */
+		"tsBuildInfoFile": "./node_modules/.cache/tsc/backend.tsbuildinfo",
 		"declaration": false
 	},
 	"include": [

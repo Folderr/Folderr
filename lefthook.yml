@@ -4,7 +4,13 @@ pre-commit:
             glob: "*.{js,ts,vue,css,json,jsonc,md,yaml,yml}"
             run: npx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
             stage_fixed: true
+# Runs after git has connected to GitHub, so keep it quick or the connection times out.
+# The backend and frontend checks run side by side, call the compilers directly
+# (skipping npm's start-up), and both reuse their caches in node_modules/.cache/tsc.
 pre-push:
+    parallel: true
     commands:
-        typecheck:
-            run: npm run typecheck
+        typecheck-backend:
+            run: node node_modules/typescript/bin/tsc --noEmit --skipLibCheck
+        typecheck-frontend:
+            run: node node_modules/vue-tsc/bin/vue-tsc.js --noEmit -p src/frontend
