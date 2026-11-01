@@ -339,19 +339,18 @@ export class DBClass {
 		);
 	}
 
-	async findVerify(
-		query: Record<string, unknown>,
-	): Promise<PendingMember | undefined> {
+	async findVerify(id: string): Promise<PendingMember | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findVerify is not implemented!",
 		);
 	}
 
-	async findVerifies(
-		query: Record<string, unknown>,
-	): Promise<PendingMember[]> {
+	/**
+	 * @desc Every pending signup, oldest first
+	 */
+	async listVerifies(): Promise<PendingMember[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findVerifies is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listVerifies is not implemented!",
 		);
 	}
 
@@ -568,23 +567,22 @@ export class DBClass {
 		);
 	}
 
-	async findAdminNotify(
-		query: Record<string, unknown>,
-	): Promise<Notification | undefined> {
+	async findAdminNotify(id: string): Promise<Notification | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findAdminNotify is not implemented!",
 		);
 	}
 
-	async findAdminNotifies(
-		query: Record<string, unknown>,
-	): Promise<Notification[]> {
+	/**
+	 * @desc Every admin notification, newest first
+	 */
+	async listAdminNotifies(): Promise<Notification[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findAdminNotifies is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listAdminNotifies is not implemented!",
 		);
 	}
 
-	async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
+	async purgeAdminNotify(id: string): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeAdminNotify is not implemented!",
 		);

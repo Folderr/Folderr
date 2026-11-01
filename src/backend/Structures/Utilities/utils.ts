@@ -676,9 +676,8 @@ class Utils {
 		validationToken: string,
 		userID: string,
 	): Promise<PendingMember | false> {
-		const user: PendingMember | undefined = await this.#core.db.findVerify({
-			id: userID,
-		});
+		const user: PendingMember | undefined =
+			await this.#core.db.findVerify(userID);
 		if (!user) {
 			return false;
 		}

@@ -82,10 +82,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			try {
-				const users = await core.db.findVerifies(
-					{},
-					"email createdAt username id",
-				);
+				const users = await core.db.listVerifies();
 
 				if (users.length === 0) {
 					return await reply.code(core.codes.ok).send({

@@ -473,20 +473,15 @@ export default class Mongoosedb extends DBClass {
 		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
 	}
 
-	async findVerify(
-		query: Record<string, unknown>,
-	): Promise<PendingMember | undefined> {
+	async findVerify(id: string): Promise<PendingMember | undefined> {
 		return (
-			(await this.#schemas.PendingMember.findOne(query).lean().exec()) ??
+			(await this.#schemas.PendingMember.findOne({ id }).lean().exec()) ??
 			undefined
 		);
 	}
 
-	async findVerifies(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<PendingMember[]> {
-		return this.#schemas.PendingMember.find(query, selector)
+	async listVerifies(): Promise<PendingMember[]> {
+		return this.#schemas.PendingMember.find({})
 			.sort({ createdAt: 1 })
 			.lean()
 			.exec();
@@ -826,27 +821,25 @@ export default class Mongoosedb extends DBClass {
 		return notif;
 	}
 
-	async findAdminNotify(
-		query: Record<string, unknown>,
-	): Promise<Notification | undefined> {
+	async findAdminNotify(id: string): Promise<Notification | undefined> {
 		return (
-			(await this.#schemas.AdminNotification.findOne(query).lean()) ??
-			undefined
+			(await this.#schemas.AdminNotification.findOne({ id })
+				.lean()
+				.exec()) ?? undefined
 		);
 	}
 
-	async findAdminNotifies(
-		query: Record<string, unknown>,
-	): Promise<Notification[]> {
-		return this.#schemas.AdminNotification.find(query)
+	async listAdminNotifies(): Promise<Notification[]> {
+		return this.#schemas.AdminNotification.find({})
 			.sort({ createdAt: -1 })
 			.lean()
 			.exec();
 	}
 
-	async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
-		const del =
-			await this.#schemas.AdminNotification.deleteOne(query).exec();
+	async purgeAdminNotify(id: string): Promise<boolean> {
+		const del = await this.#schemas.AdminNotification.deleteOne({
+			id,
+		}).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 
