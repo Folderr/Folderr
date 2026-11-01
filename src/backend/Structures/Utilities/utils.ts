@@ -19,6 +19,7 @@
  *
  */
 
+import type { CookieSerializeOptions } from "@fastify/cookie";
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
 import argon2 from "argon2";
@@ -26,7 +27,7 @@ import buffer from "buffer";
 import crypto from "crypto";
 import type { LookupAddress, LookupOptions } from "dns";
 import { Resolver } from "dns";
-import type { FastifyRequest } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Options } from "got";
 import { BlockList, isIP } from "net";
 import * as ulid from "ulidx";
@@ -157,37 +158,71 @@ class Utils {
 	}
 
 	/**
+	 * @desc The options for the website's login cookie. Setting and clearing it must use the same ones.
+	 * Secure follows the request's own protocol, so plain-HTTP homelab and local installs still work
+	 * (behind a proxy this needs trustProxies, so the forwarded protocol is used).
+	 *
+	 * @param {Object<FastifyRequest>} request The request the cookie is being set or cleared on
+	 * @returns {CookieSerializeOptions}
+	 */
+	tokenCookieOptions(request: FastifyRequest): CookieSerializeOptions {
+		const dev = process.env.NODE_ENV === "dev";
+		return {
+			httpOnly: true,
+			secure: !dev && request.protocol === "https",
+			sameSite: dev ? undefined : "strict",
+		};
+	}
+
+	/**
 	 * Checks a request for an authorization token
 	 * @param {Object<FastifyRequest>} request The request to authenticate
 	 * @param {Boolean} admin Whether or not to check if the user is an admin
+	 * @param {Boolean} [owner] Whether or not to check if the user is the owner
+	 * @param {Object<FastifyReply>} [reply] Pass the reply to clear the login cookie when it holds an invalid token
 	 * @returns {Object} Either code 200 and a user, or code 4XX and no user
 	 */
 	async checkAuth(
 		request: FastifyRequest,
 		admin?: boolean,
 		owner?: boolean,
+		reply?: FastifyReply,
 	): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
-		let account: User | void;
-		if (request.headers.authorization) {
-			account = await this.authorization.verifyAccount(
-				request.headers.authorization,
-				{
-					fn: (user) => !user.markedForDeletion,
-				},
-			);
-		} else if (request.cookies.token) {
-			account = await this.authorization.verifyAccount(
-				request.cookies.token,
-				{
-					web: true,
-					fn: (user) => !user.markedForDeletion,
-				},
-			);
-		} else {
-			return { code: 401 };
+		let account: User | void | undefined;
+		try {
+			if (request.headers.authorization) {
+				account = await this.authorization.verifyAccount(
+					request.headers.authorization,
+					{
+						fn: (user) => !user.markedForDeletion,
+					},
+				);
+			} else if (request.cookies.token) {
+				account = await this.authorization.verifyAccount(
+					request.cookies.token,
+					{
+						web: true,
+						fn: (user) => !user.markedForDeletion,
+					},
+				);
+			} else {
+				return { code: 401 };
+			}
+		} catch (error: unknown) {
+			// A malformed or expired token is a failed sign-in, not a server error
+			if (
+				!(error instanceof Error && error.message === "Invalid Token")
+			) {
+				throw error;
+			}
 		}
 
 		if (!account) {
+			// The login cookie is only used when there's no Authorization header
+			if (!request.headers.authorization) {
+				this.invalidateLoginCookie(request, reply);
+			}
+
 			return { code: 401 };
 		}
 
@@ -200,6 +235,66 @@ class Utils {
 		}
 
 		return { code: 200, user: account };
+	}
+
+	/**
+	 * @desc Authenticates with the website's login cookie or username/password headers, but never an API token,
+	 * so a leaked API token can't be used to see or remove other API tokens
+	 *
+	 * @param {Object<FastifyRequest>} request The request to authenticate
+	 * @param {Object<FastifyReply>} [reply] Pass the reply to clear the login cookie when it holds an invalid token
+	 * @returns {Object} Either code 200 and a user, or code 401 and no user
+	 */
+	async checkSessionOrPassword(
+		request: FastifyRequest,
+		reply?: FastifyReply,
+	): Promise<{ code: 401 } | { code: 200; user: User }> {
+		let account: User | void | false | undefined;
+		if (request.cookies.token) {
+			try {
+				account = await this.authorization.verifyAccount(
+					request.cookies.token,
+					{
+						web: true,
+						fn: (user) => !user.markedForDeletion,
+					},
+				);
+			} catch (error: unknown) {
+				if (
+					!(
+						error instanceof Error &&
+						error.message === "Invalid Token"
+					)
+				) {
+					throw error;
+				}
+			}
+
+			if (!account) {
+				this.invalidateLoginCookie(request, reply);
+			}
+		} else {
+			account = await this.authPassword(request);
+		}
+
+		return account ? { code: 200, user: account } : { code: 401 };
+	}
+
+	/**
+	 * @desc Clears a login cookie that failed to sign in, so the browser stops sending it.
+	 * Does nothing without a reply or a cookie.
+	 */
+	private invalidateLoginCookie(
+		request: FastifyRequest,
+		reply?: FastifyReply,
+	): void {
+		if (!reply || !request.cookies.token) {
+			return;
+		}
+
+		reply
+			.header("Authorization-Status", "Invalidated")
+			.clearCookie("token", this.tokenCookieOptions(request));
 	}
 
 	/**

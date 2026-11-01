@@ -11,6 +11,7 @@ export type AccountReturn = {
 	email: string;
 	pendingEmail?: string;
 	notifications: Notification[];
+	/** Unix time in milliseconds */
 	createdAt: number;
 	privacy?: {
 		dataCollection?: boolean;

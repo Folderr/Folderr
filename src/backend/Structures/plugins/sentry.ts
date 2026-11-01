@@ -24,41 +24,19 @@ const sentryPlugin: FastifyPluginAsync<SentryOptions> = async (
 	fastify,
 	options,
 ) => {
-	if (!options.enabled) {
-		fastify.setErrorHandler((err, _, reply) => {
-			const error = err as Error;
-			fastify.log.error(error.message || error);
+	// Always available, so code can report errors without checking first. Sentry's functions
+	// do nothing until Sentry.init has run with a DSN. Errors are reported by the errorHandler
+	// plugin, which is the app's only error handler.
+	fastify.decorate("sentry", Sentry);
 
-			return reply.status(fastify.codes.internalErr).send({
-				error: "An internal unknown error has occurred",
-				code: fastify.codes.internalErr,
-			});
-		});
+	if (!options.enabled) {
 		return;
 	}
-
-	fastify.setErrorHandler((err, request, reply) => {
-		const error = err as Error;
-		fastify.log.error(error.message || error);
-
-		Sentry.withScope((scope) => {
-			scope.addEventProcessor((event) => {
-				return Sentry.addRequestDataToEvent(event, request.raw);
-			});
-			Sentry.captureException(error);
-		});
-
-		return reply.status(fastify.codes.internalErr).send({
-			error: "An internal unknown error has occurred",
-			code: fastify.codes.internalErr,
-		});
-	});
 
 	if (process.env.DEBUG) {
 		fastify.log.debug("Initiated Sentry plugin");
 	}
 
-	fastify.decorate("sentry", Sentry);
 	if (!options.tracing) {
 		// If the user does not want tracing, no tracing.
 		return;

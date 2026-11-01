@@ -28,16 +28,11 @@ export async function startFolderr(): Promise<void> {
 	await core.registerServerPlugins();
 
 	await core.testEmailer();
-	const paths = core.initPaths();
-	if (!paths) {
-		core.logger.error("[FATAL] Paths could not initalize");
-		throw new Error("[FATAL] Paths could not initalize");
-	}
 
-	// Init new APIs before anything else.
-	await core.registerNewApi();
-
-	await core.registerApis();
+	// API routes under /api, pages like /f/:id and /l/:id at the site root
+	await core.registerRoutes("API", "/api");
+	await core.registerRoutes("Routes", "");
+	core.logRouteCount();
 
 	await core.initFrontend();
 

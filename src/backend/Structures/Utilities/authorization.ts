@@ -23,6 +23,7 @@
  * @file Handles all token authorization in Folderr
  */
 
+import * as Sentry from "@sentry/node";
 import { Buffer } from "buffer";
 import crypto from "crypto";
 import jwt, { type Algorithm } from "jsonwebtoken";
@@ -77,9 +78,9 @@ export default class Authorization {
 					1,
 				);
 			}
-			if (this.#core.app.sentry) {
-				this.#core.app.sentry.captureException(error);
-			}
+			// This runs before the Fastify plugins load, so report to Sentry directly.
+			// It does nothing until Sentry.init has run with a DSN.
+			Sentry.captureException(error);
 			return;
 		}
 
@@ -287,8 +288,9 @@ export default class Authorization {
 		url: string,
 		mirrorURL: string,
 	): boolean {
-		const out = jwt.verify(message.token, this.#privKey, {
+		const out = jwt.verify(message.token, this.#pubKey, {
 			issuer: "folderr",
+			algorithms: ["PS256"],
 		});
 		return Boolean(
 			out &&
