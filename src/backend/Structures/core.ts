@@ -7,8 +7,6 @@ import multipart from "@fastify/multipart";
 import ratelimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
 import * as Sentry from "@sentry/node";
-import type { ChildProcess } from "child_process";
-import { fork } from "child_process";
 import { EventEmitter } from "events";
 import fg from "fast-glob";
 import type {
@@ -128,7 +126,7 @@ export default class Core {
 	// Times route loading when debugging; shared by every registerRoutes call
 	#routeTimer?: PerformanceObserver;
 
-	readonly #deleter: ChildProcess | DelQueue;
+	readonly #deleter: DelQueue;
 
 	readonly #keys: KeyConfig;
 
@@ -221,8 +219,8 @@ export default class Core {
 		});
 		this.app.decorate("got", this.got);
 
-		// User Account Deleter
-		this.#deleter = this.initDeleter();
+		// User Account Deleter. Runs in this process, pausing between batches so requests aren't held up
+		this.#deleter = new DelQueue(this.db);
 
 		this.app.addContentTypeParser(
 			"text/plain",
@@ -461,12 +459,7 @@ export default class Core {
 	}
 
 	addDeleter(userID: string): void {
-		if (this.#deleter instanceof DelQueue) {
-			this.#deleter.add(userID);
-			return;
-		}
-
-		this.#deleter.send({ message: "add", data: userID });
+		this.#deleter.add(userID);
 	}
 
 	async initAuthorization() {
@@ -742,35 +735,30 @@ export default class Core {
 			}
 		}
 
-		if (
-			this.#deleter &&
-			!(this.#deleter instanceof DelQueue) &&
-			this.#deleter?.connected &&
-			!this.#deleter.killed
-		) {
+		// Exits once the server is closed, no requests are in flight and the deleter has stopped
+		const exitIfDone = () => {
+			if (
+				this.#internals.serverClosed &&
+				this.#requestIds.size === 0 &&
+				this.#internals.deleterShutdown
+			) {
+				process.exit(exitCode || 0);
+			}
+		};
+
+		if (this.#deleter.onGoing) {
 			this.logger.info("SHUTDOWN - Waiting on deleter shutdown");
 			if (process.env.NODE_ENV !== "dev") {
 				console.log("SHUTDOWN - Waiting on deleter shutdown");
 			}
-			this.#deleter.send({ msg: "shutdown" });
-			this.#deleter.on("exit", () => {
-				this.logger.info("Account Deleter: Offline");
-				if (process.env.NODE_ENV !== "dev") {
-					console.log("Account Deleter: Offline");
-				}
-				this.#internals.deleterShutdown = true;
-				if (
-					this.#requestIds.size === 0 &&
-					this.#internals.serverClosed
-				) {
-					process.exit(exitCode || 0);
-				}
-			});
-		} else if (this.#deleter instanceof DelQueue) {
-			if (!this.#deleter.onGoing) {
-				this.#internals.deleterShutdown = true;
-			}
 		}
+
+		// The deleter finishes its current batch first
+		void this.#deleter.stop().then(() => {
+			this.logger.info("Account Deleter: Offline");
+			this.#internals.deleterShutdown = true;
+			exitIfDone();
+		});
 
 		try {
 			if (!this.app?.close || !this.listening) {
@@ -778,20 +766,13 @@ export default class Core {
 			} else {
 				this.app.close(() => {
 					this.#internals.serverClosed = true;
+					exitIfDone();
 				});
 			}
 		} catch (error: unknown) {
 			Sentry.captureException(error);
 			this.logger.error(error);
 			console.log(error);
-		}
-
-		if (
-			this.#internals.serverClosed &&
-			this.#requestIds.size === 0 &&
-			this.#internals.deleterShutdown
-		) {
-			process.exit(exitCode || 0);
 		}
 
 		if (!this.#internals.serverClosed || this.#requestIds.size !== 0) {
@@ -809,18 +790,7 @@ export default class Core {
 			}
 		}
 
-		ee.once("noRequests", () => {
-			if (this.#internals.deleterShutdown) {
-				process.exit(exitCode || 0);
-			}
-
-			if (this.#deleter instanceof DelQueue) {
-				this.#deleter.once("stopped", () => {
-					this.#internals.deleterShutdown = true;
-					process.exit(exitCode || 0);
-				});
-			}
-		});
+		ee.once("noRequests", exitIfDone);
 	}
 
 	postInitCleanup() {
@@ -838,47 +808,5 @@ export default class Core {
 		}
 
 		return output;
-	}
-
-	private initDeleter(): ChildProcess | DelQueue {
-		// One quick note: It would seem that TS-Node and IPC don't play well,
-		// which Folderr NEEDS to properly handle user deletion
-		if (isTSNode && process.env.NODE_ENV === "dev") {
-			this.logger.debug("Using same-process deleter queue");
-			return new DelQueue(this.db);
-		}
-
-		const deleterModule = "dist/src/backend/file-del-queue";
-		const deleter = fork(deleterModule);
-
-		// Let's make this play nice.
-		deleter.on("error", (error: Error) => {
-			this.logger.fatal(error);
-		});
-
-		deleter.on("close", (data) => {
-			if (typeof data === "number") {
-				this.logger.error(`Deleter closed with code ${data}`);
-			} else {
-				this.logger.error("Deleter closed with unknown exit code");
-			}
-		});
-		deleter.on("message", (data) => {
-			this.logger.info(data);
-		});
-
-		deleter.on("exit", (message) => {
-			if (typeof message === "number") {
-				this.logger.warn(`Deleter exited with code ${message}`);
-			} else {
-				this.logger.fatal("Deleter exited with unknown exit code");
-			}
-		});
-
-		if (deleter.connected) {
-			deleter.send({ msg: "check" });
-		}
-
-		return deleter;
 	}
 }

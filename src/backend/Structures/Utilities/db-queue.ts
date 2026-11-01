@@ -19,109 +19,151 @@
  *
  */
 
-import fs from "node:fs";
-import { EventEmitter } from "events";
-import type { DbConfig } from "../../handlers/config-handler.js";
-import Configurer from "../../handlers/config-handler.js";
-import { logger } from "../../internals.js";
+import { EventEmitter } from "node:events";
+import { unlink } from "node:fs/promises";
+import { setImmediate as yieldToRequests } from "node:timers/promises";
+import * as Sentry from "@sentry/node";
 import type DB from "../Database/db-class.js";
-import type { Upload } from "../Database/db-class.js";
-import MongoDB from "../Database/mongoose-db.js";
+import logger from "../logger.js";
 import { uploadPath } from "./upload-types.js";
 
+// Upload records read from the database at a time
+const PAGE_SIZE = 500;
+// Files unlinked at once. Node's file thread pool (4 threads by default) is shared with
+// serving uploads and argon2, so a big account must not fill it
+const UNLINK_BATCH = 8;
+
 /**
- * @classdesc Handles deleting files
+ * @classdesc Deletes users and everything they own, one user at a time, without starving requests.
+ * Runs in the server's process, so it waits between batches to let requests through.
+ *
+ * Emits "stopped" whenever the queue empties or stops.
  */
 export default class DbQueue extends EventEmitter {
 	public onGoing: boolean;
 
-	private readonly config: DbConfig;
-
 	readonly #db: DB;
-
-	readonly #loopBound: () => Promise<void>;
 
 	readonly #queue: Set<string>;
 
-	constructor(db?: DB) {
+	#stopping: boolean;
+
+	constructor(db: DB) {
 		super();
 		this.onGoing = false;
-		this.config = Configurer.verifyFetch().db;
-		this.#db = db ?? new MongoDB();
-		if (!db) {
-			this.#db.init(this.config.url).catch((error) => {
-				logger.error("CANNOT RUN DBQueue - Database Error");
-				this.onGoing = false;
-
-				if (error instanceof Error) {
-					logger.debug(error.message);
-					throw error;
-				}
-
-				throw new Error("CANNOT RUN DBQueue - Database Error");
-			});
-		}
-
-		this.#loopBound = this.loop.bind(this);
-		this.on("start", this.#loopBound);
+		this.#db = db;
 		this.#queue = new Set();
+		this.#stopping = false;
 	}
 
+	/**
+	 * @desc Queues a user for deletion. Their files go first; the account only goes once
+	 * every file is gone from disk, so a failed deletion can be retried.
+	 * @returns false once the queue is shutting down
+	 */
 	add(id: string): boolean {
+		if (this.#stopping) {
+			return false;
+		}
+
 		this.#queue.add(id);
 		if (!this.onGoing) {
-			this.onGoing = true;
-			this.emit("start");
-			return true;
+			void this.#run();
 		}
 
 		return true;
 	}
 
 	/**
-	 * New method to remove all files
-	 * @param {Upload[]} files What files to delete
-	 * @param {string} userID The user to delete
+	 * @desc Finishes the current batch and stops. Users not finished keep their account
+	 * and remaining files, and need queueing again.
 	 */
-	private async newRemoveFiles(
-		files: Upload[],
-		userID: string,
-	): Promise<void> {
-		const deletions: Array<Promise<void>> = [];
-		files.forEach((file) => {
-			const path = uploadPath(file.id, file.ext);
-			if (fs.existsSync(path)) {
-				deletions.push(fs.promises.unlink(path));
-			}
-		});
-		await Promise.all(deletions);
-		await this.#db.purgeFiles({ owner: userID }, files.length);
-		await this.#db.purgeUser(userID);
-		await this.#db.purgeTokens(userID);
-	}
-
-	private async loop(): Promise<void> {
-		if (this.#queue.size === 0) {
-			this.onGoing = false;
-			this.emit("stopped");
+	async stop(): Promise<void> {
+		this.#stopping = true;
+		if (!this.onGoing) {
 			return;
 		}
 
-		this.#queue.forEach(async (value) => {
-			const files = await this.#db.findFiles(
-				{ owner: value },
-				{ selector: "id ext" },
-			);
-			if (files.length > 0) {
-				await this.newRemoveFiles(files, value);
-				this.#queue.delete(value);
-			} else {
-				await this.#db.purgeUser(value);
-				await this.#db.purgeTokens(value);
-				this.#queue.delete(value);
-			}
+		await new Promise((resolve) => {
+			this.once("stopped", resolve);
 		});
+	}
 
-		return this.#loopBound();
+	async #run(): Promise<void> {
+		this.onGoing = true;
+		while (this.#queue.size > 0 && !this.#stopping) {
+			const [id] = this.#queue;
+			try {
+				await this.#deleteUser(id);
+			} catch (error: unknown) {
+				// One user failing must never take the server down or stall the queue
+				logger.error(
+					`Account Deleter: Could not finish deleting ${id}`,
+				);
+				logger.error(error);
+				Sentry.captureException(error);
+			}
+
+			this.#queue.delete(id);
+		}
+
+		this.onGoing = false;
+		this.emit("stopped");
+	}
+
+	async #deleteUser(id: string): Promise<void> {
+		while (!this.#stopping) {
+			const files = await this.#db.findFiles(
+				{ owner: id },
+				{ limit: PAGE_SIZE, selector: "id ext" },
+			);
+			if (files.length === 0) {
+				// Every file is gone from disk, so the account can go
+				await this.#db.purgeUser(id);
+				await this.#db.purgeTokens(id);
+				return;
+			}
+
+			const removed: string[] = [];
+			let failed = 0;
+			for (let i = 0; i < files.length; i += UNLINK_BATCH) {
+				const batch = files.slice(i, i + UNLINK_BATCH);
+				const results = await Promise.allSettled(
+					batch.map(async (file) => {
+						try {
+							await unlink(uploadPath(file.id, file.ext));
+						} catch (error: unknown) {
+							// Already gone from disk is as good as deleted
+							if (
+								(error as NodeJS.ErrnoException).code !==
+								"ENOENT"
+							) {
+								throw error;
+							}
+						}
+
+						return file.id;
+					}),
+				);
+				for (const result of results) {
+					if (result.status === "fulfilled") {
+						removed.push(result.value);
+					} else {
+						failed++;
+						logger.error(result.reason);
+					}
+				}
+
+				await yieldToRequests();
+			}
+
+			await this.#db.purgeFiles({ owner: id, id: { $in: removed } });
+			// Those records and the account stay, so stop instead of reading the same files forever
+			if (failed > 0) {
+				throw new Error(
+					`${failed} of ${id}'s files could not be removed from disk`,
+				);
+			}
+		}
 	}
 }
