@@ -33,5 +33,8 @@ const file = new Schema({
 	ext: { type: String, default: "" },
 });
 
+// A user's uploads are listed newest first, a page at a time
+file.index({ owner: 1, createdAt: -1 });
+
 const mod = model<Upload>("file", file);
 export default mod;

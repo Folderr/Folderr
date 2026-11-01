@@ -99,7 +99,6 @@ function route(fastify: FastifyInstance, core: Core) {
 					after: request.query.after,
 					limit: request.query.limit,
 				},
-				auth.user.id,
 				request.query.ascending,
 			);
 			if (!page) {
@@ -110,10 +109,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const shorts: Link[] = await core.db.findLinks(
-				page.filter,
-				page.options,
-			);
+			const shorts: Link[] = await core.db.listLinks(auth.user.id, page);
 			if (shorts.length === 0) {
 				return reply
 					.status(core.codes.ok)

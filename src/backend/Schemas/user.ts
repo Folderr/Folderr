@@ -63,6 +63,8 @@ userSchema.index(
 	{ pendingEmail: 1 },
 	{ collation: ignoreCase, name: "pendingEmail_ci", sparse: true },
 );
+// Admins list accounts newest first, a page at a time
+userSchema.index({ createdAt: -1 });
 
 const mod: Model<User> = model<User>("user", userSchema);
 

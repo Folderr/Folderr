@@ -29,6 +29,9 @@ const shortSchema = new Schema({
 	createdAt: { type: Date, default: Date.now },
 });
 
+// A user's links are listed newest first, a page at a time
+shortSchema.index({ owner: 1, createdAt: -1 });
+
 const shortModel = model<Link>("short", shortSchema);
 
 export default shortModel;

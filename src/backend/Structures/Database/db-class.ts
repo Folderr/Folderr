@@ -113,6 +113,17 @@ export type UserFilter = (
 ) & { markedForDeletion?: boolean };
 
 /**
+ * One page of a list, by creation time. Newest first unless ascending.
+ * before and after are exclusive; with only after, the page is the items just after it
+ */
+export interface PageOptions {
+	before?: Date;
+	after?: Date;
+	limit: number;
+	ascending?: boolean;
+}
+
+/**
  * @classdesc Base class for all Database handlers to extend
  */
 export class DBClass {
@@ -225,16 +236,12 @@ export class DBClass {
 		);
 	}
 
-	async findUsers(
-		query: Record<string, unknown>,
-		options?: {
-			sort?: Record<string, unknown>;
-			limit?: number;
-			selector?: string;
-		},
-	): Promise<User[]> {
+	/**
+	 * @desc One page of accounts by creation time
+	 */
+	async listUsers(page: PageOptions): Promise<User[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findUsers is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listUsers is not implemented!",
 		);
 	}
 
@@ -409,16 +416,12 @@ export class DBClass {
 		);
 	}
 
-	async findFiles(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Upload[]> {
+	/**
+	 * @desc One page of a user's uploads by upload time
+	 */
+	async listFiles(owner: string, page: PageOptions): Promise<Upload[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findFiles is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listFiles is not implemented!",
 		);
 	}
 
@@ -469,16 +472,12 @@ export class DBClass {
 		);
 	}
 
-	async findLinks(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Link[]> {
+	/**
+	 * @desc One page of a user's short links by creation time
+	 */
+	async listLinks(owner: string, page: PageOptions): Promise<Link[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findLinks is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listLinks is not implemented!",
 		);
 	}
 

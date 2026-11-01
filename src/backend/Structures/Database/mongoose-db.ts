@@ -31,6 +31,7 @@ import type {
 	Folderr,
 	Link,
 	Notification,
+	PageOptions,
 	PendingMember,
 	Statistics,
 	Tokendb,
@@ -43,6 +44,22 @@ import { DBClass } from "./db-class.js";
 // Strength 2 compares letters without case, so Bob@x.com matches bob@x.com.
 // The email indexes in Schemas/ use the same collation, so these lookups can use them
 const EMAIL_COLLATION = { locale: "en", strength: 2 };
+
+/**
+ * Mongo's version of a page. With only `after`, the items just after it are read oldest first and
+ * then reversed, so a newest-first page doesn't jump past them to the very newest items
+ */
+function toMongoPage(page: PageOptions) {
+	const createdAt: { $lt?: Date; $gt?: Date } = {};
+	if (page.before) createdAt.$lt = page.before;
+	if (page.after) createdAt.$gt = page.after;
+	const reverse = Boolean(page.after && !page.before && !page.ascending);
+	return {
+		filter: page.before || page.after ? { createdAt } : {},
+		sort: { createdAt: page.ascending || reverse ? 1 : -1 } as const,
+		reverse,
+	};
+}
 
 /**
  * @classdesc Handle all MongoDB operations.
@@ -272,25 +289,14 @@ export default class Mongoosedb extends DBClass {
 		return Boolean(user ?? signup);
 	}
 
-	async findUsers(
-		query: Record<string, unknown>,
-		options?: {
-			sort?: Record<string, unknown>;
-			limit?: number;
-			selector?: string;
-		},
-	): Promise<User[]> {
-		// Oldest first unless the caller asks for another order
-		const qoptions: { limit?: number; sort: Record<string, unknown> } = {
-			sort: options?.sort ?? { createdAt: 1 },
-		};
-		if (options?.limit) {
-			qoptions.limit = options.limit;
-		}
-
-		return this.#schemas.User.find(query, options?.selector, qoptions)
+	async listUsers(page: PageOptions): Promise<User[]> {
+		const { filter, sort, reverse } = toMongoPage(page);
+		const users = await this.#schemas.User.find(filter)
+			.sort(sort)
+			.limit(page.limit)
 			.lean()
 			.exec();
+		return reverse ? users.reverse() : users;
 	}
 
 	async setAdmin(id: string, admin: boolean): Promise<User | undefined> {
@@ -589,27 +595,14 @@ export default class Mongoosedb extends DBClass {
 		);
 	}
 
-	async findFiles(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Upload[]> {
-		const queryOptions: { limit?: number; sort?: Record<string, unknown> } =
-			{};
-		if (options?.limit) {
-			queryOptions.limit = options.limit;
-		}
-
-		if (options?.sort) {
-			queryOptions.sort = options.sort;
-		}
-
-		return this.#schemas.Upload.find(query, options?.selector, queryOptions)
+	async listFiles(owner: string, page: PageOptions): Promise<Upload[]> {
+		const { filter, sort, reverse } = toMongoPage(page);
+		const files = await this.#schemas.Upload.find({ owner, ...filter })
+			.sort(sort)
+			.limit(page.limit)
 			.lean()
 			.exec();
+		return reverse ? files.reverse() : files;
 	}
 
 	async makeFile(
@@ -706,28 +699,14 @@ export default class Mongoosedb extends DBClass {
 		);
 	}
 
-	async findLinks(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Link[]> {
-		const qoptions: { limit?: number; sort?: Record<string, unknown> } = {};
-		if (options?.limit) {
-			qoptions.limit = options.limit;
-		}
-
-		if (options?.sort) {
-			qoptions.sort = options.sort;
-		}
-
-		return this.#schemas.Link.find(
-			query,
-			options?.selector,
-			qoptions,
-		).lean();
+	async listLinks(owner: string, page: PageOptions): Promise<Link[]> {
+		const { filter, sort, reverse } = toMongoPage(page);
+		const links = await this.#schemas.Link.find({ owner, ...filter })
+			.sort(sort)
+			.limit(page.limit)
+			.lean()
+			.exec();
+		return reverse ? links.reverse() : links;
 	}
 
 	async makeLink(id: string, owner: string, link: string): Promise<Link> {
