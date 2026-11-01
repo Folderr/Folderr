@@ -26,7 +26,15 @@ async function route(fastify: FastifyInstance, core: Core) {
 					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
-						message: { type: "string" },
+						message: {
+							type: "object",
+							properties: {
+								id: { type: "string" },
+								title: { type: "string" },
+								notify: { type: "string" },
+								createdAt: { type: "number" },
+							},
+						},
 						code: { type: "number" },
 					},
 				},
@@ -59,7 +67,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			reply,
 		) {
 			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code === 200) {
+			if (auth.code !== 200) {
 				return reply.status(this.codes.unauth).send({
 					code: this.codes.unauth,
 					message: "Authorization failed.",
