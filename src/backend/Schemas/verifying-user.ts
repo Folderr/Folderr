@@ -32,6 +32,12 @@ const user = new Schema({
 	createdAt: { type: Date, default: Date.now },
 });
 
+// Emails are looked up without regard to letter case, see Schemas/user.ts
+user.index(
+	{ email: 1 },
+	{ collation: { locale: "en", strength: 2 }, name: "email_ci" },
+);
+
 const mod: Model<PendingMember> = model<PendingMember>("verifying_user", user);
 
 export default mod;

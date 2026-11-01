@@ -40,6 +40,10 @@ import type {
 } from "./db-class";
 import { DBClass } from "./db-class.js";
 
+// Strength 2 compares letters without case, so Bob@x.com matches bob@x.com.
+// The email indexes in Schemas/ use the same collation, so these lookups can use them
+const EMAIL_COLLATION = { locale: "en", strength: 2 };
+
 /**
  * @classdesc Handle all MongoDB operations.
  */
@@ -164,14 +168,15 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async removeBan(email: string): Promise<number> {
-		const remove = await this.#schemas.Ban.deleteOne({ email }).exec();
+		const remove = await this.#schemas.Ban.deleteOne({ email })
+			.collation(EMAIL_COLLATION)
+			.exec();
 		return remove.deletedCount;
 	}
 
 	async isBanned(email: string): Promise<boolean> {
-		// Strength 2 compares letters without case, so Bob@x.com matches bob@x.com
 		const ban = await this.#schemas.Ban.exists({ email })
-			.collation({ locale: "en", strength: 2 })
+			.collation(EMAIL_COLLATION)
 			.exec();
 		return Boolean(ban);
 	}
@@ -237,11 +242,12 @@ export default class Mongoosedb extends DBClass {
 		filter: UserFilter,
 		selector?: string,
 	): Promise<User | undefined> {
-		return (
-			(await this.#schemas.User.findOne(filter, selector)
-				.lean()
-				.exec()) ?? undefined
-		);
+		const query = this.#schemas.User.findOne(filter, selector);
+		if ("email" in filter) {
+			query.collation(EMAIL_COLLATION);
+		}
+
+		return (await query.lean().exec()) ?? undefined;
 	}
 
 	async isUsernameTaken(username: string): Promise<boolean> {
@@ -256,8 +262,12 @@ export default class Mongoosedb extends DBClass {
 		const [user, signup] = await Promise.all([
 			this.#schemas.User.exists({
 				$or: [{ email }, { pendingEmail: email }],
-			}).exec(),
-			this.#schemas.PendingMember.exists({ email }).exec(),
+			})
+				.collation(EMAIL_COLLATION)
+				.exec(),
+			this.#schemas.PendingMember.exists({ email })
+				.collation(EMAIL_COLLATION)
+				.exec(),
 		]);
 		return Boolean(user ?? signup);
 	}

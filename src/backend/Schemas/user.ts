@@ -44,7 +44,7 @@ const userSchema = new Schema({
 	cURLs: { type: Array, default: [] },
 	files: { type: Number, default: 0 },
 	links: { type: Number, default: 0 },
-	email: { type: String, required: true, index: true },
+	email: { type: String, required: true },
 	pendingEmail: { type: String },
 	pendingEmailToken: { type: String },
 	tokenExpiresAt: { type: Date },
@@ -54,6 +54,15 @@ const userSchema = new Schema({
 	},
 	markedForDeletion: { type: Boolean, default: false },
 });
+
+// Emails are looked up without regard to letter case (strength 2), and an index only
+// helps a query that uses the same collation
+const ignoreCase = { locale: "en", strength: 2 };
+userSchema.index({ email: 1 }, { collation: ignoreCase, name: "email_ci" });
+userSchema.index(
+	{ pendingEmail: 1 },
+	{ collation: ignoreCase, name: "pendingEmail_ci", sparse: true },
+);
 
 const mod: Model<User> = model<User>("user", userSchema);
 

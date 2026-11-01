@@ -102,7 +102,7 @@ export interface Upload {
 }
 
 /**
- * The ways a user can be looked up.
+ * The ways a user can be looked up. Emails match without regard to letter case.
  * markedForDeletion narrows any of them, e.g. sign-in skips accounts being deleted
  */
 export type UserFilter = (
@@ -160,6 +160,9 @@ export class DBClass {
 		);
 	}
 
+	/**
+	 * @desc Lifts the ban on an email, ignoring letter case
+	 */
 	async removeBan(email: string): Promise<number> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method removeBan is not implemented!",
@@ -214,7 +217,7 @@ export class DBClass {
 
 	/**
 	 * @desc Whether an account, an account's pending email change, or a pending signup
-	 * has this email
+	 * has this email, ignoring letter case
 	 */
 	async isEmailTaken(email: string): Promise<boolean> {
 		throw new Error(

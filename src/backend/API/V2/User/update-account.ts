@@ -132,7 +132,8 @@ async function handleEmailUpdate(
 		};
 	}
 
-	if (authUser.email === email) {
+	// Emails match without regard to letter case, the same as in the database
+	if (authUser.email.toLowerCase() === email.toLowerCase()) {
 		return {
 			httpCode: core.codes.notAccepted,
 			message: {
