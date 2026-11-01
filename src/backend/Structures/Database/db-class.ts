@@ -226,11 +226,45 @@ export class DBClass {
 	}
 
 	async updateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
+		id: string,
+		fields: Partial<
+			Pick<
+				User,
+				| "username"
+				| "password"
+				| "privacy"
+				| "pendingEmail"
+				| "pendingEmailToken"
+				| "tokenExpiresAt"
+			>
+		>,
 	): Promise<boolean | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method updateUser is not implemented!",
+		);
+	}
+
+	async addNotification(
+		userID: string,
+		notification: Pick<Notification, "id" | "title" | "notify">,
+	): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method addNotification is not implemented!",
+		);
+	}
+
+	async removeNotification(
+		userID: string,
+		id: string,
+	): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method removeNotification is not implemented!",
+		);
+	}
+
+	async clearNotifications(userID: string): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method clearNotifications is not implemented!",
 		);
 	}
 
@@ -261,6 +295,27 @@ export class DBClass {
 	): Promise<{ account: boolean; links: boolean } | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeUser is not implemented!",
+		);
+	}
+
+	addMirror(userID: string, url: string): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method addMirror is not implemented!",
+		);
+	}
+
+	removeMirror(userID: string, url: string): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method removeMirror is not implemented!",
+		);
+	}
+
+	async adjustUserCounts(
+		id: string,
+		update: { files?: number; links?: number },
+	): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method adjustUserCounts is not implemented!",
 		);
 	}
 

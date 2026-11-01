@@ -109,10 +109,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const ID = await core.Utils.genShortId();
 			await Promise.all([
 				core.db.makeLink(ID, auth.user.id, url.toString()),
-				core.db.updateUser(
-					{ id: auth.user.id },
-					{ $inc: { links: 1 } },
-				),
+				core.db.adjustUserCounts(auth.user.id, { links: 1 }),
 			]);
 
 			const responseURL = request.headers.responseurl;

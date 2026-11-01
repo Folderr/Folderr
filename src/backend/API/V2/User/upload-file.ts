@@ -183,10 +183,7 @@ function route(fastify: FastifyInstance, core: Core) {
 						contentType,
 						ext: checked.ext,
 					}),
-					core.db.updateUser(
-						{ id: auth.user.id },
-						{ $inc: { files: 1 } },
-					),
+					core.db.adjustUserCounts(auth.user.id, { files: 1 }),
 				]);
 			} catch (error: unknown) {
 				// Without a record the link would never work, so don't keep the file

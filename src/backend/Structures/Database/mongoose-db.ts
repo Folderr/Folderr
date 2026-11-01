@@ -330,11 +330,75 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async updateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
+		id: string,
+		fields: Partial<
+			Pick<
+				User,
+				| "username"
+				| "password"
+				| "privacy"
+				| "pendingEmail"
+				| "pendingEmailToken"
+				| "tokenExpiresAt"
+			>
+		>,
 	): Promise<boolean> {
-		const upd = await this.#schemas.User.updateOne(query, update).exec();
+		const upd = await this.#schemas.User.updateOne({ id }, fields);
 		return Boolean(upd?.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async addNotification(
+		userID: string,
+		notification: Pick<Notification, "id" | "title" | "notify">,
+	): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$addToSet: {
+					notifs: {
+						id: notification.id,
+						title: notification.title,
+						notify: notification.notify,
+						createdAt: Date.now(),
+					},
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async removeNotification(
+		userID: string,
+		id: string,
+	): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$pull: {
+					notifs: {
+						id,
+					},
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async clearNotifications(userID: string): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$pull: {
+					notifs: {
+						title: { $ne: constants.WARNING_TITLE },
+					},
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
 	}
 
 	async makeUser(
@@ -388,6 +452,58 @@ export default class Mongoosedb extends DBClass {
 			),
 			links: Boolean(links?.deletedCount && links?.deletedCount > 0),
 		};
+	}
+
+	async addMirror(userID: string, url: string): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$addToSet: {
+					cURLs: url,
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async removeMirror(
+		userID: string,
+		url: string,
+	): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$pull: {
+					cURLs: url,
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async adjustUserCounts(
+		id: string,
+		update: { files?: number; links?: number },
+	): Promise<boolean | undefined> {
+		if (!update.files && !update.links) {
+			throw new Error(
+				"DB > adjustUserCounts - Need to either change the link or file count!",
+			);
+		}
+		const updateQuery: {
+			$inc: { files?: number; links?: number };
+		} = { $inc: {} };
+
+		if (update.files) updateQuery.$inc.files = update.files;
+		if (update.links) updateQuery.$inc.links = update.links;
+
+		const upd = await this.#schemas.User.updateOne(
+			{ id },
+			updateQuery,
+		).exec();
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
 	}
 
 	async findVerify(

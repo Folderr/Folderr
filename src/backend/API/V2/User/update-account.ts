@@ -462,7 +462,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			try {
-				await core.db.updateUser({ id: auth.id }, update);
+				await core.db.updateUser(auth.id, update);
 			} catch (error: unknown) {
 				request.server.reportError(error, request, { user: auth });
 				return reply.status(core.codes.internalErr).send({

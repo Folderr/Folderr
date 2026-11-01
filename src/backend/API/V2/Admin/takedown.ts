@@ -65,7 +65,7 @@ async function takedownFile(
 		};
 	}
 
-	await core.db.updateUser({ id: del.owner }, { $inc: { files: -1 } });
+	await core.db.adjustUserCounts(del.owner, { files: -1 });
 	await notifyOwner(core, request, del.owner, id, routeType(del.contentType));
 	return {
 		httpCode: core.codes.ok,
@@ -89,7 +89,7 @@ async function takedownLink(
 		};
 	}
 
-	await core.db.updateUser({ id: del.owner }, { $inc: { links: -1 } });
+	await core.db.adjustUserCounts(del.owner, { links: -1 });
 	await notifyOwner(core, request, del.owner, id, "Link");
 	return {
 		httpCode: core.codes.ok,

@@ -1,12 +1,13 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
+import {
+	WARNING_LOCK_MS,
+	WARNING_TITLE,
+} from "../../../Structures/constants/index.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 
 const path = "/notification/:id";
 const method = "DELETE";
-
-// How long a warning has to stay before the user can delete it
-const WARN_LOCK_MS = 90 * 24 * 60 * 60 * 1000;
 
 const DURATION_UNITS: Array<[string, number]> = [
 	["Days", 24 * 60 * 60 * 1000],
@@ -111,9 +112,9 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			if (notify.title === "Warn") {
+			if (notify.title === WARNING_TITLE) {
 				const remaining =
-					WARN_LOCK_MS - (Date.now() - notify.createdAt.getTime());
+					WARNING_LOCK_MS - (Date.now() - notify.createdAt.getTime());
 				if (remaining > 0) {
 					return reply.status(core.codes.forbidden).send({
 						code: core.codes.forbidden,
@@ -122,16 +123,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 			}
 
-			await core.db.updateUser(
-				{ id: auth.user.id },
-				{
-					$pull: {
-						notifs: {
-							id: request.params.id,
-						},
-					},
-				},
-			);
+			await core.db.removeNotification(auth.user.id, request.params.id);
 			return reply.status(core.codes.ok).send({
 				code: core.codes.ok,
 				message: "OK",
