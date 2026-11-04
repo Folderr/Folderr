@@ -1,0 +1,18 @@
+# Optional. Copy this file to configs/email.yaml to send email.
+# Without it (or with everything commented out), Folderr runs without email: no email
+# verification, password resets or account notices.
+# Every setting can come from an environment variable instead (shown in brackets).
+
+# sendingEmail: folderr@example.com # Required [FOLDERR_EMAIL_FROM]. The address Folderr's emails come from
+# selfTest: false # [FOLDERR_EMAIL_SELF_TEST] Email sendingEmail a test message at startup
+# mailerOptions:
+#   host: smtp.example.com # Required [FOLDERR_SMTP_HOST]. Your mail server's hostname
+#   port: 587 # [FOLDERR_SMTP_PORT] 587 by default; usually 465 with secure: true
+#   secure: false # [FOLDERR_SMTP_SECURE] Use TLS from the start of the connection (port 465)
+#   requireTLS: true # [FOLDERR_SMTP_REQUIRE_TLS] Refuse to send unless the connection upgrades to TLS
+#   ignoreTLS: false # [FOLDERR_SMTP_IGNORE_TLS] Never upgrade to TLS. Don't combine with requireTLS
+#   auth: # Required
+#     user: folderr@example.com # [FOLDERR_SMTP_USER]
+#     pass: change-me # [FOLDERR_SMTP_PASS]
+#   tls:
+#     rejectUnauthorized: true # [FOLDERR_SMTP_TLS_REJECT_UNAUTHORIZED] Keep true unless your mail server's certificate can't be verified

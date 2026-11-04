@@ -6,7 +6,7 @@ import process from "process";
 import readline from "readline";
 import { Writable } from "stream";
 import locations from "../internal/locations.json" with { type: "json" };
-import ConfigHandler from "../src/backend/handlers/config-handler.js";
+import { loadConfig } from "../src/backend/handlers/config-handler.js";
 import Core from "../src/backend/Structures/core.js";
 
 class MuteStreamHandler {
@@ -292,31 +292,21 @@ async function keyGen(
 	rl.write(
 		"Welcome to the Folderr setup CLI!\nGive us a moment while we check setup status...",
 	);
-	if (
-		!(await fs.stat(join(process.cwd(), "configs/server.yaml"))) ||
-		!(await fs.stat(join(process.cwd(), "configs/db.yaml")))
-	) {
+	try {
+		// The same checks as the server, so setup stops on exactly what would stop Folderr starting.
+		// Files in configs/, FOLDERR_ environment variables, or a mix of both all work
+		loadConfig();
+	} catch (error: unknown) {
 		rl.write(
-			"Setup has determined you have not configured Folderr." +
-				' Please configure with "npm run configure" before running this command' +
-				"\nIf you have configured Folderr," +
-				" please ensure I have the correct permissions to " +
-				"read, write, and execute the files.\n" +
-				"See the Folderr documentation about file permissions at " +
-				"https://folderr.net/documentation/folderr/v2 for more details/guidance",
+			`${error instanceof Error ? error.message : String(error)}\n\n` +
+				"Folderr isn't configured yet, or its config has problems (listed above).\n" +
+				"Copy the files in configs.example/ to configs/ and fill them in, or set the matching " +
+				"FOLDERR_ environment variables shown in those files, then run setup again.\n" +
+				"If the files are there, check that Folderr can read them. See " +
+				"https://folderr.net/documentation/folderr/v2 for more details/guidance\n",
 		);
 		rl.close();
-		process.exit();
-	}
-
-	try {
-		ConfigHandler.verifyFetch(true);
-	} catch (error: unknown) {
-		if (error instanceof Error) {
-			rl.write(error.message);
-			rl.close();
-			process.exit();
-		}
+		process.exit(1);
 	}
 
 	const keysConfigured = locations.keyConfigured;
