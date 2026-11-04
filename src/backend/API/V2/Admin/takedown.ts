@@ -35,7 +35,7 @@ async function notifyOwner(
 		return;
 	}
 
-	const user = await core.db.findUser({ id: owner }, "id username email");
+	const user = await core.db.findUser({ id: owner });
 	if (!user) {
 		return;
 	}
@@ -53,7 +53,7 @@ async function takedownFile(
 	request: TakedownRequest,
 ): Promise<TakedownResult> {
 	// Look the file up first; purgeFile only says whether it removed anything
-	const del = await core.db.findFile({ id }, "id owner contentType");
+	const del = await core.db.findFile({ id });
 	// purgeFile removes the record and the file on disk
 	if (!del || !(await core.db.purgeFile({ id }))) {
 		return {

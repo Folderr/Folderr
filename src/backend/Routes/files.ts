@@ -25,10 +25,7 @@ function route(fastify: FastifyInstance, core: Core) {
 	) => {
 		// The link names the file as <id>.<ext>, or just <id> when it has no extension
 		const { id, ext } = parseUploadName(request.params.id);
-		const upload = await core.db.findFile(
-			{ id, ext },
-			"id ext owner contentType",
-		);
+		const upload = await core.db.findFile({ id, ext });
 		if (!upload) {
 			return reply.status(core.codes.notFound).send("404 Not Found");
 		}

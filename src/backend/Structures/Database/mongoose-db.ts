@@ -231,7 +231,7 @@ export default class Mongoosedb extends DBClass {
 		id: string,
 		email: string,
 	): Promise<User | undefined> {
-		const ownr = await this.findUser({ owner: true }, "owner");
+		const ownr = await this.findUser({ owner: true });
 		if (ownr) {
 			throw new Error("DB > FORBIDDEN - Owner already created!");
 		}
@@ -257,11 +257,8 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	/* ---- USER RELATED METHODS ---- */
-	async findUser(
-		filter: UserFilter,
-		selector?: string,
-	): Promise<User | undefined> {
-		const query = this.#schemas.User.findOne(filter, selector);
+	async findUser(filter: UserFilter): Promise<User | undefined> {
+		const query = this.#schemas.User.findOne(filter);
 		if ("email" in filter) {
 			query.collation(EMAIL_COLLATION);
 		}
@@ -397,10 +394,7 @@ export default class Mongoosedb extends DBClass {
 			admin?: boolean;
 		},
 	): Promise<User | undefined> {
-		const cUser = await this.findUser(
-			{ username: userInfo.username },
-			"username",
-		);
+		const cUser = await this.findUser({ username: userInfo.username });
 		if (cUser) {
 			return undefined;
 		}
@@ -583,14 +577,10 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	/* ---- FILE RELATED METHODS ---- */
-	async findFile(
-		filter: FileFilter,
-		selector?: string,
-	): Promise<Upload | undefined> {
+	async findFile(filter: FileFilter): Promise<Upload | undefined> {
 		return (
-			(await this.#schemas.Upload.findOne(filter, selector)
-				.lean()
-				.exec()) ?? undefined
+			(await this.#schemas.Upload.findOne(filter).lean().exec()) ??
+			undefined
 		);
 	}
 
@@ -669,14 +659,10 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	/* ---- LINK RELATED METHODS ---- */
-	async findLink(
-		filter: LinkFilter,
-		selector?: string,
-	): Promise<Link | undefined> {
+	async findLink(filter: LinkFilter): Promise<Link | undefined> {
 		return (
-			(await this.#schemas.Link.findOne(filter, selector)
-				.lean()
-				.exec()) ?? undefined
+			(await this.#schemas.Link.findOne(filter).lean().exec()) ??
+			undefined
 		);
 	}
 

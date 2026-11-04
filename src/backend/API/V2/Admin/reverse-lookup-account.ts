@@ -106,10 +106,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const user = await core.db.findUser(
-				{ id: out.owner },
-				"id username createdAt",
-			);
+			const user = await core.db.findUser({ id: out.owner });
 			if (!user) {
 				return reply.status(core.codes.notFound).send({
 					code: core.Utils.foldCodes.noUserFound,

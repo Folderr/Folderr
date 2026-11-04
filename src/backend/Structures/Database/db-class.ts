@@ -214,10 +214,7 @@ export class DBClass {
 
 	/* ---- USER RELATED METHODS ---- */
 
-	async findUser(
-		filter: UserFilter,
-		selector?: string,
-	): Promise<User | undefined> {
+	async findUser(filter: UserFilter): Promise<User | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findUser is not implemented!",
 		);
@@ -413,10 +410,7 @@ export class DBClass {
 
 	/* ---- FILE RELATED METHODS ---- */
 
-	async findFile(
-		filter: FileFilter,
-		selector?: string,
-	): Promise<Upload | undefined> {
+	async findFile(filter: FileFilter): Promise<Upload | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findFile is not implemented!",
 		);
@@ -465,10 +459,7 @@ export class DBClass {
 	}
 
 	/* ---- LINK (shortened URLs) RELATED METHODS ---- */
-	async findLink(
-		filter: LinkFilter,
-		selector?: string,
-	): Promise<Link | undefined> {
+	async findLink(filter: LinkFilter): Promise<Link | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findLink is not implemented!",
 		);

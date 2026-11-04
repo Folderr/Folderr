@@ -10,10 +10,7 @@ function route(fastify: FastifyInstance, core: Core) {
 		request: FastifyRequest<{ Params: { id: string } }>,
 		reply: FastifyReply,
 	) => {
-		const short = await core.db.findLink(
-			{ id: request.params.id },
-			"link owner",
-		);
+		const short = await core.db.findLink({ id: request.params.id });
 		if (!short) {
 			return reply.status(core.codes.notFound).send("404 Not Found");
 		}

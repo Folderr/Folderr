@@ -352,7 +352,7 @@ async function keyGen(
 		}
 	}
 
-	const owner = await core.db.findUser({ owner: true }, "owner id");
+	const owner = await core.db.findUser({ owner: true });
 	rl.write("You're not setup, lets fix that.");
 	let username: string | undefined;
 	let password: string | undefined;
