@@ -22,7 +22,6 @@
 import { existsSync, promises as fs } from "fs";
 import mongoose from "mongoose";
 import process from "process";
-import * as Schemas from "../../Schemas/index.js";
 import * as constants from "../constants/index.js";
 import logger from "../logger.js";
 import { uploadPath } from "../Utilities/upload-types.js";
@@ -42,6 +41,7 @@ import type {
 	UserFilter,
 } from "./db-class";
 import { DBClass } from "./db-class.js";
+import * as Schemas from "./Schemas/index.js";
 
 // Strength 2 compares letters without case, so Bob@x.com matches bob@x.com.
 // The email indexes in Schemas/ use the same collation, so these lookups can use them

@@ -20,18 +20,15 @@
  */
 
 import { model, Schema } from "mongoose";
-import type { Link } from "../Structures/Database/db-class.js";
+import type { Notification } from "../db-class.js";
 
-const shortSchema = new Schema({
-	link: { type: String, required: true },
-	owner: { type: String, required: true },
+const adminNotifs = new Schema({
+	title: { type: String, required: true },
+	notify: { type: String, required: true },
 	id: { type: String, required: true, index: true },
 	createdAt: { type: Date, default: Date.now },
 });
 
-// A user's links are listed newest first, a page at a time
-shortSchema.index({ owner: 1, createdAt: -1 });
+const mod = model<Notification>("admin_notifs", adminNotifs);
 
-const shortModel = model<Link>("short", shortSchema);
-
-export default shortModel;
+export default mod;

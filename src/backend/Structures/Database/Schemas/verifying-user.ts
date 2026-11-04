@@ -21,7 +21,7 @@
 
 import type { Model } from "mongoose";
 import { model, Schema } from "mongoose";
-import type { PendingMember } from "../Structures/Database/db-class.js";
+import type { PendingMember } from "../db-class.js";
 
 const user = new Schema({
 	id: { type: String, required: true, index: true },

@@ -1,6 +1,6 @@
 import type { Model } from "mongoose";
 import { model, Schema } from "mongoose";
-import type { Ban } from "../Structures/Database/db-class.js";
+import type { Ban } from "../db-class.js";
 
 const userSchema = new Schema({
 	id: { type: String, required: true },

@@ -21,7 +21,7 @@
 
 import type { Model } from "mongoose";
 import { model, Schema } from "mongoose";
-import type { User } from "../Structures/Database/db-class.js";
+import type { User } from "../db-class.js";
 
 const userSchema = new Schema({
 	id: { type: String, required: true, index: true },

@@ -20,18 +20,18 @@
  */
 
 import { model, Schema } from "mongoose";
-import type { Tokendb } from "../Structures/Database/db-class.js";
+import type { Link } from "../db-class.js";
 
-const jwtToken = new Schema({
+const shortSchema = new Schema({
+	link: { type: String, required: true },
+	owner: { type: String, required: true },
 	id: { type: String, required: true, index: true },
-	userID: { type: String, required: true, index: true },
-	web: { type: Boolean, required: false, default: false },
 	createdAt: { type: Date, default: Date.now },
-	expireAt: { type: Date },
-	description: { type: String, default: "No description" },
 });
 
-jwtToken.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
+// A user's links are listed newest first, a page at a time
+shortSchema.index({ owner: 1, createdAt: -1 });
 
-const mod = model<Tokendb>("token", jwtToken);
-export default mod;
+const shortModel = model<Link>("short", shortSchema);
+
+export default shortModel;
