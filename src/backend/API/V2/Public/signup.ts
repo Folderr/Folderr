@@ -13,7 +13,8 @@ async function route(fastify: FastifyInstance, core: Core) {
 		schema: {
 			tags: ["public"],
 			summary: "Signup for Folderr",
-			description: "A simple endpoint to allow you to sign up to Folderr",
+			description:
+				"Signs up for Folderr, following the instance's signups setting: closed (refused), admin approval, or verification by email. The account exists once it's verified",
 			body: {
 				type: "object",
 				properties: {
@@ -26,6 +27,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			response: {
 				"4xx": {
 					examples: [
+						{ code: 1063, message: "Signups are closed" },
 						{
 							code: 400,
 							message: "body must have required property 'email'",
@@ -63,6 +65,26 @@ async function route(fastify: FastifyInstance, core: Core) {
 						code: { type: "number" },
 					},
 				},
+				"5xx": {
+					examples: [
+						{
+							code: 1059,
+							message:
+								"Signups verify by email, but email isn't set up",
+						},
+						{ code: 1062, message: "Email failed to send" },
+						{
+							code: 1052,
+							message:
+								"An internal error occurred while signing up!",
+						},
+					],
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+				},
 			},
 		},
 		async handler(
@@ -78,6 +100,24 @@ async function route(fastify: FastifyInstance, core: Core) {
 			}>,
 			response: FastifyReply,
 		) {
+			// 0 = closed, 1 = an admin approves each signup, 2 = verify by email.
+			// Checked before anything else, so a closed instance doesn't reveal which
+			// usernames or emails are taken
+			const mode = core.config.signups;
+			if (mode === 0) {
+				return response.status(core.codes.forbidden).send({
+					code: core.Utils.foldCodes.signupsClosed,
+					message: "Signups are closed",
+				});
+			}
+
+			if (mode === 2 && !core.emailer.active) {
+				return response.status(core.codes.notImplemented).send({
+					code: core.Utils.foldCodes.emailerNotConfigured,
+					message: "Signups verify by email, but email isn't set up",
+				});
+			}
+
 			// Check user input
 			const { email, username, password } = request.body;
 			const userInput = await checkUserInput(
@@ -95,51 +135,34 @@ async function route(fastify: FastifyInstance, core: Core) {
 			// Generate a unique user ID
 			const userID = await genUID(core);
 
-			// Perform signup logic
-			try {
-				// Perform signup logic here
-				const validationToken = await core.Utils.genValidationToken();
-				const userInfo = {
-					username,
-					id: userID,
-					password: password,
-					email: email,
-				};
+			// Anything thrown from here goes to the error handler as a 500; it was once
+			// caught and answered with 201 OK, so a failed signup looked like it worked
+			const validationToken = await core.Utils.genValidationToken();
+			const userInfo = {
+				username,
+				id: userID,
+				password: password,
+				email: email,
+			};
 
-				try {
-					// Call the signup function based on the email server availability
-					const result = core.emailer.active
-						? await emailSignup(
-								core,
-								userInfo,
-								validationToken,
-								request,
-								response,
-							)
-						: await noEmailSignup(
-								core,
-								userInfo,
-								validationToken,
-								response,
-							);
+			// The signup waits for either the user (by email) or an admin to verify it
+			const result =
+				mode === 2
+					? await emailSignup(
+							core,
+							userInfo,
+							validationToken,
+							request,
+							response,
+						)
+					: await noEmailSignup(
+							core,
+							userInfo,
+							validationToken,
+							response,
+						);
 
-					return response.status(result.httpCode).send(result.msg);
-				} catch {
-					// Handle signup error
-					return response.status(core.codes.internalErr).send({
-						code: core.Utils.foldCodes.unkownError,
-						message: "An internal error occurred while signing up!",
-					});
-				}
-			} catch {
-				// Handle signup error
-			}
-
-			// Return success response
-			return response.status(this.codes.created).send({
-				code: this.codes.created,
-				message: "OK",
-			});
+			return response.status(result.httpCode).send(result.msg);
 		},
 	});
 	fastify.log.info(undefined, `Initialized POST Signup at ${path}`);
