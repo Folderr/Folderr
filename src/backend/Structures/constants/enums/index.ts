@@ -4,7 +4,7 @@
 enum PASSWORD {
 	// Both describe regexs.password (Structures/Utilities/reg-exps.ts) and the frontend's copy of it
 	PASSWORD_LENGTH_EXCEED = "Password is too long, it can be at most 256 characters",
-	PASSWORD_REQUIREMENTS = "Password must be 8 to 256 characters long, with at least one letter and at least one punctuation mark or space, such as . , ! ? @ # - _",
+	PASSWORD_REQUIREMENTS = "Password must be 8 to 256 characters long, with at least one letter and at least one symbol, punctuation mark or space, such as $ + ! ? @ # - _",
 	NO_NUL = "Password may not contain the NUL character",
 }
 

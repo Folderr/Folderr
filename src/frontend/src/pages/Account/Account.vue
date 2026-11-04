@@ -505,7 +505,7 @@
 						<label
 							for="newpassword"
 							class="block text-secondary-text text-md"
-							title="Passwords must be 8 to 256 characters long, with at least one letter and at least one punctuation mark or space, such as . , ! ? @ # - _"
+							title="Passwords must be 8 to 256 characters long, with at least one letter and at least one symbol, punctuation mark or space, such as $ + ! ? @ # - _"
 						>
 							New Password
 						</label>
@@ -537,7 +537,7 @@
 										!passwordValid,
 								},
 							]"
-							title="Passwords must be 8 to 256 characters long, with at least one letter and at least one punctuation mark or space, such as . , ! ? @ # - _"
+							title="Passwords must be 8 to 256 characters long, with at least one letter and at least one symbol, punctuation mark or space, such as $ + ! ? @ # - _"
 							autocomplete="new-password"
 							@keyup.enter="() => passwordConfirmEl?.focus()"
 						/>
@@ -570,8 +570,8 @@
 								>
 									Passwords must be 8 to 256 characters long,
 									with at least one letter and at least one
-									punctuation mark or space, such as . , ! ? @
-									# - _
+									symbol, punctuation mark or space, such as $
+									+ ! ? @ # - _
 								</DisclosurePanel>
 							</Disclosure>
 						</div>

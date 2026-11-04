@@ -220,7 +220,8 @@ const isAllValid = computed(() => {
 			class="text-secondary-accent mb-4"
 		>
 			Passwords must be 8 to 256 characters long, with at least one letter
-			and at least one punctuation mark or space, such as . , ! ? @ # - _
+			and at least one symbol, punctuation mark or space, such as $ + ! ?
+			@ # - _
 		</p>
 		<p v-if="isPasswordValid && !isAllValid" class="text-brand mb-4">
 			Valid Password
