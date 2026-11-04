@@ -154,7 +154,7 @@ export default class DbQueue extends EventEmitter {
 				await yieldToRequests();
 			}
 
-			await this.#db.purgeFiles({ owner: id, id: { $in: removed } });
+			await this.#db.purgeFilesByIds(id, removed);
 			// Those records and the account stay, so stop instead of reading the same files forever
 			if (failed > 0) {
 				throw new Error(

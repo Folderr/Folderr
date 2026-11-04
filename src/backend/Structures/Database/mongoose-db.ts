@@ -28,8 +28,10 @@ import logger from "../logger.js";
 import { uploadPath } from "../Utilities/upload-types.js";
 import type {
 	Ban,
+	FileFilter,
 	Folderr,
 	Link,
+	LinkFilter,
 	Notification,
 	PageOptions,
 	PendingMember,
@@ -582,16 +584,13 @@ export default class Mongoosedb extends DBClass {
 
 	/* ---- FILE RELATED METHODS ---- */
 	async findFile(
-		query: Record<string, unknown>,
+		filter: FileFilter,
 		selector?: string,
 	): Promise<Upload | undefined> {
 		return (
-			(selector
-				? await this.#schemas.Upload.findOne(query, selector)
-						.lean()
-						.exec()
-				: await this.#schemas.Upload.findOne(query).lean().exec()) ??
-			undefined
+			(await this.#schemas.Upload.findOne(filter, selector)
+				.lean()
+				.exec()) ?? undefined
 		);
 	}
 
@@ -622,12 +621,12 @@ export default class Mongoosedb extends DBClass {
 
 	/**
 	 * Deletes a file from the database and the disk.
-	 * If deleting files en masse, use db.purgeFiles
-	 * @param query What file to remove
+	 * If deleting files en masse, use db.purgeFilesByIds
+	 * @param filter What file to remove
 	 * @returns Whether or not the file was deleted
 	 */
-	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
-		const file = await this.#schemas.Upload.findOneAndDelete(query, {
+	async purgeFile(filter: FileFilter): Promise<boolean> {
+		const file = await this.#schemas.Upload.findOneAndDelete(filter, {
 			projection: "id ext",
 		})
 			.lean()
@@ -657,44 +656,33 @@ export default class Mongoosedb extends DBClass {
 		return true;
 	}
 
-	/**
-	 * Delete a massive amount of file records
-	 * @param {Object} query The database query to match files to remove
-	 * @param {number} [expectedDeletions] How many files to delete
-	 * @returns Whether or not the deletion was successful
-	 */
-	async purgeFiles(
-		query: Record<string, unknown>,
-		expectedDeletions?: number,
-	): Promise<boolean> {
-		const files = await this.#schemas.Upload.deleteMany(query)
-			.lean()
-			.exec();
-		return expectedDeletions
-			? files.deletedCount === expectedDeletions
-			: files.acknowledged;
+	async purgeFilesByIds(owner: string, ids: string[]): Promise<number> {
+		if (ids.length === 0) {
+			return 0;
+		}
+
+		const files = await this.#schemas.Upload.deleteMany({
+			owner,
+			id: { $in: ids },
+		}).exec();
+		return files.deletedCount;
 	}
 
 	/* ---- LINK RELATED METHODS ---- */
 	async findLink(
-		query: Record<string, unknown>,
+		filter: LinkFilter,
 		selector?: string,
 	): Promise<Link | undefined> {
 		return (
-			(selector
-				? await this.#schemas.Link.findOne(query, selector)
-						.lean()
-						.exec()
-				: await this.#schemas.Link.findOne(query).lean().exec()) ??
-			undefined
+			(await this.#schemas.Link.findOne(filter, selector)
+				.lean()
+				.exec()) ?? undefined
 		);
 	}
 
-	async findAndDeleteLink(
-		query: Record<string, unknown>,
-	): Promise<Link | undefined> {
+	async findAndDeleteLink(filter: LinkFilter): Promise<Link | undefined> {
 		return (
-			(await this.#schemas.Link.findOneAndDelete(query).lean().exec()) ??
+			(await this.#schemas.Link.findOneAndDelete(filter).lean().exec()) ??
 			undefined
 		);
 	}
@@ -715,8 +703,8 @@ export default class Mongoosedb extends DBClass {
 		return link1;
 	}
 
-	async purgeLink(query: Record<string, unknown>): Promise<boolean> {
-		const del = await this.#schemas.Link.deleteOne(query).exec();
+	async purgeLink(filter: LinkFilter): Promise<boolean> {
+		const del = await this.#schemas.Link.deleteOne(filter).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 

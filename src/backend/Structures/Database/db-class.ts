@@ -123,6 +123,12 @@ export interface PageOptions {
 	ascending?: boolean;
 }
 
+/** An upload is always found by its ID; owner and ext narrow it, e.g. to a user's own file */
+export type FileFilter = { id: string; owner?: string; ext?: string };
+
+/** A short link is always found by its ID; owner narrows it to a user's own link */
+export type LinkFilter = { id: string; owner?: string };
+
 /**
  * @classdesc Base class for all Database handlers to extend
  */
@@ -408,7 +414,7 @@ export class DBClass {
 	/* ---- FILE RELATED METHODS ---- */
 
 	async findFile(
-		query: Record<string, unknown>,
+		filter: FileFilter,
 		selector?: string,
 	): Promise<Upload | undefined> {
 		throw new Error(
@@ -437,34 +443,30 @@ export class DBClass {
 
 	/**
 	 * Deletes a file from the database and the disk.
-	 * If deleting files en masse, use db.purgeFiles
-	 * @param query What file to remove
+	 * If deleting files en masse, use db.purgeFilesByIds
+	 * @param filter What file to remove
 	 * @returns Whether or not the file was deleted
 	 */
-	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
+	async purgeFile(filter: FileFilter): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeFile is not implemented!",
 		);
 	}
 
 	/**
-	 * Delete a massive amount of file records
-	 * @param {Object} query The database query to match files to remove
-	 * @param {number} [expectedDeletions] How many files to delete
-	 * @returns Whether or not the deletion was successful
+	 * Deletes the records of these uploads, but only the ones that belong to owner.
+	 * The files on disk are the caller's job (see the deletion queue)
+	 * @returns How many records were deleted
 	 */
-	async purgeFiles(
-		query: Record<string, unknown>,
-		expectedDeletions?: number,
-	): Promise<boolean> {
+	async purgeFilesByIds(owner: string, ids: string[]): Promise<number> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method purgeFiles is not implemented!",
+			"DB > NOT IMPLEMENTED - Method purgeFilesByIds is not implemented!",
 		);
 	}
 
 	/* ---- LINK (shortened URLs) RELATED METHODS ---- */
 	async findLink(
-		query: Record<string, unknown>,
+		filter: LinkFilter,
 		selector?: string,
 	): Promise<Link | undefined> {
 		throw new Error(
@@ -481,9 +483,7 @@ export class DBClass {
 		);
 	}
 
-	async findAndDeleteLink(
-		query: Record<string, unknown>,
-	): Promise<Link | undefined> {
+	async findAndDeleteLink(filter: LinkFilter): Promise<Link | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findAndDeleteLink is not implemented!",
 		);
@@ -499,7 +499,7 @@ export class DBClass {
 		);
 	}
 
-	async purgeLink(query: Record<string, unknown>): Promise<boolean> {
+	async purgeLink(filter: LinkFilter): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeLink is not implemented!",
 		);
