@@ -45,7 +45,8 @@ async function route(fastify: FastifyInstance, core: Core) {
 						{
 							code: 1012,
 							message:
-								'Password must be 8-32 characters long, must contain 1 uppercase and lowercase letter, and 1 digit. Password may contain "_", "&", "."',
+								constants.ENUMS.RESPONSES.PASSWORD
+									.PASSWORD_REQUIREMENTS,
 						},
 					],
 					type: "object",

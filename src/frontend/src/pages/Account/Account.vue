@@ -505,7 +505,7 @@
 						<label
 							for="newpassword"
 							class="block text-secondary-text text-md"
-							title="Passwords must be between 8 and 256 characters, and must have either a lowercase or uppercase letter, and anything else."
+							title="Passwords must be 8 to 256 characters long, with at least one letter and at least one punctuation mark or space, such as . , ! ? @ # - _"
 						>
 							New Password
 						</label>
@@ -537,7 +537,7 @@
 										!passwordValid,
 								},
 							]"
-							title="Passwords must be between 8 and 256 characters, and must have either a lowercase or uppercase letter, and anything else."
+							title="Passwords must be 8 to 256 characters long, with at least one letter and at least one punctuation mark or space, such as . , ! ? @ # - _"
 							autocomplete="new-password"
 							@keyup.enter="() => passwordConfirmEl?.focus()"
 						/>
@@ -568,9 +568,10 @@
 								<DisclosurePanel
 									class="py-2 px-4 text-secondary-text"
 								>
-									Passwords must be between 8 and 256
-									characters, and must have either a lowercase
-									or uppercase letter, and anything else.
+									Passwords must be 8 to 256 characters long,
+									with at least one letter and at least one
+									punctuation mark or space, such as . , ! ? @
+									# - _
 								</DisclosurePanel>
 							</Disclosure>
 						</div>

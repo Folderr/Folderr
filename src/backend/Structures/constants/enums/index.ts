@@ -2,8 +2,9 @@
 // Large length and consistency
 
 enum PASSWORD {
-	PASSWORD_LENGTH_EXCEED = "Password is too long, password must be between 8 and 32 characters of length",
-	PASSWORD_REQUIREMENTS = 'Password must be 8-32 characters long, must contain 1 uppercase and lowercase letter, and 1 digit. Password may contain "_", "&", "."',
+	// Both describe regexs.password (Structures/Utilities/reg-exps.ts) and the frontend's copy of it
+	PASSWORD_LENGTH_EXCEED = "Password is too long, it can be at most 256 characters",
+	PASSWORD_REQUIREMENTS = "Password must be 8 to 256 characters long, with at least one letter and at least one punctuation mark or space, such as . , ! ? @ # - _",
 	NO_NUL = "Password may not contain the NUL character",
 }
 
