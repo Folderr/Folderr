@@ -523,10 +523,11 @@ export class DBClass {
 		userID: string,
 		options?: {
 			web?: boolean;
+			description?: string;
 		},
 	): Promise<Tokendb | undefined> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method addToken is not implemented!",
+			"DB > NOT IMPLEMENTED - Method makeToken is not implemented!",
 		);
 	}
 

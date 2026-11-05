@@ -1,6 +1,5 @@
 // The reason there are cycling dependcies here is because of how Folderr is typed.
 export { default as Core } from "./Structures/core.js";
-export { default as MongoDB } from "./Structures/Database/mongoose-db.js";
 export { default as Emailer } from "./Structures/emailer.js";
 export { default as logger } from "./Structures/logger.js";
 export { default as Authorization } from "./Structures/Utilities/authorization.js";

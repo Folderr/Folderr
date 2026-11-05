@@ -31,18 +31,14 @@ import pkg from "../../../package.json" with { type: "json" };
 // Local files
 // Handlers
 import { type Config, loadConfig } from "../handlers/config-handler.js";
-import {
-	Emailer,
-	MongoDB,
-	Regexs,
-	codes as StatusCodes,
-	Utils,
-} from "../internals.js";
+import { Emailer, Regexs, codes as StatusCodes, Utils } from "../internals.js";
+import pickdb from "./Database/pick.js";
 import DelQueue from "./Utilities/db-queue.js";
 
 const version = pkg.version;
 
 import fastifySwagger from "@fastify/swagger";
+import type DBClass from "./Database/db-class";
 import type { LoggerLevels } from "./logger.js";
 // Other utilities
 import logger from "./logger.js";
@@ -67,7 +63,7 @@ declare module "fastify" {
 		codes: typeof StatusCodes;
 		got: Got;
 		utils: Utils;
-		db: MongoDB;
+		db: DBClass;
 		reportError: ReportError;
 		setRouteFailed: (route: string) => void;
 	}
@@ -91,7 +87,7 @@ const debugLevelMap = new Map<debugLevels, string>([
 ]);
 
 export default class Core {
-	public readonly db: MongoDB;
+	public readonly db: DBClass;
 
 	public app: FastifyInstance;
 
@@ -181,7 +177,7 @@ export default class Core {
 		this.app.decorate("codes", StatusCodes);
 
 		// Init db
-		this.db = new MongoDB(); // Time to abuse Node. :)
+		this.db = pickdb(); // Time to abuse Node. :)
 		this.listening = false;
 
 		this.regexs = new Regexs();
