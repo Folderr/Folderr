@@ -129,6 +129,31 @@ export type FileFilter = { id: string; owner?: string; ext?: string };
 /** A short link is always found by its ID; owner narrows it to a user's own link */
 export type LinkFilter = { id: string; owner?: string };
 
+export class DatabaseError extends Error {
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message, options);
+		this.name = "DatabaseError";
+	}
+}
+
+export class FolderrNotSetupError extends DatabaseError {
+	constructor() {
+		super("Folderr DB entry not found, Folderr DB entry is required.");
+		this.name = "FolderrNotSetupError";
+	}
+}
+
+export class DBConflictError extends DatabaseError {
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message, options);
+		this.name = "DBConflictError";
+	}
+}
+
+export function normalizeInput(input: string): string {
+	return input.trim().toLowerCase();
+}
+
 /**
  * @classdesc Base class for all Database handlers to extend
  */

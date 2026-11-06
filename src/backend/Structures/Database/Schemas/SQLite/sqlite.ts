@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { defineRelations, sql } from "drizzle-orm";
 import {
 	blob,
 	index,
@@ -27,7 +27,12 @@ export const users = sqliteTable(
 			.$defaultFn(() => new Date()),
 		markedForDeletion: int({ mode: "boolean" }).default(false).notNull(),
 	},
-	(table) => [uniqueIndex("users_email_idx").on(sql`lower(${table.email})`)],
+	(table) => [
+		uniqueIndex("users_email_idx").on(sql`lower(${table.email})`),
+		uniqueIndex("users_owner_unique_idx")
+			.on(table.role)
+			.where(sql`${table.role} = 'owner'`),
+	],
 );
 
 export const emailChanges = sqliteTable(
@@ -187,3 +192,39 @@ export const folderr = sqliteTable("folderr", {
 		.$defaultFn(() => new Date()),
 	id: int().primaryKey().default(1),
 });
+
+export const relations = defineRelations(
+	{
+		users,
+		userNotifications,
+		verifyingUsersTable,
+		tokens,
+		links,
+		files,
+		customDomains,
+		emailChanges,
+		userPrivacyChoices,
+	},
+	(r) => ({
+		users: {
+			notifs: r.many.userNotifications({
+				from: r.users.id,
+				to: r.userNotifications.userId,
+			}),
+			privacy: r.one.userPrivacyChoices({
+				optional: false,
+				from: r.users.id,
+				to: r.userPrivacyChoices.user,
+			}),
+			pendingEmailChange: r.one.emailChanges({
+				optional: true,
+				from: r.users.id,
+				to: r.emailChanges.userId,
+			}),
+			cURLs: r.many.customDomains({
+				from: r.users.id,
+				to: r.customDomains.owner,
+			}),
+		},
+	}),
+);
