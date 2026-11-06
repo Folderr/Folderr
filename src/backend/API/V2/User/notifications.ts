@@ -99,7 +99,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 				}
 
-				const anotifs = await core.db.findAdminNotifies({});
+				const anotifs = await core.db.listAdminNotifies();
 				notifs = anotifs.map((notification: Notification) => ({
 					id: notification.id,
 					title: notification.title,

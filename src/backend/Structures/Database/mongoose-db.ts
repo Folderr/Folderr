@@ -22,22 +22,46 @@
 import { existsSync, promises as fs } from "fs";
 import mongoose from "mongoose";
 import process from "process";
-import * as Schemas from "../../Schemas/index.js";
 import * as constants from "../constants/index.js";
 import logger from "../logger.js";
 import { uploadPath } from "../Utilities/upload-types.js";
 import type {
 	Ban,
+	FileFilter,
 	Folderr,
 	Link,
+	LinkFilter,
 	Notification,
+	PageOptions,
 	PendingMember,
 	Statistics,
 	Tokendb,
 	Upload,
 	User,
+	UserFilter,
 } from "./db-class";
 import { DBClass } from "./db-class.js";
+import * as Schemas from "./Schemas/index.js";
+
+// Strength 2 compares letters without case, so Bob@x.com matches bob@x.com.
+// The email indexes in Schemas/ use the same collation, so these lookups can use them
+const EMAIL_COLLATION = { locale: "en", strength: 2 };
+
+/**
+ * Mongo's version of a page. With only `after`, the items just after it are read oldest first and
+ * then reversed, so a newest-first page doesn't jump past them to the very newest items
+ */
+function toMongoPage(page: PageOptions) {
+	const createdAt: { $lt?: Date; $gt?: Date } = {};
+	if (page.before) createdAt.$lt = page.before;
+	if (page.after) createdAt.$gt = page.after;
+	const reverse = Boolean(page.after && !page.before && !page.ascending);
+	return {
+		filter: page.before || page.after ? { createdAt } : {},
+		sort: { createdAt: page.ascending || reverse ? 1 : -1 } as const,
+		reverse,
+	};
+}
 
 /**
  * @classdesc Handle all MongoDB operations.
@@ -93,7 +117,7 @@ export default class Mongoosedb extends DBClass {
 			await this.#schemas.Folderr.ensureIndexes();
 			await this.#schemas.Ban.ensureIndexes();
 			logger.debug("DB - Indexes ensured");
-			await this.fetchFolderr({}); // Neglecting this potential error to handle elsewhere
+			await this.fetchFolderr(); // Neglecting this potential error to handle elsewhere
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				if (
@@ -163,20 +187,21 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	async removeBan(email: string): Promise<number> {
-		const remove = await this.#schemas.Ban.deleteOne({ email }).exec();
+		const remove = await this.#schemas.Ban.deleteOne({ email })
+			.collation(EMAIL_COLLATION)
+			.exec();
 		return remove.deletedCount;
 	}
 
 	async isBanned(email: string): Promise<boolean> {
-		// Strength 2 compares letters without case, so Bob@x.com matches bob@x.com
 		const ban = await this.#schemas.Ban.exists({ email })
-			.collation({ locale: "en", strength: 2 })
+			.collation(EMAIL_COLLATION)
 			.exec();
 		return Boolean(ban);
 	}
 
-	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
-		const fldr = await this.#schemas.Folderr.findOne(query).lean().exec();
+	async fetchFolderr(): Promise<Folderr> {
+		const fldr = await this.#schemas.Folderr.findOne({}).lean().exec();
 		if (!fldr) {
 			throw new Error(
 				"Folderr DB entry not found, Folderr DB entry is required.",
@@ -205,8 +230,8 @@ export default class Mongoosedb extends DBClass {
 		password: string,
 		id: string,
 		email: string,
-	): Promise<User | void> {
-		const ownr = await this.findUser({ owner: true }, "owner");
+	): Promise<User | undefined> {
+		const ownr = await this.findUser({ owner: true });
 		if (ownr) {
 			throw new Error("DB > FORBIDDEN - Owner already created!");
 		}
@@ -232,109 +257,130 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	/* ---- USER RELATED METHODS ---- */
-	async findUser(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<User | undefined> {
-		return (
-			(selector
-				? await this.#schemas.User.findOne(query, selector)
-						.lean()
-						.exec()
-				: await this.#schemas.User.findOne(query).lean().exec()) ??
-			undefined
-		);
-	}
-
-	async findUsers(
-		query: Record<string, unknown>,
-		options?: {
-			sort?: Record<string, unknown>;
-			limit?: number;
-			selector?: string;
-		},
-	): Promise<User[]> {
-		// Oldest first unless the caller asks for another order
-		const qoptions: { limit?: number; sort: Record<string, unknown> } = {
-			sort: options?.sort ?? { createdAt: 1 },
-		};
-		if (options?.limit) {
-			qoptions.limit = options.limit;
+	async findUser(filter: UserFilter): Promise<User | undefined> {
+		const query = this.#schemas.User.findOne(filter);
+		if ("email" in filter) {
+			query.collation(EMAIL_COLLATION);
 		}
 
-		return this.#schemas.User.find(query, options?.selector, qoptions)
+		return (await query.lean().exec()) ?? undefined;
+	}
+
+	async isUsernameTaken(username: string): Promise<boolean> {
+		const [user, signup] = await Promise.all([
+			this.#schemas.User.exists({ username }).exec(),
+			this.#schemas.PendingMember.exists({ username }).exec(),
+		]);
+		return Boolean(user ?? signup);
+	}
+
+	async isEmailTaken(email: string): Promise<boolean> {
+		const [user, signup] = await Promise.all([
+			this.#schemas.User.exists({
+				$or: [{ email }, { pendingEmail: email }],
+			})
+				.collation(EMAIL_COLLATION)
+				.exec(),
+			this.#schemas.PendingMember.exists({ email })
+				.collation(EMAIL_COLLATION)
+				.exec(),
+		]);
+		return Boolean(user ?? signup);
+	}
+
+	async listUsers(page: PageOptions): Promise<User[]> {
+		const { filter, sort, reverse } = toMongoPage(page);
+		const users = await this.#schemas.User.find(filter)
+			.sort(sort)
+			.limit(page.limit)
 			.lean()
 			.exec();
+		return reverse ? users.reverse() : users;
 	}
 
-	async findFullUser(
-		queries: Array<Record<string, unknown>>,
-		selector?: {
-			user?: string;
-			file?: string;
-			link?: string;
-		},
-	): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
-		if (!queries || queries.length < 2 || queries.length > 2) {
-			throw new Error(
-				constants.TEMPLATES.MONGOOSE.expectedQueries(
-					2,
-					queries?.length,
-				),
-			);
-		}
-
-		const [account, files, links] = await Promise.all([
-			this.findUser(queries[0], selector?.user),
-			selector?.file
-				? this.#schemas.Upload.find(queries[1], selector.file)
-						.lean()
-						.exec()
-				: this.#schemas.Upload.find(queries[1]).lean().exec(),
-			selector?.link
-				? this.#schemas.Link.find(queries[1], selector.link)
-						.lean()
-						.exec()
-				: this.#schemas.Link.find(queries[1]).lean().exec(),
-		]);
-		if (!account) {
-			return undefined;
-		}
-
-		return { account, files, links };
-	}
-
-	async findAndUpdateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-		selector?: string,
-	): Promise<User | undefined> {
-		if (selector) {
-			return (
-				(await this.#schemas.User.findOneAndUpdate(query, update, {
-					fields: selector,
-					new: true,
-				})
-					.lean()
-					.exec()) ?? undefined
-			);
-		}
-
+	async setAdmin(id: string, admin: boolean): Promise<User | undefined> {
+		// Only matches a user that isn't the owner and doesn't already have this setting
 		return (
-			(await this.#schemas.User.findOneAndUpdate(query, update, {
-				new: true,
-			})
+			(await this.#schemas.User.findOneAndUpdate(
+				{ id, owner: { $ne: true }, admin: { $ne: admin } },
+				{ admin },
+				{ new: true },
+			)
 				.lean()
 				.exec()) ?? undefined
 		);
 	}
 
 	async updateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
+		id: string,
+		fields: Partial<
+			Pick<
+				User,
+				| "username"
+				| "password"
+				| "privacy"
+				| "pendingEmail"
+				| "pendingEmailToken"
+				| "tokenExpiresAt"
+			>
+		>,
 	): Promise<boolean> {
-		const upd = await this.#schemas.User.updateOne(query, update).exec();
+		const upd = await this.#schemas.User.updateOne({ id }, fields);
 		return Boolean(upd?.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async addNotification(
+		userID: string,
+		notification: Pick<Notification, "id" | "title" | "notify">,
+	): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$addToSet: {
+					notifs: {
+						id: notification.id,
+						title: notification.title,
+						notify: notification.notify,
+						createdAt: Date.now(),
+					},
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async removeNotification(
+		userID: string,
+		id: string,
+	): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$pull: {
+					notifs: {
+						id,
+					},
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async clearNotifications(userID: string): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$pull: {
+					notifs: {
+						title: { $ne: constants.WARNING_TITLE },
+					},
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
 	}
 
 	async makeUser(
@@ -348,10 +394,7 @@ export default class Mongoosedb extends DBClass {
 			admin?: boolean;
 		},
 	): Promise<User | undefined> {
-		const cUser = await this.findUser(
-			{ username: userInfo.username },
-			"username",
-		);
+		const cUser = await this.findUser({ username: userInfo.username });
 		if (cUser) {
 			return undefined;
 		}
@@ -390,20 +433,67 @@ export default class Mongoosedb extends DBClass {
 		};
 	}
 
-	async findVerify(
-		query: Record<string, unknown>,
-	): Promise<PendingMember | undefined> {
+	async addMirror(userID: string, url: string): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$addToSet: {
+					cURLs: url,
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async removeMirror(
+		userID: string,
+		url: string,
+	): Promise<boolean | undefined> {
+		const upd = await this.#schemas.User.updateOne(
+			{ id: userID },
+			{
+				$pull: {
+					cURLs: url,
+				},
+			},
+		);
+
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async adjustUserCounts(
+		id: string,
+		update: { files?: number; links?: number },
+	): Promise<boolean | undefined> {
+		if (!update.files && !update.links) {
+			throw new Error(
+				"DB > adjustUserCounts - Need to either change the link or file count!",
+			);
+		}
+		const updateQuery: {
+			$inc: { files?: number; links?: number };
+		} = { $inc: {} };
+
+		if (update.files) updateQuery.$inc.files = update.files;
+		if (update.links) updateQuery.$inc.links = update.links;
+
+		const upd = await this.#schemas.User.updateOne(
+			{ id },
+			updateQuery,
+		).exec();
+		return Boolean(upd.modifiedCount && upd.modifiedCount > 0);
+	}
+
+	async findVerify(id: string): Promise<PendingMember | undefined> {
 		return (
-			(await this.#schemas.PendingMember.findOne(query).lean().exec()) ??
+			(await this.#schemas.PendingMember.findOne({ id }).lean().exec()) ??
 			undefined
 		);
 	}
 
-	async findVerifies(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<PendingMember[]> {
-		return this.#schemas.PendingMember.find(query, selector)
+	async listVerifies(): Promise<PendingMember[]> {
+		return this.#schemas.PendingMember.find({})
 			.sort({ createdAt: 1 })
 			.lean()
 			.exec();
@@ -487,63 +577,21 @@ export default class Mongoosedb extends DBClass {
 	}
 
 	/* ---- FILE RELATED METHODS ---- */
-	async findFile(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<Upload | undefined> {
+	async findFile(filter: FileFilter): Promise<Upload | undefined> {
 		return (
-			(selector
-				? await this.#schemas.Upload.findOne(query, selector)
-						.lean()
-						.exec()
-				: await this.#schemas.Upload.findOne(query).lean().exec()) ??
+			(await this.#schemas.Upload.findOne(filter).lean().exec()) ??
 			undefined
 		);
 	}
 
-	async findAndDeleteFile(
-		query: Record<string, unknown>,
-	): Promise<Upload | undefined> {
-		return (
-			(await this.#schemas.Upload.findOneAndDelete(query)
-				.lean()
-				.exec()) ?? undefined
-		);
-	}
-
-	async findFiles(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Upload[]> {
-		const queryOptions: { limit?: number; sort?: Record<string, unknown> } =
-			{};
-		if (options?.limit) {
-			queryOptions.limit = options.limit;
-		}
-
-		if (options?.sort) {
-			queryOptions.sort = options.sort;
-		}
-
-		return this.#schemas.Upload.find(query, options?.selector, queryOptions)
+	async listFiles(owner: string, page: PageOptions): Promise<Upload[]> {
+		const { filter, sort, reverse } = toMongoPage(page);
+		const files = await this.#schemas.Upload.find({ owner, ...filter })
+			.sort(sort)
+			.limit(page.limit)
 			.lean()
 			.exec();
-	}
-
-	async updateFile(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean | undefined> {
-		const upd = await this.#schemas.Upload.updateOne(query, update).exec();
-		if (upd?.modifiedCount && upd.modifiedCount > 0) {
-			return true;
-		}
-
-		return undefined;
+		return reverse ? files.reverse() : files;
 	}
 
 	async makeFile(
@@ -563,12 +611,12 @@ export default class Mongoosedb extends DBClass {
 
 	/**
 	 * Deletes a file from the database and the disk.
-	 * If deleting files en masse, use db.purgeFiles
-	 * @param query What file to remove
+	 * If deleting files en masse, use db.purgeFilesByIds
+	 * @param filter What file to remove
 	 * @returns Whether or not the file was deleted
 	 */
-	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
-		const file = await this.#schemas.Upload.findOneAndDelete(query, {
+	async purgeFile(filter: FileFilter): Promise<boolean> {
+		const file = await this.#schemas.Upload.findOneAndDelete(filter, {
 			projection: "id ext",
 		})
 			.lean()
@@ -598,78 +646,41 @@ export default class Mongoosedb extends DBClass {
 		return true;
 	}
 
-	/**
-	 * Delete a massive amount of file records
-	 * @param {Object} query The database query to match files to remove
-	 * @param {number} [expectedDeletions] How many files to delete
-	 * @returns Whether or not the deletion was successful
-	 */
-	async purgeFiles(
-		query: Record<string, unknown>,
-		expectedDeletions?: number,
-	): Promise<boolean> {
-		const files = await this.#schemas.Upload.deleteMany(query)
-			.lean()
-			.exec();
-		return expectedDeletions
-			? files.deletedCount === expectedDeletions
-			: files.acknowledged;
+	async purgeFilesByIds(owner: string, ids: string[]): Promise<number> {
+		if (ids.length === 0) {
+			return 0;
+		}
+
+		const files = await this.#schemas.Upload.deleteMany({
+			owner,
+			id: { $in: ids },
+		}).exec();
+		return files.deletedCount;
 	}
 
 	/* ---- LINK RELATED METHODS ---- */
-	async findLink(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<Link | undefined> {
+	async findLink(filter: LinkFilter): Promise<Link | undefined> {
 		return (
-			(selector
-				? await this.#schemas.Link.findOne(query, selector)
-						.lean()
-						.exec()
-				: await this.#schemas.Link.findOne(query).lean().exec()) ??
+			(await this.#schemas.Link.findOne(filter).lean().exec()) ??
 			undefined
 		);
 	}
 
-	async findAndDeleteLink(
-		query: Record<string, unknown>,
-	): Promise<Link | undefined> {
+	async findAndDeleteLink(filter: LinkFilter): Promise<Link | undefined> {
 		return (
-			(await this.#schemas.Link.findOneAndDelete(query).lean().exec()) ??
+			(await this.#schemas.Link.findOneAndDelete(filter).lean().exec()) ??
 			undefined
 		);
 	}
 
-	async findLinks(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Link[]> {
-		const qoptions: { limit?: number; sort?: Record<string, unknown> } = {};
-		if (options?.limit) {
-			qoptions.limit = options.limit;
-		}
-
-		if (options?.sort) {
-			qoptions.sort = options.sort;
-		}
-
-		return this.#schemas.Link.find(
-			query,
-			options?.selector,
-			qoptions,
-		).lean();
-	}
-
-	async updateLink(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean> {
-		const out = await this.#schemas.Upload.updateOne(query, update).exec();
-		return Boolean(out?.modifiedCount && out.modifiedCount > 0);
+	async listLinks(owner: string, page: PageOptions): Promise<Link[]> {
+		const { filter, sort, reverse } = toMongoPage(page);
+		const links = await this.#schemas.Link.find({ owner, ...filter })
+			.sort(sort)
+			.limit(page.limit)
+			.lean()
+			.exec();
+		return reverse ? links.reverse() : links;
 	}
 
 	async makeLink(id: string, owner: string, link: string): Promise<Link> {
@@ -678,8 +689,8 @@ export default class Mongoosedb extends DBClass {
 		return link1;
 	}
 
-	async purgeLink(query: Record<string, unknown>): Promise<boolean> {
-		const del = await this.#schemas.Link.deleteOne(query).exec();
+	async purgeLink(filter: LinkFilter): Promise<boolean> {
+		const del = await this.#schemas.Link.deleteOne(filter).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 
@@ -773,27 +784,25 @@ export default class Mongoosedb extends DBClass {
 		return notif;
 	}
 
-	async findAdminNotify(
-		query: Record<string, unknown>,
-	): Promise<Notification | undefined> {
+	async findAdminNotify(id: string): Promise<Notification | undefined> {
 		return (
-			(await this.#schemas.AdminNotification.findOne(query).lean()) ??
-			undefined
+			(await this.#schemas.AdminNotification.findOne({ id })
+				.lean()
+				.exec()) ?? undefined
 		);
 	}
 
-	async findAdminNotifies(
-		query: Record<string, unknown>,
-	): Promise<Notification[]> {
-		return this.#schemas.AdminNotification.find(query)
+	async listAdminNotifies(): Promise<Notification[]> {
+		return this.#schemas.AdminNotification.find({})
 			.sort({ createdAt: -1 })
 			.lean()
 			.exec();
 	}
 
-	async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
-		const del =
-			await this.#schemas.AdminNotification.deleteOne(query).exec();
+	async purgeAdminNotify(id: string): Promise<boolean> {
+		const del = await this.#schemas.AdminNotification.deleteOne({
+			id,
+		}).exec();
 		return Boolean(del?.deletedCount && del.deletedCount > 0);
 	}
 

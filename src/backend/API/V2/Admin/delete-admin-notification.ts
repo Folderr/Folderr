@@ -64,9 +64,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const notify = await core.db.findAdminNotify({
-				id: request.params.id,
-			});
+			const notify = await core.db.findAdminNotify(request.params.id);
 			if (!notify) {
 				return reply.status(core.codes.notFound).send({
 					code: core.Utils.foldCodes.dbNotFound,
@@ -82,7 +80,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			await core.db.purgeAdminNotify({ id: request.params.id });
+			await core.db.purgeAdminNotify(request.params.id);
 			core.logger.info(
 				`[SYSTEM] Admin notification ${notify.id} removed by ${auth.user.username}!`,
 			);

@@ -19,16 +19,25 @@
  *
  */
 
+import type { Model } from "mongoose";
 import { model, Schema } from "mongoose";
-import type { Link } from "../Structures/Database/db-class.js";
+import type { PendingMember } from "../db-class.js";
 
-const shortSchema = new Schema({
-	link: { type: String, required: true },
-	owner: { type: String, required: true },
+const user = new Schema({
 	id: { type: String, required: true, index: true },
+	password: { type: String, required: true },
+	username: { type: String, required: true },
+	validationToken: { type: String, required: true },
+	email: { type: String, required: true },
 	createdAt: { type: Date, default: Date.now },
 });
 
-const shortModel = model<Link>("short", shortSchema);
+// Emails are looked up without regard to letter case, see Schemas/user.ts
+user.index(
+	{ email: 1 },
+	{ collation: { locale: "en", strength: 2 }, name: "email_ci" },
+);
 
-export default shortModel;
+const mod: Model<PendingMember> = model<PendingMember>("verifying_user", user);
+
+export default mod;

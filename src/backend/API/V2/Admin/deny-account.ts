@@ -64,7 +64,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			// Search for the user, and if not found send in an error
-			const user = await core.db.findVerify({ id: request.body.id });
+			const user = await core.db.findVerify(request.body.id);
 			if (!user) {
 				return reply.status(core.codes.notFound).send({
 					code: core.Utils.foldCodes.noUserFound,

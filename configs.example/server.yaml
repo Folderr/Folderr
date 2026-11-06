@@ -1,14 +1,23 @@
-port: 8888 # Required, port the instance will listen on
-url: "http://localhost:8888" # Required, url for the instance
-signups: 0 # Required, state of signups
-# apiOnly: false # Optional, turns off the frontend if set to true.
-# trustProxies: false # Optional, only set this to true when behind a proxy server you trust.
-# httpsCertOptions: # optional
-#  key: # Add https private key here
-#  cert: # Add https cert here
-#  ca: # Unknown use. Optional.
-#  requestCert: # Request the certificate from the end user. Not recommended to use
-#sentry:
-#  dsn: key@hostname.io
-#  tracing: true
-#  rate: 0.5
+# Folderr's main settings. Copy this file to configs/server.yaml.
+# Every setting can come from an environment variable instead (shown in brackets);
+# when both are set, the environment variable wins.
+
+port: 8888 # Required [FOLDERR_PORT]. The port Folderr listens on, 1024 to 65535
+url: "http://localhost:8888" # Required [FOLDERR_URL]. The address people reach Folderr at (http or https)
+signups: 0 # Required [FOLDERR_SIGNUPS]. 0 = closed, 1 = an admin approves each signup, 2 = verify by email (needs email.yaml)
+# apiOnly: false # [FOLDERR_API_ONLY] true turns the website off, leaving only the API
+# trustProxies: false # [FOLDERR_TRUST_PROXIES] Only set to true when Folderr sits behind a proxy you trust
+
+# Serve HTTPS directly. key and cert are both required if you use this
+# httpsCertOptions:
+#   key: /path/to/privkey.pem # [FOLDERR_HTTPS_KEY]
+#   cert: /path/to/fullchain.pem # [FOLDERR_HTTPS_CERT]
+#   ca: # [FOLDERR_HTTPS_CA, comma-separated] Extra certificate authorities. Not applied yet
+#     - /path/to/ca.pem
+#   requestCert: false # [FOLDERR_HTTPS_REQUESTCERT] Ask visitors for a client certificate. Not applied yet
+
+# Error reporting with Sentry
+# sentry:
+#   dsn: https://key@o0.ingest.sentry.io/0 # Required for Sentry [FOLDERR_SENTRY_DSN]
+#   tracing: true # [FOLDERR_SENTRY_TRACING] Performance tracing, on unless set to false
+#   rate: 0.2 # [FOLDERR_SENTRY_RATE] Share of requests traced, 0 to 1. Defaults to 1 in dev and 0.2 otherwise

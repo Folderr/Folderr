@@ -117,7 +117,6 @@ function route(fastify: FastifyInstance, core: Core) {
 					after: request.query.after,
 					limit: request.query.limit,
 				},
-				undefined,
 				request.query.ascending,
 			);
 			if (!page) {
@@ -128,10 +127,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const users: User[] = await core.db.findUsers(
-				page.filter,
-				page.options,
-			);
+			const users: User[] = await core.db.listUsers(page);
 			// An empty page is normal when paging past the oldest account
 			if (users.length === 0) {
 				return reply.status(core.codes.ok).send({

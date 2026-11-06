@@ -20,15 +20,18 @@
  */
 
 import { model, Schema } from "mongoose";
-import type { Notification } from "../Structures/Database/db-class.js";
+import type { Tokendb } from "../db-class.js";
 
-const adminNotifs = new Schema({
-	title: { type: String, required: true },
-	notify: { type: String, required: true },
+const jwtToken = new Schema({
 	id: { type: String, required: true, index: true },
+	userID: { type: String, required: true, index: true },
+	web: { type: Boolean, required: false, default: false },
 	createdAt: { type: Date, default: Date.now },
+	expireAt: { type: Date },
+	description: { type: String, default: "No description" },
 });
 
-const mod = model<Notification>("admin_notifs", adminNotifs);
+jwtToken.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
+const mod = model<Tokendb>("token", jwtToken);
 export default mod;

@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
+import { WARNING_TITLE } from "../../../Structures/constants/index.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 
 const path = "/warn/:id";
@@ -96,18 +97,11 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			const id = core.Utils.genNotifyID();
-			const updated = await core.db.updateUser(
-				{ id: request.params.id },
-				{
-					$addToSet: {
-						notifs: {
-							id,
-							title: "Warn",
-							notify: `You were warned for: ${request.body.reason}`,
-						},
-					},
-				},
-			);
+			const updated = await core.db.addNotification(request.params.id, {
+				id,
+				title: WARNING_TITLE,
+				notify: `You were warned for: ${request.body.reason}`,
+			});
 			if (!updated) {
 				return reply.status(core.codes.notAccepted).send({
 					code: core.Utils.foldCodes.unkownError,

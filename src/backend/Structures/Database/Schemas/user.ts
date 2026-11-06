@@ -21,7 +21,7 @@
 
 import type { Model } from "mongoose";
 import { model, Schema } from "mongoose";
-import type { User } from "../Structures/Database/db-class.js";
+import type { User } from "../db-class.js";
 
 const userSchema = new Schema({
 	id: { type: String, required: true, index: true },
@@ -44,7 +44,7 @@ const userSchema = new Schema({
 	cURLs: { type: Array, default: [] },
 	files: { type: Number, default: 0 },
 	links: { type: Number, default: 0 },
-	email: { type: String, required: true, index: true },
+	email: { type: String, required: true },
 	pendingEmail: { type: String },
 	pendingEmailToken: { type: String },
 	tokenExpiresAt: { type: Date },
@@ -54,6 +54,17 @@ const userSchema = new Schema({
 	},
 	markedForDeletion: { type: Boolean, default: false },
 });
+
+// Emails are looked up without regard to letter case (strength 2), and an index only
+// helps a query that uses the same collation
+const ignoreCase = { locale: "en", strength: 2 };
+userSchema.index({ email: 1 }, { collation: ignoreCase, name: "email_ci" });
+userSchema.index(
+	{ pendingEmail: 1 },
+	{ collation: ignoreCase, name: "pendingEmail_ci", sparse: true },
+);
+// Admins list accounts newest first, a page at a time
+userSchema.index({ createdAt: -1 });
 
 const mod: Model<User> = model<User>("user", userSchema);
 

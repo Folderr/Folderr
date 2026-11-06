@@ -102,7 +102,6 @@ function route(fastify: FastifyInstance, core: Core) {
 					after: request.query.after,
 					limit: request.query.limit,
 				},
-				auth.user.id,
 				request.query.ascending,
 			);
 			if (!page) {
@@ -113,9 +112,9 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const images: Upload[] = await core.db.findFiles(
-				page.filter,
-				page.options,
+			const images: Upload[] = await core.db.listFiles(
+				auth.user.id,
+				page,
 			);
 			if (images.length === 0) {
 				return reply

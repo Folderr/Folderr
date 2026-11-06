@@ -28,27 +28,17 @@ import { PerformanceObserver, performance } from "perf_hooks";
 import type pino from "pino";
 import process from "process";
 import pkg from "../../../package.json" with { type: "json" };
-import type {
-	ActEmailConfig,
-	CoreConfig,
-	DbConfig,
-	KeyConfig,
-} from "../handlers/config-handler.js";
 // Local files
 // Handlers
-import Configurer from "../handlers/config-handler.js";
-import {
-	Emailer,
-	MongoDB,
-	Regexs,
-	codes as StatusCodes,
-	Utils,
-} from "../internals.js";
+import { type Config, loadConfig } from "../handlers/config-handler.js";
+import { Emailer, Regexs, codes as StatusCodes, Utils } from "../internals.js";
+import pickdb from "./Database/pick.js";
 import DelQueue from "./Utilities/db-queue.js";
 
 const version = pkg.version;
 
 import fastifySwagger from "@fastify/swagger";
+import type DBClass from "./Database/db-class";
 import type { LoggerLevels } from "./logger.js";
 // Other utilities
 import logger from "./logger.js";
@@ -73,7 +63,7 @@ declare module "fastify" {
 		codes: typeof StatusCodes;
 		got: Got;
 		utils: Utils;
-		db: MongoDB;
+		db: DBClass;
 		reportError: ReportError;
 		setRouteFailed: (route: string) => void;
 	}
@@ -97,11 +87,11 @@ const debugLevelMap = new Map<debugLevels, string>([
 ]);
 
 export default class Core {
-	public readonly db: MongoDB;
+	public readonly db: DBClass;
 
 	public app: FastifyInstance;
 
-	public readonly config: CoreConfig;
+	public readonly config: Config["server"];
 
 	public readonly logger: pino.Logger<LoggerLevels>;
 
@@ -128,11 +118,9 @@ export default class Core {
 
 	readonly #deleter: DelQueue;
 
-	readonly #keys: KeyConfig;
+	readonly #emailConfig: Config["email"];
 
-	readonly #emailConfig: ActEmailConfig;
-
-	readonly #dbConfig: DbConfig;
+	readonly #dbConfig: Config["db"];
 
 	readonly #requestIds: Set<string>;
 
@@ -158,9 +146,8 @@ export default class Core {
 		this.#registeredEndpoints = new Set<string>();
 
 		// Init configs
-		const configs = Configurer.verifyFetch();
-		this.config = configs.core;
-		this.#keys = configs.key;
+		const configs = loadConfig();
+		this.config = configs.server;
 		this.#dbConfig = configs.db;
 		this.#emailConfig = configs.email;
 
@@ -178,21 +165,19 @@ export default class Core {
 		this.logger.info(`Debug Level: ${debugLevelMap.get(this.debugLevel)}`);
 
 		// Init app
-		this.httpsEnabled = Boolean(
-			this.#keys.httpsCertOptions?.cert &&
-				this.#keys.httpsCertOptions?.key,
-		);
+		// The config schema only allows httpsCertOptions with both a key and a cert
+		this.httpsEnabled = Boolean(this.config.httpsCertOptions);
 
 		this.app = fastify({
 			trustProxy: this.config.trustProxies,
 			disableRequestLogging: true,
-			https: this.initServer(this.#keys),
+			https: this.initServer(this.config.httpsCertOptions),
 			loggerInstance: this.logger as FastifyBaseLogger,
 		});
 		this.app.decorate("codes", StatusCodes);
 
 		// Init db
-		this.db = new MongoDB(); // Time to abuse Node. :)
+		this.db = pickdb(); // Time to abuse Node. :)
 		this.listening = false;
 
 		this.regexs = new Regexs();
@@ -469,12 +454,14 @@ export default class Core {
 	/**
 	 * @desc Builds Fastify's HTTPS options. null means Fastify serves plain HTTP
 	 */
-	initServer(keys: KeyConfig): ServerOptions | null {
-		if (keys.httpsCertOptions?.key && keys.httpsCertOptions?.cert) {
+	initServer(
+		https: Config["server"]["httpsCertOptions"],
+	): ServerOptions | null {
+		if (https) {
 			this.logger.debug("Using HTTPS server");
 			return {
-				cert: fs.readFileSync(keys.httpsCertOptions.cert),
-				key: fs.readFileSync(keys.httpsCertOptions.key),
+				cert: fs.readFileSync(https.cert),
+				key: fs.readFileSync(https.key),
 			};
 		}
 

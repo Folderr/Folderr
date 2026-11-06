@@ -132,7 +132,8 @@ async function handleEmailUpdate(
 		};
 	}
 
-	if (authUser.email === email) {
+	// Emails match without regard to letter case, the same as in the database
+	if (authUser.email.toLowerCase() === email.toLowerCase()) {
 		return {
 			httpCode: core.codes.notAccepted,
 			message: {
@@ -166,13 +167,7 @@ async function handleEmailUpdate(
 	}
 
 	// Taken by an account, an account's pending change, or a pending signup
-	const [users, signups] = await Promise.all([
-		core.db.findUsers({
-			$or: [{ email }, { pendingEmail: email }],
-		}),
-		core.db.findVerifies({ email }),
-	]);
-	if (users.length > 0 || signups.length > 0) {
+	if (await core.db.isEmailTaken(email)) {
 		return {
 			httpCode: core.codes.used,
 			message: {
@@ -239,10 +234,7 @@ async function handleUsername(
 		};
 	}
 
-	const user =
-		(await core.db.findUser({ username })) ??
-		(await core.db.findVerify({ username }));
-	if (user) {
+	if (await core.db.isUsernameTaken(username)) {
 		return {
 			httpCode: core.codes.used,
 			message: {
@@ -295,7 +287,8 @@ function route(fastify: FastifyInstance, core: Core) {
 						{
 							code: 1014,
 							message:
-								'Password must be 8-32 characters long, must contain 1 uppercase and lowercase letter, and 1 digit. Password may contain "_", "&", "."',
+								constants.ENUMS.RESPONSES.PASSWORD
+									.PASSWORD_REQUIREMENTS,
 						},
 						{
 							code: 1018,
@@ -462,7 +455,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			try {
-				await core.db.updateUser({ id: auth.id }, update);
+				await core.db.updateUser(auth.id, update);
 			} catch (error: unknown) {
 				request.server.reportError(error, request, { user: auth });
 				return reply.status(core.codes.internalErr).send({

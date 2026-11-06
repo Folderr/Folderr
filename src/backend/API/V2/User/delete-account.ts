@@ -87,7 +87,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			reply: FastifyReply,
 		) {
 			// Deleting someone else's account needs an admin
-			const needAdmin = typeof request.query.userid === "string";
+			const targetId = request.query.userid;
+			const needAdmin = typeof targetId === "string";
 			const auth = await core.Utils.checkAuth(request, needAdmin);
 			if (auth.code !== 200) {
 				return reply.status(auth.code).send({
@@ -109,9 +110,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 				}
 
-				const mem = await core.db.findUser({
-					id: request.query.userid,
-				});
+				const mem = await core.db.findUser({ id: targetId });
 				if (!mem) {
 					return reply.status(core.codes.notFound).send({
 						code: core.Utils.foldCodes.dbNotFound,

@@ -489,8 +489,8 @@ class Utils {
 			.slice(min, max);
 		let toReturn = true;
 		const [upload, link] = await Promise.all([
-			this.#core.db.findFile({ id }, "id"),
-			this.#core.db.findLink({ id }, "id"),
+			this.#core.db.findFile({ id }),
+			this.#core.db.findLink({ id }),
 		]);
 		if (upload ?? link) {
 			toReturn = false;
@@ -676,9 +676,8 @@ class Utils {
 		validationToken: string,
 		userID: string,
 	): Promise<PendingMember | false> {
-		const user: PendingMember | undefined = await this.#core.db.findVerify({
-			id: userID,
-		});
+		const user: PendingMember | undefined =
+			await this.#core.db.findVerify(userID);
 		if (!user) {
 			return false;
 		}

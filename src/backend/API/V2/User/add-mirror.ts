@@ -199,16 +199,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			await core.db.updateUser(
-				{
-					id: auth.user.id,
-				},
-				{
-					$addToSet: {
-						cURLs: request.body.url,
-					},
-				},
-			);
+			await core.db.addMirror(auth.user.id, request.body.url);
 			return reply
 				.status(core.codes.ok)
 				.send({ code: core.codes.ok, message: "OK" });

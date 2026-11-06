@@ -85,9 +85,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			// Find notification. If not found, return a not found status code
-			const notify = await core.db.findAdminNotify({
-				id: request.params.id,
-			});
+			const notify = await core.db.findAdminNotify(request.params.id);
 			if (!notify) {
 				return reply.status(this.codes.noContent).send({
 					code: core.Utils.foldCodes.dbNotFound,
