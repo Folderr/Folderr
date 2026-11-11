@@ -6,11 +6,12 @@ const path = "/account";
 const method = "DELETE";
 
 /**
- * @desc Deletes an account and everything it owns. Returns false if the database failed.
+ * @desc Marks the account as deleted in the database and throws its files to the deleter
  */
 async function deleteAccount(core: Core, id: string): Promise<boolean> {
 	try {
-		await core.db.purgeUser(id);
+		await core.db.markUserForDeletion(id);
+		core.addDeleter(id);
 		return true;
 	} catch (error: unknown) {
 		core.logger.error(error, "[SYSTEM ERROR] - Account deletion failure");
