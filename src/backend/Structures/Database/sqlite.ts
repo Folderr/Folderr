@@ -196,6 +196,14 @@ export default class SQLiteDB extends DBClass {
 		return this.#db.select().from(tables.bans);
 	}
 
+	async removeBan(email: string): Promise<number> {
+		// why did i make this a number
+		const remove = await this.#db
+			.delete(tables.bans)
+			.where(eq(tables.bans.email, normalizeInput(email)));
+		return remove.rowsAffected;
+	}
+
 	async isBanned(email: string): Promise<boolean> {
 		const [ban] = await this.#db
 			.select()
