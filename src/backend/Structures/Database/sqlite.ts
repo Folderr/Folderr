@@ -593,4 +593,21 @@ export default class SQLiteDB extends DBClass {
 			};
 		});
 	}
+
+	/* --- MIRROR RELATED METHODS --- */
+
+	/* --- VERIFICATION RELATED METHODS --- */
+
+	/* --- FILE RELATED METHODS --- */
+
+	/* --- LINK RELATED METHODS --- */
+
+	/* --- AUTHENTICATION RELATED METHODS --- */
+
+	/* --- ADMIN RELATED METHODS --- */
+
+	/* --- DATABASE RELATED METHODS --- */
+	async shutdown(): Promise<void> {
+		return this.#client?.close(); // Closes the client. Should be done after http server end
+	}
 }
