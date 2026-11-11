@@ -25,6 +25,9 @@ export const users = sqliteTable(
 		createdAt: int({ mode: "timestamp_ms" })
 			.notNull()
 			.$defaultFn(() => new Date()),
+		updatedAt: int({ mode: "timestamp_ms" })
+			.notNull()
+			.$defaultFn(() => new Date()),
 		markedForDeletion: int({ mode: "boolean" }).default(false).notNull(),
 	},
 	(table) => [
@@ -59,7 +62,8 @@ export const userPrivacyChoices = sqliteTable("user_privacy_choices", {
 	dataCollection: int({ mode: "boolean" }).default(false).notNull(),
 	updatedAt: int({ mode: "timestamp_ms" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.$defaultFn(() => new Date())
+		.$onUpdateFn(() => new Date()),
 });
 
 export const userNotifications = sqliteTable(
@@ -155,7 +159,7 @@ export const tokens = sqliteTable(
 	(table) => [index("tokens_user_idx").on(table.userId)],
 );
 
-export const verifyingUsersTable = sqliteTable(
+export const verifyingUsers = sqliteTable(
 	"verifying_users",
 	{
 		id: text().primaryKey(),
@@ -197,7 +201,7 @@ export const relations = defineRelations(
 	{
 		users,
 		userNotifications,
-		verifyingUsersTable,
+		verifyingUsersTable: verifyingUsers,
 		tokens,
 		links,
 		files,
