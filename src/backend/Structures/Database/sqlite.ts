@@ -596,6 +596,29 @@ export default class SQLiteDB extends DBClass {
 
 	/* --- MIRROR RELATED METHODS --- */
 
+	async addMirror(userId: string, url: string): Promise<boolean> {
+		// A mirror belongs to one user, so re-adding your own or adding someone else's changes nothing
+		const added = await this.#db
+			.insert(tables.customDomains)
+			.values({ domain: url, owner: userId })
+			.onConflictDoNothing({ target: tables.customDomains.domain })
+			.returning({ domain: tables.customDomains.domain });
+		return added.length > 0;
+	}
+
+	async removeMirror(userId: string, url: string): Promise<boolean> {
+		const removed = await this.#db
+			.delete(tables.customDomains)
+			.where(
+				and(
+					eq(tables.customDomains.domain, url),
+					eq(tables.customDomains.owner, userId),
+				),
+			)
+			.returning({ domain: tables.customDomains.domain });
+		return removed.length > 0;
+	}
+
 	/* --- VERIFICATION RELATED METHODS --- */
 
 	/* --- FILE RELATED METHODS --- */
