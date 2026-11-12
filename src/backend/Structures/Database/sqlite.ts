@@ -1,11 +1,14 @@
 import { type Client, createClient, LibsqlError } from "@libsql/client";
-import { and, DrizzleQueryError, eq, ne, type SQL } from "drizzle-orm";
+import { and, DrizzleQueryError, eq, inArray, ne, type SQL } from "drizzle-orm";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
+import { existsSync } from "fs";
+import { unlink } from "fs/promises";
 import { join } from "path";
 import process from "process";
 import { WARNING_TITLE } from "../constants/notifications.js";
 import logger from "../logger.js";
+import { uploadPath } from "../Utilities/upload-types.js";
 import type {
 	Ban,
 	FileFilter,
@@ -705,6 +708,97 @@ export default class SQLiteDB extends DBClass {
 	}
 
 	/* --- FILE RELATED METHODS --- */
+	async findFile(filter: FileFilter): Promise<Upload | undefined> {
+		const sqlFilter: SQL[] = [];
+		if (filter.id) sqlFilter.push(eq(tables.files.id, filter.id));
+		if (filter.ext) sqlFilter.push(eq(tables.files.ext, filter.ext));
+		if (filter.owner) sqlFilter.push(eq(tables.files.owner, filter.owner));
+
+		const [file] = await this.#db
+			.select()
+			.from(tables.files)
+			.where(and(...sqlFilter))
+			.limit(1);
+		return file;
+	}
+
+	async listFiles(owner: string, page: PageOptions): Promise<Upload[]> {
+		const { where, orderBy, limit, reverse } = toSQLPage(page);
+		const rows = await this.#db.query.files.findMany({
+			where: {
+				owner,
+				...where,
+			},
+			orderBy,
+			limit,
+		});
+
+		return reverse ? rows.reverse() : rows;
+	}
+
+	async makeFile(
+		id: string,
+		owner: string,
+		fields: { contentType: string; ext: string },
+	): Promise<Upload> {
+		const [file] = await this.#db
+			.insert(tables.files)
+			.values({
+				id,
+				owner,
+				contentType: fields.contentType,
+				ext: fields.ext,
+			})
+			.returning();
+		return file;
+	}
+
+	async purgeFile(filter: FileFilter): Promise<boolean> {
+		// TODO: Ensure no file is orphaned without a record
+		// ATOMICITY: Check for records without an owner at startup
+		// - Check for files without a record at startup
+		// - Clear users marked for deletion at startup
+		const sqlFilter: SQL[] = [];
+		if (filter.id) sqlFilter.push(eq(tables.files.id, filter.id));
+		if (filter.ext) sqlFilter.push(eq(tables.files.ext, filter.ext));
+		if (filter.owner) sqlFilter.push(eq(tables.files.owner, filter.owner));
+
+		const [file] = await this.#db
+			.delete(tables.files)
+			.where(and(...sqlFilter))
+			.returning(); // May want to simply mark as deleted
+		if (!file) return false;
+		const path = uploadPath(file.id, file.ext);
+		try {
+			await unlink(path);
+		} catch (error: unknown) {
+			if ((error as NodeJS.ErrnoException).code !== "ENONET") {
+				logger.error(
+					new Error(`Database could not delete file ${path}`, {
+						cause: error,
+					}),
+				);
+			}
+		}
+
+		return true; // Possibly a partial truth
+	}
+
+	async purgeFilesByIds(owner: string, ids: string[]): Promise<number> {
+		if (ids.length === 0) return 0;
+		const files = await this.#db
+			.delete(tables.files)
+			.where(
+				and(
+					eq(tables.files.owner, owner),
+					inArray(tables.files.id, ids),
+				),
+			)
+			.returning({
+				id: tables.files.id,
+			});
+		return files.length;
+	}
 
 	/* --- LINK RELATED METHODS --- */
 
