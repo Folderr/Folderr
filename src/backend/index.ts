@@ -1,6 +1,5 @@
 import { RewriteFrames } from "@sentry/integrations";
 import * as Sentry from "@sentry/node";
-import * as Tracing from "@sentry/tracing";
 import process, { env } from "process";
 import { type Config, loadConfig } from "./handlers/config-handler.js";
 import * as StartupHandler from "./handlers/startup-handler.js";
@@ -22,10 +21,7 @@ const integrations: any[] = [
 ] as any[];
 
 if (tracing) {
-	integrations.push(
-		new Sentry.Integrations.Http({ tracing: true }),
-		new Tracing.Integrations.Mongo({ useMongoose: true }),
-	);
+	integrations.push(new Sentry.Integrations.Http({ tracing: true }));
 }
 
 if (sentry) {
