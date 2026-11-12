@@ -175,6 +175,12 @@ export default class SQLiteDB extends DBClass {
 		try {
 			// Initalize Drizzle
 			this.#client = createClient({ url, authToken });
+			if (url.startsWith("file:")) {
+				// WAL lets reads run during a write, and NORMAL skips the disk flush on every commit
+				// (about 8ms each). A power cut can lose the last few commits but never corrupts the file
+				await this.#client.execute("PRAGMA journal_mode = WAL");
+				await this.#client.execute("PRAGMA synchronous = NORMAL");
+			}
 			this.#database = drizzle({ client: this.#client, relations });
 			// Run migrations
 			const migrationsFolder =

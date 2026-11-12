@@ -40,6 +40,7 @@ export const users = sqliteTable(
 			"users_email_normalized",
 			sql`${table.email} = lower(${table.email})`,
 		),
+		index("users_paging_idx").on(table.createdAt), // listUsers pages by creation time
 		uniqueIndex("users_owner_unique_idx")
 			.on(table.role)
 			.where(sql`${table.role} = 'owner'`),
