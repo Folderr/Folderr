@@ -127,6 +127,14 @@ function toSQLPage(page: PageOptions) {
 	};
 }
 
+/** A link is always matched by its ID; `owner` narrows it to that user's own link */
+function linkWhere(filter: LinkFilter): SQL | undefined {
+	return and(
+		eq(tables.links.id, filter.id),
+		filter.owner ? eq(tables.links.owner, filter.owner) : undefined,
+	);
+}
+
 export default class SQLiteDB extends DBClass {
 	#client?: Client;
 	#database?: LibSQLDatabase<typeof relations>;
@@ -812,6 +820,47 @@ export default class SQLiteDB extends DBClass {
 	}
 
 	/* --- LINK RELATED METHODS --- */
+	async findLink(filter: LinkFilter): Promise<Link | undefined> {
+		const [link] = await this.#db
+			.select()
+			.from(tables.links)
+			.where(linkWhere(filter));
+		return link;
+	}
+
+	async findAndDeleteLink(filter: LinkFilter): Promise<Link | undefined> {
+		const [link] = await this.#db
+			.delete(tables.links)
+			.where(linkWhere(filter))
+			.returning();
+		return link;
+	}
+
+	async listLinks(owner: string, page: PageOptions): Promise<Link[]> {
+		const { where, orderBy, reverse, limit } = toSQLPage(page);
+		const links = await this.#db.query.links.findMany({
+			where: {
+				...where,
+				owner,
+			},
+			orderBy,
+			limit,
+		});
+
+		return reverse ? links.reverse() : links;
+	}
+
+	async makeLink(id: string, owner: string, link: string): Promise<Link> {
+		const [newLink] = await this.#db
+			.insert(tables.links)
+			.values({ id, owner, link })
+			.returning();
+		return newLink;
+	}
+
+	async purgeLink(filter: LinkFilter): Promise<boolean> {
+		return Boolean(await this.findAndDeleteLink(filter));
+	}
 
 	/* --- AUTHENTICATION RELATED METHODS --- */
 
