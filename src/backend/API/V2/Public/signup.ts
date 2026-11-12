@@ -275,7 +275,7 @@ async function noEmailSignup(
 		await core.db.makeVerify(userInfo, validationToken.hash, {
 			id: core.Utils.genNotifyID(),
 			title: "New user signup!",
-			notify:
+			content:
 				`Username: ${userInfo.username}\n` +
 				`User ID: ${userInfo.id}\n` +
 				`Validation Token: ${validationToken.token}`,

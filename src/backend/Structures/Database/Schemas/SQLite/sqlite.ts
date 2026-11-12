@@ -79,7 +79,7 @@ export const userNotifications = sqliteTable(
 	{
 		id: text().primaryKey(),
 		title: text().notNull(),
-		notify: text().notNull(), // TODO: rename to `notification` or `content`
+		content: text().notNull(),
 		createdAt: int({ mode: "timestamp_ms" })
 			.notNull()
 			.$defaultFn(() => new Date()),
@@ -97,7 +97,7 @@ export const adminNotifications = sqliteTable(
 	{
 		id: text().primaryKey(),
 		title: text().notNull(),
-		notify: text().notNull(), // TODO: rename to `notification` or `content`
+		content: text().notNull(),
 		createdAt: int({ mode: "timestamp_ms" })
 			.notNull()
 			.$defaultFn(() => new Date()),
@@ -233,7 +233,7 @@ export const relations = defineRelations(
 	},
 	(r) => ({
 		users: {
-			notifs: r.many.userNotifications({
+			notifications: r.many.userNotifications({
 				from: r.users.id,
 				to: r.userNotifications.userId,
 			}),

@@ -63,8 +63,8 @@ function isDuplicateConstraintError(error: unknown): boolean {
  * `this.#db.query.users.findFirst({ where, with: userWith })`
  */
 const userWith = {
-	notifs: {
-		columns: { id: true, title: true, notify: true, createdAt: true },
+	notifications: {
+		columns: { id: true, title: true, content: true, createdAt: true },
 	},
 	cURLs: { columns: { domain: true } },
 	privacy: { columns: { dataCollection: true } },
@@ -79,7 +79,7 @@ const userWith = {
 
 /** A users row plus what `userWith` loads. Typed by shape, so a query with fewer columns still fits */
 type UserRow = typeof tables.users.$inferSelect & {
-	notifs: Notification[];
+	notifications: Notification[];
 	cURLs: { domain: string }[];
 	// optional: false in the relations, but a user created without the row still comes back null
 	privacy: { dataCollection: boolean } | null;
@@ -325,7 +325,7 @@ export default class SQLiteDB extends DBClass {
 				await tx.insert(tables.userPrivacyChoices).values({ user: id });
 				return toUser({
 					...owner,
-					notifs: [],
+					notifications: [],
 					cURLs: [],
 					privacy: { dataCollection: false },
 					pendingEmailChange: null,
@@ -565,7 +565,7 @@ export default class SQLiteDB extends DBClass {
 
 	async addNotification(
 		userId: string,
-		notification: Pick<Notification, "id" | "title" | "notify">,
+		notification: Pick<Notification, "id" | "title" | "content">,
 	): Promise<boolean | undefined> {
 		const notificationRow = await this.#db
 			.insert(tables.userNotifications)
@@ -634,7 +634,7 @@ export default class SQLiteDB extends DBClass {
 					.returning();
 				return toUser({
 					...user,
-					notifs: [],
+					notifications: [],
 					cURLs: [],
 					privacy,
 					pendingEmailChange: null,
@@ -1025,12 +1025,12 @@ export default class SQLiteDB extends DBClass {
 	/* --- ADMIN RELATED METHODS --- */
 	async makeAdminNotify(
 		id: string,
-		notify: string,
+		content: string,
 		title: string,
 	): Promise<Notification> {
 		const [notification] = await this.#db
 			.insert(tables.adminNotifications)
-			.values({ id, notify, title })
+			.values({ id, content, title })
 			.returning();
 		return notification;
 	}

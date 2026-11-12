@@ -40,7 +40,7 @@ function route(fastify: FastifyInstance, core: Core) {
 									{
 										id: "01JBA2C7RZ5V8N3Q6M1KXT4WDE",
 										title: "Welcome",
-										notify: "Welcome to Folderr!",
+										content: "Welcome to Folderr!",
 										createdAt: 1730073600000,
 									},
 								],
@@ -72,7 +72,7 @@ function route(fastify: FastifyInstance, core: Core) {
 										properties: {
 											id: { type: "string" },
 											title: { type: "string" },
-											notify: { type: "string" },
+											content: { type: "string" },
 											createdAt: { type: "number" },
 										},
 									},
@@ -122,7 +122,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				links,
 				email: user.email,
 				pendingEmail: user.pendingEmail,
-				notifications: user.notifs,
+				notifications: user.notifications,
 				customUrls: user.cURLs,
 				createdAt: user.createdAt.getTime(),
 				privacy: user.privacy,

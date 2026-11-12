@@ -100,7 +100,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const updated = await core.db.addNotification(request.params.id, {
 				id,
 				title: WARNING_TITLE,
-				notify: `You were warned for: ${request.body.reason}`,
+				content: `You were warned for: ${request.body.reason}`,
 			});
 			if (!updated) {
 				return reply.status(core.codes.notAccepted).send({

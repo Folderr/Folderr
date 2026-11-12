@@ -102,7 +102,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const notify = auth.user.notifs?.find(
+			const notify = auth.user.notifications?.find(
 				(notification) => notification.id === request.params.id,
 			);
 			if (!notify) {

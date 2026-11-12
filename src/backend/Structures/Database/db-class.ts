@@ -28,7 +28,7 @@ export interface Folderr {
 export interface Notification {
 	id: string;
 	title: string;
-	notify: string;
+	content: string;
 	createdAt: Date;
 }
 
@@ -38,7 +38,7 @@ export interface User {
 	password: string;
 	owner?: boolean;
 	admin?: boolean;
-	notifs: Notification[];
+	notifications: Notification[];
 	cURLs: string[];
 	email: string;
 	createdAt: Date;
@@ -139,7 +139,7 @@ export type FileFilter = { id: string; owner?: string; ext?: string };
 export type LinkFilter = { id: string; owner?: string };
 
 /** The admin notification for a signup that waits on an admin's approval */
-export type SignupNotification = { id: string; title: string; notify: string };
+export type SignupNotification = { id: string; title: string; content: string };
 
 export class DatabaseError extends Error {
 	constructor(message: string, options?: { cause?: unknown }) {
@@ -326,7 +326,7 @@ export class DBClass {
 
 	async addNotification(
 		userID: string,
-		notification: Pick<Notification, "id" | "title" | "notify">,
+		notification: Pick<Notification, "id" | "title" | "content">,
 	): Promise<boolean | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method addNotification is not implemented!",
@@ -602,7 +602,7 @@ export class DBClass {
 	/* ---- ADMIN RELATED METHODS ---- */
 	async makeAdminNotify(
 		id: string,
-		notify: string,
+		content: string,
 		title: string,
 	): Promise<Notification> {
 		throw new Error(

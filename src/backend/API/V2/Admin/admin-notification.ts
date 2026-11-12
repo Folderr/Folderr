@@ -39,7 +39,8 @@ async function route(fastify: FastifyInstance, core: Core) {
 							message: {
 								id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
 								title: "New user signup!",
-								notify: "Username: jamie\nUser ID: 01JB8Z7D2F5H8K1M4P6R9T3VWX",
+								content:
+									"Username: jamie\nUser ID: 01JB8Z7D2F5H8K1M4P6R9T3VWX",
 								createdAt: 1730073600000,
 							},
 						},
@@ -51,7 +52,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 							properties: {
 								id: { type: "string" },
 								title: { type: "string" },
-								notify: { type: "string" },
+								content: { type: "string" },
 								createdAt: { type: "number" },
 							},
 						},

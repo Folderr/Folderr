@@ -42,13 +42,15 @@ function route(fastify: FastifyInstance, core: Core) {
 								{
 									id: "01JB8Z6Q3K4M9T2V7XWYH5N0RC",
 									title: "Account warned",
-									notify: "Please keep uploads within the terms of service.",
+									content:
+										"Please keep uploads within the terms of service.",
 									createdAt: 1730073600000,
 								},
 								{
 									id: "01JB7XKD2R8F4N6P1QZ3W9M5TA",
 									title: "New user signup!",
-									notify: "Username: jamie,User ID: 01J9W4E7T5H2C8B3N6M1QK0DXF,Validation Token: abc123",
+									content:
+										"Username: jamie,User ID: 01J9W4E7T5H2C8B3N6M1QK0DXF,Validation Token: abc123",
 									createdAt: 1729987200000,
 								},
 							],
@@ -63,7 +65,7 @@ function route(fastify: FastifyInstance, core: Core) {
 								properties: {
 									id: { type: "string" },
 									title: { type: "string" },
-									notify: { type: "string" },
+									content: { type: "string" },
 									createdAt: { type: "number" },
 								},
 							},
@@ -89,7 +91,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			let notifs: Notification[] = auth.user.notifs ?? [];
+			let notifs: Notification[] = auth.user.notifications ?? [];
 			// If the user wants to view admin notifications
 			if (request.query?.admin === true) {
 				if (!auth.user.admin && !auth.user.owner) {
@@ -103,7 +105,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				notifs = anotifs.map((notification: Notification) => ({
 					id: notification.id,
 					title: notification.title,
-					notify: notification.notify.replace(/\n/g, ","),
+					content: notification.content.replace(/\n/g, ","),
 					createdAt: notification.createdAt,
 				}));
 			}
