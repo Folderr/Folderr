@@ -1,0 +1,1000 @@
+{
+	"version": "7",
+	"dialect": "sqlite",
+	"id": "b97674c4-f63e-46a8-94f0-27e619df23c9",
+	"prevIds": ["00000000-0000-0000-0000-000000000000"],
+	"ddl": [
+		{
+			"name": "admin_notifications",
+			"entityType": "tables"
+		},
+		{
+			"name": "bans",
+			"entityType": "tables"
+		},
+		{
+			"name": "custom_domains",
+			"entityType": "tables"
+		},
+		{
+			"name": "email_changes",
+			"entityType": "tables"
+		},
+		{
+			"name": "files",
+			"entityType": "tables"
+		},
+		{
+			"name": "folderr",
+			"entityType": "tables"
+		},
+		{
+			"name": "links",
+			"entityType": "tables"
+		},
+		{
+			"name": "tokens",
+			"entityType": "tables"
+		},
+		{
+			"name": "user_notifications",
+			"entityType": "tables"
+		},
+		{
+			"name": "user_privacy_choices",
+			"entityType": "tables"
+		},
+		{
+			"name": "users",
+			"entityType": "tables"
+		},
+		{
+			"name": "verifying_users",
+			"entityType": "tables"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "title",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "content",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "verifyingUser",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "bans",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "bans",
+			"name": "email",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "bans",
+			"name": "reason",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "bans",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "custom_domains",
+			"name": "domain",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "custom_domains",
+			"name": "owner",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "custom_domains",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "email_changes",
+			"name": "userId",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "email_changes",
+			"name": "pendingEmail",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "email_changes",
+			"name": "pendingEmailToken",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "email_changes",
+			"name": "tokenExpiresAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "files",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "files",
+			"name": "owner",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "files",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "files",
+			"name": "contentType",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "files",
+			"name": "ext",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "folderr",
+			"name": "publicKeyJWT",
+			"type": "blob",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "folderr",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "folderr",
+			"name": "id",
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "links",
+			"name": "link",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "links",
+			"name": "owner",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "links",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "links",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "tokens",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "tokens",
+			"name": "userId",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "tokens",
+			"name": "web",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "tokens",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "tokens",
+			"name": "expiresAt",
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "tokens",
+			"name": "description",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": "'No description'",
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_notifications",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_notifications",
+			"name": "title",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_notifications",
+			"name": "content",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_notifications",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_notifications",
+			"name": "userId",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_privacy_choices",
+			"name": "user",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_privacy_choices",
+			"name": "dataCollection",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "user_privacy_choices",
+			"name": "updatedAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "password",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "username",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "role",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'user'",
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "email",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "updatedAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "users",
+			"name": "markedForDeletion",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "verifying_users",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "verifying_users",
+			"name": "username",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "verifying_users",
+			"name": "password",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "verifying_users",
+			"name": "validationToken",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "verifying_users",
+			"name": "email",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "verifying_users",
+			"name": "createdAt",
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "admin_notifications_paging_idx",
+			"columns": [
+				{
+					"value": "createdAt",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "custom_domains",
+			"name": "custom_domain_owner_idx",
+			"columns": [
+				{
+					"value": "owner",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "files",
+			"name": "files_paging_idx",
+			"columns": [
+				{
+					"value": "owner",
+					"isExpression": false
+				},
+				{
+					"value": "createdAt",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "links",
+			"name": "links_paging_idx",
+			"columns": [
+				{
+					"value": "owner",
+					"isExpression": false
+				},
+				{
+					"value": "createdAt",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "tokens",
+			"name": "tokens_user_idx",
+			"columns": [
+				{
+					"value": "userId",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "tokens",
+			"name": "tokens_expiration",
+			"columns": [
+				{
+					"value": "expiresAt",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "user_notifications",
+			"name": "notification_user_idx",
+			"columns": [
+				{
+					"value": "userId",
+					"isExpression": false
+				},
+				{
+					"value": "createdAt",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "users",
+			"name": "users_paging_idx",
+			"columns": [
+				{
+					"value": "createdAt",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "users",
+			"name": "users_owner_unique_idx",
+			"columns": [
+				{
+					"value": "role",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": "\"users\".\"role\" = 'owner'",
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "fk_admin_notifications_verifyingUser_verifying_users_id_fk",
+			"columns": ["verifyingUser"],
+			"tableTo": "verifying_users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "custom_domains",
+			"name": "fk_custom_domains_owner_users_id_fk",
+			"columns": ["owner"],
+			"tableTo": "users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "email_changes",
+			"name": "fk_email_changes_userId_users_id_fk",
+			"columns": ["userId"],
+			"tableTo": "users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "files",
+			"name": "fk_files_owner_users_id_fk",
+			"columns": ["owner"],
+			"tableTo": "users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "links",
+			"name": "fk_links_owner_users_id_fk",
+			"columns": ["owner"],
+			"tableTo": "users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "tokens",
+			"name": "fk_tokens_userId_users_id_fk",
+			"columns": ["userId"],
+			"tableTo": "users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "user_notifications",
+			"name": "fk_user_notifications_userId_users_id_fk",
+			"columns": ["userId"],
+			"tableTo": "users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "user_privacy_choices",
+			"name": "fk_user_privacy_choices_user_users_id_fk",
+			"columns": ["user"],
+			"tableTo": "users",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "admin_notifications",
+			"name": "admin_notifications_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "bans",
+			"name": "bans_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "custom_domains",
+			"name": "custom_domains_pk",
+			"columns": ["domain"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "email_changes",
+			"name": "email_changes_pk",
+			"columns": ["userId"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "files",
+			"name": "files_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "folderr",
+			"name": "folderr_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "links",
+			"name": "links_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "tokens",
+			"name": "tokens_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "user_notifications",
+			"name": "user_notifications_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "user_privacy_choices",
+			"name": "user_privacy_choices_pk",
+			"columns": ["user"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "users",
+			"name": "users_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "verifying_users",
+			"name": "verifying_users_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "bans",
+			"name": "bans_email_unique",
+			"columns": ["email"],
+			"nameExplicit": false,
+			"entityType": "uniques"
+		},
+		{
+			"table": "email_changes",
+			"name": "email_changes_pendingEmail_unique",
+			"columns": ["pendingEmail"],
+			"nameExplicit": false,
+			"entityType": "uniques"
+		},
+		{
+			"table": "email_changes",
+			"name": "email_changes_pendingEmailToken_unique",
+			"columns": ["pendingEmailToken"],
+			"nameExplicit": false,
+			"entityType": "uniques"
+		},
+		{
+			"table": "users",
+			"name": "users_username_unique",
+			"columns": ["username"],
+			"nameExplicit": false,
+			"entityType": "uniques"
+		},
+		{
+			"table": "users",
+			"name": "users_email_unique",
+			"columns": ["email"],
+			"nameExplicit": false,
+			"entityType": "uniques"
+		},
+		{
+			"table": "verifying_users",
+			"name": "verifying_users_username_unique",
+			"columns": ["username"],
+			"nameExplicit": false,
+			"entityType": "uniques"
+		},
+		{
+			"table": "verifying_users",
+			"name": "verifying_users_email_unique",
+			"columns": ["email"],
+			"nameExplicit": false,
+			"entityType": "uniques"
+		},
+		{
+			"table": "bans",
+			"name": "ban_email_normalized",
+			"value": "\"email\" = lower(\"email\")",
+			"entityType": "checks"
+		},
+		{
+			"table": "email_changes",
+			"name": "pending_email_normalized",
+			"value": "\"pendingEmail\" = lower(\"pendingEmail\")",
+			"entityType": "checks"
+		},
+		{
+			"table": "users",
+			"name": "users_email_normalized",
+			"value": "\"email\" = lower(\"email\")",
+			"entityType": "checks"
+		},
+		{
+			"table": "verifying_users",
+			"name": "verifying_user_email_normalized",
+			"value": "\"email\" = lower(\"email\")",
+			"entityType": "checks"
+		}
+	],
+	"renames": []
+}
