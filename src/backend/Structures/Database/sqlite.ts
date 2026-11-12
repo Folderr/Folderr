@@ -3,6 +3,7 @@ import {
 	and,
 	asc,
 	DrizzleQueryError,
+	desc,
 	eq,
 	inArray,
 	lt,
@@ -27,6 +28,7 @@ import type {
 	Notification,
 	PageOptions,
 	PendingMember,
+	SignupNotification,
 	Statistics,
 	Tokendb,
 	Upload,
@@ -722,19 +724,30 @@ export default class SQLiteDB extends DBClass {
 			email: string;
 		},
 		validationToken: string,
+		adminNotification?: SignupNotification,
 	): Promise<PendingMember> {
-		const [verify] = await this.#db
-			.insert(tables.verifyingUsers)
-			.values({
-				id: userInfo.id,
-				username: normalizeInput(userInfo.username),
-				password: userInfo.password,
-				email: normalizeInput(userInfo.email),
-				validationToken,
-			})
-			.returning();
+		// One transaction, so there's never a pending user without the notification an admin needs, or the reverse
+		return this.#db.transaction(async (tx) => {
+			const [verify] = await tx
+				.insert(tables.verifyingUsers)
+				.values({
+					id: userInfo.id,
+					username: normalizeInput(userInfo.username),
+					password: userInfo.password,
+					email: normalizeInput(userInfo.email),
+					validationToken,
+				})
+				.returning();
 
-		return verify;
+			if (adminNotification) {
+				// Tied to the pending user, so verifying or denying them deletes it too (ON DELETE CASCADE)
+				await tx
+					.insert(tables.adminNotifications)
+					.values({ ...adminNotification, verifyingUser: verify.id });
+			}
+
+			return verify;
+		});
 	}
 
 	/* --- FILE RELATED METHODS --- */
@@ -976,6 +989,41 @@ export default class SQLiteDB extends DBClass {
 	}
 
 	/* --- ADMIN RELATED METHODS --- */
+	async makeAdminNotify(
+		id: string,
+		notify: string,
+		title: string,
+	): Promise<Notification> {
+		const [notification] = await this.#db
+			.insert(tables.adminNotifications)
+			.values({ id, notify, title })
+			.returning();
+		return notification;
+	}
+
+	async findAdminNotify(id: string): Promise<Notification | undefined> {
+		const [notification] = await this.#db
+			.select()
+			.from(tables.adminNotifications)
+			.where(eq(tables.adminNotifications.id, id));
+		return notification;
+	}
+
+	async listAdminNotifies(): Promise<Notification[]> {
+		const notifications = await this.#db
+			.select()
+			.from(tables.adminNotifications)
+			.orderBy(desc(tables.adminNotifications.createdAt));
+		return notifications;
+	}
+
+	async purgeAdminNotify(id: string): Promise<boolean> {
+		const notification = await this.#db
+			.delete(tables.adminNotifications)
+			.where(eq(tables.adminNotifications.id, id))
+			.returning();
+		return notification.length === 1;
+	}
 
 	/* --- DATABASE RELATED METHODS --- */
 	async shutdown(): Promise<void> {

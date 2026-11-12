@@ -129,6 +129,9 @@ export type FileFilter = { id: string; owner?: string; ext?: string };
 /** A short link is always found by its ID; owner narrows it to a user's own link */
 export type LinkFilter = { id: string; owner?: string };
 
+/** The admin notification for a signup that waits on an admin's approval */
+export type SignupNotification = { id: string; title: string; notify: string };
+
 export class DatabaseError extends Error {
 	constructor(message: string, options?: { cause?: unknown }) {
 		super(message, options);
@@ -419,6 +422,10 @@ export class DBClass {
 		);
 	}
 
+	/**
+	 * @desc Adds a user pending verification. Pass `adminNotification` when an admin has to approve
+	 * the signup: it's saved with the pending user, and goes away when they're verified or denied
+	 */
 	async makeVerify(
 		userInfo: {
 			username: string;
@@ -427,6 +434,7 @@ export class DBClass {
 			email: string;
 		},
 		validationToken: string,
+		adminNotification?: SignupNotification,
 	): Promise<PendingMember> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeVerify is not implemented!",

@@ -34,6 +34,7 @@ import type {
 	Notification,
 	PageOptions,
 	PendingMember,
+	SignupNotification,
 	Statistics,
 	Tokendb,
 	Upload,
@@ -564,6 +565,7 @@ export default class Mongoosedb extends DBClass {
 			email: string;
 		},
 		validationToken: string,
+		adminNotification?: SignupNotification,
 	): Promise<PendingMember> {
 		const verify = new this.#schemas.PendingMember({
 			id: userInfo.id,
@@ -573,6 +575,11 @@ export default class Mongoosedb extends DBClass {
 			email: userInfo.email,
 		});
 		await verify.save();
+		if (adminNotification) {
+			// verifyUser and denyUser find this by the user ID inside its text
+			await this.#schemas.AdminNotification.create(adminNotification);
+		}
+
 		return verify;
 	}
 

@@ -270,18 +270,16 @@ async function noEmailSignup(
 	httpCode: 500 | 201;
 	msg: { code: number; message: string };
 }> {
-	const notifyID = core.Utils.genNotifyID();
 	try {
-		await Promise.all([
-			core.db.makeVerify(userInfo, validationToken.hash),
-			core.db.makeAdminNotify(
-				notifyID,
+		// The notification is saved with the pending user, and deleted when an admin verifies or denies them
+		await core.db.makeVerify(userInfo, validationToken.hash, {
+			id: core.Utils.genNotifyID(),
+			title: "New user signup!",
+			notify:
 				`Username: ${userInfo.username}\n` +
-					`User ID: ${userInfo.id}\n` +
-					`Validation Token: ${validationToken.token}`,
-				"New user signup!",
-			),
-		]);
+				`User ID: ${userInfo.id}\n` +
+				`Validation Token: ${validationToken.token}`,
+		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			// Handle signup error
