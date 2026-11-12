@@ -1,6 +1,7 @@
 import { defineRelations, sql } from "drizzle-orm";
 import {
 	blob,
+	check,
 	index,
 	int,
 	sqliteTable,
@@ -11,6 +12,10 @@ import {
 export type UserRole = "user" | "admin" | "owner";
 
 // The database is kept mostly lean so most values aren't nullable
+
+// Emails are stored lowercased (normalizeInput). These checks reject anything that isn't,
+// even from writers outside the engine, so a plain unique index is enough to stop duplicates.
+// SQLite's lower() only lowercases ASCII, so non-ASCII capitals slip past here.
 
 export const users = sqliteTable(
 	"users",
@@ -31,7 +36,10 @@ export const users = sqliteTable(
 		markedForDeletion: int({ mode: "boolean" }).default(false).notNull(),
 	},
 	(table) => [
-		uniqueIndex("users_email_idx").on(sql`lower(${table.email})`),
+		check(
+			"users_email_normalized",
+			sql`${table.email} = lower(${table.email})`,
+		),
 		uniqueIndex("users_owner_unique_idx")
 			.on(table.role)
 			.where(sql`${table.role} = 'owner'`),
@@ -49,8 +57,9 @@ export const emailChanges = sqliteTable(
 		tokenExpiresAt: int({ mode: "timestamp_ms" }).notNull(), // You only get a certain amount of time to accept
 	},
 	(table) => [
-		uniqueIndex("pending_email_change").on(
-			sql`lower(${table.pendingEmail})`,
+		check(
+			"pending_email_normalized",
+			sql`${table.pendingEmail} = lower(${table.pendingEmail})`,
 		),
 	],
 );
@@ -159,7 +168,10 @@ export const tokens = sqliteTable(
 		expiresAt: int({ mode: "timestamp_ms" }),
 		description: text().default("No description"),
 	},
-	(table) => [index("tokens_user_idx").on(table.userId)],
+	(table) => [
+		index("tokens_user_idx").on(table.userId),
+		index("tokens_expiration").on(table.expiresAt),
+	],
 );
 
 export const verifyingUsers = sqliteTable(
@@ -169,13 +181,16 @@ export const verifyingUsers = sqliteTable(
 		username: text().unique().notNull(),
 		password: text().notNull(),
 		validationToken: text().notNull(),
-		email: text().notNull().unique(), // Not an index
+		email: text().notNull().unique(),
 		createdAt: int({ mode: "timestamp_ms" })
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},
 	(table) => [
-		uniqueIndex("verifying_user_emails_idx").on(sql`lower(${table.email})`),
+		check(
+			"verifying_user_email_normalized",
+			sql`${table.email} = lower(${table.email})`,
+		),
 	],
 );
 
@@ -189,7 +204,12 @@ export const bans = sqliteTable(
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},
-	(table) => [uniqueIndex("email_bans_idx").on(sql`lower(${table.email})`)],
+	(table) => [
+		check(
+			"ban_email_normalized",
+			sql`${table.email} = lower(${table.email})`,
+		),
+	],
 );
 
 export const folderr = sqliteTable("folderr", {
@@ -204,7 +224,7 @@ export const relations = defineRelations(
 	{
 		users,
 		userNotifications,
-		verifyingUsersTable: verifyingUsers,
+		verifyingUsers,
 		tokens,
 		links,
 		files,

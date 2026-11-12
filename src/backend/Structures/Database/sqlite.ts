@@ -148,6 +148,18 @@ function linkWhere(filter: LinkFilter): SQL | undefined {
 	);
 }
 
+/**
+ * An upload is always matched by its ID; `owner` and `ext` narrow it.
+ * An empty `ext` still counts: it means the file has no extension, so `abc` doesn't match `abc.png`
+ */
+function fileWhere(filter: FileFilter): SQL | undefined {
+	return and(
+		eq(tables.files.id, filter.id),
+		filter.owner ? eq(tables.files.owner, filter.owner) : undefined,
+		filter.ext !== undefined ? eq(tables.files.ext, filter.ext) : undefined,
+	);
+}
+
 export default class SQLiteDB extends DBClass {
 	#client?: Client;
 	#database?: LibSQLDatabase<typeof relations>;
@@ -677,7 +689,7 @@ export default class SQLiteDB extends DBClass {
 
 	async verifyUser(
 		id: string,
-		options?: { admin: boolean },
+		options?: { admin?: boolean },
 	): Promise<User | undefined> {
 		const verify = await this.findVerify(id);
 
@@ -752,16 +764,10 @@ export default class SQLiteDB extends DBClass {
 
 	/* --- FILE RELATED METHODS --- */
 	async findFile(filter: FileFilter): Promise<Upload | undefined> {
-		const sqlFilter: SQL[] = [];
-		if (filter.id) sqlFilter.push(eq(tables.files.id, filter.id));
-		if (filter.ext) sqlFilter.push(eq(tables.files.ext, filter.ext));
-		if (filter.owner) sqlFilter.push(eq(tables.files.owner, filter.owner));
-
 		const [file] = await this.#db
 			.select()
 			.from(tables.files)
-			.where(and(...sqlFilter))
-			.limit(1);
+			.where(fileWhere(filter));
 		return file;
 	}
 
@@ -801,21 +807,16 @@ export default class SQLiteDB extends DBClass {
 		// ATOMICITY: Check for records without an owner at startup
 		// - Check for files without a record at startup
 		// - Clear users marked for deletion at startup
-		const sqlFilter: SQL[] = [];
-		if (filter.id) sqlFilter.push(eq(tables.files.id, filter.id));
-		if (filter.ext) sqlFilter.push(eq(tables.files.ext, filter.ext));
-		if (filter.owner) sqlFilter.push(eq(tables.files.owner, filter.owner));
-
 		const [file] = await this.#db
 			.delete(tables.files)
-			.where(and(...sqlFilter))
+			.where(fileWhere(filter))
 			.returning(); // May want to simply mark as deleted
 		if (!file) return false;
 		const path = uploadPath(file.id, file.ext);
 		try {
 			await unlink(path);
 		} catch (error: unknown) {
-			if ((error as NodeJS.ErrnoException).code !== "ENONET") {
+			if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
 				logger.error(
 					new Error(`Database could not delete file ${path}`, {
 						cause: error,
@@ -824,7 +825,7 @@ export default class SQLiteDB extends DBClass {
 			}
 		}
 
-		return true; // Possibly a partial truth
+		return true; // The record is gone; the file may still be on disk if unlink failed (logged above)
 	}
 
 	async purgeFilesByIds(owner: string, ids: string[]): Promise<number> {

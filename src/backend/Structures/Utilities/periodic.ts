@@ -6,7 +6,8 @@ export async function tokenPurger(db: DBClass): Promise<void> {
 		try {
 			logger.debug("DB Maintenance - Deleting expired tokens");
 			const count = await db.purgeExpiredTokens();
-			logger.info(`DB Maintenance - Deleted ${count} expired tokens`);
+			if (count > 0)
+				logger.info(`DB Maintenance - Deleted ${count} expired tokens`);
 		} catch (error) {
 			if (
 				!(
