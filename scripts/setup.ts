@@ -303,7 +303,7 @@ async function keyGen(
 				"Copy the files in configs.example/ to configs/ and fill them in, or set the matching " +
 				"FOLDERR_ environment variables shown in those files, then run setup again.\n" +
 				"If the files are there, check that Folderr can read them. See " +
-				"https://folderr.net/documentation/folderr/v2 for more details/guidance\n",
+				"https://folderr.net/guides/folderr/config for more details/guidance\n",
 		);
 		rl.close();
 		process.exit(1);
