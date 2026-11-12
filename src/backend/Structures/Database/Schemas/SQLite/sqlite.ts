@@ -24,8 +24,6 @@ export const users = sqliteTable(
 		password: text().notNull(),
 		username: text().notNull().unique(),
 		role: text().$type<UserRole>().default("user").notNull(),
-		files: int().default(0).notNull(), // Statistic, may be redundant in sql
-		links: int().default(0).notNull(), // Same as above
 		email: text().notNull().unique(),
 		createdAt: int({ mode: "timestamp_ms" })
 			.notNull()

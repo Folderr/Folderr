@@ -40,8 +40,6 @@ export interface User {
 	admin?: boolean;
 	notifs: Notification[];
 	cURLs: string[];
-	files: number;
-	links: number;
 	email: string;
 	createdAt: Date;
 	pendingEmail?: string;
@@ -52,6 +50,15 @@ export interface User {
 	};
 	markedForDeletion?: boolean;
 }
+
+/** How many uploads and short links a user has. Counted when asked for, never stored */
+export interface ContentCounts {
+	files: number;
+	links: number;
+}
+
+/** A user with their content counts, as the admin user list shows them */
+export type UserWithCounts = User & ContentCounts;
 
 export interface Ban {
 	email: string;
@@ -270,11 +277,21 @@ export class DBClass {
 	}
 
 	/**
-	 * @desc One page of accounts by creation time
+	 * @desc One page of accounts by creation time, with each one's content counts
 	 */
-	async listUsers(page: PageOptions): Promise<User[]> {
+	async listUsers(page: PageOptions): Promise<UserWithCounts[]> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method listUsers is not implemented!",
+		);
+	}
+
+	/**
+	 * @desc How many uploads and short links a user has. Kept out of findUser, which runs on
+	 * every authenticated request, so only the routes that show these pay for counting them
+	 */
+	async countContent(userId: string): Promise<ContentCounts> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method countContent is not implemented!",
 		);
 	}
 
@@ -370,15 +387,6 @@ export class DBClass {
 	removeMirror(userID: string, url: string): Promise<boolean | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method removeMirror is not implemented!",
-		);
-	}
-
-	async adjustUserCounts(
-		id: string,
-		update: { files?: number; links?: number },
-	): Promise<boolean | undefined> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method adjustUserCounts is not implemented!",
 		);
 	}
 

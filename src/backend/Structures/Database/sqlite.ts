@@ -22,6 +22,7 @@ import logger from "../logger.js";
 import { uploadPath } from "../Utilities/upload-types.js";
 import type {
 	Ban,
+	ContentCounts,
 	FileFilter,
 	Folderr,
 	Link,
@@ -35,6 +36,7 @@ import type {
 	Upload,
 	User,
 	UserFilter,
+	UserWithCounts,
 } from "./db-class";
 import {
 	DatabaseError,
@@ -359,6 +361,13 @@ export default class SQLiteDB extends DBClass {
 	}
 
 	/* --- USER RELATED METHODS --- */
+	async countContent(userId: string): Promise<ContentCounts> {
+		const [files, links] = await Promise.all([
+			this.#db.$count(tables.files, eq(tables.files.owner, userId)),
+			this.#db.$count(tables.links, eq(tables.links.owner, userId)),
+		]);
+		return { files, links };
+	}
 
 	async findUser(filter: UserFilter): Promise<User | undefined> {
 		const where: {
@@ -424,15 +433,31 @@ export default class SQLiteDB extends DBClass {
 		return Boolean(user ?? signup ?? pending);
 	}
 
-	async listUsers(page: PageOptions): Promise<User[]> {
+	async listUsers(page: PageOptions): Promise<UserWithCounts[]> {
 		const { where, orderBy, limit, reverse } = toSQLPage(page);
 		const rows = await this.#db.query.users.findMany({
 			where,
 			orderBy,
 			limit,
 			with: userWith,
+			extras: {
+				files: (users: typeof tables.users) =>
+					this.#db.$count(
+						tables.files,
+						eq(tables.files.owner, users.id),
+					),
+				links: (users: typeof tables.users) =>
+					this.#db.$count(
+						tables.links,
+						eq(tables.links.owner, users.id),
+					),
+			},
 		});
-		return (reverse ? rows.reverse() : rows).map(toUser); // Still need to transform until the definition of a user is changed
+		return (reverse ? rows.reverse() : rows).map((user) => ({
+			...toUser(user),
+			files: user.files,
+			links: user.links,
+		})); // Still need to transform until the definition of a user is changed
 	}
 
 	async setAdmin(id: string, admin: boolean): Promise<User | undefined> {

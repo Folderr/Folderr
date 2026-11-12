@@ -110,14 +110,16 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
+			const { files, links } = await core.db.countContent(auth.user.id);
+
 			const { user } = auth;
 			const acc: AccountReturn = {
 				username: user.username,
 				id: user.id,
 				admin: user.admin ?? false,
 				owner: user.owner ?? false,
-				files: user.files,
-				links: user.links,
+				files,
+				links,
 				email: user.email,
 				pendingEmail: user.pendingEmail,
 				notifications: user.notifs,
