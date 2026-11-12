@@ -1,5 +1,13 @@
 import { type Client, createClient, LibsqlError } from "@libsql/client";
-import { and, DrizzleQueryError, eq, inArray, ne, type SQL } from "drizzle-orm";
+import {
+	and,
+	asc,
+	DrizzleQueryError,
+	eq,
+	inArray,
+	ne,
+	type SQL,
+} from "drizzle-orm";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { existsSync } from "fs";
@@ -640,7 +648,10 @@ export default class SQLiteDB extends DBClass {
 	}
 
 	async listVerifies(): Promise<PendingMember[]> {
-		return await this.#db.select().from(tables.verifyingUsers);
+		return this.#db
+			.select()
+			.from(tables.verifyingUsers)
+			.orderBy(asc(tables.verifyingUsers.createdAt));
 	}
 
 	async verifyUser(
