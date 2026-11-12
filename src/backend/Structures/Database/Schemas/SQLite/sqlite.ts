@@ -93,6 +93,9 @@ export const adminNotifications = sqliteTable(
 		createdAt: int({ mode: "timestamp_ms" })
 			.notNull()
 			.$defaultFn(() => new Date()),
+		verifyingUser: text().references(() => verifyingUsers.id, {
+			onDelete: "cascade",
+		}),
 	},
 	(table) => [index("admin_notifications_paging_idx").on(table.createdAt)],
 ); // This should sort from newest first (DESC)

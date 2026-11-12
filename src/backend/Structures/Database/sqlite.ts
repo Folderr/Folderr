@@ -628,6 +628,81 @@ export default class SQLiteDB extends DBClass {
 	}
 
 	/* --- VERIFICATION RELATED METHODS --- */
+	async findVerify(id: string): Promise<PendingMember | undefined> {
+		const [pending] = await this.#db
+			.select()
+			.from(tables.verifyingUsers)
+			.where(eq(tables.verifyingUsers.id, id));
+		return pending;
+	}
+
+	async listVerifies(): Promise<PendingMember[]> {
+		return await this.#db.select().from(tables.verifyingUsers);
+	}
+
+	async verifyUser(
+		id: string,
+		options?: { admin: boolean },
+	): Promise<User | undefined> {
+		const verify = await this.findVerify(id);
+
+		if (!verify) return undefined;
+		const user = await this.makeUser(
+			{
+				username: verify.username,
+				id: verify.id,
+				password: verify.password,
+				email: verify.email,
+			},
+			options,
+		);
+
+		if (!user) return undefined;
+		await this.#db
+			.delete(tables.verifyingUsers)
+			.where(eq(tables.verifyingUsers.id, id));
+
+		return user;
+	}
+
+	async verifySelf(id: string): Promise<User | undefined> {
+		return this.verifyUser(id); // We have this nice code, lets re-use it
+	}
+
+	async denyUser(id: string): Promise<boolean> {
+		const deletion = await this.#db
+			.delete(tables.verifyingUsers)
+			.where(eq(tables.verifyingUsers.id, id))
+			.returning({ id: tables.verifyingUsers.id });
+		return deletion.length === 1;
+	}
+
+	async denySelf(id: string): Promise<boolean> {
+		return this.denyUser(id);
+	}
+
+	async makeVerify(
+		userInfo: {
+			username: string;
+			id: string;
+			password: string;
+			email: string;
+		},
+		validationToken: string,
+	): Promise<PendingMember> {
+		const [verify] = await this.#db
+			.insert(tables.verifyingUsers)
+			.values({
+				id: userInfo.id,
+				username: normalizeInput(userInfo.username),
+				password: userInfo.password,
+				email: normalizeInput(userInfo.email),
+				validationToken,
+			})
+			.returning();
+
+		return verify;
+	}
 
 	/* --- FILE RELATED METHODS --- */
 
