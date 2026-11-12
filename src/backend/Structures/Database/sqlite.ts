@@ -5,15 +5,16 @@ import {
 	DrizzleQueryError,
 	eq,
 	inArray,
+	lt,
 	ne,
 	type SQL,
 } from "drizzle-orm";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
-import { existsSync } from "fs";
 import { unlink } from "fs/promises";
 import { join } from "path";
 import process from "process";
+import { TOKEN_EXPIRY_DAYS } from "../constants/database.js";
 import { WARNING_TITLE } from "../constants/notifications.js";
 import logger from "../logger.js";
 import { uploadPath } from "../Utilities/upload-types.js";
@@ -99,6 +100,16 @@ function toUser(row: UserRow): User {
 		pendingEmail: pendingEmailChange?.pendingEmail,
 		pendingEmailToken: pendingEmailChange?.pendingEmailToken,
 		tokenExpiresAt: pendingEmailChange?.tokenExpiresAt,
+	};
+}
+
+function toToken(row: typeof tables.tokens.$inferSelect): Tokendb {
+	const { userId, description, expiresAt, ...rest } = row;
+	return {
+		userID: userId,
+		description: description ? description : undefined,
+		...rest,
+		expireAt: expiresAt ? expiresAt : undefined,
 	};
 }
 
@@ -863,6 +874,106 @@ export default class SQLiteDB extends DBClass {
 	}
 
 	/* --- AUTHENTICATION RELATED METHODS --- */
+	async findToken(
+		tokenID: string,
+		id: string,
+		options?: { web?: boolean },
+	): Promise<Tokendb | undefined> {
+		const [token] = await this.#db
+			.select()
+			.from(tables.tokens)
+			.where(
+				and(
+					eq(tables.tokens.id, tokenID),
+					eq(tables.tokens.userId, id),
+					eq(tables.tokens.web, options?.web ?? false),
+				),
+			);
+		return token ? toToken(token) : undefined;
+	}
+
+	async findTokens(
+		userId: string,
+		options?: { web?: boolean },
+	): Promise<Tokendb[]> {
+		const tokens = await this.#db
+			.select()
+			.from(tables.tokens)
+			.where(
+				and(
+					eq(tables.tokens.userId, userId),
+					eq(tables.tokens.web, options?.web ?? false),
+				),
+			)
+			.orderBy(asc(tables.tokens.createdAt));
+		return tokens.map(toToken);
+	}
+
+	async makeToken(
+		tokenID: string,
+		userId: string,
+		options?: { web?: boolean; description?: string },
+	): Promise<Tokendb | undefined> {
+		const date = new Date();
+		date.setDate(date.getDate() + TOKEN_EXPIRY_DAYS);
+		const [token] = await this.#db
+			.insert(tables.tokens)
+			.values({
+				id: tokenID,
+				userId,
+				web: options?.web ?? false,
+				expiresAt: options?.web ? date : undefined,
+				description: options?.description,
+			})
+			.returning();
+
+		return toToken(token);
+	}
+
+	async purgeToken(
+		tokenID: string,
+		userID: string,
+		options?: { web?: boolean },
+	): Promise<boolean> {
+		const tokens = await this.#db
+			.delete(tables.tokens)
+			.where(
+				and(
+					eq(tables.tokens.id, tokenID),
+					eq(tables.tokens.userId, userID),
+					options?.web !== undefined
+						? eq(tables.tokens.web, options.web)
+						: undefined,
+				),
+			)
+			.returning();
+		return tokens.length === 1;
+	}
+
+	async purgeTokens(
+		userID: string,
+		web?: boolean,
+	): Promise<number | undefined> {
+		const tokens = await this.#db
+			.delete(tables.tokens)
+			.where(
+				and(
+					eq(tables.tokens.userId, userID),
+					web ? eq(tables.tokens.web, web) : undefined,
+				),
+			)
+			.returning();
+
+		return tokens.length;
+	}
+
+	async purgeExpiredTokens(): Promise<number> {
+		const tokens = await this.#db
+			.delete(tables.tokens)
+			.where(lt(tables.tokens.expiresAt, new Date()))
+			.returning({ id: tables.tokens.id });
+		return tokens.length;
+	}
 
 	/* --- ADMIN RELATED METHODS --- */
 

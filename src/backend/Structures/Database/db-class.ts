@@ -575,6 +575,12 @@ export class DBClass {
 		);
 	}
 
+	async purgeExpiredTokens(): Promise<number> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method purgeExpiredTokens is not implemented!",
+		);
+	}
+
 	/* ---- ADMIN RELATED METHODS ---- */
 	async makeAdminNotify(
 		id: string,

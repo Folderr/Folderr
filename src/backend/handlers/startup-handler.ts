@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/node";
 import process from "process"; // Shut.
 import Core from "../Structures/core.js";
+import { tokenPurger } from "../Structures/Utilities/periodic.js";
 
 export async function startFolderr(): Promise<void> {
 	console.time("Startup");
@@ -24,6 +25,8 @@ export async function startFolderr(): Promise<void> {
 	}
 
 	await core.initAuthorization();
+
+	await tokenPurger(core.db);
 
 	await core.registerServerPlugins();
 
