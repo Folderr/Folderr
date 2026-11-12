@@ -3,4 +3,4 @@
 #
 # Use a database login with a password, and keep the database server off the public internet:
 # bind it to 127.0.0.1 (or a private network) rather than 0.0.0.0.
-url: "mongodb://folderr:change-me@127.0.0.1:27017/folderrDB?authSource=admin" # Required [FOLDERR_DB_URL]
+url: "file:./db/folderr.sqlite" # Required [FOLDERR_DB_URL]

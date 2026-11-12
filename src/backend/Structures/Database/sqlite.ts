@@ -12,9 +12,10 @@ import {
 } from "drizzle-orm";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
-import { unlink } from "fs/promises";
-import { join } from "path";
+import { mkdir, unlink } from "fs/promises";
+import { dirname, join, resolve } from "path";
 import process from "process";
+import { fileURLToPath } from "url";
 import type { Config } from "../../handlers/config-handler.js";
 import { TOKEN_EXPIRY_DAYS } from "../constants/database.js";
 import { WARNING_TITLE } from "../constants/notifications.js";
@@ -48,6 +49,22 @@ import {
 import * as schema from "./Schemas/SQLite/sqlite.js";
 
 const { relations, ...tables } = schema;
+
+/**
+ * The folder a `file:` database lives in, or undefined for in-memory and remote databases.
+ * Relative paths (`file:./db/folderr.sqlite`) resolve from the working directory, like libSQL does.
+ * Absolute ones can be plain (`file:/var/lib/folderr.sqlite`, `file:C:/Folderr/folderr.sqlite`)
+ * or full file URLs (`file:///var/lib/folderr.sqlite`)
+ */
+function databaseFolder(url: string): string | undefined {
+	if (!url.startsWith("file:")) return undefined;
+	const path = url.slice("file:".length).split("?")[0];
+	if (path === "" || path === ":memory:") return undefined;
+	const file = path.startsWith("//")
+		? fileURLToPath(`file:${path}`)
+		: resolve(path);
+	return dirname(file);
+}
 
 function isDuplicateConstraintError(error: unknown): boolean {
 	const cause = error instanceof DrizzleQueryError ? error.cause : error;
@@ -175,6 +192,12 @@ export default class SQLiteDB extends DBClass {
 	async init(config: Config["db"]): Promise<void> {
 		const { url, authToken } = config;
 		try {
+			// SQLite creates the database file, but not the folder it goes in
+			const folder = databaseFolder(url);
+			if (folder) {
+				await mkdir(folder, { recursive: true });
+			}
+
 			// Initalize Drizzle
 			this.#client = createClient({ url, authToken });
 			if (url.startsWith("file:")) {
