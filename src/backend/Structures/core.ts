@@ -177,7 +177,7 @@ export default class Core {
 		this.app.decorate("codes", StatusCodes);
 
 		// Init db
-		this.db = pickdb(); // Time to abuse Node. :)
+		this.db = pickdb(this.#dbConfig); // Time to abuse Node. :)
 		this.listening = false;
 
 		this.regexs = new Regexs();
@@ -591,9 +591,7 @@ export default class Core {
 	async initDb(): Promise<void> {
 		this.logger.debug("Init DB");
 		// Again, neglecting this potential error to handle elsewhere
-		return this.db.init(
-			this.#dbConfig.url || "mongodb://localhost/folderr",
-		);
+		return this.db.init(this.#dbConfig);
 	}
 
 	/**

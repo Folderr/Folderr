@@ -19,6 +19,8 @@
  *
  */
 
+import type { Config } from "../../handlers/config-handler.js";
+
 export interface Folderr {
 	publicKeyJWT: Buffer;
 }
@@ -170,7 +172,7 @@ export class DBClass {
 		}
 	}
 
-	async init(url: string): Promise<void> {
+	async init(config: Config["db"]): Promise<void> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method init is not implemented!",
 		);

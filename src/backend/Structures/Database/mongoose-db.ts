@@ -22,6 +22,7 @@
 import { existsSync, promises as fs } from "fs";
 import mongoose from "mongoose";
 import process from "process";
+import type { Config } from "../../handlers/config-handler.js";
 import * as constants from "../constants/index.js";
 import logger from "../logger.js";
 import { uploadPath } from "../Utilities/upload-types.js";
@@ -102,9 +103,9 @@ export default class Mongoosedb extends DBClass {
 		};
 	}
 
-	async init(url: string): Promise<void> {
+	async init(config: Config["db"]): Promise<void> {
 		try {
-			await mongoose.connect(url, { appName: "Folderr" });
+			await mongoose.connect(config.url, { appName: "Folderr" });
 			this.#internals.connection = mongoose.connection;
 			this.status = "ok";
 			// Ensure all indexes for hopefully proper (and faster) sorting
@@ -156,7 +157,7 @@ export default class Mongoosedb extends DBClass {
 		});
 		this.#internals.connection.on("disconnect", async () => {
 			try {
-				await mongoose.connect(url);
+				await mongoose.connect(config.url);
 			} catch (error: unknown) {
 				if (error instanceof Error) {
 					this.status = "offline";

@@ -15,6 +15,7 @@ import { migrate } from "drizzle-orm/libsql/migrator";
 import { unlink } from "fs/promises";
 import { join } from "path";
 import process from "process";
+import type { Config } from "../../handlers/config-handler.js";
 import { TOKEN_EXPIRY_DAYS } from "../constants/database.js";
 import { WARNING_TITLE } from "../constants/notifications.js";
 import logger from "../logger.js";
@@ -169,10 +170,11 @@ export default class SQLiteDB extends DBClass {
 		this.status = "offline";
 	}
 
-	async init(url: string): Promise<void> {
+	async init(config: Config["db"]): Promise<void> {
+		const { url, authToken } = config;
 		try {
 			// Initalize Drizzle
-			this.#client = createClient({ url });
+			this.#client = createClient({ url, authToken });
 			this.#database = drizzle({ client: this.#client, relations });
 			// Run migrations
 			const migrationsFolder =

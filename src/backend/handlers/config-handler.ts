@@ -6,6 +6,7 @@ import z from "zod";
 
 const Db = z.strictObject({
 	url: z.string().trim().min(1), // Accepts as `file:.local.db` or postgres:// / mongodb://
+	authToken: z.string().trim().optional(),
 });
 
 const zbool = z.union([
@@ -93,6 +94,7 @@ const ENV: Record<string, string> = {
 	FOLDERR_SENTRY_RATE: "server.sentry.rate",
 	FOLDERR_SENTRY_TRACING: "server.sentry.tracing",
 	FOLDERR_DB_URL: "db.url",
+	FOLDERR_DB_AUTH_TOKEN: "db.authToken",
 	FOLDERR_EMAIL_FROM: "email.sendingEmail",
 	FOLDERR_EMAIL_SELF_TEST: "email.selfTest",
 	FOLDERR_SMTP_HOST: "email.mailerOptions.host",
