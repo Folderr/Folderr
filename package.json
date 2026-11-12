@@ -11,6 +11,8 @@
 		"build:backend": "swc . --config-file ./.swcrc --ignore dist/**,node_modules/** --copy-files --out-dir dist/",
 		"migrations:gen:sqlite": "drizzle-kit generate --config drizzle/sqlite.config.ts",
 		"migrations:gen:pg": "drizzle-kit generate --config drizzle/pg.config.ts",
+		"migrations:squash:sqlite": "tsx scripts/squash-migrations.ts sqlite",
+		"migrations:squash:pg": "tsx scripts/squash-migrations.ts pg",
 		"start": "node --enable-source-maps dist/src/backend/index.js",
 		"setup": "node dist/scripts/setup.js",
 		"dev": "tsx watch --clear-screen=false --ignore \"**vite**\" src/backend/index.ts",
