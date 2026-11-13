@@ -11,7 +11,7 @@ interface UserStore {
 	notifications: Array<{
 		id: string;
 		title: string;
-		notify: string;
+		content: string;
 		createdAt: Date;
 	}>;
 	owner: boolean;

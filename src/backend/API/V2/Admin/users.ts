@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
-import type { User } from "../../../Structures/Database/db-class.js";
+import type { UserWithCounts } from "../../../Structures/Database/db-class.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 import {
 	generateTimePage,
@@ -117,7 +117,6 @@ function route(fastify: FastifyInstance, core: Core) {
 					after: request.query.after,
 					limit: request.query.limit,
 				},
-				undefined,
 				request.query.ascending,
 			);
 			if (!page) {
@@ -128,10 +127,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const users: User[] = await core.db.findUsers(
-				page.filter,
-				page.options,
-			);
+			const users: UserWithCounts[] = await core.db.listUsers(page);
 			// An empty page is normal when paging past the oldest account
 			if (users.length === 0) {
 				return reply.status(core.codes.ok).send({
@@ -148,7 +144,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				links: number;
 				id: string;
 				createdAt: Date; // Fastify will convert this
-			}> = users.map((user: User) => ({
+			}> = users.map((user: UserWithCounts) => ({
 				title: user.owner ? "owner" : user.admin ? "admin" : "user",
 				username: user.username,
 				email: user.email,

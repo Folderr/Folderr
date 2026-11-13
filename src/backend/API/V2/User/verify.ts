@@ -86,7 +86,14 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			await core.db.verifySelf(verify.id);
+			const result = await core.db.verifySelf(verify.id);
+			if (!result) {
+				return await reply.status(core.codes.notAccepted).send({
+					code: core.codes.notAccepted,
+					message:
+						"User not accepted, try a different username or email after denying this one",
+				});
+			}
 			core.logger.info(
 				`User account ${verify.username} (${verify.id}) verified by self`,
 			);

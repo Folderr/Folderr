@@ -30,6 +30,11 @@ function route(fastify: FastifyInstance, core: Core) {
 							code: 400,
 							message: "body must have required property 'id'",
 						},
+						{
+							code: 409,
+							message:
+								"Username or Email Taken\nTry denying the account and having the user signup again",
+						},
 						{ code: 1008, message: "User not found!" },
 					],
 					type: "object",
@@ -65,7 +70,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			// Look for the user
-			const user = await core.db.findVerify({ id: request.body.id });
+			const user = await core.db.findVerify(request.body.id);
 			if (!user) {
 				return reply.status(core.codes.notFound).send({
 					code: core.Utils.foldCodes.noUserFound,
@@ -74,7 +79,14 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			// Remove the user from verifying schema and add them to the actual user base
-			await core.db.verifyUser(user.id);
+			const result = await core.db.verifyUser(user.id);
+			if (!result) {
+				return reply.status(core.codes.conflict).send({
+					code: core.codes.conflict,
+					message:
+						"Username or Email Taken\nTry denying the account and having the user signup again",
+				});
+			}
 			core.logger.info(
 				`User account ${user.username} (${user.id}) granted by administrator ${auth.user.username} (${auth.user.id})`,
 			);

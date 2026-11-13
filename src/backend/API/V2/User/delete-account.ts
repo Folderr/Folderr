@@ -6,11 +6,12 @@ const path = "/account";
 const method = "DELETE";
 
 /**
- * @desc Deletes an account and everything it owns. Returns false if the database failed.
+ * @desc Marks the account as deleted in the database and throws its files to the deleter
  */
 async function deleteAccount(core: Core, id: string): Promise<boolean> {
 	try {
-		await core.db.purgeUser(id);
+		await core.db.markUserForDeletion(id);
+		core.addDeleter(id);
 		return true;
 	} catch (error: unknown) {
 		core.logger.error(error, "[SYSTEM ERROR] - Account deletion failure");
@@ -87,7 +88,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			reply: FastifyReply,
 		) {
 			// Deleting someone else's account needs an admin
-			const needAdmin = typeof request.query.userid === "string";
+			const targetId = request.query.userid;
+			const needAdmin = typeof targetId === "string";
 			const auth = await core.Utils.checkAuth(request, needAdmin);
 			if (auth.code !== 200) {
 				return reply.status(auth.code).send({
@@ -109,9 +111,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 				}
 
-				const mem = await core.db.findUser({
-					id: request.query.userid,
-				});
+				const mem = await core.db.findUser({ id: targetId });
 				if (!mem) {
 					return reply.status(core.codes.notFound).send({
 						code: core.Utils.foldCodes.dbNotFound,

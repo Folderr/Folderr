@@ -17,6 +17,9 @@ internal/locations.json
 # Ignore .env
 .env
 
+# Ignore the database
+db/
+
 # ignore jetbrains IDEs
 
 .idea/

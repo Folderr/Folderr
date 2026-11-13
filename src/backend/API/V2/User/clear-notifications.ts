@@ -11,7 +11,8 @@ function route(fastify: FastifyInstance, core: Core) {
 		url: path,
 		schema: {
 			tags: ["user"],
-			description: "Deletes all of the signed-in user's notifications",
+			description:
+				"Deletes all of the signed-in user's notifications except warnings, which are deleted one at a time once they're 90 days old",
 			summary: "Clear notifications",
 			security: [{ apiKey: [] }, { loginCookie: [] }],
 			response: {
@@ -42,8 +43,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			// TODO: This also clears warnings, which can't be deleted one by one for 90 days
-			await core.db.updateUser({ id: auth.user.id }, { notifs: [] });
+			// Warnings stay; delete-notification removes them one at a time after 90 days
+			await core.db.clearNotifications(auth.user.id);
 			return reply
 				.status(core.codes.ok)
 				.send({ code: core.codes.ok, message: "OK" });

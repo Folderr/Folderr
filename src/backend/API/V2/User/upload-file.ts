@@ -178,16 +178,10 @@ function route(fastify: FastifyInstance, core: Core) {
 			const type = routeType(contentType);
 
 			try {
-				await Promise.all([
-					core.db.makeFile(id, auth.user.id, {
-						contentType,
-						ext: checked.ext,
-					}),
-					core.db.updateUser(
-						{ id: auth.user.id },
-						{ $inc: { files: 1 } },
-					),
-				]);
+				await core.db.makeFile(id, auth.user.id, {
+					contentType,
+					ext: checked.ext,
+				});
 			} catch (error: unknown) {
 				// Without a record the link would never work, so don't keep the file
 				core.logger.error(error);

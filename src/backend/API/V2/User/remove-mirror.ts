@@ -72,14 +72,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			await core.db.updateUser(
-				{ id: auth.user.id },
-				{
-					$pull: {
-						cURLs: request.body.mirror,
-					},
-				},
-			);
+			await core.db.removeMirror(auth.user.id, request.body.mirror);
 			return reply.status(core.codes.ok).send({
 				code: core.codes.ok,
 				message: "OK",

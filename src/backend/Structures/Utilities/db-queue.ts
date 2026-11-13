@@ -113,10 +113,7 @@ export default class DbQueue extends EventEmitter {
 
 	async #deleteUser(id: string): Promise<void> {
 		while (!this.#stopping) {
-			const files = await this.#db.findFiles(
-				{ owner: id },
-				{ limit: PAGE_SIZE, selector: "id ext" },
-			);
+			const files = await this.#db.listFiles(id, { limit: PAGE_SIZE });
 			if (files.length === 0) {
 				// Every file is gone from disk, so the account can go
 				await this.#db.purgeUser(id);
@@ -157,7 +154,7 @@ export default class DbQueue extends EventEmitter {
 				await yieldToRequests();
 			}
 
-			await this.#db.purgeFiles({ owner: id, id: { $in: removed } });
+			await this.#db.purgeFilesByIds(id, removed);
 			// Those records and the account stay, so stop instead of reading the same files forever
 			if (failed > 0) {
 				throw new Error(

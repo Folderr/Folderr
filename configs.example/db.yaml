@@ -1,4 +1,6 @@
-url: "mongodb://localhost/folderrDB"
-# dbName: folderrDB # Optional, not implemented
-# protocol: mongodb # Optional, not implemented
-# extraConfig # Optional, not implemented.
+# Where Folderr keeps its data. Copy this file to configs/db.yaml.
+# Can come from the FOLDERR_DB_URL environment variable instead.
+#
+# Use a database login with a password, and keep the database server off the public internet:
+# bind it to 127.0.0.1 (or a private network) rather than 0.0.0.0.
+url: "file:./db/folderr.sqlite" # Required [FOLDERR_DB_URL]

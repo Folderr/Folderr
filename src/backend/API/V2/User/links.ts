@@ -48,13 +48,13 @@ function route(fastify: FastifyInstance, core: Core) {
 									points_to:
 										"https://example.com/some/long/article",
 									createdAt: 1730073600000,
-									link: "https://folderr.example.com/aB3xK9q",
+									link: "https://folderr.example.com/l/aB3xK9q",
 								},
 								{
 									id: "Zt7mP2",
 									points_to: "https://docs.example.org/guide",
 									createdAt: 1729987200000,
-									link: "https://folderr.example.com/Zt7mP2",
+									link: "https://folderr.example.com/l/Zt7mP2",
 								},
 							],
 						},
@@ -99,7 +99,6 @@ function route(fastify: FastifyInstance, core: Core) {
 					after: request.query.after,
 					limit: request.query.limit,
 				},
-				auth.user.id,
 				request.query.ascending,
 			);
 			if (!page) {
@@ -110,10 +109,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const shorts: Link[] = await core.db.findLinks(
-				page.filter,
-				page.options,
-			);
+			const shorts: Link[] = await core.db.listLinks(auth.user.id, page);
 			if (shorts.length === 0) {
 				return reply
 					.status(core.codes.ok)
@@ -132,7 +128,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				id: short.id,
 				points_to: short.link,
 				createdAt: short.createdAt,
-				link: `${url}/${short.id}`,
+				link: `${url}/l/${short.id}`,
 			}));
 			return reply
 				.status(core.codes.ok)

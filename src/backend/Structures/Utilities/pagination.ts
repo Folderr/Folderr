@@ -1,3 +1,5 @@
+import type { PageOptions } from "../Database/db-class.js";
+
 export interface PageQuery {
 	before?: string;
 	after?: string;
@@ -5,19 +7,9 @@ export interface PageQuery {
 	ascending?: boolean;
 }
 
-export enum SORT_DIRECTION {
-	Ascending = 1,
-	Descending = -1,
-}
-
 const DEFAULT_LIMIT = 100; // Folderr sends really small amounts of data so this is safe
 const MAX_LIMIT = 500;
 const PAGE_MIN = 1;
-
-export interface Page {
-	filter: { owner?: string; createdAt?: { $lt?: Date; $gt?: Date } };
-	options: { sort: { createdAt: SORT_DIRECTION }; limit: number };
-}
 
 function determineDate(value?: string): Date | undefined {
 	if (!value) return undefined;
@@ -37,44 +29,25 @@ export const PAGINATION_SCHEMA = {
 };
 
 /**
- * Generates a pagination request relevant for the createdAt field on most interfaces/db results
+ * Turns a list's querystring into a page by creation time, for the database's list methods
  *
  * @param {PageQuery} query The query for pagination
- * @param {String} [owner] The person who owns what we're looking for
  * @param {Boolean} [ascending] Whether or not the page should sort in ascending order instead of descending
+ * @returns The page, or undefined if before or after isn't a date
  */
 export function generateTimePage(
 	query: PageQuery,
-	owner?: string,
 	ascending?: boolean,
-): Page | undefined {
+): PageOptions | undefined {
 	const beforeTime = determineDate(query.before);
 	const afterTime = determineDate(query.after);
 
 	if ((query.before && !beforeTime) || (query.after && !afterTime))
 		return undefined;
 
-	const filter: Page["filter"] = owner ? { owner } : {};
-	if (beforeTime || afterTime) {
-		filter.createdAt = {
-			...(beforeTime && { $lt: beforeTime }),
-			...(afterTime && { $gt: afterTime }),
-		};
-	}
-
 	const limit = Math.min(
 		Math.max(query.limit ?? DEFAULT_LIMIT, PAGE_MIN),
 		MAX_LIMIT,
 	);
-	return {
-		filter,
-		options: {
-			sort: {
-				createdAt: ascending
-					? SORT_DIRECTION.Ascending
-					: SORT_DIRECTION.Descending,
-			},
-			limit,
-		},
-	};
+	return { before: beforeTime, after: afterTime, limit, ascending };
 }

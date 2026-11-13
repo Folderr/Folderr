@@ -57,17 +57,8 @@ const EMAILER_TEXTS = {
 	},
 };
 
-const MONGOOSE = {
-	expectedQueries(expected: number, actual?: number) {
-		return `MongooseDB > Input > findFullUser - Expected ${expected} queries in array but got ${
-			actual ?? "none"
-		}`;
-	},
-};
-
 const TEMPLATES = {
 	EMAILER_TEXTS,
-	MONGOOSE,
 };
 
 export default TEMPLATES;

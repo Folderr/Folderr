@@ -19,6 +19,8 @@
  *
  */
 
+import type { Config } from "../../handlers/config-handler.js";
+
 export interface Folderr {
 	publicKeyJWT: Buffer;
 }
@@ -26,7 +28,7 @@ export interface Folderr {
 export interface Notification {
 	id: string;
 	title: string;
-	notify: string;
+	content: string;
 	createdAt: Date;
 }
 
@@ -36,10 +38,8 @@ export interface User {
 	password: string;
 	owner?: boolean;
 	admin?: boolean;
-	notifs: Notification[];
+	notifications: Notification[];
 	cURLs: string[];
-	files: number;
-	links: number;
 	email: string;
 	createdAt: Date;
 	pendingEmail?: string;
@@ -50,6 +50,15 @@ export interface User {
 	};
 	markedForDeletion?: boolean;
 }
+
+/** How many uploads and short links a user has. Counted when asked for, never stored */
+export interface ContentCounts {
+	files: number;
+	links: number;
+}
+
+/** A user with their content counts, as the admin user list shows them */
+export type UserWithCounts = User & ContentCounts;
 
 export interface Ban {
 	email: string;
@@ -102,6 +111,59 @@ export interface Upload {
 }
 
 /**
+ * The ways a user can be looked up. Emails match without regard to letter case.
+ * markedForDeletion narrows any of them, e.g. sign-in skips accounts being deleted
+ */
+export type UserFilter = (
+	| { id: string }
+	| { username: string }
+	| { email: string }
+	| { owner: true }
+) & { markedForDeletion?: boolean };
+
+/**
+ * One page of a list, by creation time. Newest first unless ascending.
+ * before and after are exclusive; with only after, the page is the items just after it
+ */
+export interface PageOptions {
+	before?: Date;
+	after?: Date;
+	limit: number;
+	ascending?: boolean;
+}
+
+/** An upload is always found by its ID; owner and ext narrow it, e.g. to a user's own file */
+export type FileFilter = { id: string; owner?: string; ext?: string };
+
+/** A short link is always found by its ID; owner narrows it to a user's own link */
+export type LinkFilter = { id: string; owner?: string };
+
+export class DatabaseError extends Error {
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message, options);
+		this.name = "DatabaseError";
+	}
+}
+
+export class FolderrNotSetupError extends DatabaseError {
+	constructor() {
+		super("Folderr DB entry not found, Folderr DB entry is required.");
+		this.name = "FolderrNotSetupError";
+	}
+}
+
+export class DBConflictError extends DatabaseError {
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message, options);
+		this.name = "DBConflictError";
+	}
+}
+
+export function normalizeInput(input: string): string {
+	return input.trim().toLowerCase();
+}
+
+/**
  * @classdesc Base class for all Database handlers to extend
  */
 export class DBClass {
@@ -114,7 +176,7 @@ export class DBClass {
 		}
 	}
 
-	async init(url: string): Promise<any> {
+	async init(config: Config["db"]): Promise<void> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method init is not implemented!",
 		);
@@ -140,13 +202,19 @@ export class DBClass {
 		);
 	}
 
-	async fetchFolderr(query?: Record<string, unknown>): Promise<Folderr> {
+	/**
+	 * @desc The instance's settings. There's only ever one
+	 */
+	async fetchFolderr(): Promise<Folderr> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method fetchFolderr is not implemented!",
 		);
 	}
 
-	async removeBan(email: string): Promise<number> {
+	/**
+	 * @desc Lifts the ban on an email, ignoring letter case
+	 */
+	async removeBan(email: string): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method removeBan is not implemented!",
 		);
@@ -166,7 +234,7 @@ export class DBClass {
 		password: string,
 		id: string,
 		email: string,
-	): Promise<User | void> {
+	): Promise<User | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeOwner is not implemented!",
 		);
@@ -180,57 +248,100 @@ export class DBClass {
 
 	/* ---- USER RELATED METHODS ---- */
 
-	async findUser(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<User | undefined> {
+	async findUser(filter: UserFilter): Promise<User | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findUser is not implemented!",
 		);
 	}
 
-	async findUsers(
-		query: Record<string, unknown>,
-		options?: {
-			sort?: Record<string, unknown>;
-			limit?: number;
-			selector?: string;
-		},
-	): Promise<User[] | any[]> {
+	/**
+	 * @desc Whether an account or a pending signup has this username
+	 */
+	async isUsernameTaken(username: string): Promise<boolean> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findUsers is not implemented!",
+			"DB > NOT IMPLEMENTED - Method isUsernameTaken is not implemented!",
 		);
 	}
 
-	async findFullUser(
-		query: Array<Record<string, unknown>>,
-		selectors?: {
-			user?: string;
-			file?: string;
-			link?: string;
-		},
-	): Promise<{ account: User; files: Upload[]; links: Link[] } | undefined> {
+	/**
+	 * @desc Whether an account, an account's pending email change, or a pending signup
+	 * has this email, ignoring letter case
+	 */
+	async isEmailTaken(email: string): Promise<boolean> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findFullUser is not implemented!",
+			"DB > NOT IMPLEMENTED - Method isEmailTaken is not implemented!",
 		);
 	}
 
-	async findAndUpdateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-		selector?: string,
-	): Promise<User | undefined> {
+	/**
+	 * @desc One page of accounts by creation time, with each one's content counts
+	 */
+	async listUsers(page: PageOptions): Promise<UserWithCounts[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findAndUpdateUser is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listUsers is not implemented!",
+		);
+	}
+
+	/**
+	 * @desc How many uploads and short links a user has. Kept out of findUser, which runs on
+	 * every authenticated request, so only the routes that show these pay for counting them
+	 */
+	async countContent(userId: string): Promise<ContentCounts> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method countContent is not implemented!",
+		);
+	}
+
+	/**
+	 * @desc Makes a user an admin or takes it away. The owner is never changed
+	 * @returns The updated user, or undefined if there was nothing to change
+	 */
+	async setAdmin(id: string, admin: boolean): Promise<User | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method setAdmin is not implemented!",
 		);
 	}
 
 	async updateUser(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
+		id: string,
+		fields: Partial<
+			Pick<
+				User,
+				| "username"
+				| "password"
+				| "privacy"
+				| "pendingEmail"
+				| "pendingEmailToken"
+				| "tokenExpiresAt"
+			>
+		>,
 	): Promise<boolean | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method updateUser is not implemented!",
+		);
+	}
+
+	async addNotification(
+		userID: string,
+		notification: Pick<Notification, "id" | "title" | "content">,
+	): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method addNotification is not implemented!",
+		);
+	}
+
+	async removeNotification(
+		userID: string,
+		id: string,
+	): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method removeNotification is not implemented!",
+		);
+	}
+
+	async clearNotifications(userID: string): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method clearNotifications is not implemented!",
 		);
 	}
 
@@ -256,27 +367,36 @@ export class DBClass {
 		);
 	}
 
-	async purgeUser(
-		id: string,
-	): Promise<{ account: boolean; links: boolean } | undefined> {
+	async purgeUser(id: string): Promise<{ account: boolean } | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeUser is not implemented!",
 		);
 	}
 
-	async findVerify(
-		query: Record<string, unknown>,
-	): Promise<PendingMember | undefined> {
+	addMirror(userID: string, url: string): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method addMirror is not implemented!",
+		);
+	}
+
+	removeMirror(userID: string, url: string): Promise<boolean | undefined> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method removeMirror is not implemented!",
+		);
+	}
+
+	async findVerify(id: string): Promise<PendingMember | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findVerify is not implemented!",
 		);
 	}
 
-	async findVerifies(
-		query: Record<string, unknown>,
-	): Promise<PendingMember[]> {
+	/**
+	 * @desc Every pending signup, oldest first
+	 */
+	async listVerifies(): Promise<PendingMember[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findVerifies is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listVerifies is not implemented!",
 		);
 	}
 
@@ -307,6 +427,10 @@ export class DBClass {
 		);
 	}
 
+	/**
+	 * @desc Adds a user pending verification. Pass `adminNotification` when an admin has to approve
+	 * the signup: it's saved with the pending user, and goes away when they're verified or denied
+	 */
 	async makeVerify(
 		userInfo: {
 			username: string;
@@ -315,6 +439,7 @@ export class DBClass {
 			email: string;
 		},
 		validationToken: string,
+		adminNotification?: Pick<Notification, "id" | "title" | "content">,
 	): Promise<PendingMember> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeVerify is not implemented!",
@@ -323,42 +448,18 @@ export class DBClass {
 
 	/* ---- FILE RELATED METHODS ---- */
 
-	async findFile(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<Upload | undefined> {
+	async findFile(filter: FileFilter): Promise<Upload | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findFile is not implemented!",
 		);
 	}
 
-	async findAndDeleteFile(
-		query: Record<string, unknown>,
-	): Promise<Upload | undefined> {
+	/**
+	 * @desc One page of a user's uploads by upload time
+	 */
+	async listFiles(owner: string, page: PageOptions): Promise<Upload[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findAndDeleteFile is not implemented!",
-		);
-	}
-
-	async findFiles(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Upload[]> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findFiles is not implemented!",
-		);
-	}
-
-	async updateFile(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean | undefined> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method updateFile is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listFiles is not implemented!",
 		);
 	}
 
@@ -374,68 +475,46 @@ export class DBClass {
 
 	/**
 	 * Deletes a file from the database and the disk.
-	 * If deleting files en masse, use db.purgeFiles
-	 * @param query What file to remove
+	 * If deleting files en masse, use db.purgeFilesByIds
+	 * @param filter What file to remove
 	 * @returns Whether or not the file was deleted
 	 */
-	async purgeFile(query: Record<string, unknown>): Promise<boolean> {
+	async purgeFile(filter: FileFilter): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeFile is not implemented!",
 		);
 	}
 
 	/**
-	 * Delete a massive amount of file records
-	 * @param {Object} query The database query to match files to remove
-	 * @param {number} [expectedDeletions] How many files to delete
-	 * @returns Whether or not the deletion was successful
+	 * Deletes the records of these uploads, but only the ones that belong to owner.
+	 * The files on disk are the caller's job (see the deletion queue)
+	 * @returns How many records were deleted
 	 */
-	async purgeFiles(
-		query: Record<string, unknown>,
-		expectedDeletions?: number,
-	): Promise<boolean> {
+	async purgeFilesByIds(owner: string, ids: string[]): Promise<number> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method purgeFiles is not implemented!",
+			"DB > NOT IMPLEMENTED - Method purgeFilesByIds is not implemented!",
 		);
 	}
 
 	/* ---- LINK (shortened URLs) RELATED METHODS ---- */
-	async findLink(
-		query: Record<string, unknown>,
-		selector?: string,
-	): Promise<Link | undefined> {
+	async findLink(filter: LinkFilter): Promise<Link | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findLink is not implemented!",
 		);
 	}
 
-	async findLinks(
-		query: Record<string, unknown>,
-		options?: {
-			limit?: number;
-			selector?: string;
-			sort?: Record<string, unknown>;
-		},
-	): Promise<Link[]> {
+	/**
+	 * @desc One page of a user's short links by creation time
+	 */
+	async listLinks(owner: string, page: PageOptions): Promise<Link[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findLinks is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listLinks is not implemented!",
 		);
 	}
 
-	async findAndDeleteLink(
-		query: Record<string, unknown>,
-	): Promise<Link | undefined> {
+	async findAndDeleteLink(filter: LinkFilter): Promise<Link | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findAndDeleteLink is not implemented!",
-		);
-	}
-
-	async updateLink(
-		query: Record<string, unknown>,
-		update: Record<string, unknown>,
-	): Promise<boolean | undefined> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method updateLink is not implemented!",
 		);
 	}
 
@@ -449,7 +528,7 @@ export class DBClass {
 		);
 	}
 
-	async purgeLink(query: Record<string, unknown>): Promise<boolean> {
+	async purgeLink(filter: LinkFilter): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeLink is not implemented!",
 		);
@@ -482,10 +561,11 @@ export class DBClass {
 		userID: string,
 		options?: {
 			web?: boolean;
+			description?: string;
 		},
 	): Promise<Tokendb | undefined> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method addToken is not implemented!",
+			"DB > NOT IMPLEMENTED - Method makeToken is not implemented!",
 		);
 	}
 
@@ -508,10 +588,16 @@ export class DBClass {
 		);
 	}
 
+	async purgeExpiredTokens(): Promise<number> {
+		throw new Error(
+			"DB > NOT IMPLEMENTED - Method purgeExpiredTokens is not implemented!",
+		);
+	}
+
 	/* ---- ADMIN RELATED METHODS ---- */
 	async makeAdminNotify(
 		id: string,
-		notify: string,
+		content: string,
 		title: string,
 	): Promise<Notification> {
 		throw new Error(
@@ -519,23 +605,22 @@ export class DBClass {
 		);
 	}
 
-	async findAdminNotify(
-		query: Record<string, unknown>,
-	): Promise<Notification | undefined> {
+	async findAdminNotify(id: string): Promise<Notification | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method findAdminNotify is not implemented!",
 		);
 	}
 
-	async findAdminNotifies(
-		query: Record<string, unknown>,
-	): Promise<Notification[]> {
+	/**
+	 * @desc Every admin notification, newest first
+	 */
+	async listAdminNotifies(): Promise<Notification[]> {
 		throw new Error(
-			"DB > NOT IMPLEMENTED - Method findAdminNotifies is not implemented!",
+			"DB > NOT IMPLEMENTED - Method listAdminNotifies is not implemented!",
 		);
 	}
 
-	async purgeAdminNotify(query: Record<string, unknown>): Promise<boolean> {
+	async purgeAdminNotify(id: string): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeAdminNotify is not implemented!",
 		);
