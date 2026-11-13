@@ -2,7 +2,10 @@ import argon2 from "argon2";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import * as constants from "../../../Structures/constants/index.js";
-import type { User } from "../../../Structures/Database/db-class.js";
+import {
+	normalizeInput,
+	type User,
+} from "../../../Structures/Database/db-class.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 
 const path = "/account";
@@ -166,8 +169,12 @@ async function handleEmailUpdate(
 		};
 	}
 
-	// Taken by an account, an account's pending change, or a pending signup
-	if (await core.db.isEmailTaken(email)) {
+	// Taken by an account, a pending signup, or someone elses account
+	// If you ask your email to be changed to the same pending email you just get a new token
+	if (
+		normalizeInput(email) !== authUser.pendingEmail &&
+		(await core.db.isEmailTaken(email))
+	) {
 		return {
 			httpCode: core.codes.used,
 			message: {
