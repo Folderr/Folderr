@@ -7,6 +7,11 @@ import SQLiteDB from "./sqlite.js";
 const SQLITE_URL = /^(file:|libsql:\/\/|https?:\/\/|wss?:\/\/)/;
 
 export default function pickdb(config: Config["db"]): DBClass {
+	if (/^file::memory:/.test(config.url) && process.env.NODE_ENV !== "test") {
+		throw new DatabaseError(
+			"In-memory databases are only allowed in tests",
+		);
+	}
 	if (SQLITE_URL.test(config.url)) {
 		return new SQLiteDB();
 	}

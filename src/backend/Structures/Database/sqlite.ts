@@ -208,9 +208,9 @@ export default class SQLiteDB extends DBClass {
 			this.#database = drizzle({ client: this.#client, relations });
 			// Run migrations
 			const migrationsFolder =
-				process.env.NODE_ENV === "dev"
-					? "drizzle/sqlite"
-					: "dist/drizzle/sqlite";
+				process.env.NODE_ENV === "production"
+					? "dist/drizzle/sqlite"
+					: "drizzle/sqlite";
 			await migrate(this.#db, {
 				migrationsFolder: join(process.cwd(), migrationsFolder),
 			});
