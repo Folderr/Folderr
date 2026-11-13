@@ -5,7 +5,7 @@ import process from "process";
 import z from "zod";
 
 const Db = z.strictObject({
-	url: z.string().trim().min(1), // Accepts as `file:.local.db` or postgres:// / mongodb://
+	url: z.string().trim().min(1), // Accepts as `file:./local.db`, `file:[absolute]`, or a turso remote database url
 	authToken: z.string().trim().optional(),
 });
 
