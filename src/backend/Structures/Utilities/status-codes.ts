@@ -33,6 +33,7 @@ const codes: Codes = {
 	unauth: 401,
 	forbidden: 403,
 	notFound: 404,
+	conflict: 409,
 	locked: 423,
 	tooManyReq: 429,
 	internalErr: 500,
@@ -51,6 +52,7 @@ export interface Codes {
 	unauth: 401;
 	forbidden: 403;
 	notFound: 404;
+	conflict: 409;
 	locked: 423;
 	tooManyReq: 429;
 	internalErr: 500;
