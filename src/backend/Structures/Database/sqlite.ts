@@ -31,7 +31,6 @@ import type {
 	Notification,
 	PageOptions,
 	PendingMember,
-	SignupNotification,
 	Statistics,
 	Tokendb,
 	Upload,
@@ -98,8 +97,8 @@ const userWith = {
 type UserRow = typeof tables.users.$inferSelect & {
 	notifications: Notification[];
 	cURLs: { domain: string }[];
-	// optional: false in the relations, but a user created without the row still comes back null
-	privacy: { dataCollection: boolean } | null;
+	// Created with the user in one transaction. A row removed by hand makes toUser throw for that user
+	privacy: { dataCollection: boolean };
 	pendingEmailChange: {
 		pendingEmail: string;
 		pendingEmailToken: string;
@@ -118,7 +117,7 @@ function toUser(row: UserRow): User {
 		owner: role === "owner",
 		admin: role !== "user", // Owner = admin+
 		cURLs: cURLs.map((d) => d.domain),
-		privacy: { dataCollection: privacy?.dataCollection ?? false },
+		privacy: { dataCollection: privacy.dataCollection },
 		pendingEmail: pendingEmailChange?.pendingEmail,
 		pendingEmailToken: pendingEmailChange?.pendingEmailToken,
 		tokenExpiresAt: pendingEmailChange?.tokenExpiresAt,
@@ -218,7 +217,7 @@ export default class SQLiteDB extends DBClass {
 			// Pre-flight: Ensure Folderr is setup
 			// Not relevant to setup mode
 			if (!process.env.setup) {
-				await this.fetchFolderr();
+				await this.fetchFolderr(); // Should be moved outside of engine
 			}
 			this.status = "ok";
 		} catch (error: unknown) {
@@ -273,12 +272,12 @@ export default class SQLiteDB extends DBClass {
 		return this.#db.select().from(tables.bans);
 	}
 
-	async removeBan(email: string): Promise<number> {
-		// why did i make this a number
+	async removeBan(email: string): Promise<boolean> {
 		const remove = await this.#db
 			.delete(tables.bans)
-			.where(eq(tables.bans.email, normalizeInput(email)));
-		return remove.rowsAffected;
+			.where(eq(tables.bans.email, normalizeInput(email)))
+			.returning({ id: tables.bans.id });
+		return remove.length > 0;
 	}
 
 	async isBanned(email: string): Promise<boolean> {
@@ -422,18 +421,20 @@ export default class SQLiteDB extends DBClass {
 	async isUsernameTaken(username: string): Promise<boolean> {
 		const [[user], [signup]] = await Promise.all([
 			this.#db
-				.select()
+				.select({ id: tables.users.id })
 				.from(tables.users)
-				.where(eq(tables.users.username, normalizeInput(username))),
+				.where(eq(tables.users.username, normalizeInput(username)))
+				.limit(1),
 			this.#db
-				.select()
+				.select({ id: tables.verifyingUsers.id })
 				.from(tables.verifyingUsers)
 				.where(
 					eq(
 						tables.verifyingUsers.username,
 						normalizeInput(username),
 					),
-				),
+				)
+				.limit(1),
 		]);
 		return Boolean(user ?? signup);
 	}
@@ -441,19 +442,22 @@ export default class SQLiteDB extends DBClass {
 	async isEmailTaken(email: string): Promise<boolean> {
 		const [[user], [signup], [pending]] = await Promise.all([
 			this.#db
-				.select()
+				.select({ id: tables.users.id })
 				.from(tables.users)
-				.where(eq(tables.users.email, normalizeInput(email))),
+				.where(eq(tables.users.email, normalizeInput(email)))
+				.limit(1),
 			this.#db
-				.select()
+				.select({ id: tables.verifyingUsers.id })
 				.from(tables.verifyingUsers)
-				.where(eq(tables.verifyingUsers.email, normalizeInput(email))),
+				.where(eq(tables.verifyingUsers.email, normalizeInput(email)))
+				.limit(1),
 			this.#db
-				.select()
+				.select({ pendingEmail: tables.emailChanges.pendingEmail })
 				.from(tables.emailChanges)
 				.where(
 					eq(tables.emailChanges.pendingEmail, normalizeInput(email)),
-				),
+				)
+				.limit(1),
 		]);
 		return Boolean(user ?? signup ?? pending);
 	}
@@ -522,7 +526,7 @@ export default class SQLiteDB extends DBClass {
 			return await this.#db.transaction(async (tx) => {
 				let changed = false;
 
-				// A user may not have a privacy row yet, so insert or update it
+				// Upsert rather than update: a plain update on a missing row would silently save nothing
 				const dataCollection = fields.privacy?.dataCollection;
 				if (typeof dataCollection === "boolean") {
 					await tx
@@ -686,12 +690,8 @@ export default class SQLiteDB extends DBClass {
 		return update.length > 0;
 	}
 
-	async purgeUser(id: string): Promise<{ account: boolean; links: boolean }> {
+	async purgeUser(id: string): Promise<{ account: boolean }> {
 		return await this.#db.transaction(async (tx) => {
-			const links = await tx
-				.delete(tables.links)
-				.where(eq(tables.links.owner, id));
-
 			const [user] = await tx
 				.delete(tables.users)
 				.where(eq(tables.users.id, id))
@@ -699,7 +699,6 @@ export default class SQLiteDB extends DBClass {
 
 			return {
 				account: Boolean(user),
-				links: links.rowsAffected > 0,
 			};
 		});
 	}
@@ -794,7 +793,7 @@ export default class SQLiteDB extends DBClass {
 			email: string;
 		},
 		validationToken: string,
-		adminNotification?: SignupNotification,
+		adminNotification?: Pick<Notification, "id" | "title" | "content">,
 	): Promise<PendingMember> {
 		// One transaction, so there's never a pending user without the notification an admin needs, or the reverse
 		return this.#db.transaction(async (tx) => {

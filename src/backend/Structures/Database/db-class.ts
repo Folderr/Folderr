@@ -138,9 +138,6 @@ export type FileFilter = { id: string; owner?: string; ext?: string };
 /** A short link is always found by its ID; owner narrows it to a user's own link */
 export type LinkFilter = { id: string; owner?: string };
 
-/** The admin notification for a signup that waits on an admin's approval */
-export type SignupNotification = { id: string; title: string; content: string };
-
 export class DatabaseError extends Error {
 	constructor(message: string, options?: { cause?: unknown }) {
 		super(message, options);
@@ -217,7 +214,7 @@ export class DBClass {
 	/**
 	 * @desc Lifts the ban on an email, ignoring letter case
 	 */
-	async removeBan(email: string): Promise<number> {
+	async removeBan(email: string): Promise<boolean> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method removeBan is not implemented!",
 		);
@@ -370,9 +367,7 @@ export class DBClass {
 		);
 	}
 
-	async purgeUser(
-		id: string,
-	): Promise<{ account: boolean; links: boolean } | undefined> {
+	async purgeUser(id: string): Promise<{ account: boolean } | undefined> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method purgeUser is not implemented!",
 		);
@@ -444,7 +439,7 @@ export class DBClass {
 			email: string;
 		},
 		validationToken: string,
-		adminNotification?: SignupNotification,
+		adminNotification?: Pick<Notification, "id" | "title" | "content">,
 	): Promise<PendingMember> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method makeVerify is not implemented!",
