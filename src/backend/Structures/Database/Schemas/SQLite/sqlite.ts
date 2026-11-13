@@ -64,7 +64,7 @@ export const emailChanges = sqliteTable(
 );
 
 export const userPrivacyChoices = sqliteTable("user_privacy_choices", {
-	user: text()
+	userId: text()
 		.primaryKey()
 		.references(() => users.id, { onDelete: "cascade" }),
 	dataCollection: int({ mode: "boolean" }).default(false).notNull(),
@@ -112,14 +112,14 @@ export const customDomains = sqliteTable(
 	"custom_domains",
 	{
 		domain: text().primaryKey(),
-		owner: text()
+		userId: text()
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
 		createdAt: int({ mode: "timestamp_ms" })
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},
-	(table) => [index("custom_domain_owner_idx").on(table.owner)],
+	(table) => [index("custom_domain_user_idx").on(table.userId)],
 );
 
 export const links = sqliteTable(
@@ -240,7 +240,7 @@ export const relations = defineRelations(
 			privacy: r.one.userPrivacyChoices({
 				optional: false,
 				from: r.users.id,
-				to: r.userPrivacyChoices.user,
+				to: r.userPrivacyChoices.userId,
 			}),
 			pendingEmailChange: r.one.emailChanges({
 				optional: true,
@@ -249,7 +249,7 @@ export const relations = defineRelations(
 			}),
 			cURLs: r.many.customDomains({
 				from: r.users.id,
-				to: r.customDomains.owner,
+				to: r.customDomains.userId,
 			}),
 		},
 	}),

@@ -17,9 +17,9 @@ CREATE TABLE `bans` (
 --> statement-breakpoint
 CREATE TABLE `custom_domains` (
 	`domain` text PRIMARY KEY,
-	`owner` text NOT NULL,
+	`userId` text NOT NULL,
 	`createdAt` integer NOT NULL,
-	CONSTRAINT `fk_custom_domains_owner_users_id_fk` FOREIGN KEY (`owner`) REFERENCES `users`(`id`) ON DELETE CASCADE
+	CONSTRAINT `fk_custom_domains_userId_users_id_fk` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
 CREATE TABLE `email_changes` (
@@ -74,10 +74,10 @@ CREATE TABLE `user_notifications` (
 );
 --> statement-breakpoint
 CREATE TABLE `user_privacy_choices` (
-	`user` text PRIMARY KEY,
+	`userId` text PRIMARY KEY,
 	`dataCollection` integer DEFAULT false NOT NULL,
 	`updatedAt` integer NOT NULL,
-	CONSTRAINT `fk_user_privacy_choices_user_users_id_fk` FOREIGN KEY (`user`) REFERENCES `users`(`id`) ON DELETE CASCADE
+	CONSTRAINT `fk_user_privacy_choices_userId_users_id_fk` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
 CREATE TABLE `users` (
@@ -103,7 +103,7 @@ CREATE TABLE `verifying_users` (
 );
 --> statement-breakpoint
 CREATE INDEX `admin_notifications_paging_idx` ON `admin_notifications` (`createdAt`);--> statement-breakpoint
-CREATE INDEX `custom_domain_owner_idx` ON `custom_domains` (`owner`);--> statement-breakpoint
+CREATE INDEX `custom_domain_user_idx` ON `custom_domains` (`userId`);--> statement-breakpoint
 CREATE INDEX `files_paging_idx` ON `files` (`owner`,`createdAt`);--> statement-breakpoint
 CREATE INDEX `links_paging_idx` ON `links` (`owner`,`createdAt`);--> statement-breakpoint
 CREATE INDEX `tokens_user_idx` ON `tokens` (`userId`);--> statement-breakpoint

@@ -1,7 +1,7 @@
 {
 	"version": "7",
 	"dialect": "sqlite",
-	"id": "b97674c4-f63e-46a8-94f0-27e619df23c9",
+	"id": "e04d7621-7330-4abe-aa86-376cfca6990b",
 	"prevIds": ["00000000-0000-0000-0000-000000000000"],
 	"ddl": [
 		{
@@ -154,7 +154,7 @@
 		},
 		{
 			"table": "custom_domains",
-			"name": "owner",
+			"name": "userId",
 			"type": "text",
 			"notNull": true,
 			"autoincrement": false,
@@ -444,7 +444,7 @@
 		},
 		{
 			"table": "user_privacy_choices",
-			"name": "user",
+			"name": "userId",
 			"type": "text",
 			"notNull": false,
 			"autoincrement": false,
@@ -628,10 +628,10 @@
 		},
 		{
 			"table": "custom_domains",
-			"name": "custom_domain_owner_idx",
+			"name": "custom_domain_user_idx",
 			"columns": [
 				{
-					"value": "owner",
+					"value": "userId",
 					"isExpression": false
 				}
 			],
@@ -763,8 +763,8 @@
 		},
 		{
 			"table": "custom_domains",
-			"name": "fk_custom_domains_owner_users_id_fk",
-			"columns": ["owner"],
+			"name": "fk_custom_domains_userId_users_id_fk",
+			"columns": ["userId"],
 			"tableTo": "users",
 			"columnsTo": ["id"],
 			"onUpdate": "NO ACTION",
@@ -829,8 +829,8 @@
 		},
 		{
 			"table": "user_privacy_choices",
-			"name": "fk_user_privacy_choices_user_users_id_fk",
-			"columns": ["user"],
+			"name": "fk_user_privacy_choices_userId_users_id_fk",
+			"columns": ["userId"],
 			"tableTo": "users",
 			"columnsTo": ["id"],
 			"onUpdate": "NO ACTION",
@@ -904,7 +904,7 @@
 		{
 			"table": "user_privacy_choices",
 			"name": "user_privacy_choices_pk",
-			"columns": ["user"],
+			"columns": ["userId"],
 			"nameExplicit": false,
 			"entityType": "pks"
 		},

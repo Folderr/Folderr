@@ -345,7 +345,9 @@ export default class SQLiteDB extends DBClass {
 						email: normalizeInput(email),
 					})
 					.returning(); // Owner = admin+
-				await tx.insert(tables.userPrivacyChoices).values({ user: id });
+				await tx
+					.insert(tables.userPrivacyChoices)
+					.values({ userId: id });
 				return toUser({
 					...owner,
 					notifications: [],
@@ -525,9 +527,9 @@ export default class SQLiteDB extends DBClass {
 				if (typeof dataCollection === "boolean") {
 					await tx
 						.insert(tables.userPrivacyChoices)
-						.values({ user: id, dataCollection })
+						.values({ userId: id, dataCollection })
 						.onConflictDoUpdate({
-							target: tables.userPrivacyChoices.user,
+							target: tables.userPrivacyChoices.userId,
 							// $onUpdate doesn't run on an upsert's update, so set it here
 							set: { dataCollection, updatedAt: new Date() },
 						});
@@ -651,7 +653,7 @@ export default class SQLiteDB extends DBClass {
 				const [privacy] = await tx
 					.insert(tables.userPrivacyChoices)
 					.values({
-						user: userInfo.id,
+						userId: userInfo.id,
 						dataCollection: false,
 					})
 					.returning();
@@ -708,7 +710,7 @@ export default class SQLiteDB extends DBClass {
 		// A mirror belongs to one user, so re-adding your own or adding someone else's changes nothing
 		const added = await this.#db
 			.insert(tables.customDomains)
-			.values({ domain: url, owner: userId })
+			.values({ domain: url, userId })
 			.onConflictDoNothing({ target: tables.customDomains.domain })
 			.returning({ domain: tables.customDomains.domain });
 		return added.length > 0;
@@ -720,7 +722,7 @@ export default class SQLiteDB extends DBClass {
 			.where(
 				and(
 					eq(tables.customDomains.domain, url),
-					eq(tables.customDomains.owner, userId),
+					eq(tables.customDomains.userId, userId),
 				),
 			)
 			.returning({ domain: tables.customDomains.domain });
