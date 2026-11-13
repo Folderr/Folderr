@@ -795,28 +795,45 @@ export default class SQLiteDB extends DBClass {
 		validationToken: string,
 		adminNotification?: Pick<Notification, "id" | "title" | "content">,
 	): Promise<PendingMember> {
-		// One transaction, so there's never a pending user without the notification an admin needs, or the reverse
-		return this.#db.transaction(async (tx) => {
-			const [verify] = await tx
-				.insert(tables.verifyingUsers)
-				.values({
-					id: userInfo.id,
-					username: normalizeInput(userInfo.username),
-					password: userInfo.password,
-					email: normalizeInput(userInfo.email),
-					validationToken,
-				})
-				.returning();
+		try {
+			// One transaction, so there's never a pending user without the notification an admin needs, or the reverse
+			return await this.#db.transaction(async (tx) => {
+				const [verify] = await tx
+					.insert(tables.verifyingUsers)
+					.values({
+						id: userInfo.id,
+						username: normalizeInput(userInfo.username),
+						password: userInfo.password,
+						email: normalizeInput(userInfo.email),
+						validationToken,
+					})
+					.returning();
 
-			if (adminNotification) {
-				// Tied to the pending user, so verifying or denying them deletes it too (ON DELETE CASCADE)
-				await tx
-					.insert(tables.adminNotifications)
-					.values({ ...adminNotification, verifyingUser: verify.id });
+				if (adminNotification) {
+					// Tied to the pending user, so verifying or denying them deletes it too (ON DELETE CASCADE)
+					await tx
+						.insert(tables.adminNotifications)
+						.values({
+							...adminNotification,
+							verifyingUser: verify.id,
+						});
+				}
+
+				return verify;
+			});
+		} catch (error) {
+			if (isDuplicateConstraintError(error)) {
+				throw new DBConflictError("Username or email already in use", {
+					cause: error,
+				});
 			}
-
-			return verify;
-		});
+			throw new DatabaseError(
+				"An unknown error occurred while creating the signup",
+				{
+					cause: error,
+				},
+			);
+		}
 	}
 
 	/* --- FILE RELATED METHODS --- */

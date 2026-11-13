@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals";
 import * as constants from "../../../Structures/constants/index";
+import { DBConflictError } from "../../../Structures/Database/db-class";
 import type { NeoRoute } from "../../../Structures/neo-route";
 
 const path = "/signup";
@@ -134,14 +135,14 @@ async function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			// Generate a unique user ID
-			const userID = await genUID(core);
+			const userId = core.Utils.genFolderrId();
 
 			// Anything thrown from here goes to the error handler as a 500; it was once
 			// caught and answered with 201 OK, so a failed signup looked like it worked
 			const validationToken = await core.Utils.genValidationToken();
 			const userInfo = {
 				username,
-				id: userID,
+				id: userId,
 				password: password,
 				email: email,
 			};
@@ -160,6 +161,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 							core,
 							userInfo,
 							validationToken,
+							request,
 							response,
 						);
 
@@ -188,7 +190,7 @@ async function emailSignup(
 	}>,
 	_response: FastifyReply,
 ): Promise<{
-	httpCode: 500 | 201;
+	httpCode: 500 | 201 | 406;
 	msg: {
 		message: string;
 		code: number;
@@ -199,44 +201,55 @@ async function emailSignup(
 		url = `http://${url}`;
 	}
 
+	// Saved before the email goes out, so nobody gets a link to a signup that was never stored
+	try {
+		await core.db.makeVerify(userInfo, validationToken.hash);
+	} catch (error: unknown) {
+		if (error instanceof DBConflictError) {
+			return {
+				httpCode: core.codes.notAccepted,
+				msg: {
+					code: core.codes.notAccepted,
+					message: "Username or email already in use",
+				},
+			};
+		}
+
+		// Report only; the response is sent below
+		request.server.reportError(error, request);
+		return {
+			httpCode: core.codes.internalErr,
+			msg: {
+				code: core.Utils.foldCodes.unkownError,
+				message: "An internal error occurred while signing up!",
+			},
+		};
+	}
+
 	try {
 		await core.emailer.verifyEmail(
 			userInfo.email,
 			`${url}/account/verify/${userInfo.id}/${validationToken.token}`,
 			userInfo.username,
 		);
-		await core.db.makeVerify(userInfo, validationToken.hash);
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			if (error instanceof Error) {
-				if (error.message.includes("Connection timeout")) {
-					return {
-						httpCode: core.codes.internalErr,
-						msg: {
-							code: core.Utils.foldCodes.emailFailed,
-							message: "Email failed to send",
-						},
-					};
-				}
-
-				// Report only; the caller sends the response below
-				request.server.reportError(error, request);
-			}
-
-			return {
-				httpCode: core.codes.internalErr,
-				msg: {
-					code: core.Utils.foldCodes.unkownError,
-					message: "An internal error occurred while signing up!",
-				},
-			};
+		// Nobody can confirm a signup whose email never arrived, so don't let it hold the username and email
+		await core.db.denySelf(userInfo.id);
+		// A timeout is the mail server being slow, not a bug, so it isn't reported
+		if (
+			!(
+				error instanceof Error &&
+				error.message.includes("Connection timeout")
+			)
+		) {
+			request.server.reportError(error, request);
 		}
 
 		return {
 			httpCode: core.codes.internalErr,
 			msg: {
-				code: core.Utils.foldCodes.unkownError,
-				message: "An internal error occurred while signing up!",
+				code: core.Utils.foldCodes.emailFailed,
+				message: "Email failed to send",
 			},
 		};
 	}
@@ -265,9 +278,10 @@ async function noEmailSignup(
 		hash: string;
 		token: string;
 	},
+	request: FastifyRequest,
 	_response: FastifyReply,
 ): Promise<{
-	httpCode: 500 | 201;
+	httpCode: 500 | 201 | 406;
 	msg: { code: number; message: string };
 }> {
 	try {
@@ -281,10 +295,18 @@ async function noEmailSignup(
 				`Validation Token: ${validationToken.token}`,
 		});
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			// Handle signup error
+		if (error instanceof DBConflictError) {
+			return {
+				httpCode: core.codes.notAccepted,
+				msg: {
+					code: core.codes.notAccepted,
+					message: "Username or email already in use",
+				},
+			};
 		}
 
+		// Report only; the response is sent below
+		request.server.reportError(error, request);
 		return {
 			httpCode: core.codes.internalErr,
 			msg: {
@@ -301,18 +323,6 @@ async function noEmailSignup(
 		httpCode: core.codes.created,
 		msg: { code: core.codes.created, message: "OK" },
 	};
-}
-
-async function genUID(core: Core): Promise<string> {
-	// Generate an ID, and do not allow a user's ID to be reused
-	const uID = core.Utils.genFolderrId();
-	const user = await core.db.findUser({ id: uID });
-	if (user) {
-		// Handle ID collision
-	}
-
-	// Return user ID
-	return uID;
 }
 
 async function checkUserInput(
