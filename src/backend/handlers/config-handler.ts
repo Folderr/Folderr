@@ -38,7 +38,7 @@ const Sentry = z.strictObject({
 
 const Server = z.strictObject({
 	// Not z.httpUrl(): that also demands a dotted domain, which rules out localhost and IPs
-	url: z.url({ protocol: /^https?$/ }).toLowerCase(),
+	url: z.url({ protocol: /^https?$/ }),
 	port: z.coerce.number().int().min(MIN_PORT_LINUX).max(MAX_PORT),
 	apiOnly: zbool.default(false),
 	trustProxies: zbool.default(false),
