@@ -9,6 +9,7 @@ import {
 	lt,
 	ne,
 	type SQL,
+	sql,
 } from "drizzle-orm";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
@@ -197,13 +198,20 @@ export default class SQLiteDB extends DBClass {
 				await mkdir(folder, { recursive: true });
 			}
 
-			// Initalize Drizzle
-			this.#client = createClient({ url, authToken });
+			// Initalize Drizzle. The client keeps a pool of connections, and a pragma only reaches the
+			// connection it ran on, so the busy timeout goes through the client: it applies to every
+			// connection, and waits up to 10s for a lock instead of failing with SQLITE_BUSY
+			this.#client = createClient({ url, authToken, timeout: 10_000 });
 			if (url.startsWith("file:")) {
-				// WAL lets reads run during a write, and NORMAL skips the disk flush on every commit
-				// (about 8ms each). A power cut can lose the last few commits but never corrupts the file
-				await this.#client.execute("PRAGMA journal_mode = WAL");
-				await this.#client.execute("PRAGMA synchronous = NORMAL");
+				// journal_mode is stored in the file, so every connection gets it. synchronous = FULL and
+				// foreign_keys = ON are already the defaults; they're set here to say they're relied on.
+				// WAL lets reads run during a write. FULL flushes every commit to disk (about 2ms each),
+				// so a power cut can't lose one
+				await this.#client.executeMultiple(`
+					PRAGMA journal_mode = WAL;
+					PRAGMA synchronous = FULL;
+					PRAGMA foreign_keys = ON;
+				`);
 			}
 			this.#database = drizzle({ client: this.#client, relations });
 			// Run migrations
@@ -692,10 +700,13 @@ export default class SQLiteDB extends DBClass {
 
 	async purgeUser(id: string): Promise<{ account: boolean }> {
 		return await this.#db.transaction(async (tx) => {
+			// Zero the deleted rows (and everything the cascade removes) instead of leaving them in the file.
+			// Set on this transaction's connection, since a pragma only reaches the connection it runs on
+			await tx.run(sql`PRAGMA secure_delete = ON`);
 			const [user] = await tx
 				.delete(tables.users)
 				.where(eq(tables.users.id, id))
-				.returning();
+				.returning({ id: tables.users.id });
 
 			return {
 				account: Boolean(user),
@@ -811,12 +822,10 @@ export default class SQLiteDB extends DBClass {
 
 				if (adminNotification) {
 					// Tied to the pending user, so verifying or denying them deletes it too (ON DELETE CASCADE)
-					await tx
-						.insert(tables.adminNotifications)
-						.values({
-							...adminNotification,
-							verifyingUser: verify.id,
-						});
+					await tx.insert(tables.adminNotifications).values({
+						...adminNotification,
+						verifyingUser: verify.id,
+					});
 				}
 
 				return verify;
@@ -1102,6 +1111,7 @@ export default class SQLiteDB extends DBClass {
 
 	/* --- DATABASE RELATED METHODS --- */
 	async shutdown(): Promise<void> {
+		await this.#client?.execute("PRAGMA optimize");
 		return this.#client?.close(); // Closes the client. Should be done after http server end
 	}
 }
