@@ -473,7 +473,7 @@ export default class Core {
 		const keys = await loadKeys(this);
 		this.#tokens = new AuthorizationTokens(this, keys);
 		this.#mirrors = new Mirrors(this, keys);
-		dummyHash(); // Generate the dummy garbage data for user leaks in a timing attack
+		await dummyHash(); // Generate the dummy garbage data for user leaks in a timing attack
 		await this.Utils.authorization.init();
 	}
 
