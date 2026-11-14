@@ -25,7 +25,7 @@ export async function startFolderr(): Promise<void> {
 			Sentry.captureException(error);
 			core.shutdownServer(
 				"startup-handler/startFolderr",
-				(error as Error).message,
+				error instanceof Error ? error.message : String(error),
 				1,
 			);
 			return;
@@ -42,7 +42,7 @@ export async function startFolderr(): Promise<void> {
 		Sentry.captureException(error);
 		core.shutdownServer(
 			"startup-handler/startFolderr",
-			(error as Error).message,
+			error instanceof Error ? error.message : String(error),
 			1,
 		);
 		return;
