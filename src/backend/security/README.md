@@ -8,7 +8,7 @@ Nothing else security, auth, or crypto related should exist _outside_ of here. T
 | File              | Code                                                                    | What it does                                                                                                  |
 | ----------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `auth.ts`         | `checkAuth`, `checkSessionOrPassword`, `authPassword`                   | The heart of the authentication system                                                                        |
-| `passwords.ts`    | `hashPass`, `verifyPassword`, `PasswordError`, rules                    | Password handling, strength policies, and checks                                                              |
+| `passwords.ts`    | `hashPass`, `verifyPassword`, `dummyHash`, `PasswordError`, rules       | Password handling, strength policies, and checks                                                              |
 | `cookies.ts`      | `tokenCookieOptions`, `invalidateLoginCookie`                           | Cookie options & (in)validation                                                                               |
 | `verification.ts` | `genValidationToken`, `genWebValidationToken`, `findVerifying`          | Signup and email verification tokens                                                                          |
 | `url-safety.ts`   | `isIPHost`, `testMirrorURL`                                             | Ensuring URLs are safe for Folderr to process, use, send, and send people to. Future: URL Reputation Scanning |

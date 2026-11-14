@@ -49,3 +49,11 @@ export async function verifyPassword(
 ): Promise<boolean> {
 	return argon2.verify(hash, password);
 }
+
+let dummy: Promise<string> | undefined;
+export async function dummyHash(): Promise<string> {
+	dummy ??= argon2.hash(crypto.randomUUID(), {
+		timeCost: PASSWORDS.SALT_ROUNDS,
+	});
+	return dummy;
+}

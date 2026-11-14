@@ -42,6 +42,7 @@ import fastifySwagger from "@fastify/swagger";
 // Security
 import { loadKeys } from "../security/keys";
 import Mirrors from "../security/mirrors";
+import { dummyHash } from "../security/passwords";
 import AuthorizationTokens from "../security/tokens";
 import type DBClass from "./Database/db-class";
 import type { LoggerLevels } from "./logger.js";
@@ -472,6 +473,7 @@ export default class Core {
 		const keys = await loadKeys(this);
 		this.#tokens = new AuthorizationTokens(this, keys);
 		this.#mirrors = new Mirrors(this, keys);
+		dummyHash(); // Generate the dummy garbage data for user leaks in a timing attack
 		await this.Utils.authorization.init();
 	}
 

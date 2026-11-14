@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type Core from "../Structures/core.ts";
 import type { User } from "../Structures/Database/db-class";
 import { invalidateLoginCookie } from "./cookies.js";
-import { verifyPassword } from "./passwords.js";
+import { dummyHash, verifyPassword } from "./passwords.js";
 
 export async function checkAuth(
 	core: Core,
@@ -118,13 +118,13 @@ async function authPassword(
 		markedForDeletion: false, // Those who are gone may not sign in
 	});
 
-	if (!user) return null;
-
+	// Deters a user leak from a timing attack in the event the user does or doesn't exist
+	const dummy = await dummyHash();
 	const verify = await verifyPassword(
-		user.password,
+		user?.password ?? dummy,
 		request.headers.password,
 	);
-	if (!verify) return null;
+	if (!verify || !user) return null;
 
 	return user;
 }
