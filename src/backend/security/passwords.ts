@@ -1,7 +1,7 @@
 import * as argon2 from "argon2";
 import * as constants from "../Structures/constants/index";
 
-enum PASSWORDS {
+export enum PASSWORDS {
 	MINIMUM_LENGTH = 8,
 	MAX_LENGTH = 256,
 	SALT_ROUNDS = 10,
