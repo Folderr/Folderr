@@ -21,7 +21,7 @@ enum TOKENS {
  */
 export async function genValidationToken(): Promise<TokenReturn> {
 	const random = crypto.randomBytes(TOKENS.BYTES).toString("base64url");
-	const hash = await argon2.hash(random, { timeCost: PASSWORDS.SALT_ROUNDS });
+	const hash = await argon2.hash(random, { timeCost: PASSWORDS.TIME_COST });
 	return { token: random, hash };
 }
 

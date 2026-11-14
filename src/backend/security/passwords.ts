@@ -4,7 +4,7 @@ import * as constants from "../Structures/constants/index";
 export enum PASSWORDS {
 	MINIMUM_LENGTH = 8,
 	MAX_LENGTH = 256,
-	SALT_ROUNDS = 10,
+	TIME_COST = 10,
 }
 
 const PASSWORD_REGEX = /^(?=.*\p{L})(?=.*[\p{M}\p{Z}\p{P}\p{S}]).{8,256}$/u;
@@ -40,7 +40,7 @@ export async function hashPass(password: string): Promise<string> {
 		throw new PasswordError(constants.ENUMS.RESPONSES.PASSWORD.NO_NUL, 3);
 	}
 
-	return argon2.hash(password, { timeCost: PASSWORDS.SALT_ROUNDS });
+	return argon2.hash(password, { timeCost: PASSWORDS.TIME_COST });
 }
 
 export async function verifyPassword(
@@ -53,7 +53,7 @@ export async function verifyPassword(
 let dummy: Promise<string> | undefined;
 export async function dummyHash(): Promise<string> {
 	dummy ??= argon2.hash(crypto.randomUUID(), {
-		timeCost: PASSWORDS.SALT_ROUNDS,
+		timeCost: PASSWORDS.TIME_COST,
 	});
 	return dummy;
 }
