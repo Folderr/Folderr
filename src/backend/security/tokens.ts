@@ -1,8 +1,6 @@
-import * as Sentry from "@sentry/node";
 import type { Buffer } from "buffer";
 import jwt, { type Algorithm, JsonWebTokenError } from "jsonwebtoken";
 import { ulid } from "ulidx";
-import AuthKeyHandler from "../handlers/auth-key-handler.js";
 import type { Core } from "../internals.js";
 import { TOKEN_EXPIRY_DAYS } from "../Structures/constants/database.js";
 import type { User } from "../Structures/Database/db-class.js";

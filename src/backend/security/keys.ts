@@ -25,11 +25,17 @@ enum SecureCoreKeyErrorMessages {
 	KEY_MISMATCH = "SecureCore private and public keys do not match",
 }
 
-async function serverShutdown(core: Core, error: Error) {
-	core.logger.error(error, error.message);
-	Sentry.captureException(error);
+async function fail(
+	core: Core,
+	message: string,
+	error?: unknown,
+): Promise<never> {
+	const secureError = new SecureCoreKeyError(message, { cause: error });
+	core.logger.error(secureError, secureError.message);
+	Sentry.captureException(secureError);
 	await core.Utils.sleep(1000);
-	core.shutdownServer("SecureCore/keys.ts", error.message, 1);
+	core.shutdownServer("SecureCore/keys.ts", secureError.message, 1);
+	throw secureError;
 }
 
 export async function loadKeys(core: Core): Promise<SigningKeys> {
@@ -42,21 +48,16 @@ export async function loadKeys(core: Core): Promise<SigningKeys> {
 	if (locations.keys === "none" && process.env.PRIVATE_KEY) {
 		privateKey = Buffer.from(process.env.PRIVATE_KEY);
 	} else if (locations.keys === "none" && !process.env.PRIVATE_KEY) {
-		const secureError = new SecureCoreKeyError(
-			SecureCoreKeyErrorMessages.PRIVATE_KEY_LOAD,
-		);
-		await serverShutdown(core, secureError);
-		throw secureError;
+		throw await fail(core, SecureCoreKeyErrorMessages.PRIVATE_KEY_LOAD);
 	} else {
 		try {
 			privateKey = await fs.readFile(location);
 		} catch (error: unknown) {
-			const secureError = new SecureCoreKeyError(
+			throw await fail(
+				core,
 				SecureCoreKeyErrorMessages.PRIVATE_KEY_LOAD,
-				{ cause: error },
+				error,
 			);
-			await serverShutdown(core, secureError);
-			throw secureError;
 		}
 	}
 
@@ -64,12 +65,11 @@ export async function loadKeys(core: Core): Promise<SigningKeys> {
 		const folderr = await core.db.fetchFolderr();
 		publicKey = Buffer.from(folderr.publicKeyJWT);
 	} catch (error: unknown) {
-		const secureError = new SecureCoreKeyError(
+		throw await fail(
+			core,
 			SecureCoreKeyErrorMessages.PUBLIC_KEY_LOAD,
-			{ cause: error },
+			error,
 		);
-		await serverShutdown(core, secureError);
-		throw secureError;
 	}
 
 	// Test that the keys are valid
@@ -80,14 +80,7 @@ export async function loadKeys(core: Core): Promise<SigningKeys> {
 		);
 		crypto.privateDecrypt(privateKey, data);
 	} catch (error: unknown) {
-		const secureError = new SecureCoreKeyError(
-			SecureCoreKeyErrorMessages.KEY_MISMATCH,
-			{
-				cause: error,
-			},
-		);
-		await serverShutdown(core, secureError);
-		throw secureError;
+		throw await fail(core, SecureCoreKeyErrorMessages.KEY_MISMATCH, error);
 	}
 
 	return { publicKey, privateKey };

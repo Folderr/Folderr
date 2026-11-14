@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/node";
 import type { Buffer } from "buffer";
 import jwt, { type Algorithm, JsonWebTokenError } from "jsonwebtoken";
 import { ulid } from "ulidx";
