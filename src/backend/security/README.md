@@ -5,17 +5,18 @@ Nothing else security, auth, or crypto related should exist _outside_ of here. T
 
 ## Layout
 
-| File              | Code                                                                   | What it does                                                                                                  |
-| ----------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `auth.ts`         | `checkAuth`, `checkSessionOrPassword`, `authPassword`                  | The heart of the authentication system                                                                        |
-| `passwords.ts`    | `hashPass`, password rules                                             | Password handling, strength policies, and checks                                                              |
-| `cookies.ts`      | `tokenCookieOptions`, `invalidateLoginCookie`, `verifyInsecureCookies` | Cookie options & (in)validation                                                                               |
-| `verification.ts` | `genValidationToken`, `genWebValidationToken`, `findVerifying`         | Signup and email verification tokens                                                                          |
-| `url-safety.ts`   | `isIPHost`, `testMirrorURL`                                            | Ensuring URLs are safe for Folderr to process, use, send, and send people to. Future: URL Reputation Scanning |
-| `tokens.ts`       | `verify`, `genKey`, `genKeyWeb`, JWT key handling                      | Token management for users                                                                                    |
-| `mirrors.ts`      | `genMirrorKey`, `verifyMirrorKey`                                      | Mirror validation & security checks                                                                           |
-| `files.ts`        | Type detection, executability checks, and our inline allowlist         | Handles file safety                                                                                           |
-| `policies.ts`     | `requireUser`, `requireAdmin`, `requireOwner`, fastify hooks           | Who may do what (role-based access control)                                                                   |
+| File              | Code                                                                    | What it does                                                                                                  |
+| ----------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `auth.ts`         | `checkAuth`, `checkSessionOrPassword`, `authPassword`                   | The heart of the authentication system                                                                        |
+| `passwords.ts`    | `hashPass`, `verifyPassword`, `PasswordError`, rules                    | Password handling, strength policies, and checks                                                              |
+| `cookies.ts`      | `tokenCookieOptions`, `invalidateLoginCookie`                           | Cookie options & (in)validation                                                                               |
+| `verification.ts` | `genValidationToken`, `genWebValidationToken`, `findVerifying`          | Signup and email verification tokens                                                                          |
+| `url-safety.ts`   | `isIPHost`, `testMirrorURL`                                             | Ensuring URLs are safe for Folderr to process, use, send, and send people to. Future: URL Reputation Scanning |
+| `keys.ts`         | `loadKeys`, `SigningKeys`, `SecureCoreKeyError`                         | Loads and checks the JWT signing keys once at startup, shared by `tokens.ts` and `mirrors.ts`                 |
+| `tokens.ts`       | `verify`, `verifyAccount`, `revoke`, `revokeAll`, `genKey`, `genKeyWeb` | Token management for users                                                                                    |
+| `mirrors.ts`      | `genMirrorKey`, `verifyMirrorKey`                                       | Mirror validation & security checks                                                                           |
+| `files.ts`        | Type detection, executability checks, and our inline allowlist          | Handles file safety                                                                                           |
+| `policies.ts`     | `requireUser`, `requireAdmin`, `requireOwner`, fastify hooks            | Who may do what (role-based access control)                                                                   |
 
 ## Not in here
 
