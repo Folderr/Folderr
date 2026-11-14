@@ -2,7 +2,7 @@ import * as argon2 from "argon2";
 import crypto from "crypto";
 import type DBClass from "../Structures/Database/db-class.js";
 import type { PendingMember } from "../Structures/Database/db-class.js";
-import { PASSWORDS, verifyPassword } from "./passwords";
+import { PASSWORDS } from "./passwords";
 
 type TokenReturn = {
 	token: string;
