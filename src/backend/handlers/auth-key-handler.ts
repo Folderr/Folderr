@@ -48,7 +48,7 @@ export default class AuthKeyHandler {
 						);
 					}
 				} catch (error: unknown) {
-					throw new Error("Private and Public Keys Do Not Match.", {
+					throw new Error("Private and public keys do not match.", {
 						cause: error,
 					});
 				}
@@ -67,9 +67,9 @@ export default class AuthKeyHandler {
 
 			if (
 				error instanceof Error &&
-				error.message === "Private and Public Keys Do Not Match."
+				error.message === "Private and public keys do not match."
 			) {
-				throw new Error("Private and Public Keys Do Not Match.", {
+				throw new Error("Private and public keys do not match.", {
 					cause: error,
 				});
 			}

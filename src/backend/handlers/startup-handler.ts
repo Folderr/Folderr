@@ -24,7 +24,12 @@ export async function startFolderr(): Promise<void> {
 		}
 	}
 
-	await core.initAuthorization();
+	try {
+		await core.initAuthorization();
+	} catch (error: unknown) {
+		// Graceful shutdown has begun, and Sentry just needs the error
+		return;
+	}
 
 	await tokenPurger(core.db);
 

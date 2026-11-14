@@ -187,6 +187,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
+			// Schema validated by AJV
 			const { message } = r.body;
 			const valid =
 				id && u

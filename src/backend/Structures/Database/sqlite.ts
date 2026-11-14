@@ -306,6 +306,17 @@ export default class SQLiteDB extends DBClass {
 		return folderr;
 	}
 
+	async updateFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
+		const [folderr] = await this.#db
+			.update(tables.folderr)
+			.set({
+				publicKeyJWT,
+			})
+			.where(eq(tables.folderr.id, 1))
+			.returning();
+		return folderr;
+	}
+
 	/**
 	 * Creates (and only creates) the Folderr object. Not to be used for updating
 	 *
