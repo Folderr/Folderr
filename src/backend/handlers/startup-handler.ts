@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/node";
 import process from "process"; // Shut.
 import Core from "../Structures/core.js";
 import { tokenPurger } from "../Structures/Utilities/periodic.js";
+import { SecureCoreKeyError } from "../security/keys.js";
 
 export async function startFolderr(): Promise<void> {
 	console.time("Startup");
@@ -20,14 +21,30 @@ export async function startFolderr(): Promise<void> {
 			core.logger.warn("Folderr will exit as per protocol.");
 			process.exit(0);
 		} else {
+			core.logger.error(error, "Database initialization failed");
 			Sentry.captureException(error);
+			core.shutdownServer(
+				"startup-handler/startFolderr",
+				(error as Error).message,
+				1,
+			);
+			return;
 		}
 	}
 
 	try {
 		await core.initAuthorization();
 	} catch (error: unknown) {
-		// Graceful shutdown has begun, and Sentry just needs the error
+		if (error instanceof SecureCoreKeyError) {
+			return; // Graceful shutdown has begun
+		}
+		core.logger.error(error, "Authorization initialization failed");
+		Sentry.captureException(error);
+		core.shutdownServer(
+			"startup-handler/startFolderr",
+			(error as Error).message,
+			1,
+		);
 		return;
 	}
 
