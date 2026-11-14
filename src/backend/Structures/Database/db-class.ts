@@ -183,12 +183,6 @@ export class DBClass {
 	}
 
 	/* ---- FOLDERR RELATED METHODS ---- */
-	async updateFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
-		throw new Error(
-			"DB > NOT IMPLEMENTED - Method updateFolderr is not implemented!",
-		);
-	}
-
 	async createFolderr(publicKeyJWT: Buffer): Promise<Folderr> {
 		throw new Error(
 			"DB > NOT IMPLEMENTED - Method createFolderr is not implemented!",
