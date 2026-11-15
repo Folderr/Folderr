@@ -7,8 +7,6 @@ import { fileTypeFromFile } from "file-type";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 import {
-	checkUploadType,
-	isExecutableExtension,
 	MAX_UPLOAD_LABEL,
 	readStart,
 	routeType,
@@ -16,6 +14,10 @@ import {
 	uploadName,
 	uploadPath,
 } from "../../../Structures/Utilities/upload-types.js";
+import {
+	checkUploadType,
+	isExecutableExtension,
+} from "../../../security/files.js";
 
 const pump = promisify(pipeline);
 
