@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/verify";
 const method = "DELETE";
 
+type RouteTypes = {
+	Body: {
+		id: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -25,6 +31,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message: "body must have required property 'id'",
@@ -47,22 +54,11 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireAdmin,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
-
 			// Search for the user, and if not found send in an error
 			const user = await core.db.findVerify(request.body.id);
 			if (!user) {

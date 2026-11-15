@@ -5,8 +5,15 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/content/:type/:id/account";
 const method = "GET";
 
+type RouteTypes = {
+	Params: {
+		id: string;
+		type: "file" | "link";
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -25,7 +32,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			response: {
 				"4xx": {
 					examples: [
-						{ code: 401, message: "Authorization failed" },
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message: "Missing or invalid requirements",
@@ -65,26 +73,11 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireAdmin,
 		async handler(
-			request: FastifyRequest<{
-				Params: {
-					id: string;
-					type: "file" | "link";
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message:
-						auth.code === 401
-							? "Authorization failed"
-							: "Forbidden",
-				});
-			}
-
 			if (
 				!["file", "link"].includes(request.params.type) ||
 				!/^[\dA-Za-z]+$/.test(request.params.id)

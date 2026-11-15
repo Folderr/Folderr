@@ -6,12 +6,14 @@ import { routeType } from "../../../Structures/Utilities/upload-types.js";
 const path = "/content/:type/:id";
 const method = "DELETE";
 
-type TakedownRequest = FastifyRequest<{
+type RouteTypes = {
 	Params: {
 		type: "file" | "link";
 		id: string;
 	};
-}>;
+};
+
+type TakedownRequest = FastifyRequest<RouteTypes>;
 
 type TakedownResult = {
 	httpCode: 404 | 200;
@@ -96,7 +98,7 @@ async function takedownLink(
 }
 
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -116,8 +118,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			response: {
 				"4xx": {
 					examples: [
-						{ code: 401, message: "Authorization failed" },
-						{ code: 403, message: "Forbidden" },
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message: "Missing or invalid requirements",
@@ -154,18 +156,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireAdmin,
 		async handler(request: TakedownRequest, reply: FastifyReply) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message:
-						auth.code === 401
-							? "Authorization failed"
-							: "Forbidden",
-				});
-			}
-
 			if (
 				!["file", "link"].includes(request.params.type) ||
 				!/^[\dA-Za-z]+$/.test(request.params.id)

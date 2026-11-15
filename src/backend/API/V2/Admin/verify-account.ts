@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/verify";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		id: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -26,6 +32,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message: "body must have required property 'id'",
@@ -53,21 +60,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireAdmin,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			// Look for the user
 			const user = await core.db.findVerify(request.body.id);
@@ -88,7 +86,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 			core.logger.info(
-				`User account ${user.username} (${user.id}) granted by administrator ${auth.user.username} (${auth.user.id})`,
+				`User account ${user.username} (${user.id}) granted by administrator ${auth.username} (${auth.id})`,
 			);
 			return reply
 				.status(core.codes.created)
