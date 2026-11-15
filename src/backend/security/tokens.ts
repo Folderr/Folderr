@@ -54,59 +54,50 @@ export default class AuthorizationTokens {
 
 			return result.id as string;
 		} catch (error: unknown) {
-			if (error instanceof JsonWebTokenError) {
-				throw new Error("Invalid Token");
-			} else if (error instanceof Error) {
-				this.#core.logger.error(error, "Token verification failed");
-			}
-			return null;
+			this.#core.logger.error(error, "Token verification failed");
+			throw error;
 		}
 	}
 
 	public async verifyAccount(
 		token?: string | string[], // Why do you accept an array?
 		options?: {
-			fn?: (args0: User) => boolean;
 			web?: boolean;
 		},
-	): Promise<User | null> {
+	): Promise<User | undefined> {
 		if (!token) {
-			return null;
+			return undefined;
 		}
 
 		if (Array.isArray(token)) {
-			return null;
+			return undefined;
 		}
 
 		try {
 			const id = await this.verify(token, options?.web);
 			if (!id) {
-				return null;
+				return undefined;
 			}
 
-			const user = await this.#core.db.findUser({ id });
+			const user = await this.#core.db.findUser({
+				id,
+				markedForDeletion: false,
+			});
 			if (!user) {
-				this.#core.logger.error(
-					`User with ID ${id} failed authentication. Reason: not found`,
-				);
-				return null;
-			}
-
-			if (options?.fn && !options.fn(user)) {
 				this.#core.logger.debug(
-					`User with ID ${id} failed authentication. Reason: failed fn check`,
+					`User with ID ${id} failed authentication. Reason: not found or being deleted`,
 				);
-				return null;
+				return undefined;
 			}
 
 			return user;
 		} catch (error: unknown) {
-			if (error instanceof Error && error.message === "Invalid Token") {
-				throw new Error("Invalid Token");
+			if (error instanceof JsonWebTokenError) {
+				return undefined;
 			} else if (error instanceof Error) {
 				this.#core.logger.error(error, "Account Verification Error");
 			}
-			return null;
+			throw error;
 		}
 	}
 
@@ -147,7 +138,7 @@ export default class AuthorizationTokens {
 			return true;
 		} catch (error: unknown) {
 			if (error instanceof JsonWebTokenError) {
-				throw new Error("Invalid Token");
+				throw new Error("Invalid Token", { cause: error });
 			}
 			this.#core.logger.error(error, "Token revocation error");
 			throw error;

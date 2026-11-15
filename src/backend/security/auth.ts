@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { JsonWebTokenError } from "jsonwebtoken";
 import type Core from "../Structures/core.ts";
 import type { User } from "../Structures/Database/db-class";
 import { invalidateLoginCookie } from "./cookies.js";
@@ -11,26 +12,22 @@ export async function checkAuth(
 	owner?: boolean,
 	reply?: FastifyReply,
 ): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
-	let account: User | null = null;
+	let account: User | undefined;
 	try {
 		if (request.headers.authorization) {
 			account = await core.tokens.verifyAccount(
 				request.headers.authorization,
-				{
-					fn: (user) => !user.markedForDeletion,
-				},
 			);
 		} else if (request.cookies.token) {
 			account = await core.tokens.verifyAccount(request.cookies.token, {
 				web: true,
-				fn: (user) => !user.markedForDeletion,
 			});
 		} else {
 			return { code: 401 };
 		}
 	} catch (error: unknown) {
 		// A malformed or expired token is a failed sign-in, not a server error
-		if (!(error instanceof Error && error.message === "Invalid Token")) {
+		if (!(error instanceof JsonWebTokenError)) {
 			throw error;
 		}
 	}
@@ -68,12 +65,11 @@ export async function checkSessionOrPassword(
 	request: FastifyRequest,
 	reply?: FastifyReply,
 ): Promise<{ code: 401 } | { code: 200; user: User }> {
-	let account: User | null = null;
+	let account: User | undefined;
 	if (request.cookies.token) {
 		try {
 			account = await core.tokens.verifyAccount(request.cookies.token, {
 				web: true,
-				fn: (user) => !user.markedForDeletion,
 			});
 		} catch (error: unknown) {
 			if (
@@ -96,13 +92,13 @@ export async function checkSessionOrPassword(
 async function authPassword(
 	core: Core,
 	request: FastifyRequest,
-): Promise<User | null> {
+): Promise<User | undefined> {
 	if (!request.headers.password || !request.headers.username) {
 		// CHANGE TO BODY LATER
 		if (process.env.NODE_ENV !== "production") {
 			core.logger.debug("Failed to authenticate user, missing headers");
 		}
-		return null;
+		return undefined;
 	}
 
 	if (
@@ -110,7 +106,7 @@ async function authPassword(
 		Array.isArray(request.headers.username)
 	) {
 		// Goes away with Zod schema & body
-		return null;
+		return undefined;
 	}
 
 	const user = await core.db.findUser({
@@ -124,7 +120,7 @@ async function authPassword(
 		user?.password ?? dummy,
 		request.headers.password,
 	);
-	if (!verify || !user) return null;
+	if (!verify || !user) return undefined;
 
 	return user;
 }
