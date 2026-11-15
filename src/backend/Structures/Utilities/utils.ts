@@ -21,25 +21,13 @@
 
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
-import argon2 from "argon2";
 import crypto from "crypto";
-import type { LookupAddress, LookupOptions } from "dns";
-import { Resolver } from "dns";
 import type { FastifyRequest } from "fastify";
-import type { Options } from "got";
-import { BlockList, isIP } from "net";
 import * as ulid from "ulidx";
 import { promisify } from "util";
 import type { Core } from "../../internals.js";
-import * as constants from "../constants/index.js";
 import type { FoldCodesI } from "./fold-codes.js";
 import { FoldCodes } from "./fold-codes.js";
-
-type MirrorResponse = {
-	message: {
-		res: string;
-	};
-};
 
 type ApiResponse = {
 	message: {
@@ -48,18 +36,6 @@ type ApiResponse = {
 };
 
 const ajv = new AJV();
-
-const msgschema: JTDSchemaType<MirrorResponse["message"]> = {
-	properties: {
-		res: { type: "string" },
-	},
-};
-
-const mirrorschema: JTDSchemaType<MirrorResponse> = {
-	properties: {
-		message: msgschema,
-	},
-};
 
 const apimsg: JTDSchemaType<ApiResponse["message"]> = {
 	properties: {
@@ -73,7 +49,6 @@ const apiresponse: JTDSchemaType<ApiResponse> = {
 	},
 };
 
-const mirrorparse = ajv.compileParser(mirrorschema);
 const apiparse = ajv.compileParser(apiresponse);
 
 const sleep = promisify(setTimeout);
@@ -85,15 +60,9 @@ const generateKeyPair = promisify(crypto.generateKeyPair);
  * @classdesc A lot of utility functions
  */
 class Utils {
-	public saltRounds: number;
-
 	public foldCodes: FoldCodesI;
 
 	readonly #core: Core;
-
-	readonly #resolver: Resolver;
-
-	readonly #ipBlocklist: BlockList;
 
 	/** Whether the configured URL answered its last ping, and when that answer expires */
 	#homeReachable?: { ok: Promise<boolean>; expires: number };
@@ -101,44 +70,11 @@ class Utils {
 	/**
 	 * @constructor
 	 *
-	 * @prop {number} saltRounds The rounds to salt with
 	 * @prop {Core} core The Folderr client
 	 */
 	constructor(core: Core) {
-		this.saltRounds = 10;
 		this.#core = core;
 		this.foldCodes = FoldCodes;
-		this.#resolver = new Resolver({ timeout: 2000, tries: 2 }); // Hey! We got stuff to do! No hanging the thread.
-		this.#resolver.setServers(["1.1.1.1", "1.0.0.1", "8.8.8.8"]);
-
-		// Addresses a user-supplied URL must never be allowed to reach.
-		// BlockList also matches IPv4-mapped IPv6 addresses against the IPv4 ranges.
-		this.#ipBlocklist = new BlockList();
-		for (const [address, prefix] of [
-			["0.0.0.0", 8], // "this" network
-			["10.0.0.0", 8], // private
-			["100.64.0.0", 10], // carrier-grade NAT
-			["127.0.0.0", 8], // loopback
-			["169.254.0.0", 16], // link-local, including cloud metadata
-			["172.16.0.0", 12], // private
-			["192.0.0.0", 24], // IETF protocol assignments
-			["192.168.0.0", 16], // private
-			["198.18.0.0", 15], // benchmarking
-			["224.0.0.0", 4], // multicast
-			["240.0.0.0", 4], // reserved, including broadcast
-		] as const) {
-			this.#ipBlocklist.addSubnet(address, prefix, "ipv4");
-		}
-
-		for (const [address, prefix] of [
-			["::", 128], // unspecified
-			["::1", 128], // loopback
-			["fc00::", 7], // unique local
-			["fe80::", 10], // link-local
-			["ff00::", 8], // multicast
-		] as const) {
-			this.#ipBlocklist.addSubnet(address, prefix, "ipv6");
-		}
 	}
 
 	/**
@@ -163,92 +99,6 @@ class Utils {
 	async sleep(ms: number): Promise<void> {
 		await sleep(ms);
 	}
-
-	/** Strict IP checking */
-	isIPHost(rawUrl: string): boolean {
-		const { hostname } = new URL(rawUrl); // throws on an invalid URL
-		return isIP(hostname.replace(/^\[|\]$/g, "")) !== 0; // IPv6 keeps its [brackets]
-	}
-
-	/**
-	 * A `dns.lookup` replacement for user-supplied URLs, for `got`'s `lookup` option.
-	 * Resolves through public resolvers, so internal-only names (`localhost`, `mongo`) don't
-	 * resolve, and rejects any name with an address in the blocklist.
-	 * Every failure is reported as ENOTFOUND or EBLOCKED.
-	 *
-	 * IP literals never reach a lookup, so check those with `isIPHost`.
-	 */
-	noPrivateDnsLookup = (
-		hostname: string,
-		options: LookupOptions,
-		cb: (
-			err: NodeJS.ErrnoException | null,
-			address: string | LookupAddress[],
-			family?: number,
-		) => void,
-	): void => {
-		const family =
-			options.family === 6 || options.family === "IPv6"
-				? 6
-				: options.family === 4 || options.family === "IPv4"
-					? 4
-					: 0;
-		const methods: Array<"resolve4" | "resolve6"> =
-			family === 4
-				? ["resolve4"]
-				: family === 6
-					? ["resolve6"]
-					: ["resolve4", "resolve6"];
-		const fail = (err: NodeJS.ErrnoException) =>
-			options.all ? cb(err, []) : cb(err, "", 0);
-
-		const found: LookupAddress[] = [];
-		let pending = methods.length;
-
-		for (const method of methods) {
-			this.#resolver[method](hostname, (_err, addresses) => {
-				// An error or an empty answer just means no records of this family
-				for (const address of addresses ?? []) {
-					found.push({
-						address,
-						family: method === "resolve4" ? 4 : 6,
-					});
-				}
-
-				if (--pending > 0) {
-					return;
-				}
-
-				if (found.length === 0) {
-					return fail(
-						Object.assign(new Error(`ENOTFOUND ${hostname}`), {
-							code: "ENOTFOUND",
-							hostname,
-						}),
-					);
-				}
-
-				if (
-					found.some((a) =>
-						this.#ipBlocklist.check(
-							a.address,
-							a.family === 6 ? "ipv6" : "ipv4",
-						),
-					)
-				) {
-					return fail(
-						Object.assign(new Error("URL DISALLOWED"), {
-							code: "EBLOCKED",
-						}),
-					);
-				}
-
-				return options.all
-					? cb(null, found)
-					: cb(null, found[0].address, found[0].family);
-			});
-		}
-	};
 
 	/**
 	 * Generates a RSA2048 private & public key pair
@@ -348,43 +198,6 @@ class Utils {
 	}
 
 	/**
-	 * @desc Hash a password
-	 * @async
-	 *
-	 * @param {string} password The password to hash
-	 * @returns {string}
-	 */
-	async hashPass(password: string): Promise<string> {
-		// Minimum and max password lengths
-		const minPass = 8;
-		const maxPass = 256;
-		// If the password is not over min length
-		// If password does not match the regex completely
-		const match: boolean = this.#core.regexs.password.test(password);
-		if (password.length < minPass || !match) {
-			throw new Error(
-				`[PSW1] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS}`,
-			);
-		}
-
-		// If the password is too long
-		if (password.length > maxPass) {
-			throw new Error(
-				`[PSW2] ${constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_LENGTH_EXCEED}`,
-			);
-		}
-
-		if (password.includes("\0")) {
-			throw new Error(
-				`[PSW3] ${constants.ENUMS.RESPONSES.PASSWORD.NO_NUL}`,
-			);
-		}
-
-		// Hash and return
-		return argon2.hash(password, { timeCost: this.saltRounds });
-	}
-
-	/**
 	 * @desc Generate a notification ID
 	 * @generator
 	 * @async
@@ -393,40 +206,6 @@ class Utils {
 	 */
 	genNotifyID(): string {
 		return this.genFolderrId();
-	}
-
-	async testMirrorURL(url: string): Promise<boolean> {
-		try {
-			const test = await this.#core.got.get<MirrorResponse>(
-				`${url}/api`,
-				{
-					// We can't wait forever to send a response
-					responseType: "json",
-					parseJson: mirrorparse,
-					lookup: this
-						.noPrivateDnsLookup as unknown as Options["lookup"],
-					maxRedirects: 1, // In case of HTTP to HTTPS upgrade
-					hooks: {
-						beforeRedirect: [
-							(options) => {
-								if (this.isIPHost(options.url.href)) {
-									throw new Error("URL DISALLOWED");
-								}
-							},
-						],
-					},
-					timeout: 1000,
-					retry: 1,
-				},
-			);
-			if (!test?.body) {
-				return false;
-			}
-
-			return test.body.message.res === "Pong! Mirror Operational!";
-		} catch {
-			return false;
-		}
 	}
 
 	/**
