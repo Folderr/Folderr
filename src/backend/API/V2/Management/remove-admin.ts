@@ -42,7 +42,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
-						{ code: 403, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message:

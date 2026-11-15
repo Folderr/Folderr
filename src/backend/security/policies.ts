@@ -3,12 +3,14 @@ import type {
 	FastifyRequest,
 	preHandlerAsyncHookHandler,
 } from "fastify";
-import { JsonWebTokenError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import type { User } from "../Structures/Database/db-class";
 import codes from "../Structures/Utilities/status-codes.js";
 import { authPassword } from "./auth";
 import { invalidateLoginCookie } from "./cookies";
 import type AuthorizationTokens from "./tokens";
+
+const { JsonWebTokenError } = jwt;
 
 async function grabUser(
 	tokens: AuthorizationTokens,
