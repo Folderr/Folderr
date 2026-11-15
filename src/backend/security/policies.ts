@@ -1,6 +1,11 @@
-import type { FastifyReply, FastifyRequest } from "fastify";
+import type {
+	FastifyReply,
+	FastifyRequest,
+	preHandlerAsyncHookHandler,
+} from "fastify";
 import type { User } from "../Structures/Database/db-class";
 import codes from "../Structures/Utilities/status-codes.js";
+import { authPassword } from "./auth";
 import { invalidateLoginCookie } from "./cookies";
 import type AuthorizationTokens from "./tokens";
 
@@ -41,16 +46,11 @@ async function grabUser(
 	return { code: 200, user: account };
 }
 
-type FastifyHookReturn = (
-	request: FastifyRequest,
-	reply: FastifyReply,
-) => Promise<unknown>;
-
 function requireRole(
-	tokens: AuthorizationTokens,
 	allowed: (user: User) => boolean,
-): FastifyHookReturn {
+): preHandlerAsyncHookHandler {
 	return async (request: FastifyRequest, reply: FastifyReply) => {
+		const { tokens } = request.server;
 		const check = await grabUser(tokens, request, reply);
 		if (check.code !== 200) {
 			return reply
@@ -66,14 +66,43 @@ function requireRole(
 	};
 }
 
-export function requireUser(tokens: AuthorizationTokens): FastifyHookReturn {
-	return requireRole(tokens, () => true);
-}
+// The actual policies as Fastify hook handlers
+export const requireUser = requireRole(() => true);
+export const requireAdmin = requireRole(
+	(user) => (user.admin || user.owner) ?? false,
+);
+export const requireOwner = requireRole((user) => user.owner ?? false);
 
-export function requireAdmin(tokens: AuthorizationTokens): FastifyHookReturn {
-	return requireRole(tokens, (user) => (user.admin || user.owner) ?? false);
-}
+export async function requireSessionOrPassword(
+	request: FastifyRequest,
+	reply: FastifyReply,
+): Promise<unknown> {
+	const { db, tokens } = request.server;
+	let account: User | undefined;
+	if (request.cookies.token) {
+		try {
+			account = await tokens.verifyAccount(request.cookies.token, {
+				web: true,
+			});
+		} catch (error: unknown) {
+			if (
+				!(error instanceof Error && error.message === "Invalid Token")
+			) {
+				throw error;
+			}
+		}
 
-export function requireOwner(tokens: AuthorizationTokens): FastifyHookReturn {
-	return requireRole(tokens, (user) => user.owner ?? false);
+		if (!account) {
+			invalidateLoginCookie(request, reply);
+		}
+	} else {
+		account = await authPassword(db, request.log, request);
+	}
+
+	if (!account) {
+		return reply
+			.status(codes.unauth)
+			.send({ code: codes.unauth, message: "Authorization failed." });
+	}
+	request.setDecorator("user", account);
 }

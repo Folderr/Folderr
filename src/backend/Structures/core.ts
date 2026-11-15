@@ -39,11 +39,9 @@ const version = pkg.version;
 
 // Types
 import fastifySwagger from "@fastify/swagger";
+import { SecureCoreKeyError } from "../security/keys";
 // Security
-import { loadKeys } from "../security/keys";
-import Mirrors from "../security/mirrors";
-import { dummyHash } from "../security/passwords";
-import AuthorizationTokens from "../security/tokens";
+import SecureCorePlugin from "../security/plugin.js";
 import type DBClass from "./Database/db-class";
 import type { LoggerLevels } from "./logger.js";
 // Other utilities
@@ -93,10 +91,6 @@ const debugLevelMap = new Map<debugLevels, string>([
 ]);
 
 export default class Core {
-	#tokens?: AuthorizationTokens;
-
-	#mirrors?: Mirrors;
-
 	public readonly db: DBClass;
 
 	public app: FastifyInstance;
@@ -226,18 +220,6 @@ export default class Core {
 		);
 	}
 
-	get tokens(): AuthorizationTokens {
-		if (!this.#tokens)
-			throw new Error("Core.tokens used before initAuthorization!");
-		return this.#tokens;
-	}
-
-	get mirrors(): Mirrors {
-		if (!this.#mirrors)
-			throw new Error("Core.mirrors used before initAuthorization!");
-		return this.#mirrors;
-	}
-
 	getHealth(): { failedEndpoints: Set<string>; activeRoutes: Set<string> } {
 		return {
 			failedEndpoints: this.#health.failedEndpoints,
@@ -362,6 +344,8 @@ export default class Core {
 
 		await this.app.register(cookie);
 
+		await this.app.register(SecureCorePlugin);
+
 		// Graceful shutdown waits until this set is empty (see shutdownServer). The raw response's
 		// "close" fires once it's finished or the client has gone, including for requests the
 		// dev server hands to Vite, which never reach Fastify's onResponse
@@ -470,10 +454,6 @@ export default class Core {
 	}
 
 	async initAuthorization() {
-		const keys = await loadKeys(this);
-		this.#tokens = new AuthorizationTokens(this, keys);
-		this.#mirrors = new Mirrors(this, keys);
-		await dummyHash(); // Generate the dummy garbage data for user leaks in a timing attack
 		await this.Utils.authorization.init();
 	}
 

@@ -50,7 +50,18 @@ export async function startFolderr(): Promise<void> {
 
 	await tokenPurger(core.db);
 
-	await core.registerServerPlugins();
+	try {
+		await core.registerServerPlugins();
+	} catch (error: unknown) {
+		core.logger.error(error, "Plugin registration failed");
+		Sentry.captureException(error);
+		core.shutdownServer(
+			"startup-handler/startFolderr",
+			error instanceof Error ? error.message : String(error),
+			1,
+		);
+		return;
+	}
 
 	await core.testEmailer();
 

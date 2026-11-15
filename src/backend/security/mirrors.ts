@@ -1,8 +1,9 @@
 import type { Buffer } from "buffer";
-import jwt, { type Algorithm, JsonWebTokenError } from "jsonwebtoken";
+import jwt, { type Algorithm } from "jsonwebtoken";
 import { ulid } from "ulidx";
-import type { Core } from "../internals.js";
 import type { SigningKeys } from "./keys.js";
+
+const { JsonWebTokenError } = jwt;
 
 // Handles all Mirror related functionality
 export default class Mirrors {
@@ -12,10 +13,7 @@ export default class Mirrors {
 
 	readonly #pubKey: Buffer;
 
-	readonly #core: Core;
-
-	constructor(core: Core, keys: SigningKeys) {
-		this.#core = core;
+	constructor(keys: SigningKeys) {
 		this.#algorithms = ["PS256"];
 		this.#privKey = keys.privateKey;
 		this.#pubKey = keys.publicKey;

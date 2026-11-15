@@ -1,10 +1,13 @@
 import type { Buffer } from "buffer";
-import jwt, { type Algorithm, JsonWebTokenError } from "jsonwebtoken";
+import jwt, { type Algorithm } from "jsonwebtoken";
+import type { Logger } from "pino";
 import { ulid } from "ulidx";
-import type { Core } from "../internals.js";
 import { TOKEN_EXPIRY_DAYS } from "../Structures/constants/database.js";
-import type { User } from "../Structures/Database/db-class.js";
+import type { DBClass, User } from "../Structures/Database/db-class.js";
+import type { LoggerLevels } from "../Structures/logger.js";
 import type { SigningKeys } from "./keys.js";
+
+const { JsonWebTokenError } = jwt;
 
 /**
  * @classdesc Handle token authorization for users.
@@ -16,10 +19,13 @@ export default class AuthorizationTokens {
 
 	readonly #pubKey: Buffer;
 
-	readonly #core: Core;
+	readonly #db: DBClass;
 
-	constructor(core: Core, keys: SigningKeys) {
-		this.#core = core;
+	readonly #logger: Logger<LoggerLevels>;
+
+	constructor(db: DBClass, logger: Logger<LoggerLevels>, keys: SigningKeys) {
+		this.#db = db;
+		this.#logger = logger;
 		this.#algorithms = ["PS256"];
 		this.#privKey = keys.privateKey;
 		this.#pubKey = keys.publicKey;
@@ -41,20 +47,16 @@ export default class AuthorizationTokens {
 				return null;
 			}
 
-			const verify = await this.#core.db.findToken(
-				result.jti,
-				result.id,
-				{
-					web: isWeb,
-				},
-			);
+			const verify = await this.#db.findToken(result.jti, result.id, {
+				web: isWeb,
+			});
 			if (!verify) {
 				return null;
 			}
 
 			return result.id as string;
 		} catch (error: unknown) {
-			this.#core.logger.error(error, "Token verification failed");
+			this.#logger.error(error, "Token verification failed");
 			throw error;
 		}
 	}
@@ -79,12 +81,12 @@ export default class AuthorizationTokens {
 				return undefined;
 			}
 
-			const user = await this.#core.db.findUser({
+			const user = await this.#db.findUser({
 				id,
 				markedForDeletion: false,
 			});
 			if (!user) {
-				this.#core.logger.debug(
+				this.#logger.debug(
 					`User with ID ${id} failed authentication. Reason: not found or being deleted`,
 				);
 				return undefined;
@@ -95,7 +97,7 @@ export default class AuthorizationTokens {
 			if (error instanceof JsonWebTokenError) {
 				return undefined;
 			} else if (error instanceof Error) {
-				this.#core.logger.error(error, "Account Verification Error");
+				this.#logger.error(error, "Account Verification Error");
 			}
 			throw error;
 		}
@@ -124,13 +126,9 @@ export default class AuthorizationTokens {
 				return null;
 			}
 
-			const verifyDb = await this.#core.db.purgeToken(
-				result.jti,
-				result.id,
-				{
-					web,
-				},
-			);
+			const verifyDb = await this.#db.purgeToken(result.jti, result.id, {
+				web,
+			});
 			if (!verifyDb) {
 				return 404;
 			}
@@ -140,7 +138,7 @@ export default class AuthorizationTokens {
 			if (error instanceof JsonWebTokenError) {
 				throw new Error("Invalid Token", { cause: error });
 			}
-			this.#core.logger.error(error, "Token revocation error");
+			this.#logger.error(error, "Token revocation error");
 			throw error;
 		}
 	}
@@ -150,20 +148,14 @@ export default class AuthorizationTokens {
 		web?: boolean,
 	): Promise<boolean | null> {
 		try {
-			const del = await this.#core.db.purgeTokens(userID, web);
-			this.#core.logger.info(`[DB] Deleted ${del} Authorization Tokens`);
+			const del = await this.#db.purgeTokens(userID, web);
+			this.#logger.info(`[DB] Deleted ${del} Authorization Tokens`);
 			return true;
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				this.#core.logger.error(
-					error,
-					"Authorization/Revoke All Error",
-				);
+				this.#logger.error(error, "Authorization/Revoke All Error");
 			} else if (typeof error === "string") {
-				this.#core.logger.error(
-					error,
-					"Authorization/Revoke All Error",
-				);
+				this.#logger.error(error, "Authorization/Revoke All Error");
 			}
 			return null; // Perhaps throw error
 		}
@@ -171,7 +163,7 @@ export default class AuthorizationTokens {
 
 	async genKeyWeb(userID: string): Promise<string> {
 		const id = ulid();
-		await this.#core.db.makeToken(id, userID, { web: true });
+		await this.#db.makeToken(id, userID, { web: true });
 		return `Bearer: ${jwt.sign({ id: userID }, this.#privKey, {
 			expiresIn: `${TOKEN_EXPIRY_DAYS}d`,
 			issuer: "folderr",
@@ -183,7 +175,7 @@ export default class AuthorizationTokens {
 
 	async genKey(userID: string, description?: string): Promise<string> {
 		const id = ulid();
-		await this.#core.db.makeToken(id, userID, { web: false, description });
+		await this.#db.makeToken(id, userID, { web: false, description });
 		return jwt.sign({ id: userID }, this.#privKey, {
 			issuer: "folderr",
 			jwtid: id,
