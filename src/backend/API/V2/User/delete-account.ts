@@ -19,8 +19,17 @@ async function deleteAccount(core: Core, id: string): Promise<boolean> {
 	}
 }
 
+type RouteTypes = {
+	Querystring: {
+		userid?: string;
+	};
+	Body?: {
+		reason?: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -39,6 +48,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message: "Missing reason for account deletion",
@@ -76,25 +86,19 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Querystring: {
-					userid?: string;
-				};
-				Body?: {
-					reason?: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			// Deleting someone else's account needs an admin
+			const auth = fastify.requestUser(request);
+			// Deleting someone else's account needs an admin, the same rule as requireAdmin
 			const targetId = request.query.userid;
 			const needAdmin = typeof targetId === "string";
-			const auth = await core.Utils.checkAuth(request, needAdmin);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
+			if (needAdmin && !auth.admin && !auth.owner) {
+				return reply.status(core.codes.forbidden).send({
+					code: core.codes.forbidden,
+					message: "Action forbidden",
 				});
 			}
 
@@ -128,7 +132,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 				}
 
-				if (mem.admin && !auth.user.owner) {
+				if (mem.admin && !auth.owner) {
 					return reply.status(core.codes.forbidden).send({
 						code: core.codes.forbidden,
 						message: "You cannot delete another admins account!",
@@ -140,7 +144,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 
 				core.logger.info(
-					`Account ${mem.id} deleted by administrator (${auth.user.username} - ${auth.user.id}). Reason: ${request.body.reason}`,
+					`Account ${mem.id} deleted by administrator (${auth.username} - ${auth.id}). Reason: ${request.body.reason}`,
 				);
 				return reply
 					.status(core.codes.ok)
@@ -148,7 +152,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			// The owner account may never be deleted
-			if (auth.user.owner) {
+			if (auth.owner) {
 				return reply.status(core.codes.forbidden).send({
 					message:
 						"You can not delete your account as you are the owner!",
@@ -156,11 +160,11 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			if (!(await deleteAccount(core, auth.user.id))) {
+			if (!(await deleteAccount(core, auth.id))) {
 				return reply.status(core.codes.internalErr).send(failed);
 			}
 
-			core.logger.info(`Account ${auth.user.id} deleted`);
+			core.logger.info(`Account ${auth.id} deleted`);
 			// The account's gone, so its login cookie is useless now
 			if (request.cookies.token) {
 				reply.clearCookie(

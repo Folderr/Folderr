@@ -6,8 +6,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/notifications";
 const method = "GET";
 
+type RouteTypes = {
+	Querystring: {
+		admin?: boolean;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -75,26 +81,17 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Querystring: {
-					admin?: boolean;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
-			let notifs: Notification[] = auth.user.notifications ?? [];
+			let notifs: Notification[] = auth.notifications ?? [];
 			// If the user wants to view admin notifications
 			if (request.query?.admin === true) {
-				if (!auth.user.admin && !auth.user.owner) {
+				if (!auth.admin && !auth.owner) {
 					return reply.status(core.codes.forbidden).send({
 						code: core.codes.forbidden,
 						message: "Forbidden",

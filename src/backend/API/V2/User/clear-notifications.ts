@@ -34,17 +34,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			// Warnings stay; delete-notification removes them one at a time after 90 days
-			await core.db.clearNotifications(auth.user.id);
+			await core.db.clearNotifications(auth.id);
 			return reply
 				.status(core.codes.ok)
 				.send({ code: core.codes.ok, message: "OK" });

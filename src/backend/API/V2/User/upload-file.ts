@@ -72,14 +72,9 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			const file = await request.file();
 
@@ -180,7 +175,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const type = routeType(contentType);
 
 			try {
-				await core.db.makeFile(id, auth.user.id, {
+				await core.db.makeFile(id, auth.id, {
 					contentType,
 					ext: checked.ext,
 				});
@@ -197,7 +192,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const responseURL = request.headers.responseurl;
 			const base =
 				typeof responseURL === "string" &&
-				auth.user.cURLs.includes(responseURL) &&
+				auth.cURLs.includes(responseURL) &&
 				(await core.Utils.testMirrorURL(responseURL))
 					? responseURL
 					: await core.Utils.determineHomeURL(request);

@@ -6,9 +6,18 @@ import Configurator from "../../../Structures/Utilities/sharex-configurator.js";
 const path = "/sharex/config";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		token: string;
+	};
+	Querystring: {
+		d?: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
 	const configurator = new Configurator();
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -103,25 +112,11 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					token: string;
-				};
-				Querystring: {
-					d?: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
-
 			let compare: Awaited<
 				ReturnType<typeof core.Utils.authorization.verifyAccount>
 			>;

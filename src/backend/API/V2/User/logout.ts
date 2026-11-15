@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/logout";
 const method = "GET";
 
+type RouteTypes = {
+	Querystring: {
+		everywhere?: boolean;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -30,7 +36,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"4xx": {
-					examples: [{ code: 401, message: "Unauthorized" }],
+					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -47,29 +53,21 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		// Only signing out everywhere needs to know who the user is.
+		// A plain sign out works from the login cookie alone, even an expired one
+		async preHandler(request, reply) {
+			if (request.query.everywhere) {
+				return fastify.requireUser.call(fastify, request, reply);
+			}
+		},
 		async handler(
-			request: FastifyRequest<{
-				Querystring: {
-					everywhere?: boolean;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
 			if (request.query.everywhere) {
-				const auth = await core.Utils.checkAuth(
-					request,
-					false,
-					false,
-					reply,
-				);
-				if (auth.code !== 200) {
-					return reply
-						.status(auth.code)
-						.send({ message: "Unauthorized", code: auth.code });
-				}
-
+				const auth = fastify.requestUser(request);
 				const revoked = await core.Utils.authorization.revokeAll(
-					auth.user.id,
+					auth.id,
 					true,
 				);
 				if (!revoked) {

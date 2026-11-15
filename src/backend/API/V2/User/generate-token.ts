@@ -74,19 +74,14 @@ function route(fastify: FastifyInstance, core: Core) {
 		async preValidation(request: FastifyRequest<TokenRequest>) {
 			request.body ??= {};
 		},
+		preHandler: fastify.requireUser,
 		async handler(
 			request: FastifyRequest<TokenRequest>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
-			const tokens = await core.db.findTokens(auth.user.id, {
+			const tokens = await core.db.findTokens(auth.id, {
 				web: false,
 			});
 			if (tokens.length >= TOKEN_LIMIT && !request.query.override) {
@@ -108,7 +103,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			const token = await core.Utils.authorization.genKey(
-				auth.user.id,
+				auth.id,
 				request.body?.description,
 			);
 			return reply

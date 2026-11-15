@@ -6,8 +6,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/link";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		url: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -45,21 +51,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					url: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			// Every way this can fail gets the same response, so it can't be used to
 			// probe which hosts exist or are reachable from this server
@@ -107,12 +104,12 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			const ID = await core.Utils.genShortId();
-			await core.db.makeLink(ID, auth.user.id, url.toString());
+			await core.db.makeLink(ID, auth.id, url.toString());
 
 			const responseURL = request.headers.responseurl;
 			const base =
 				typeof responseURL === "string" &&
-				auth.user.cURLs.includes(responseURL) &&
+				auth.cURLs.includes(responseURL) &&
 				(await core.Utils.testMirrorURL(responseURL))
 					? responseURL
 					: await core.Utils.determineHomeURL(request);

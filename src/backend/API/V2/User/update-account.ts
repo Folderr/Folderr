@@ -22,9 +22,11 @@ type UpdateAccBody = {
 	};
 };
 
-type UpdateRequest = FastifyRequest<{
+type RouteTypes = {
 	Body: UpdateAccBody;
-}>;
+};
+
+type UpdateRequest = FastifyRequest<RouteTypes>;
 
 type Failure = {
 	httpCode: number;
@@ -255,7 +257,7 @@ async function handleUsername(
 }
 
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -346,16 +348,9 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(request: UpdateRequest, reply: FastifyReply) {
-			const authed = await core.Utils.checkAuth(request);
-			if (authed.code !== 200) {
-				return reply.status(authed.code).send({
-					code: authed.code,
-					message: "Authorization failed.",
-				});
-			}
-
-			const auth = authed.user;
+			const auth = fastify.requestUser(request);
 			const body = request.body;
 			if (
 				!body.username &&
@@ -374,7 +369,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const passwordConfirmed =
 				typeof body.currentPassword === "string" &&
 				(await argon2.verify(auth.password, body.currentPassword));
-			// checkAuth only uses the login cookie when there's no Authorization header
+			// requireUser only uses the login cookie when there's no Authorization header
 			const usedLoginCookie =
 				!request.headers.authorization &&
 				Boolean(request.cookies.token);

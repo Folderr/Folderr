@@ -31,8 +31,14 @@ const parse = ajv.compileParser(schema);
 const path = "/account/mirror";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		url: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -91,21 +97,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					url: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			let r: Response<MirrorResponse> | undefined;
 			let id: string | undefined;
@@ -142,7 +139,7 @@ function route(fastify: FastifyInstance, core: Core) {
 						parseJson: parse,
 						json: {
 							url: u,
-							owner: auth.user.id,
+							owner: auth.id,
 							token: out.key,
 						},
 						lookup: core.Utils
@@ -205,10 +202,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const result = await core.db.addMirror(
-				auth.user.id,
-				request.body.url,
-			);
+			const result = await core.db.addMirror(auth.id, request.body.url);
 			if (!result) {
 				return reply.status(core.codes.conflict).send({
 					code: core.codes.ok,
