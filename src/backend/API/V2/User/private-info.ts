@@ -78,15 +78,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		async handler(request: FastifyRequest, reply: FastifyReply) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
-
+		preHandler: fastify.requireAdmin,
+		async handler(_request: FastifyRequest, reply: FastifyReply) {
 			const [branch, commit] = await Promise.all([
 				git("rev-parse --abbrev-ref HEAD"),
 				git("log -1 --oneline"),
@@ -101,7 +94,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			});
 		},
 	});
-	fastify.log.info(`Initialized GET Server Info at ${path}`);
+	fastify.log.info(`Initialized GET Private Server Info at ${path}`);
 }
 
 export default {
