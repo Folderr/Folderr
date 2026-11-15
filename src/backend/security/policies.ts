@@ -68,6 +68,15 @@ function requireRole(
 }
 
 // The actual policies as Fastify hook handlers
+export function requestUser(request: FastifyRequest): User {
+	if (!request.user) {
+		throw new Error(
+			`${request.routeOptions.url} has no user and requires one`,
+		);
+	}
+	return request.user;
+}
+
 export const requireUser = requireRole(() => true);
 export const requireAdmin = requireRole(
 	(user) => (user.admin || user.owner) ?? false,

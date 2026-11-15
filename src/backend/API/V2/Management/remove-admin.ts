@@ -5,8 +5,17 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/admin/:id";
 const method = "DELETE";
 
+type RouteTypes = {
+	Params: {
+		id: string;
+	};
+	Body: {
+		reason: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -58,24 +67,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireOwner,
 		async handler(
-			request: FastifyRequest<{
-				Params: {
-					id: string;
-				};
-				Body: {
-					reason: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			if (!core.Utils.isValidFolderrId(request.params.id)) {
 				return reply.status(core.codes.badReq).send({
@@ -101,7 +98,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			core.logger.info(
-				`Administrator removed for ${user.username} (${user.id}) by ${auth.user.username} (${auth.user.id})`,
+				`Administrator removed for ${user.username} (${user.id}) by ${auth.username} (${auth.id})`,
 			);
 			return reply.status(core.codes.ok).send({
 				code: core.codes.ok,

@@ -5,8 +5,10 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/admin/:id";
 const method = "POST";
 
+type RouteTypes = { Params: { id: string } };
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -46,22 +48,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.requireOwner,
 		async handler(
-			request: FastifyRequest<{
-				Params: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
-
+			const auth = fastify.requestUser(request);
 			if (!core.Utils.isValidFolderrId(request.params.id)) {
 				return reply.status(core.codes.badReq).send({
 					code: core.codes.badReq,
@@ -88,7 +80,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			// Eventually we'll make an audit log that goes here
 			// So all admins can see what every user has done.
 			core.logger.info(
-				`Administrator privileges granted to ${user.username} (${user.id}) by ${auth.user.username} (${auth.user.id})`,
+				`Administrator privileges granted to ${user.username} (${user.id}) by ${auth.username} (${auth.id})`,
 			);
 			return reply
 				.status(core.codes.ok)

@@ -9,6 +9,7 @@ import { loadKeys } from "./keys";
 import Mirrors from "./mirrors";
 import { dummyHash } from "./passwords";
 import {
+	requestUser,
 	requireAdmin,
 	requireOwner,
 	requireSessionOrPassword,
@@ -20,6 +21,8 @@ declare module "fastify" {
 	interface FastifyInstance {
 		tokens: AuthorizationTokens;
 		mirrors: Mirrors;
+		requestUser: (request: FastifyRequest) => User;
+
 		requireUser: preHandlerAsyncHookHandler;
 		requireAdmin: preHandlerAsyncHookHandler;
 		requireOwner: preHandlerAsyncHookHandler;
@@ -42,6 +45,7 @@ export default fp(
 		);
 
 		// Decorations
+		fastify.decorate("requestUser", requestUser);
 		fastify.decorate("tokens", tokens);
 		fastify.decorate("mirrors", new Mirrors(keys));
 		fastify.decorateRequest("user", null);
