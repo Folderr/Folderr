@@ -39,7 +39,6 @@ const version = pkg.version;
 
 // Types
 import fastifySwagger from "@fastify/swagger";
-import { SecureCoreKeyError } from "../security/keys";
 // Security
 import SecureCorePlugin from "../security/plugin.js";
 import type DBClass from "./Database/db-class";

@@ -56,6 +56,9 @@ export default class AuthorizationTokens {
 
 			return result.id as string;
 		} catch (error: unknown) {
+			if (error instanceof JsonWebTokenError) {
+				return null;
+			}
 			this.#logger.error(error, "Token verification failed");
 			throw error;
 		}

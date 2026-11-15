@@ -3,6 +3,7 @@ import type {
 	FastifyRequest,
 	preHandlerAsyncHookHandler,
 } from "fastify";
+import { JsonWebTokenError } from "jsonwebtoken";
 import type { User } from "../Structures/Database/db-class";
 import codes from "../Structures/Utilities/status-codes.js";
 import { authPassword } from "./auth";
@@ -85,11 +86,14 @@ export async function requireSessionOrPassword(
 				web: true,
 			});
 		} catch (error: unknown) {
-			if (
-				!(error instanceof Error && error.message === "Invalid Token")
-			) {
+			if (!(error instanceof JsonWebTokenError)) {
 				throw error;
 			}
+
+			// Treat as an invalid key
+			return reply
+				.status(codes.unauth)
+				.send({ code: codes.unauth, message: "Authorization failed." });
 		}
 
 		if (!account) {

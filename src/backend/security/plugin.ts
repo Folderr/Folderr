@@ -33,10 +33,13 @@ declare module "fastify" {
 export default fp(
 	async (fastify, _) => {
 		const { db, log } = fastify;
-		const logger: Logger<LoggerLevels> = log as Logger<LoggerLevels>;
-		logger.startup("Bootstrapping SecureCore into Fastify");
+		log.info("[SecureCore] - Bootstrapping SecureCore into Fastify");
 		const keys = await loadKeys(db);
-		const tokens = new AuthorizationTokens(db, logger, keys);
+		const tokens = new AuthorizationTokens(
+			db,
+			log as Logger<LoggerLevels>,
+			keys,
+		);
 
 		// Decorations
 		fastify.decorate("tokens", tokens);
@@ -50,7 +53,9 @@ export default fp(
 		fastify.decorate("requireSessionOrPassword", requireSessionOrPassword);
 
 		await dummyHash(); // Pre-load the timing attack dummy
-		logger.startup("SecureCore successfully bootsrapped into Fastify");
+		log.info(
+			"[SecureCore] - SecureCore successfully bootstrapped into Fastify",
+		);
 	},
 	{
 		name: "SecureCore",
