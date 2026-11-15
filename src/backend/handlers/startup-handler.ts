@@ -31,8 +31,6 @@ export async function startFolderr(): Promise<void> {
 		}
 	}
 
-	await core.initAuthorization();
-
 	await tokenPurger(core.db);
 
 	try {

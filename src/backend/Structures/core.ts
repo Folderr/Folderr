@@ -452,10 +452,6 @@ export default class Core {
 		this.#deleter.add(userID);
 	}
 
-	async initAuthorization() {
-		await this.Utils.authorization.init();
-	}
-
 	/**
 	 * @desc Builds Fastify's HTTPS options. null means Fastify serves plain HTTP
 	 */

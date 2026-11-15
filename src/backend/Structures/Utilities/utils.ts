@@ -19,23 +19,19 @@
  *
  */
 
-import type { CookieSerializeOptions } from "@fastify/cookie";
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
 import argon2 from "argon2";
-import buffer from "buffer";
 import crypto from "crypto";
 import type { LookupAddress, LookupOptions } from "dns";
 import { Resolver } from "dns";
-import type { FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyRequest } from "fastify";
 import type { Options } from "got";
 import { BlockList, isIP } from "net";
 import * as ulid from "ulidx";
 import { promisify } from "util";
 import type { Core } from "../../internals.js";
-import { Authorization } from "../../internals.js";
 import * as constants from "../constants/index.js";
-import type { PendingMember, User as UI, User } from "../Database/db-class.js";
 import type { FoldCodesI } from "./fold-codes.js";
 import { FoldCodes } from "./fold-codes.js";
 
@@ -83,11 +79,6 @@ const apiparse = ajv.compileParser(apiresponse);
 const sleep = promisify(setTimeout);
 const generateKeyPair = promisify(crypto.generateKeyPair);
 
-type TokenReturn = {
-	token: string;
-	hash: string;
-};
-
 /**
  * @param {Folderr} core The Core of the project
  *
@@ -95,10 +86,6 @@ type TokenReturn = {
  */
 class Utils {
 	public saltRounds: number;
-
-	public byteSize: number;
-
-	public authorization: Authorization;
 
 	public foldCodes: FoldCodesI;
 
@@ -115,14 +102,11 @@ class Utils {
 	 * @constructor
 	 *
 	 * @prop {number} saltRounds The rounds to salt with
-	 * @prop {number} byteSize The amount of random bytes to generate
 	 * @prop {Core} core The Folderr client
 	 */
 	constructor(core: Core) {
 		this.saltRounds = 10;
-		this.byteSize = 48;
 		this.#core = core;
-		this.authorization = new Authorization(core);
 		this.foldCodes = FoldCodes;
 		this.#resolver = new Resolver({ timeout: 2000, tries: 2 }); // Hey! We got stuff to do! No hanging the thread.
 		this.#resolver.setServers(["1.1.1.1", "1.0.0.1", "8.8.8.8"]);
@@ -155,146 +139,6 @@ class Utils {
 		] as const) {
 			this.#ipBlocklist.addSubnet(address, prefix, "ipv6");
 		}
-	}
-
-	/**
-	 * @desc The options for the website's login cookie. Setting and clearing it must use the same ones.
-	 * Secure follows the request's own protocol, so plain-HTTP homelab and local installs still work
-	 * (behind a proxy this needs trustProxies, so the forwarded protocol is used).
-	 *
-	 * @param {Object<FastifyRequest>} request The request the cookie is being set or cleared on
-	 * @returns {CookieSerializeOptions}
-	 */
-	tokenCookieOptions(request: FastifyRequest): CookieSerializeOptions {
-		const dev = process.env.NODE_ENV === "dev";
-		return {
-			httpOnly: true,
-			secure: !dev && request.protocol === "https",
-			sameSite: dev ? undefined : "strict",
-		};
-	}
-
-	/**
-	 * Checks a request for an authorization token
-	 * @param {Object<FastifyRequest>} request The request to authenticate
-	 * @param {Boolean} admin Whether or not to check if the user is an admin
-	 * @param {Boolean} [owner] Whether or not to check if the user is the owner
-	 * @param {Object<FastifyReply>} [reply] Pass the reply to clear the login cookie when it holds an invalid token
-	 * @returns {Object} Either code 200 and a user, or code 4XX and no user
-	 */
-	async checkAuth(
-		request: FastifyRequest,
-		admin?: boolean,
-		owner?: boolean,
-		reply?: FastifyReply,
-	): Promise<{ code: 401 | 403 } | { code: 200; user: User }> {
-		let account: User | void | undefined;
-		try {
-			if (request.headers.authorization) {
-				account = await this.authorization.verifyAccount(
-					request.headers.authorization,
-					{
-						fn: (user) => !user.markedForDeletion,
-					},
-				);
-			} else if (request.cookies.token) {
-				account = await this.authorization.verifyAccount(
-					request.cookies.token,
-					{
-						web: true,
-						fn: (user) => !user.markedForDeletion,
-					},
-				);
-			} else {
-				return { code: 401 };
-			}
-		} catch (error: unknown) {
-			// A malformed or expired token is a failed sign-in, not a server error
-			if (
-				!(error instanceof Error && error.message === "Invalid Token")
-			) {
-				throw error;
-			}
-		}
-
-		if (!account) {
-			// The login cookie is only used when there's no Authorization header
-			if (!request.headers.authorization) {
-				this.invalidateLoginCookie(request, reply);
-			}
-
-			return { code: 401 };
-		}
-
-		if (admin && !account.admin && !account.owner) {
-			return { code: 403 };
-		}
-
-		if (owner && !account.owner) {
-			return { code: 403 };
-		}
-
-		return { code: 200, user: account };
-	}
-
-	/**
-	 * @desc Authenticates with the website's login cookie or username/password headers, but never an API token,
-	 * so a leaked API token can't be used to see or remove other API tokens
-	 *
-	 * @param {Object<FastifyRequest>} request The request to authenticate
-	 * @param {Object<FastifyReply>} [reply] Pass the reply to clear the login cookie when it holds an invalid token
-	 * @returns {Object} Either code 200 and a user, or code 401 and no user
-	 */
-	async checkSessionOrPassword(
-		request: FastifyRequest,
-		reply?: FastifyReply,
-	): Promise<{ code: 401 } | { code: 200; user: User }> {
-		let account: User | void | false | undefined;
-		if (request.cookies.token) {
-			try {
-				account = await this.authorization.verifyAccount(
-					request.cookies.token,
-					{
-						web: true,
-						fn: (user) => !user.markedForDeletion,
-					},
-				);
-			} catch (error: unknown) {
-				if (
-					!(
-						error instanceof Error &&
-						error.message === "Invalid Token"
-					)
-				) {
-					throw error;
-				}
-			}
-
-			if (!account) {
-				this.invalidateLoginCookie(request, reply);
-			}
-		} else {
-			account = await this.authPassword(request);
-		}
-
-		return account ? { code: 200, user: account } : { code: 401 };
-	}
-
-	/**
-	 * @desc Clears a login cookie that failed to sign in, so the browser stops sending it.
-	 * Does nothing without a reply or a cookie.
-	 */
-	private invalidateLoginCookie(
-		request: FastifyRequest,
-		reply?: FastifyReply,
-	): void {
-		if (!reply || !request.cookies.token) {
-			return;
-		}
-
-		reply
-			.header("Authorization-Status", "Invalidated")
-			.clearCookie("token", this.tokenCookieOptions(request));
 	}
 
 	/**
@@ -549,144 +393,6 @@ class Utils {
 	 */
 	genNotifyID(): string {
 		return this.genFolderrId();
-	}
-
-	/**
-	 * @desc Generate a validation token
-	 * @generator
-	 * @async
-	 *
-	 * @returns {Promise<{hash: string, token: string}>}
-	 */
-	async genValidationToken(): Promise<TokenReturn> {
-		// Generate random bytes, gen more random bytes
-		// Oh and get a base64 date in milliseconds
-		const random: string = crypto
-			.randomBytes(this.byteSize)
-			.toString("base64")
-			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
-		const date = buffer.Buffer.from(
-			(Date.now() / 1000).toFixed(0).toString(),
-		)
-			.toString("base64")
-			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
-		// Combine, hash, and return the hashed and unhashed token
-		const token = `${random}_${date}`;
-		const hash = await argon2.hash(token, { timeCost: this.saltRounds });
-		return { token, hash };
-	}
-
-	async genWebValidationToken(): Promise<TokenReturn> {
-		// Generate random bytes, gen more random bytes
-		// Oh and get a base64 date in milliseconds
-		const random: string = crypto
-			.randomBytes(this.byteSize)
-			.toString("base64")
-			.replace(/[`#%"<>|^=/.?:@&+\\-]/g, "_");
-		// Combine, hash, and return the hashed and unhashed token
-		const token = `${random}`;
-		const hash = await argon2.hash(token, { timeCost: this.saltRounds });
-		return { token, hash };
-	}
-
-	/**
-	 * @desc Authenticate a user using password and username
-	 * @async
-	 *
-	 * @param {Request} request The request.
-	 * @param {Function} [fn] Custom function, if not evaluated to true the auth will fail
-	 *
-	 * @returns {Promise<boolean>}
-	 */
-	async authPassword(
-		request: FastifyRequest,
-		fn?: (arg0: UI) => boolean,
-	): Promise<UI | false> {
-		// Make sure all of the auth stuff is there
-		if (!request.headers.password || !request.headers.username) {
-			this.#core.logger.debug(
-				"Failed to authenticate user, missing headers.",
-			);
-			return false;
-		}
-
-		// Make sure the auth is not an array. Arrays are bad for auth
-		if (
-			Array.isArray(request.headers.password) ||
-			Array.isArray(request.headers.username)
-		) {
-			return false;
-		}
-
-		const user = await this.#core.db.findUser({
-			username: request.headers.username,
-			markedForDeletion: false,
-		});
-		if (!user) {
-			return false;
-		}
-
-		const verify = await argon2.verify(
-			user.password,
-			request.headers.password,
-		);
-		if (!verify) {
-			return false;
-		}
-
-		// If the custom function exists
-		if (fn) {
-			const funcOut = fn(user); // Run the custom function (boolean)
-			if (!funcOut) {
-				return false;
-			}
-		}
-
-		// Return the user
-		return user;
-	}
-
-	/**
-	 * @desc Determines if the user allows insecuce requests
-	 * @param request Fastify request
-	 *
-	 * @returns {boolean}
-	 */
-	verifyInsecureCookies(request: FastifyRequest): boolean {
-		if (!request.cookies) {
-			return false;
-		}
-
-		if (!request.cookies.i) {
-			return false;
-		}
-
-		return request.cookies.i === "t";
-	}
-
-	/**
-	 * @desc Find and return a verifying user from the schema if any
-	 * @async
-	 *
-	 * @param {String} validationToken The validation token to search for
-	 * @param {String} userID The user IDs to look for
-	 * @returns {Promise<boolean>}
-	 */
-	async findVerifying(
-		validationToken: string,
-		userID: string,
-	): Promise<PendingMember | false> {
-		const user: PendingMember | undefined =
-			await this.#core.db.findVerify(userID);
-		if (!user) {
-			return false;
-		}
-
-		if (!(await argon2.verify(user.validationToken, validationToken))) {
-			return false;
-		}
-
-		return user;
 	}
 
 	async testMirrorURL(url: string): Promise<boolean> {
