@@ -18,6 +18,7 @@ import {
 	checkUploadType,
 	isExecutableExtension,
 } from "../../../security/files.js";
+import { testMirrorURL } from "../../../security/url-safety.js";
 
 const pump = promisify(pipeline);
 
@@ -193,7 +194,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const base =
 				typeof responseURL === "string" &&
 				auth.cURLs.includes(responseURL) &&
-				(await core.Utils.testMirrorURL(responseURL))
+				(await testMirrorURL(fastify.got, responseURL))
 					? responseURL
 					: await core.Utils.determineHomeURL(request);
 			return reply

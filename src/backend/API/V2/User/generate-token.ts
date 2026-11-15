@@ -102,7 +102,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const token = await core.Utils.authorization.genKey(
+			const token = await fastify.tokens.genKey(
 				auth.id,
 				request.body?.description,
 			);

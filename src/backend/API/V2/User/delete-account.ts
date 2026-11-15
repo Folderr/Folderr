@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { tokenCookieOptions } from "../../../security/cookies.js";
 
 const path = "/account";
 const method = "DELETE";
@@ -167,10 +168,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			core.logger.info(`Account ${auth.id} deleted`);
 			// The account's gone, so its login cookie is useless now
 			if (request.cookies.token) {
-				reply.clearCookie(
-					"token",
-					core.Utils.tokenCookieOptions(request),
-				);
+				reply.clearCookie("token", tokenCookieOptions(request));
 			}
 
 			return reply

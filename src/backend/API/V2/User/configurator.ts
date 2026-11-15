@@ -47,7 +47,10 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
-						{ code: 406, message: "Invalid Token!" },
+						{
+							code: 406,
+							message: "Invalid token or not your token",
+						},
 						{
 							code: 400,
 							message: "body must have required property 'token'",
@@ -117,21 +120,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			let compare: Awaited<
-				ReturnType<typeof core.Utils.authorization.verifyAccount>
-			>;
-			try {
-				compare = await core.Utils.authorization.verifyAccount(
-					request.body.token,
-				);
-			} catch {
-				compare = undefined;
-			}
-
+			const user = fastify.requestUser(request);
+			const compare = fastify.tokens.ownsApiKey(
+				request.body.token,
+				user.id,
+			);
 			if (!compare) {
-				return reply.status(core.codes.unauth).send({
+				return reply.status(core.codes.notAccepted).send({
 					code: core.codes.notAccepted,
-					message: "Invalid Token!",
+					message: "Invalid token or not your token",
 				});
 			}
 

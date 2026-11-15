@@ -3,6 +3,7 @@ import type { Core } from "../../../internals";
 import * as constants from "../../../Structures/constants/index";
 import { DBConflictError } from "../../../Structures/Database/db-class";
 import type { NeoRoute } from "../../../Structures/neo-route";
+import { genValidationToken } from "../../../security/verification";
 
 const path = "/signup";
 const method = "POST";
@@ -139,7 +140,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 
 			// Anything thrown from here goes to the error handler as a 500; it was once
 			// caught and answered with 201 OK, so a failed signup looked like it worked
-			const validationToken = await core.Utils.genValidationToken();
+			const validationToken = await genValidationToken();
 			const userInfo = {
 				username,
 				id: userId,

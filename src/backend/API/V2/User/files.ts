@@ -11,6 +11,7 @@ import {
 	routeType,
 	uploadName,
 } from "../../../Structures/Utilities/upload-types.js";
+import { testMirrorURL } from "../../../security/url-safety.js";
 
 const path = "/files";
 const method = "GET";
@@ -120,7 +121,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			let url =
 				typeof responseURL === "string" &&
 				auth.cURLs.includes(responseURL) &&
-				(await core.Utils.testMirrorURL(responseURL))
+				(await testMirrorURL(fastify.got, responseURL))
 					? responseURL
 					: await core.Utils.determineHomeURL(request);
 			url = url.replace(/\/$/g, "");

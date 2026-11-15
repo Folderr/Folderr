@@ -7,6 +7,8 @@ import {
 	type User,
 } from "../../../Structures/Database/db-class.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { hashPass } from "../../../security/passwords.js";
+import { genValidationToken } from "../../../security/verification.js";
 
 const path = "/account";
 const method = "PATCH";
@@ -44,7 +46,7 @@ async function handlePassword(
 	password: string,
 ): Promise<Failure | string> {
 	try {
-		return await core.Utils.hashPass(password);
+		return await hashPass(password);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) {
 			core.logger.debug(error);
@@ -188,7 +190,7 @@ async function handleEmailUpdate(
 	}
 
 	const url = await core.Utils.determineHomeURL(request);
-	const token = await core.Utils.genWebValidationToken();
+	const token = await genValidationToken();
 	await core.emailer.changeEmail(
 		email,
 		`${url}/confirm/${authUser.id}/${token.token}`,

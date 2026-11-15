@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Options, Response } from "got";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { isIPHost, noPrivateDnsLookup } from "../../../security/url-safety.js";
 
 type MirrorResponse = {
 	message: {
@@ -119,7 +120,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 				}
 
-				if (core.Utils.isIPHost(request.body.url)) {
+				if (isIPHost(request.body.url)) {
 					return reply.status(core.codes.badReq).send({
 						code: core.Utils.foldCodes.mirrorInvalidUrl,
 						message: "Invalid Mirror URL",
@@ -127,12 +128,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 
 				u = await core.Utils.determineHomeURL(request);
-				const out = await core.Utils.authorization.genMirrorKey(
+				const out = await fastify.mirrors.genMirrorKey(
 					u,
 					request.body.url,
 				);
 				id = out.id;
-				r = await core.got.post<MirrorResponse>(
+				r = await fastify.got.post<MirrorResponse>(
 					`${request.body.url}/api/verify`,
 					{
 						responseType: "json",
@@ -142,13 +143,12 @@ function route(fastify: FastifyInstance, core: Core) {
 							owner: auth.id,
 							token: out.key,
 						},
-						lookup: core.Utils
-							.noPrivateDnsLookup as unknown as Options["lookup"],
+						lookup: noPrivateDnsLookup as unknown as Options["lookup"],
 						maxRedirects: 1, // In case of HTTP to HTTPS upgrade
 						hooks: {
 							beforeRedirect: [
 								(options) => {
-									if (core.Utils.isIPHost(options.url.href)) {
+									if (isIPHost(options.url.href)) {
 										throw new Error("URL DISALLOWED");
 									}
 								},
@@ -188,7 +188,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const { message } = r.body;
 			const valid =
 				id && u
-					? core.Utils.authorization.verifyMirrorKey(
+					? fastify.mirrors.verifyMirrorKey(
 							message,
 							id,
 							u,

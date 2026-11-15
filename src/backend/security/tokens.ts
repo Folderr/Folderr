@@ -186,4 +186,8 @@ export default class AuthorizationTokens {
 			audience: "api",
 		});
 	}
+
+	async ownsApiKey(token: string, userId: string): Promise<boolean> {
+		return (await this.verify(token, false)) === userId;
+	}
 }

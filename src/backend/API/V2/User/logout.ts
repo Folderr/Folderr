@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { tokenCookieOptions } from "../../../security/cookies.js";
 
 const path = "/logout";
 const method = "GET";
@@ -66,10 +67,7 @@ function route(fastify: FastifyInstance, core: Core) {
 		) {
 			if (request.query.everywhere) {
 				const auth = fastify.requestUser(request);
-				const revoked = await core.Utils.authorization.revokeAll(
-					auth.id,
-					true,
-				);
+				const revoked = await fastify.tokens.revokeAll(auth.id, true);
 				if (!revoked) {
 					return reply.status(core.codes.internalErr).send({
 						message: "Could not logout",
@@ -78,10 +76,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 
 				if (request.cookies.token) {
-					reply.clearCookie(
-						"token",
-						core.Utils.tokenCookieOptions(request),
-					);
+					reply.clearCookie("token", tokenCookieOptions(request));
 				}
 
 				return reply
@@ -96,10 +91,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			let revoked = false;
 			try {
 				revoked = Boolean(
-					await core.Utils.authorization.revoke(
-						request.cookies.token,
-						true,
-					),
+					await fastify.tokens.revoke(request.cookies.token, true),
 				);
 			} catch (error: unknown) {
 				// An invalid or expired token is already as good as logged out
@@ -123,7 +115,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			return reply
-				.clearCookie("token", core.Utils.tokenCookieOptions(request))
+				.clearCookie("token", tokenCookieOptions(request))
 				.status(core.codes.ok)
 				.send({ message: "Logged out", code: core.codes.ok });
 		},
