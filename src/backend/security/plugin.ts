@@ -1,6 +1,5 @@
 // Fastify plugin
 
-import type { preHandlerAsyncHookHandler } from "fastify";
 import fp from "fastify-plugin";
 import type { Logger } from "pino";
 import type { User } from "../Structures/Database/db-class";
@@ -34,11 +33,6 @@ declare module "fastify" {
 		tokens: AuthorizationTokens;
 		mirrors: Mirrors;
 		requestUser: (request: FastifyRequest) => User;
-
-		requireUser: preHandlerAsyncHookHandler;
-		requireAdmin: preHandlerAsyncHookHandler;
-		requireOwner: preHandlerAsyncHookHandler;
-		requireSessionOrPassword: preHandlerAsyncHookHandler;
 		policy: Policy;
 	}
 	interface FastifyRequest {
@@ -64,10 +58,6 @@ export default fp(
 		fastify.decorateRequest("user", null);
 
 		// Checks
-		fastify.decorate("requireUser", requireUser);
-		fastify.decorate("requireAdmin", requireAdmin);
-		fastify.decorate("requireOwner", requireOwner);
-		fastify.decorate("requireSessionOrPassword", requireSessionOrPassword);
 		fastify.decorate("policy", policy);
 
 		await dummyHash(); // Pre-load the timing attack dummy
