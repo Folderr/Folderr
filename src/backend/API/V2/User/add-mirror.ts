@@ -47,7 +47,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Links a mirror (custom URL) to the signed-in user's account, after checking that the mirror answers Folderr's verification request",
 			summary: "Add mirror",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -98,7 +98,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,

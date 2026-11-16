@@ -9,13 +9,25 @@ import { loadKeys } from "./keys";
 import Mirrors from "./mirrors";
 import { dummyHash } from "./passwords";
 import {
+	logoutPolicy,
 	requestUser,
 	requireAdmin,
 	requireOwner,
+	requirePasswordConfirmation,
 	requireSessionOrPassword,
 	requireUser,
 } from "./policies";
 import AuthorizationTokens from "./tokens";
+
+const policy = Object.freeze({
+	requireUser,
+	requireAdmin,
+	requireOwner,
+	requireSessionOrPassword,
+	requirePasswordConfirmation,
+	logoutPolicy,
+});
+type Policy = typeof policy;
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -27,6 +39,7 @@ declare module "fastify" {
 		requireAdmin: preHandlerAsyncHookHandler;
 		requireOwner: preHandlerAsyncHookHandler;
 		requireSessionOrPassword: preHandlerAsyncHookHandler;
+		policy: Policy;
 	}
 	interface FastifyRequest {
 		user: User | null;
@@ -55,6 +68,7 @@ export default fp(
 		fastify.decorate("requireAdmin", requireAdmin);
 		fastify.decorate("requireOwner", requireOwner);
 		fastify.decorate("requireSessionOrPassword", requireSessionOrPassword);
+		fastify.decorate("policy", policy);
 
 		await dummyHash(); // Pre-load the timing attack dummy
 		log.info(

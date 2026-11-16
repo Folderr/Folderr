@@ -20,7 +20,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Unlinks a mirror (custom URL) from the signed-in user's account",
 			summary: "Remove mirror",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -55,7 +55,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,

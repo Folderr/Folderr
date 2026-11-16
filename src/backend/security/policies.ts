@@ -3,19 +3,21 @@ import type {
 	FastifyRequest,
 	preHandlerAsyncHookHandler,
 } from "fastify";
-import jwt from "jsonwebtoken";
 import type { User } from "../Structures/Database/db-class";
 import codes from "../Structures/Utilities/status-codes.js";
 import { authPassword } from "./auth";
 import { invalidateLoginCookie } from "./cookies";
+import { verifyPassword } from "./passwords";
 import type AuthorizationTokens from "./tokens";
-
-const { JsonWebTokenError } = jwt;
 
 async function grabUser(
 	tokens: AuthorizationTokens,
 	request: FastifyRequest,
 	reply: FastifyReply,
+	options: {
+		apiAllowed: boolean;
+		passwordAllowed: boolean;
+	},
 ): Promise<
 	| {
 			code: 401;
@@ -25,28 +27,35 @@ async function grabUser(
 			user: User;
 	  }
 > {
-	let account: User | undefined;
-	if (request.headers.authorization) {
-		account = await tokens.verifyAccount(request.headers.authorization, {
+	let user: User | undefined;
+	if (options.apiAllowed && request.headers.authorization) {
+		user = await tokens.verifyAccount(request.headers.authorization, {
 			web: false,
 		});
 	} else if (request.cookies.token) {
-		account = await tokens.verifyAccount(request.cookies.token, {
+		user = await tokens.verifyAccount(request.cookies.token, {
 			web: true,
 		});
+		if (!user) {
+			invalidateLoginCookie(request, reply);
+		}
+	} else if (
+		options.passwordAllowed &&
+		request.headers.username &&
+		request.headers.password
+	) {
+		user = await authPassword(
+			request.server.db,
+			request.server.log,
+			request,
+		);
 	} else {
 		return { code: 401 };
 	}
 
-	if (!account) {
-		if (!request.headers.authorization) {
-			invalidateLoginCookie(request, reply);
-		}
+	if (!user) return { code: 401 };
 
-		return { code: 401 };
-	}
-
-	return { code: 200, user: account };
+	return { code: 200, user };
 }
 
 function requireRole(
@@ -54,7 +63,10 @@ function requireRole(
 ): preHandlerAsyncHookHandler {
 	return async (request: FastifyRequest, reply: FastifyReply) => {
 		const { tokens } = request.server;
-		const check = await grabUser(tokens, request, reply);
+		const check = await grabUser(tokens, request, reply, {
+			apiAllowed: true,
+			passwordAllowed: false,
+		});
 		if (check.code !== 200) {
 			return reply
 				.status(codes.unauth)
@@ -85,39 +97,63 @@ export const requireAdmin = requireRole(
 );
 export const requireOwner = requireRole((user) => user.owner ?? false);
 
+// Passwords
+export async function logoutPolicy(
+	request: FastifyRequest,
+	reply: FastifyReply,
+): Promise<unknown> {
+	const check = await grabUser(request.server.tokens, request, reply, {
+		apiAllowed: false,
+		passwordAllowed: true,
+	});
+	if (check.code !== 200) {
+		return reply.status(request.server.codes.ok).send({
+			code: request.server.codes.ok,
+			message: "Logged out",
+		});
+	}
+
+	request.setDecorator("user", check.user);
+}
+
 export async function requireSessionOrPassword(
 	request: FastifyRequest,
 	reply: FastifyReply,
 ): Promise<unknown> {
-	const { db, tokens } = request.server;
-	let account: User | undefined;
-	if (request.cookies.token) {
-		try {
-			account = await tokens.verifyAccount(request.cookies.token, {
-				web: true,
-			});
-		} catch (error: unknown) {
-			if (!(error instanceof JsonWebTokenError)) {
-				throw error;
-			}
-
-			// Treat as an invalid key
-			return reply
-				.status(codes.unauth)
-				.send({ code: codes.unauth, message: "Authorization failed." });
-		}
-
-		if (!account) {
-			invalidateLoginCookie(request, reply);
-		}
-	} else {
-		account = await authPassword(db, request.log, request);
-	}
-
-	if (!account) {
+	const check = await grabUser(request.server.tokens, request, reply, {
+		apiAllowed: false,
+		passwordAllowed: true,
+	});
+	if (check.code !== 200) {
 		return reply
-			.status(codes.unauth)
-			.send({ code: codes.unauth, message: "Authorization failed." });
+			.status(request.server.codes.unauth)
+			.send({
+				code: request.server.codes.unauth,
+				message: "Authorization failed.",
+			});
 	}
-	request.setDecorator("user", account);
+	request.setDecorator("user", check.user);
+}
+
+export function requirePasswordConfirmation<Body = unknown>(
+	when: (body: Body) => boolean = () => true,
+	message?: string,
+): preHandlerAsyncHookHandler {
+	return async (request: FastifyRequest, reply: FastifyReply) => {
+		if (!when(request.body as Body)) return;
+		const user = request.server.requestUser(request);
+		const current = (request.body as { currentPassword?: true } | undefined)
+			?.currentPassword;
+		if (typeof current !== "string")
+			return reply.status(request.server.codes.badReq).send({
+				code: request.server.codes.badReq,
+				message: message ?? "This change needs your password",
+			});
+		if (!(await verifyPassword(user.password, current)))
+			return reply.status(request.server.codes.unauth).send({
+				code: request.server.codes.unauth,
+				message: "Authorization failed.",
+			});
+		return;
+	};
 }

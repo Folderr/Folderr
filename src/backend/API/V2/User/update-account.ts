@@ -1,4 +1,3 @@
-import argon2 from "argon2";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import * as constants from "../../../Structures/constants/index.js";
@@ -7,7 +6,7 @@ import {
 	type User,
 } from "../../../Structures/Database/db-class.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
-import { hashPass } from "../../../security/passwords.js";
+import { hashPass, verifyPassword } from "../../../security/passwords.js";
 import { genValidationToken } from "../../../security/verification.js";
 
 const path = "/account";
@@ -139,29 +138,6 @@ async function handleEmailUpdate(
 		};
 	}
 
-	// Emails match without regard to letter case, the same as in the database
-	if (authUser.email.toLowerCase() === email.toLowerCase()) {
-		return {
-			httpCode: core.codes.notAccepted,
-			message: {
-				code: core.codes.notAccepted,
-				message: "Already using that email",
-			},
-			accepted: false,
-		};
-	}
-
-	if (!core.emailer.active) {
-		return {
-			httpCode: core.codes.notImplemented,
-			message: {
-				code: core.Utils.foldCodes.emailerNotConfigured,
-				message: "Emailer not configured. Unable to update email.",
-			},
-			accepted: false,
-		};
-	}
-
 	if (await core.db.isBanned(email)) {
 		return {
 			httpCode: core.codes.forbidden,
@@ -208,19 +184,8 @@ async function handleEmailUpdate(
  */
 async function handleUsername(
 	core: Core,
-	preUsername: string,
 	username: string,
 ): Promise<Failure | string> {
-	if (username === preUsername) {
-		return {
-			httpCode: 226,
-			message: {
-				message: "You already have this username",
-				code: core.Utils.foldCodes.usernameOrEmailTaken,
-			},
-		};
-	}
-
 	const maxUsername = 12;
 	const minUsername = 3;
 	if (username.length > maxUsername || username.length < minUsername) {
@@ -267,7 +232,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Changes the signed-in user's password, username, email or privacy setting. Changing the password needs currentPassword. Changing the email needs the website login or currentPassword. A new email must be confirmed from the link sent to it",
 			summary: "Update account",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -350,7 +315,71 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: [
+			// User needs either their username & password or a session
+			fastify.policy.requireSessionOrPassword,
+			// If you provide the new password I hope you provide the old one too
+			fastify.policy.requirePasswordConfirmation<UpdateAccBody>((body) =>
+				Boolean(body.password),
+			), // Does the new password match the old one?
+			async (
+				request: FastifyRequest<RouteTypes>,
+				reply: FastifyReply,
+			) => {
+				const user = request.server.requestUser(request);
+				if (
+					request.body.password &&
+					(await verifyPassword(user.password, request.body.password))
+				) {
+					return reply.status(request.server.codes.badReq).send({
+						code: request.server.codes.badReq,
+						message:
+							"Your new password cannot be the same as your old one",
+					});
+				}
+			},
+			// Other checks
+			async (
+				request: FastifyRequest<RouteTypes>,
+				reply: FastifyReply,
+			) => {
+				const user = request.server.requestUser(request);
+				if (
+					request.body.username &&
+					request.body.username.toLowerCase() ===
+						user.username.toLowerCase()
+				) {
+					// Is the user trying to set their username to... their username?
+					return reply.status(request.server.codes.used).send({
+						code: core.Utils.foldCodes.usernameOrEmailTaken,
+						message: "You already have this username!",
+					});
+				}
+
+				if (request.body.email && !core.emailer.active) {
+					// Can we even try to update their email?
+					return reply
+						.status(request.server.codes.notImplemented)
+						.send({
+							code: core.Utils.foldCodes.emailerNotConfigured,
+							message:
+								"Emailer not configured. Unable to update email.",
+						});
+				}
+
+				if (
+					request.body.email &&
+					request.body.email.toLowerCase() ===
+						user.email.toLowerCase()
+				) {
+					// Are they already using the "new" email?
+					return reply.status(request.server.codes.notAccepted).send({
+						code: core.Utils.foldCodes.usernameOrEmailTaken,
+						message: "You already have this email!",
+					});
+				}
+			},
+		],
 		async handler(request: UpdateRequest, reply: FastifyReply) {
 			const auth = fastify.requestUser(request);
 			const body = request.body;
@@ -366,32 +395,6 @@ function route(fastify: FastifyInstance, core: Core) {
 						"BODY REQUIRES ONE OF password, username, privacy, OR email!",
 				});
 			}
-
-			// Sensitive changes need more than an API token
-			const passwordConfirmed =
-				typeof body.currentPassword === "string" &&
-				(await argon2.verify(auth.password, body.currentPassword));
-			// requireUser only uses the login cookie when there's no Authorization header
-			const usedLoginCookie =
-				!request.headers.authorization &&
-				Boolean(request.cookies.token);
-
-			if (body.password && !passwordConfirmed) {
-				return reply.status(core.codes.unauth).send({
-					code: core.codes.unauth,
-					message:
-						"Changing your password needs your current password",
-				});
-			}
-
-			if (body.email && !passwordConfirmed && !usedLoginCookie) {
-				return reply.status(core.codes.unauth).send({
-					code: core.codes.unauth,
-					message:
-						"Changing your email needs the website login or your current password",
-				});
-			}
-
 			const update: {
 				password?: string;
 				username?: string;
@@ -409,11 +412,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				};
 			}
 
-			// Only hash a password that's actually different
-			if (
-				body.password &&
-				!(await argon2.verify(auth.password, body.password))
-			) {
+			// We check if this was different in the above hook
+			if (body.password) {
 				const passwd = await handlePassword(core, body.password);
 				if (typeof passwd !== "string") {
 					return reply.status(passwd.httpCode).send(passwd.message);
@@ -423,11 +423,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			if (body.username) {
-				const newUsername = await handleUsername(
-					core,
-					auth.username,
-					body.username,
-				);
+				const newUsername = await handleUsername(core, body.username);
 				if (typeof newUsername !== "string") {
 					return reply
 						.status(newUsername.httpCode)

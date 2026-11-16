@@ -21,7 +21,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Signs out of the website. With everywhere=true, ends every website login for the account",
 			summary: "Sign out",
-			security: [{ loginCookie: [] }, { apiKey: [] }],
+			security: [{ loginCookie: [] }, { username: [], password: [] }],
 			querystring: {
 				type: "object",
 				properties: { everywhere: { type: "boolean" } },
@@ -56,11 +56,7 @@ function route(fastify: FastifyInstance, core: Core) {
 		},
 		// Only signing out everywhere needs to know who the user is.
 		// A plain sign out works from the login cookie alone, even an expired one
-		async preHandler(request, reply) {
-			if (request.query.everywhere) {
-				return fastify.requireUser.call(fastify, request, reply);
-			}
-		},
+		preHandler: fastify.policy.logoutPolicy,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
@@ -70,7 +66,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				const revoked = await fastify.tokens.revokeAll(auth.id, true);
 				if (!revoked) {
 					return reply.status(core.codes.internalErr).send({
-						message: "Could not logout",
+						message: "Could not logout everywhere",
 						code: core.codes.internalErr,
 					});
 				}
@@ -85,7 +81,9 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			if (!request.cookies.token) {
-				return reply.redirect("/");
+				return reply
+					.status(core.codes.ok)
+					.send({ message: "Logged out", code: core.codes.ok });
 			}
 
 			let revoked = false;

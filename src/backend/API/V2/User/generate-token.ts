@@ -26,7 +26,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["user"],
 			description: `Creates an API token for the signed-in user. Users can have ${TOKEN_LIMIT}; pass override=true to replace the oldest`,
 			summary: "Create API token",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -74,7 +74,7 @@ function route(fastify: FastifyInstance, core: Core) {
 		async preValidation(request: FastifyRequest<TokenRequest>) {
 			request.body ??= {};
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
 			request: FastifyRequest<TokenRequest>,
 			reply: FastifyReply,

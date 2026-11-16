@@ -38,7 +38,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Deletes the signed-in user's account. Admins can delete someone else's with ?userid= and a reason; nobody can delete the owner",
 			summary: "Delete account",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			querystring: {
 				type: "object",
 				properties: {
@@ -87,7 +87,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,

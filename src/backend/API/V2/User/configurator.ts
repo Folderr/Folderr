@@ -115,13 +115,13 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireUser,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
 			const user = fastify.requestUser(request);
-			const compare = fastify.tokens.ownsApiKey(
+			const compare = await fastify.tokens.ownsApiKey(
 				request.body.token,
 				user.id,
 			);
