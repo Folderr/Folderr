@@ -95,7 +95,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireUser,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
 			const user = fastify.requestUser(request);
 			const { files, links } = await core.db.countContent(user.id);

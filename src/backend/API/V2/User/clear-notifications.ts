@@ -34,7 +34,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireUser,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
 			const auth = fastify.requestUser(request);
 

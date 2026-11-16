@@ -49,7 +49,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireUser,
+		preHandler: fastify.policy.requireUser,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,

@@ -78,7 +78,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireAdmin,
+		preHandler: fastify.policy.requireAdmin,
 		async handler(_request: FastifyRequest, reply: FastifyReply) {
 			const [branch, commit] = await Promise.all([
 				git("rev-parse --abbrev-ref HEAD"),

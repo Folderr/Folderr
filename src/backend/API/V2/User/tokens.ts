@@ -63,7 +63,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireSessionOrPassword,
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
 			const auth = fastify.requestUser(request);
 			const tokens = await core.db.findTokens(auth.id);

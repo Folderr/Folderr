@@ -60,7 +60,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireSessionOrPassword,
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
