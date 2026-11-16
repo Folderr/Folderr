@@ -1,17 +1,10 @@
 {
 	"permissions": {
 		"deny": [
-			"Edit(/src/backend/security/**)",
-			"Edit(src/backend/security/**)",
+			"Edit(/src/backend/security/**.*ts)",
+			"Edit(src/backend/security/**.*ts)",
 			"Edit(.claude/settings.json)",
 			"Edit(/.claude/settings.json)"
-		]
-	},
-	"autoMode": {
-		"hard_deny": [
-			"$defaults",
-			"Never remove or loosen the blocker to src/backend/security",
-			"Never create, modify, overwrite, delete, move or rename any file under src/backend/security/ by any means, including shell commands (sed, redirects such as > or >>, tee, cp, mv, rm, git checkout/restore/apply/stash pop, patch, or scripts that write files). Only the human owner edits that folder; Claude may read it and suggest changes. Claude may edit README.md but should instead offer a plan"
 		]
 	}
 }

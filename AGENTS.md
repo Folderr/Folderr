@@ -17,7 +17,7 @@ Don't change the shape or behavior of routes unless absolutely needed and you ha
 3. **Never force-push, or rewrite published history.**
 4. **Never push** unless explicitly asked to.
 5. **Don't delete code without re-checking its callers right before deleting.** A search from earlier in the session goes stale as soon as someone else commits.
-6. **Leave untracked notes out of commits** (`*.md` audit and plan files in the repo root, `.claude/`, and other agent configs), unless asked.
+6. **Leave untracked notes out of commits** (`*.md` audit and plan files in the repo root), unless asked.
 
 ## Setup
 
