@@ -8,6 +8,7 @@ import { Writable } from "stream";
 import locations from "../internal/locations.json" with { type: "json" };
 import { loadConfig } from "../src/backend/handlers/config-handler.js";
 import Core from "../src/backend/Structures/core.js";
+import { hashPass } from "../src/backend/security/passwords";
 
 class MuteStreamHandler {
 	public muted: boolean;
@@ -422,7 +423,7 @@ async function keyGen(
 
 	if (username && email && password) {
 		const id = core.Utils.genFolderrId();
-		const hashedPassword = await core.Utils.hashPass(password);
+		const hashedPassword = await hashPass(password);
 		await core.db.makeOwner(username, hashedPassword, id, email);
 		console.log(
 			"Owner account created successfully. Information below.\n" +

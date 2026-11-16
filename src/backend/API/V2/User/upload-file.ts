@@ -7,8 +7,6 @@ import { fileTypeFromFile } from "file-type";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 import {
-	checkUploadType,
-	isExecutableExtension,
 	MAX_UPLOAD_LABEL,
 	readStart,
 	routeType,
@@ -16,6 +14,11 @@ import {
 	uploadName,
 	uploadPath,
 } from "../../../Structures/Utilities/upload-types.js";
+import {
+	checkUploadType,
+	isExecutableExtension,
+} from "../../../security/files.js";
+import { testMirrorURL } from "../../../security/url-safety.js";
 
 const pump = promisify(pipeline);
 
@@ -70,14 +73,9 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireUser,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			const file = await request.file();
 
@@ -178,7 +176,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const type = routeType(contentType);
 
 			try {
-				await core.db.makeFile(id, auth.user.id, {
+				await core.db.makeFile(id, auth.id, {
 					contentType,
 					ext: checked.ext,
 				});
@@ -195,8 +193,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			const responseURL = request.headers.responseurl;
 			const base =
 				typeof responseURL === "string" &&
-				auth.user.cURLs.includes(responseURL) &&
-				(await core.Utils.testMirrorURL(responseURL))
+				auth.cURLs.includes(responseURL) &&
+				(await testMirrorURL(fastify.got, responseURL))
 					? responseURL
 					: await core.Utils.determineHomeURL(request);
 			return reply

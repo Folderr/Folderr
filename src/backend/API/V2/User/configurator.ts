@@ -6,9 +6,18 @@ import Configurator from "../../../Structures/Utilities/sharex-configurator.js";
 const path = "/sharex/config";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		token: string;
+	};
+	Querystring: {
+		d?: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
 	const configurator = new Configurator();
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -38,7 +47,10 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
-						{ code: 406, message: "Invalid Token!" },
+						{
+							code: 406,
+							message: "Invalid token or not your token",
+						},
 						{
 							code: 400,
 							message: "body must have required property 'token'",
@@ -103,40 +115,20 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					token: string;
-				};
-				Querystring: {
-					d?: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
-
-			let compare: Awaited<
-				ReturnType<typeof core.Utils.authorization.verifyAccount>
-			>;
-			try {
-				compare = await core.Utils.authorization.verifyAccount(
-					request.body.token,
-				);
-			} catch {
-				compare = undefined;
-			}
-
+			const user = fastify.requestUser(request);
+			const compare = await fastify.tokens.ownsApiKey(
+				request.body.token,
+				user.id,
+			);
 			if (!compare) {
-				return reply.status(core.codes.unauth).send({
+				return reply.status(core.codes.notAccepted).send({
 					code: core.codes.notAccepted,
-					message: "Invalid Token!",
+					message: "Invalid token or not your token",
 				});
 			}
 

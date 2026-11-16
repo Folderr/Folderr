@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/notification/:id";
 const method = "DELETE";
 
+type RouteTypes = {
+	Params: {
+		id: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -26,6 +32,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{ code: 1054, message: "Notification not found!" },
 						{
 							code: 403,
@@ -48,21 +55,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireAdmin,
 		async handler(
-			request: FastifyRequest<{
-				Params: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			const notify = await core.db.findAdminNotify(request.params.id);
 			if (!notify) {
@@ -82,7 +80,7 @@ function route(fastify: FastifyInstance, core: Core) {
 
 			await core.db.purgeAdminNotify(request.params.id);
 			core.logger.info(
-				`[SYSTEM] Admin notification ${notify.id} removed by ${auth.user.username}!`,
+				`[SYSTEM] Admin notification ${notify.id} removed by ${auth.username}!`,
 			);
 			return reply
 				.status(core.codes.ok)

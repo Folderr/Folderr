@@ -17,7 +17,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			security: [{ loginCookie: [] }, { username: [], password: [] }],
 			response: {
 				"4xx": {
-					examples: [{ code: 401, message: "Authorization failed" }],
+					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -63,19 +63,10 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
-			const auth = await core.Utils.checkSessionOrPassword(
-				request,
-				reply,
-			);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					message: "Authorization failed",
-					code: auth.code,
-				});
-			}
-
-			const tokens = await core.db.findTokens(auth.user.id);
+			const auth = fastify.requestUser(request);
+			const tokens = await core.db.findTokens(auth.id);
 			return reply.status(core.codes.ok).send({
 				code: core.codes.ok,
 				message: tokens

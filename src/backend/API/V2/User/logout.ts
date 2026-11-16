@@ -1,12 +1,19 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { tokenCookieOptions } from "../../../security/cookies.js";
 
 const path = "/logout";
 const method = "GET";
 
+type RouteTypes = {
+	Querystring: {
+		everywhere?: boolean;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -14,7 +21,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Signs out of the website. With everywhere=true, ends every website login for the account",
 			summary: "Sign out",
-			security: [{ loginCookie: [] }, { apiKey: [] }],
+			security: [{ loginCookie: [] }, { username: [], password: [] }],
 			querystring: {
 				type: "object",
 				properties: { everywhere: { type: "boolean" } },
@@ -30,7 +37,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"4xx": {
-					examples: [{ code: 401, message: "Unauthorized" }],
+					examples: [{ code: 401, message: "Authorization failed." }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -47,43 +54,25 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		// Only signing out everywhere needs to know who the user is.
+		// A plain sign out works from the login cookie alone, even an expired one
+		preHandler: fastify.policy.logoutPolicy,
 		async handler(
-			request: FastifyRequest<{
-				Querystring: {
-					everywhere?: boolean;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
 			if (request.query.everywhere) {
-				const auth = await core.Utils.checkAuth(
-					request,
-					false,
-					false,
-					reply,
-				);
-				if (auth.code !== 200) {
-					return reply
-						.status(auth.code)
-						.send({ message: "Unauthorized", code: auth.code });
-				}
-
-				const revoked = await core.Utils.authorization.revokeAll(
-					auth.user.id,
-					true,
-				);
+				const auth = fastify.requestUser(request);
+				const revoked = await fastify.tokens.revokeAll(auth.id, true);
 				if (!revoked) {
 					return reply.status(core.codes.internalErr).send({
-						message: "Could not logout",
+						message: "Could not logout everywhere",
 						code: core.codes.internalErr,
 					});
 				}
 
 				if (request.cookies.token) {
-					reply.clearCookie(
-						"token",
-						core.Utils.tokenCookieOptions(request),
-					);
+					reply.clearCookie("token", tokenCookieOptions(request));
 				}
 
 				return reply
@@ -92,16 +81,15 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			if (!request.cookies.token) {
-				return reply.redirect("/");
+				return reply
+					.status(core.codes.ok)
+					.send({ message: "Logged out", code: core.codes.ok });
 			}
 
 			let revoked = false;
 			try {
 				revoked = Boolean(
-					await core.Utils.authorization.revoke(
-						request.cookies.token,
-						true,
-					),
+					await fastify.tokens.revoke(request.cookies.token, true),
 				);
 			} catch (error: unknown) {
 				// An invalid or expired token is already as good as logged out
@@ -125,7 +113,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			return reply
-				.clearCookie("token", core.Utils.tokenCookieOptions(request))
+				.clearCookie("token", tokenCookieOptions(request))
 				.status(core.codes.ok)
 				.send({ message: "Logged out", code: core.codes.ok });
 		},

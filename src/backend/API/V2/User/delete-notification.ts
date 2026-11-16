@@ -32,8 +32,14 @@ function formatDuration(ms: number): string {
 	return parts.join(", ") || "0 Seconds";
 }
 
+type RouteTypes = {
+	Params: {
+		id: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -86,23 +92,14 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Params: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
-			const notify = auth.user.notifications?.find(
+			const notify = auth.notifications?.find(
 				(notification) => notification.id === request.params.id,
 			);
 			if (!notify) {
@@ -123,7 +120,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 			}
 
-			await core.db.removeNotification(auth.user.id, request.params.id);
+			await core.db.removeNotification(auth.id, request.params.id);
 			return reply.status(core.codes.ok).send({
 				code: core.codes.ok,
 				message: "OK",

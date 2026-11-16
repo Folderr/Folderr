@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Options, Response } from "got";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { isIPHost, noPrivateDnsLookup } from "../../../security/url-safety.js";
 
 type MirrorResponse = {
 	message: {
@@ -31,8 +32,14 @@ const parse = ajv.compileParser(schema);
 const path = "/account/mirror";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		url: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -40,7 +47,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Links a mirror (custom URL) to the signed-in user's account, after checking that the mirror answers Folderr's verification request",
 			summary: "Add mirror",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -91,21 +98,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					url: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			let r: Response<MirrorResponse> | undefined;
 			let id: string | undefined;
@@ -122,7 +120,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 				}
 
-				if (core.Utils.isIPHost(request.body.url)) {
+				if (isIPHost(request.body.url)) {
 					return reply.status(core.codes.badReq).send({
 						code: core.Utils.foldCodes.mirrorInvalidUrl,
 						message: "Invalid Mirror URL",
@@ -130,28 +128,27 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 
 				u = await core.Utils.determineHomeURL(request);
-				const out = await core.Utils.authorization.genMirrorKey(
+				const out = await fastify.mirrors.genMirrorKey(
 					u,
 					request.body.url,
 				);
 				id = out.id;
-				r = await core.got.post<MirrorResponse>(
+				r = await fastify.got.post<MirrorResponse>(
 					`${request.body.url}/api/verify`,
 					{
 						responseType: "json",
 						parseJson: parse,
 						json: {
 							url: u,
-							owner: auth.user.id,
+							owner: auth.id,
 							token: out.key,
 						},
-						lookup: core.Utils
-							.noPrivateDnsLookup as unknown as Options["lookup"],
+						lookup: noPrivateDnsLookup as unknown as Options["lookup"],
 						maxRedirects: 1, // In case of HTTP to HTTPS upgrade
 						hooks: {
 							beforeRedirect: [
 								(options) => {
-									if (core.Utils.isIPHost(options.url.href)) {
+									if (isIPHost(options.url.href)) {
 										throw new Error("URL DISALLOWED");
 									}
 								},
@@ -191,7 +188,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const { message } = r.body;
 			const valid =
 				id && u
-					? core.Utils.authorization.verifyMirrorKey(
+					? fastify.mirrors.verifyMirrorKey(
 							message,
 							id,
 							u,
@@ -205,10 +202,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const result = await core.db.addMirror(
-				auth.user.id,
-				request.body.url,
-			);
+			const result = await core.db.addMirror(auth.id, request.body.url);
 			if (!result) {
 				return reply.status(core.codes.conflict).send({
 					code: core.codes.ok,

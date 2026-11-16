@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/ban";
 const method = "DELETE";
 
+type RouteTypes = {
+	Body: {
+		email: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -26,6 +32,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message: "body must have required property 'email'",
@@ -52,22 +59,11 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireAdmin,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					email: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
-
 			if (!core.emailer.validateEmail(request.body.email)) {
 				return reply.status(core.codes.badReq).send({
 					code: core.codes.badReq,

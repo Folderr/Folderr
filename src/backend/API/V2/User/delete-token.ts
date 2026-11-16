@@ -5,8 +5,17 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/account/token/:id";
 const method = "DELETE";
 
+type RouteTypes = {
+	Querystring: {
+		web?: boolean;
+	};
+	Params: {
+		id: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -31,7 +40,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			response: {
 				"4xx": {
 					examples: [
-						{ code: 401, message: "Authorization failed" },
+						{ code: 401, message: "Authorization failed." },
 						{ code: 400, message: "Missing or invalid token ID!" },
 						{ code: 1054, message: "Token not deleted/found!" },
 					],
@@ -51,27 +60,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
-			request: FastifyRequest<{
-				Querystring: {
-					web?: boolean;
-				};
-				Params: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkSessionOrPassword(
-				request,
-				reply,
-			);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					message: "Authorization failed",
-					code: auth.code,
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			if (/^\d+$/.test(request.params.id)) {
 				return reply.status(core.codes.badReq).send({
@@ -80,13 +74,9 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const del = await core.db.purgeToken(
-				request.params.id,
-				auth.user.id,
-				{
-					web: request.query?.web === true,
-				},
-			);
+			const del = await core.db.purgeToken(request.params.id, auth.id, {
+				web: request.query?.web === true,
+			});
 			if (!del) {
 				return reply.status(core.codes.notFound).send({
 					code: core.Utils.foldCodes.dbNotFound,

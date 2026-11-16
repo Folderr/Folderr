@@ -16,7 +16,10 @@ function route(fastify: FastifyInstance, core: Core) {
 			security: [{ apiKey: [] }, { loginCookie: [] }],
 			response: {
 				"4xx": {
-					examples: [{ code: 401, message: "Authorization failed." }],
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
+					],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -53,15 +56,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		async handler(request: FastifyRequest, reply: FastifyReply) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
-
+		preHandler: fastify.policy.requireAdmin,
+		async handler(_request: FastifyRequest, reply: FastifyReply) {
 			const stats = await core.db.statistics();
 			return reply
 				.status(core.codes.ok)

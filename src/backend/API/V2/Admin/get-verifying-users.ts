@@ -50,8 +50,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 				default: {
 					examples: [
-						{ code: 401, message: "Unauthorized" },
-						{ code: 403, message: "Forbidden" },
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 1053,
 							message: "Unknown Error While Fetching Users",
@@ -67,20 +67,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		async handler(request, reply) {
-			// Honestly the user is not important.
-			// We don't care at all, we just want them to be an admin
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.code(auth.code).send({
-					code: auth.code,
-					message:
-						auth.code === core.codes.forbidden
-							? "Forbidden"
-							: "Unauthorized",
-				});
-			}
-
+		preHandler: fastify.policy.requireAdmin,
+		async handler(_request, reply) {
 			try {
 				const users = await core.db.listVerifies();
 

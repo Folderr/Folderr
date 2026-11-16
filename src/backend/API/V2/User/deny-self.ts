@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { findVerifying } from "../../../security/verification.js";
 
 const path = "/verify/:userid/:token";
 const method = "DELETE";
@@ -63,7 +64,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const verify = await core.Utils.findVerifying(
+			const verify = await findVerifying(
+				fastify.db,
 				request.params.token,
 				request.params.userid,
 			);

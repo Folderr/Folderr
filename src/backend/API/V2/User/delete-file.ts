@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/file/:id";
 const method = "DELETE";
 
+type RouteTypes = {
+	Params: {
+		id: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -44,24 +50,15 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Params: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			const file = await core.db.findFile({
-				owner: auth.user.id,
+				owner: auth.id,
 				id: request.params.id,
 			});
 			if (!file) {
@@ -72,7 +69,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			// purgeFile removes the record and the file on disk
-			await core.db.purgeFile({ id: file.id, owner: auth.user.id });
+			await core.db.purgeFile({ id: file.id, owner: auth.id });
 			return reply
 				.status(core.codes.ok)
 				.send({ code: core.codes.ok, message: "OK" });

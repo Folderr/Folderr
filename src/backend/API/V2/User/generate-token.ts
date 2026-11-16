@@ -26,7 +26,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			tags: ["user"],
 			description: `Creates an API token for the signed-in user. Users can have ${TOKEN_LIMIT}; pass override=true to replace the oldest`,
 			summary: "Create API token",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -74,19 +74,14 @@ function route(fastify: FastifyInstance, core: Core) {
 		async preValidation(request: FastifyRequest<TokenRequest>) {
 			request.body ??= {};
 		},
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
 			request: FastifyRequest<TokenRequest>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
-			const tokens = await core.db.findTokens(auth.user.id, {
+			const tokens = await core.db.findTokens(auth.id, {
 				web: false,
 			});
 			if (tokens.length >= TOKEN_LIMIT && !request.query.override) {
@@ -107,8 +102,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const token = await core.Utils.authorization.genKey(
-				auth.user.id,
+			const token = await fastify.tokens.genKey(
+				auth.id,
 				request.body?.description,
 			);
 			return reply

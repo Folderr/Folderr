@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 const path = "/account/mirror";
 const method = "DELETE";
 
+type RouteTypes = {
+	Body: {
+		mirror: string;
+	};
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -14,7 +20,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			description:
 				"Unlinks a mirror (custom URL) from the signed-in user's account",
 			summary: "Remove mirror",
-			security: [{ apiKey: [] }, { loginCookie: [] }],
+			security: [{ username: [], password: [] }, { loginCookie: [] }],
 			body: {
 				type: "object",
 				properties: {
@@ -49,30 +55,21 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireSessionOrPassword,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					mirror: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
-			if (!auth.user.cURLs.includes(request.body.mirror)) {
+			if (!auth.cURLs.includes(request.body.mirror)) {
 				return reply.status(core.codes.notFound).send({
 					code: core.Utils.foldCodes.dbNotFound,
 					message: "Mirror not linked!",
 				});
 			}
 
-			await core.db.removeMirror(auth.user.id, request.body.mirror);
+			await core.db.removeMirror(auth.id, request.body.mirror);
 			return reply.status(core.codes.ok).send({
 				code: core.codes.ok,
 				message: "OK",

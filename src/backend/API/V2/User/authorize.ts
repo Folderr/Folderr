@@ -2,6 +2,8 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import type { User } from "../../../Structures/Database/db-class.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
+import { authPassword } from "../../../security/auth.js";
+import { tokenCookieOptions } from "../../../security/cookies.js";
 
 const path = "/authorize";
 const method = "POST";
@@ -64,9 +66,9 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 		},
 		async handler(request: FastifyRequest, reply: FastifyReply) {
-			let auth: false | User = false;
+			let auth: undefined | User;
 			try {
-				auth = await core.Utils.authPassword(request);
+				auth = await authPassword(fastify.db, fastify.log, request);
 			} catch (error: unknown) {
 				core.logger.error(error);
 			}
@@ -79,12 +81,12 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			try {
-				const jwt = await core.Utils.authorization.genKeyWeb(auth.id);
+				const jwt = await fastify.tokens.genKeyWeb(auth.id);
 				const expires = new Date();
 				expires.setDate(expires.getDate() + SESSION_DAYS);
 				return await reply
 					.cookie("token", jwt, {
-						...core.Utils.tokenCookieOptions(request),
+						...tokenCookieOptions(request),
 						expires,
 					})
 					.status(core.codes.ok)

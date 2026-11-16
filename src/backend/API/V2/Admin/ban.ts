@@ -5,8 +5,17 @@ import type { NeoRoute } from "../../../Structures/neo-route";
 const path = "/ban/:id";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		reason: string;
+	};
+	Params: {
+		id: string;
+	};
+};
+
 async function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -32,6 +41,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 				"4xx": {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
 						{
 							code: 400,
 							message:
@@ -57,25 +67,11 @@ async function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireAdmin,
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					reason: string;
-				};
-				Params: {
-					id: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(core.codes.unauth).send({
-					code: core.codes.unauth,
-					message: "Authorization failed.",
-				});
-			}
-
 			if (!core.Utils.isValidFolderrId(request.params.id)) {
 				return reply.status(core.codes.badReq).send({
 					code: core.codes.badReq,

@@ -11,12 +11,17 @@ import {
 	routeType,
 	uploadName,
 } from "../../../Structures/Utilities/upload-types.js";
+import { testMirrorURL } from "../../../security/url-safety.js";
 
 const path = "/files";
 const method = "GET";
 
+type RouteTypes = {
+	Querystring: PageQuery;
+};
+
 function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -82,19 +87,12 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireUser,
 		async handler(
-			request: FastifyRequest<{
-				Querystring: PageQuery;
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,
 		) {
-			const auth = await core.Utils.checkAuth(request);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const auth = fastify.requestUser(request);
 
 			const page = generateTimePage(
 				{
@@ -112,10 +110,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			const images: Upload[] = await core.db.listFiles(
-				auth.user.id,
-				page,
-			);
+			const images: Upload[] = await core.db.listFiles(auth.id, page);
 			if (images.length === 0) {
 				return reply
 					.status(core.codes.ok)
@@ -125,8 +120,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			const responseURL = request.headers.responseurl;
 			let url =
 				typeof responseURL === "string" &&
-				auth.user.cURLs.includes(responseURL) &&
-				(await core.Utils.testMirrorURL(responseURL))
+				auth.cURLs.includes(responseURL) &&
+				(await testMirrorURL(fastify.got, responseURL))
 					? responseURL
 					: await core.Utils.determineHomeURL(request);
 			url = url.replace(/\/$/g, "");

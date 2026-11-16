@@ -95,24 +95,11 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
+		preHandler: fastify.policy.requireUser,
 		async handler(request: FastifyRequest, reply: FastifyReply) {
-			// Passing the reply lets a dead login cookie be cleared
-			const auth = await core.Utils.checkAuth(
-				request,
-				false,
-				false,
-				reply,
-			);
-			if (auth.code !== 200) {
-				return reply.status(auth.code).send({
-					code: auth.code,
-					message: "Authorization failed.",
-				});
-			}
+			const user = fastify.requestUser(request);
+			const { files, links } = await core.db.countContent(user.id);
 
-			const { files, links } = await core.db.countContent(auth.user.id);
-
-			const { user } = auth;
 			const acc: AccountReturn = {
 				username: user.username,
 				id: user.id,

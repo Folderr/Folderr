@@ -15,6 +15,7 @@ export function tokenCookieOptions(
 ): CookieSerializeOptions {
 	const dev = process.env.NODE_ENV === "dev";
 	return {
+		path: "/",
 		httpOnly: true,
 		secure: !dev && request.protocol === "https",
 		sameSite: dev ? undefined : "strict",

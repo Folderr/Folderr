@@ -5,8 +5,14 @@ import type { NeoRoute } from "../../../Structures/neo-route";
 const path = "/notification/:id";
 const method = "GET";
 
+type RouteTypes = {
+	Params: {
+		id: string;
+	};
+};
+
 async function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -23,7 +29,10 @@ async function route(fastify: FastifyInstance, core: Core) {
 			},
 			response: {
 				"4xx": {
-					examples: [{ code: 401, message: "Authorization failed." }],
+					examples: [
+						{ code: 401, message: "Authorization failed." },
+						{ code: 403, message: "Action forbidden" },
+					],
 					type: "object",
 					properties: {
 						message: {
@@ -61,22 +70,8 @@ async function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		async handler(
-			request: FastifyRequest<{
-				Params: {
-					id: string;
-				};
-			}>,
-			reply,
-		) {
-			const auth = await core.Utils.checkAuth(request, true);
-			if (auth.code !== 200) {
-				return reply.status(this.codes.unauth).send({
-					code: this.codes.unauth,
-					message: "Authorization failed.",
-				});
-			}
-
+		preHandler: fastify.policy.requireAdmin,
+		async handler(request: FastifyRequest<RouteTypes>, reply) {
 			// Verify query
 			if (!request.params.id) {
 				return reply.status(this.codes.badReq).send({
