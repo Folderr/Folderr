@@ -1,0 +1,14 @@
+{
+	"permissions": {
+		"deny": [
+			"Edit(/src/backend/security/**)",
+			"Edit(src/backend/security/**)"
+		]
+	},
+	"autoMode": {
+		"hard_deny": [
+			"$defaults",
+			"Never create, modify, overwrite, delete, move or rename any file under src/backend/security/ by any means, including shell commands (sed, redirects such as > or >>, tee, cp, mv, rm, git checkout/restore/apply/stash pop, patch, or scripts that write files). Only the human owner edits that folder; Claude may read it and suggest changes."
+		]
+	}
+}
