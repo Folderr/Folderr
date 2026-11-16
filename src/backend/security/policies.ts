@@ -125,12 +125,10 @@ export async function requireSessionOrPassword(
 		passwordAllowed: true,
 	});
 	if (check.code !== 200) {
-		return reply
-			.status(request.server.codes.unauth)
-			.send({
-				code: request.server.codes.unauth,
-				message: "Authorization failed.",
-			});
+		return reply.status(request.server.codes.unauth).send({
+			code: request.server.codes.unauth,
+			message: "Authorization failed.",
+		});
 	}
 	request.setDecorator("user", check.user);
 }
