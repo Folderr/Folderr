@@ -1,8 +1,8 @@
 {
 	"permissions": {
 		"deny": [
-			"Edit(/src/backend/security/**.*ts)",
-			"Edit(src/backend/security/**.*ts)",
+			"Edit(/src/backend/security/**/*.ts)",
+			"Edit(src/backend/security/**/*.ts)",
 			"Edit(.claude/settings.json)",
 			"Edit(/.claude/settings.json)"
 		]

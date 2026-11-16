@@ -26,7 +26,7 @@ Don't change the shape or behavior of routes unless absolutely needed and you ha
 - `npm ci` Install dependencies
 - `npm run build` Build Folderr
 - Copy `configs.example` to `configs`
-- `npm run setup` An interactive prompt for setting up Folderr. Pass in prompted `folderr_username`, `folderr_password`, and `folderr_email` env variables and interactively enter `internal` (recommended) for key generation. Alternatively to the interactive key generation, generate your own keys according to `src/backend/security/keys.ts` policy and **_always_** provide it to Folderr when running, as `PRIVATE_KEY` and `PUBLIC_KEY`
+- `npm run setup` An interactive prompt for setting up Folderr. Pass in prompted `folderr_username`, `folderr_password`, and `folderr_email` env variables and interactively enter `internal` (recommended) for key generation. Alternatively to the interactive key generation, generate your own keys according to `src/backend/security/keys.ts` policy and **_always_** provide it to Folderr when running, as `PRIVATE_KEY`. (Must provide `PUBLIC_KEY` during setup)
 
 ## Layout
 
