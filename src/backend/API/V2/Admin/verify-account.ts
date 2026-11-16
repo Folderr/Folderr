@@ -60,7 +60,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireAdmin,
+		preHandler: fastify.policy.requireAdmin,
 		async handler(
 			request: FastifyRequest<RouteTypes>,
 			reply: FastifyReply,

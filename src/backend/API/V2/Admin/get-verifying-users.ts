@@ -67,7 +67,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireAdmin,
+		preHandler: fastify.policy.requireAdmin,
 		async handler(_request, reply) {
 			try {
 				const users = await core.db.listVerifies();

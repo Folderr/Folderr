@@ -156,7 +156,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 			},
 		},
-		preHandler: fastify.requireAdmin,
+		preHandler: fastify.policy.requireAdmin,
 		async handler(request: TakedownRequest, reply: FastifyReply) {
 			if (
 				!["file", "link"].includes(request.params.type) ||
