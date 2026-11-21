@@ -28,7 +28,7 @@
 
 import type { FastifyReply } from "fastify";
 import { createReadStream } from "fs";
-import { open } from "fs/promises";
+import { open, unlink } from "fs/promises";
 import { join } from "path";
 import process from "process";
 import {
@@ -93,6 +93,17 @@ export function routeType(contentType: string): "image" | "video" | "file" {
 	}
 
 	return "file";
+}
+
+/** Deletes a stored upload. A file that is already gone is fine; any other failure is thrown */
+export async function removeUpload(path: string): Promise<void> {
+	try {
+		await unlink(path);
+	} catch (error: unknown) {
+		if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+			throw error;
+		}
+	}
 }
 
 /** The first bytes of a saved upload */

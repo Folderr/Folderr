@@ -1,5 +1,5 @@
 import { createWriteStream } from "node:fs";
-import { rename, unlink } from "node:fs/promises";
+import { rename } from "node:fs/promises";
 import { pipeline } from "node:stream";
 import { promisify } from "node:util";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -9,6 +9,7 @@ import type { NeoRoute } from "../../../Structures/neo-route.js";
 import {
 	MAX_UPLOAD_LABEL,
 	readStart,
+	removeUpload,
 	routeType,
 	uploadExtension,
 	uploadName,
@@ -40,6 +41,13 @@ function route(fastify: FastifyInstance, core: Core) {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
 						{ code: 1001, message: "File not found!" },
+						{ code: 1065, message: "Upload was aborted" },
+						{
+							code: 1004,
+							message:
+								"File is too large. The maximum size is 10 GB",
+						},
+						{ code: 1056, message: "Unsupported file extension" },
 						{
 							code: 1056,
 							message: "Executable files aren't allowed",
@@ -58,8 +66,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				},
 				500: {
 					examples: [
-						{ code: 1000, message: "File failed to be parsed!" },
 						{ code: 1053, message: "The upload couldn't be saved" },
+						{ code: 500, message: "An internal error occurred" },
 					],
 					type: "object",
 					properties: {
@@ -110,13 +118,19 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 			}
 
+			// Cleanup shouldn't fail. If it does, report it without hiding the real response
+			const discard = (target: string) =>
+				removeUpload(target).catch((error: unknown) => {
+					request.server.reportError(error, request);
+				});
+
 			const id = await core.Utils.genShortId();
 			const filePath = uploadPath(id, ext);
 
 			try {
 				await pump(file.file, createWriteStream(filePath));
 			} catch (error: unknown) {
-				await unlink(filePath); // Don't catch this, we need to know if it errors.
+				await discard(filePath);
 				if (
 					error instanceof
 					core.app.multipartErrors.RequestFileTooLargeError
@@ -129,11 +143,20 @@ function route(fastify: FastifyInstance, core: Core) {
 						});
 				}
 
-				throw error; // Fuckin yeet
+				// The client dropped the connection mid-upload. That isn't our failure
+				if (request.raw.readableAborted) {
+					return reply.status(request.server.codes.badReq).send({
+						code: core.Utils.foldCodes.uploadAborted,
+						message: "Upload was aborted",
+					});
+				}
+
+				// The error handler logs, reports and answers it as a 500
+				throw error;
 			}
 
 			if (file.file.truncated) {
-				await unlink(filePath);
+				await discard(filePath);
 				return reply.status(request.server.codes.contentTooLarge).send({
 					code: core.Utils.foldCodes.fileSizeLimit,
 					message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
@@ -150,7 +173,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				detected,
 			);
 			if (!checked.ok) {
-				await unlink(filePath);
+				await discard(filePath);
 				return reply
 					.status(request.server.codes.unprocessableContent)
 					.send(
@@ -186,7 +209,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			} catch (error: unknown) {
 				// Without a record the link would never work, so don't keep the file
 				core.logger.error(error);
-				await unlink(storedPath); // We don't catch this, cause if this errors we need to know
+				await discard(storedPath);
 				return reply.status(request.server.codes.internalErr).send({
 					code: core.Utils.foldCodes.dbUnkownError,
 					message: "The upload couldn't be saved",
