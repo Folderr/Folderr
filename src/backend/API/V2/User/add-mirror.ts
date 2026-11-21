@@ -64,9 +64,8 @@ function route(fastify: FastifyInstance, core: Core) {
 							message: "body must have required property 'url'",
 						},
 						{
-							code: 409,
-							message:
-								"Mirror domain already owned by another user",
+							code: 1064,
+							message: "Mirror domain is already in use",
 						},
 						{ code: 1050, message: "Invalid Mirror URL" },
 						{ code: 1049, message: "Mirror failed Validation" },
@@ -205,8 +204,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			const result = await core.db.addMirror(auth.id, request.body.url);
 			if (!result) {
 				return reply.status(request.server.codes.conflict).send({
-					code: request.server.utils.foldCodes.mirrorReject,
-					message: "Mirror domain already owned by another user",
+					code: request.server.utils.foldCodes.mirrorTaken,
+					message: "Mirror domain is already in use",
 				});
 			}
 			return reply

@@ -8,8 +8,6 @@ import { genValidationToken } from "../../../security/verification";
 const path = "/signup";
 const method = "POST";
 
-const IDENTITY_TAKEN_MSG = "Username or email taken!";
-
 async function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
@@ -45,7 +43,12 @@ async function route(fastify: FastifyInstance, core: Core) {
 							code: 1058,
 							message: "Invalid or Unaccpetable Email!",
 						},
-						{ code: 1016, message: IDENTITY_TAKEN_MSG },
+						{
+							code: 1016,
+							message:
+								constants.ENUMS.RESPONSES.TAKEN
+									.USERNAME_OR_EMAIL,
+						},
 						{
 							code: 1012,
 							message:
@@ -215,8 +218,8 @@ async function emailSignup(
 			return {
 				httpCode: request.server.codes.conflict,
 				msg: {
-					code: request.server.codes.conflict,
-					message: IDENTITY_TAKEN_MSG,
+					code: request.server.utils.foldCodes.usernameOrEmailTaken,
+					message: constants.ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
 				},
 			};
 		}
@@ -305,8 +308,8 @@ async function noEmailSignup(
 			return {
 				httpCode: request.server.codes.conflict,
 				msg: {
-					code: request.server.codes.conflict,
-					message: IDENTITY_TAKEN_MSG,
+					code: request.server.utils.foldCodes.usernameOrEmailTaken,
+					message: constants.ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
 				},
 			};
 		}
@@ -404,7 +407,7 @@ async function checkUserInput(
 			httpCode: core.codes.conflict,
 			response: {
 				code: core.Utils.foldCodes.usernameOrEmailTaken,
-				message: IDENTITY_TAKEN_MSG,
+				message: constants.ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
 			},
 		};
 	}

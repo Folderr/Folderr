@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import * as constants from "../../../Structures/constants/index.js";
 import {
+	DBConflictError,
 	normalizeInput,
 	type User,
 } from "../../../Structures/Database/db-class.js";
@@ -11,10 +12,6 @@ import { genValidationToken } from "../../../security/verification.js";
 
 const path = "/account";
 const method = "PATCH";
-
-// Alternatively: IDENTITY_TAKEN_MSG = "Username or email taken!"
-const USERNAME_TAKEN_MSG = "Username taken!";
-const EMAIL_TAKEN_MSG = "Email taken!";
 
 type UpdateAccBody = {
 	email?: string;
@@ -146,7 +143,7 @@ async function handleEmailUpdate(
 			httpCode: request.server.codes.conflict,
 			message: {
 				code: request.server.utils.foldCodes.usernameOrEmailTaken,
-				message: EMAIL_TAKEN_MSG,
+				message: constants.ENUMS.RESPONSES.TAKEN.EMAIL,
 			},
 			accepted: false,
 		};
@@ -202,7 +199,7 @@ async function handleUsername(
 			httpCode: core.codes.conflict,
 			message: {
 				code: core.Utils.foldCodes.usernameOrEmailTaken,
-				message: USERNAME_TAKEN_MSG,
+				message: constants.ENUMS.RESPONSES.TAKEN.USERNAME,
 			},
 		};
 	}
@@ -275,19 +272,11 @@ function route(fastify: FastifyInstance, core: Core) {
 					examples: [
 						{
 							code: 1016,
-							message: USERNAME_TAKEN_MSG,
+							message: constants.ENUMS.RESPONSES.TAKEN.USERNAME,
 						},
 						{
 							code: 1016,
-							message: EMAIL_TAKEN_MSG,
-						},
-						{
-							code: 1016,
-							message: "You already have this username!",
-						},
-						{
-							code: 1016,
-							message: "You already have this email!",
+							message: constants.ENUMS.RESPONSES.TAKEN.EMAIL,
 						},
 					],
 				},
@@ -344,19 +333,13 @@ function route(fastify: FastifyInstance, core: Core) {
 				reply: FastifyReply,
 			) => {
 				const user = request.server.requestUser(request);
+				// Asking for the email they already have changes nothing, so it needs no emailer
 				if (
-					request.body.username &&
-					request.body.username.toLowerCase() ===
-						user.username.toLowerCase()
+					request.body.email &&
+					request.body.email.toLowerCase() !==
+						user.email.toLowerCase() &&
+					!core.emailer.active
 				) {
-					// Is the user trying to set their username to... their username?
-					return reply.status(request.server.codes.conflict).send({
-						code: core.Utils.foldCodes.usernameOrEmailTaken,
-						message: "You already have this username!",
-					});
-				}
-
-				if (request.body.email && !core.emailer.active) {
 					// Can we even try to update their email?
 					return reply
 						.status(request.server.codes.notImplemented)
@@ -365,18 +348,6 @@ function route(fastify: FastifyInstance, core: Core) {
 							message:
 								"Emailer not configured. Unable to update email.",
 						});
-				}
-
-				if (
-					request.body.email &&
-					request.body.email.toLowerCase() ===
-						user.email.toLowerCase()
-				) {
-					// Are they already using the "new" email?
-					return reply.status(request.server.codes.conflict).send({
-						code: core.Utils.foldCodes.usernameOrEmailTaken,
-						message: "You already have this email!",
-					});
 				}
 			},
 		],
@@ -422,8 +393,18 @@ function route(fastify: FastifyInstance, core: Core) {
 				update.password = passwd;
 			}
 
-			if (body.username) {
-				const newUsername = await handleUsername(core, body.username);
+			// Asking for what they already have is a no-op rather than a failure
+			const username =
+				body.username?.toLowerCase() === auth.username.toLowerCase()
+					? undefined
+					: body.username;
+			const email =
+				body.email?.toLowerCase() === auth.email.toLowerCase()
+					? undefined
+					: body.email;
+
+			if (username) {
+				const newUsername = await handleUsername(core, username);
 				if (typeof newUsername !== "string") {
 					return reply
 						.status(newUsername.httpCode)
@@ -433,7 +414,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				update.username = newUsername;
 			}
 
-			if (body.email) {
+			if (email) {
 				const emailUpdated = await handleEmailUpdate(
 					core,
 					request,
@@ -454,7 +435,26 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 			}
 
-			await core.db.updateUser(auth.id, update);
+			if (Object.keys(update).length > 0) {
+				try {
+					await core.db.updateUser(auth.id, update);
+				} catch (error: unknown) {
+					// Someone took the username between the check above and the save
+					if (error instanceof DBConflictError) {
+						return reply
+							.status(request.server.codes.conflict)
+							.send({
+								code: request.server.utils.foldCodes
+									.usernameOrEmailTaken,
+								message:
+									constants.ENUMS.RESPONSES.TAKEN
+										.USERNAME_OR_EMAIL,
+							});
+					}
+
+					throw error;
+				}
+			}
 
 			return reply
 				.status(request.server.codes.ok)

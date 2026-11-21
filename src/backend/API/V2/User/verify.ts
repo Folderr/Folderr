@@ -43,6 +43,11 @@ function route(fastify: FastifyInstance, core: Core) {
 						},
 						{ code: 1054, message: "User not found!" },
 						{ code: 1033, message: "Validation time expired." },
+						{
+							code: 1016,
+							message:
+								"User not accepted, try a different username or email after denying this one",
+						},
 					],
 					type: "object",
 					properties: {
@@ -90,7 +95,7 @@ function route(fastify: FastifyInstance, core: Core) {
 
 			const result = await core.db.verifySelf(verify.id);
 			if (!result) {
-				return await reply.status(core.codes.notAccepted).send({
+				return await reply.status(request.server.codes.conflict).send({
 					code: core.codes.notAccepted,
 					message:
 						"User not accepted, try a different username or email after denying this one",
