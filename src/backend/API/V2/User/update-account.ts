@@ -12,6 +12,10 @@ import { genValidationToken } from "../../../security/verification.js";
 const path = "/account";
 const method = "PATCH";
 
+// Alternatively: IDENTITY_TAKEN_MSG = "Username or email taken!"
+const USERNAME_TAKEN_MSG = "Username taken!";
+const EMAIL_TAKEN_MSG = "Email taken!";
+
 type UpdateAccBody = {
 	email?: string;
 	username?: string;
@@ -112,9 +116,9 @@ async function handleEmailUpdate(
 
 	if (!core.emailer.validateEmail(email)) {
 		return {
-			httpCode: core.codes.badReq,
+			httpCode: request.server.codes.badReq,
 			message: {
-				code: core.codes.badReq,
+				code: request.server.codes.badReq,
 				message: "Invalid email",
 			},
 			accepted: false,
@@ -123,7 +127,7 @@ async function handleEmailUpdate(
 
 	if (await core.db.isBanned(email)) {
 		return {
-			httpCode: core.codes.forbidden,
+			httpCode: request.server.codes.forbidden,
 			message: {
 				code: core.Utils.foldCodes.bannedEmail,
 				message: "Email banned",
@@ -139,10 +143,10 @@ async function handleEmailUpdate(
 		(await core.db.isEmailTaken(email))
 	) {
 		return {
-			httpCode: core.codes.used,
+			httpCode: request.server.codes.conflict,
 			message: {
-				code: core.codes.used,
-				message: "Email used!",
+				code: request.server.utils.foldCodes.usernameOrEmailTaken,
+				message: EMAIL_TAKEN_MSG,
 			},
 			accepted: false,
 		};
@@ -195,10 +199,10 @@ async function handleUsername(
 
 	if (await core.db.isUsernameTaken(username)) {
 		return {
-			httpCode: core.codes.used,
+			httpCode: core.codes.conflict,
 			message: {
 				code: core.Utils.foldCodes.usernameOrEmailTaken,
-				message: "Username taken!",
+				message: USERNAME_TAKEN_MSG,
 			},
 		};
 	}
@@ -262,6 +266,31 @@ function route(fastify: FastifyInstance, core: Core) {
 						code: { type: "number" },
 					},
 				},
+				"409": {
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
+					examples: [
+						{
+							code: 1016,
+							message: USERNAME_TAKEN_MSG,
+						},
+						{
+							code: 1016,
+							message: EMAIL_TAKEN_MSG,
+						},
+						{
+							code: 1016,
+							message: "You already have this username!",
+						},
+						{
+							code: 1016,
+							message: "You already have this email!",
+						},
+					],
+				},
 				"5xx": {
 					examples: [
 						{
@@ -277,14 +306,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"2xx": {
-					examples: [
-						{ code: 200, message: "OK" },
-						{
-							code: 1016,
-							message: "You already have this username",
-						},
-						{ code: 226, message: "Email used!" },
-					],
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -328,7 +350,7 @@ function route(fastify: FastifyInstance, core: Core) {
 						user.username.toLowerCase()
 				) {
 					// Is the user trying to set their username to... their username?
-					return reply.status(request.server.codes.used).send({
+					return reply.status(request.server.codes.conflict).send({
 						code: core.Utils.foldCodes.usernameOrEmailTaken,
 						message: "You already have this username!",
 					});
@@ -351,7 +373,7 @@ function route(fastify: FastifyInstance, core: Core) {
 						user.email.toLowerCase()
 				) {
 					// Are they already using the "new" email?
-					return reply.status(request.server.codes.notAccepted).send({
+					return reply.status(request.server.codes.conflict).send({
 						code: core.Utils.foldCodes.usernameOrEmailTaken,
 						message: "You already have this email!",
 					});
@@ -367,8 +389,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				!body.email &&
 				typeof body.privacy?.dataCollection !== "boolean"
 			) {
-				return reply.status(core.codes.badReq).send({
-					code: core.codes.badReq,
+				return reply.status(request.server.codes.badReq).send({
+					code: request.server.codes.badReq,
 					message:
 						"BODY REQUIRES ONE OF password, username, privacy, OR email!",
 				});
@@ -435,8 +457,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			await core.db.updateUser(auth.id, update);
 
 			return reply
-				.status(core.codes.ok)
-				.send({ code: core.codes.ok, message: "OK" });
+				.status(request.server.codes.ok)
+				.send({ code: request.server.codes.ok, message: "OK" });
 		},
 	});
 	fastify.log.info(`Initialized PATCH User Account at ${path}`);

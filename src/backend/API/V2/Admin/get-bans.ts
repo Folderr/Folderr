@@ -75,28 +75,20 @@ function route(fastify: FastifyInstance, core: Core) {
 			},
 		},
 		preHandler: fastify.policy.requireAdmin,
-		async handler(_request, reply) {
-			try {
-				const bans = await core.db.getBans();
+		async handler(request, reply) {
+			const bans = await core.db.getBans();
 
-				if (bans.length === 0) {
-					return await reply.code(core.codes.ok).send({
-						code: core.Utils.foldCodes.dbNotFound,
-						message: [],
-					});
-				}
-
-				return await reply.code(core.codes.ok).send({
-					code: core.codes.ok,
-					message: bans,
-				});
-			} catch (error: unknown) {
-				fastify.log.error(error);
-				return reply.code(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.dbUnkownError,
-					message: error ?? "Unknown Error While Fetching Bans",
+			if (bans.length === 0) {
+				return await reply.code(request.server.codes.ok).send({
+					code: core.Utils.foldCodes.dbNotFound,
+					message: [],
 				});
 			}
+
+			return await reply.code(request.server.codes.ok).send({
+				code: request.server.codes.ok,
+				message: bans,
+			});
 		},
 	});
 	fastify.log.info(undefined, "Initialized GET bans");

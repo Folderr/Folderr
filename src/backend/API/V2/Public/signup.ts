@@ -8,6 +8,8 @@ import { genValidationToken } from "../../../security/verification";
 const path = "/signup";
 const method = "POST";
 
+const IDENTITY_TAKEN_MSG = "Username or email taken!";
+
 async function route(fastify: FastifyInstance, core: Core) {
 	fastify.route({
 		method,
@@ -43,7 +45,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 							code: 1058,
 							message: "Invalid or Unaccpetable Email!",
 						},
-						{ code: 1016, message: "Username or email taken!" },
+						{ code: 1016, message: IDENTITY_TAKEN_MSG },
 						{
 							code: 1012,
 							message:
@@ -108,17 +110,20 @@ async function route(fastify: FastifyInstance, core: Core) {
 			// usernames or emails are taken
 			const mode = core.config.signups;
 			if (mode === 0) {
-				return response.status(core.codes.forbidden).send({
+				return response.status(request.server.codes.forbidden).send({
 					code: core.Utils.foldCodes.signupsClosed,
 					message: "Signups are closed",
 				});
 			}
 
 			if (mode === 2 && !core.emailer.active) {
-				return response.status(core.codes.notImplemented).send({
-					code: core.Utils.foldCodes.emailerNotConfigured,
-					message: "Signups verify by email, but email isn't set up",
-				});
+				return response
+					.status(request.server.codes.notImplemented)
+					.send({
+						code: core.Utils.foldCodes.emailerNotConfigured,
+						message:
+							"Signups verify by email, but email isn't set up",
+					});
 			}
 
 			// Check user input
@@ -191,7 +196,7 @@ async function emailSignup(
 	}>,
 	_response: FastifyReply,
 ): Promise<{
-	httpCode: 500 | 201 | 406;
+	httpCode: 500 | 201 | 409;
 	msg: {
 		message: string;
 		code: number;
@@ -208,10 +213,10 @@ async function emailSignup(
 	} catch (error: unknown) {
 		if (error instanceof DBConflictError) {
 			return {
-				httpCode: core.codes.notAccepted,
+				httpCode: request.server.codes.conflict,
 				msg: {
-					code: core.codes.notAccepted,
-					message: "Username or email already in use",
+					code: request.server.codes.conflict,
+					message: IDENTITY_TAKEN_MSG,
 				},
 			};
 		}
@@ -219,7 +224,7 @@ async function emailSignup(
 		// Report only; the response is sent below
 		request.server.reportError(error, request);
 		return {
-			httpCode: core.codes.internalErr,
+			httpCode: request.server.codes.internalErr,
 			msg: {
 				code: core.Utils.foldCodes.unkownError,
 				message: "An internal error occurred while signing up!",
@@ -247,7 +252,7 @@ async function emailSignup(
 		}
 
 		return {
-			httpCode: core.codes.internalErr,
+			httpCode: request.server.codes.internalErr,
 			msg: {
 				code: core.Utils.foldCodes.emailFailed,
 				message: "Email failed to send",
@@ -259,7 +264,7 @@ async function emailSignup(
 		`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 	);
 	return {
-		httpCode: core.codes.created,
+		httpCode: request.server.codes.created,
 		msg: {
 			code: core.Utils.foldCodes.emailSent,
 			message: "OK",
@@ -282,7 +287,7 @@ async function noEmailSignup(
 	request: FastifyRequest,
 	_response: FastifyReply,
 ): Promise<{
-	httpCode: 500 | 201 | 406;
+	httpCode: 500 | 201 | 409;
 	msg: { code: number; message: string };
 }> {
 	try {
@@ -298,10 +303,10 @@ async function noEmailSignup(
 	} catch (error: unknown) {
 		if (error instanceof DBConflictError) {
 			return {
-				httpCode: core.codes.notAccepted,
+				httpCode: request.server.codes.conflict,
 				msg: {
-					code: core.codes.notAccepted,
-					message: "Username or email already in use",
+					code: request.server.codes.conflict,
+					message: IDENTITY_TAKEN_MSG,
 				},
 			};
 		}
@@ -309,7 +314,7 @@ async function noEmailSignup(
 		// Report only; the response is sent below
 		request.server.reportError(error, request);
 		return {
-			httpCode: core.codes.internalErr,
+			httpCode: request.server.codes.internalErr,
 			msg: {
 				code: core.Utils.foldCodes.unkownError,
 				message: "An internal error occurred while signing up!",
@@ -321,8 +326,8 @@ async function noEmailSignup(
 		`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 	);
 	return {
-		httpCode: core.codes.created,
-		msg: { code: core.codes.created, message: "OK" },
+		httpCode: request.server.codes.created,
+		msg: { code: request.server.codes.created, message: "OK" },
 	};
 }
 
@@ -396,10 +401,10 @@ async function checkUserInput(
 	]);
 	if (usernameTaken || emailTaken) {
 		return {
-			httpCode: core.codes.forbidden,
+			httpCode: core.codes.conflict,
 			response: {
 				code: core.Utils.foldCodes.usernameOrEmailTaken,
-				message: "Username or email taken!",
+				message: IDENTITY_TAKEN_MSG,
 			},
 		};
 	}

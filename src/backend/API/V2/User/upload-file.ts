@@ -80,7 +80,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const file = await request.file();
 
 			if (!file?.file) {
-				return reply.status(core.codes.badReq).send({
+				return reply.status(request.server.codes.badReq).send({
 					code: core.Utils.foldCodes.noFile,
 					message: "File not found!",
 				});
@@ -92,18 +92,22 @@ function route(fastify: FastifyInstance, core: Core) {
 			// "" means no extension, which is fine; undefined means an unusable one
 			if (ext === undefined) {
 				file.file.resume();
-				return reply.status(core.codes.badReq).send({
-					code: core.Utils.foldCodes.securityError,
-					message: "Unsupported file extension",
-				});
+				return reply
+					.status(request.server.codes.unprocessableContent)
+					.send({
+						code: core.Utils.foldCodes.securityError,
+						message: "Unsupported file extension",
+					});
 			}
 
 			if (isExecutableExtension(ext)) {
 				file.file.resume();
-				return reply.status(core.codes.badReq).send({
-					code: core.Utils.foldCodes.securityError,
-					message: "Executable files aren't allowed",
-				});
+				return reply
+					.status(request.server.codes.unprocessableContent)
+					.send({
+						code: core.Utils.foldCodes.securityError,
+						message: "Executable files aren't allowed",
+					});
 			}
 
 			const id = await core.Utils.genShortId();
@@ -112,28 +116,25 @@ function route(fastify: FastifyInstance, core: Core) {
 			try {
 				await pump(file.file, createWriteStream(filePath));
 			} catch (error: unknown) {
-				await unlink(filePath).catch(() => undefined);
+				await unlink(filePath); // Don't catch this, we need to know if it errors.
 				if (
 					error instanceof
 					core.app.multipartErrors.RequestFileTooLargeError
 				) {
-					return reply.status(core.codes.badReq).send({
-						code: core.Utils.foldCodes.fileSizeLimit,
-						message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
-					});
+					return reply
+						.status(request.server.codes.contentTooLarge)
+						.send({
+							code: core.Utils.foldCodes.fileSizeLimit,
+							message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
+						});
 				}
 
-				core.logger.error(error);
-
-				return reply.status(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.fileParserError,
-					message: "File failed to be parsed!",
-				});
+				throw error; // Fuckin yeet
 			}
 
 			if (file.file.truncated) {
 				await unlink(filePath);
-				return reply.status(core.codes.badReq).send({
+				return reply.status(request.server.codes.contentTooLarge).send({
 					code: core.Utils.foldCodes.fileSizeLimit,
 					message: `File is too large. The maximum size is ${MAX_UPLOAD_LABEL}`,
 				});
@@ -150,18 +151,20 @@ function route(fastify: FastifyInstance, core: Core) {
 			);
 			if (!checked.ok) {
 				await unlink(filePath);
-				return reply.status(core.codes.badReq).send(
-					checked.reason === "executable"
-						? {
-								code: core.Utils.foldCodes.securityError,
-								message: "Executable files aren't allowed",
-							}
-						: {
-								code: core.Utils.foldCodes.fileMimeError,
-								message:
-									"The file's contents don't match its extension",
-							},
-				);
+				return reply
+					.status(request.server.codes.unprocessableContent)
+					.send(
+						checked.reason === "executable"
+							? {
+									code: core.Utils.foldCodes.securityError,
+									message: "Executable files aren't allowed",
+								}
+							: {
+									code: core.Utils.foldCodes.fileMimeError,
+									message:
+										"The file's contents don't match its extension",
+								},
+					);
 			}
 
 			// Store it under the extension its contents show (photo.jpeg -> .jpg)
@@ -183,8 +186,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			} catch (error: unknown) {
 				// Without a record the link would never work, so don't keep the file
 				core.logger.error(error);
-				await unlink(storedPath).catch(() => undefined);
-				return reply.status(core.codes.internalErr).send({
+				await unlink(storedPath); // We don't catch this, cause if this errors we need to know
+				return reply.status(request.server.codes.internalErr).send({
 					code: core.Utils.foldCodes.dbUnkownError,
 					message: "The upload couldn't be saved",
 				});
@@ -198,7 +201,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					? responseURL
 					: await core.Utils.determineHomeURL(request);
 			return reply
-				.status(core.codes.ok)
+				.status(request.server.codes.ok)
 				.send(`${base}/${type[0]}/${uploadName(id, checked.ext)}`);
 		},
 	});

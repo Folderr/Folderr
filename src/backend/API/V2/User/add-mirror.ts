@@ -114,14 +114,14 @@ function route(fastify: FastifyInstance, core: Core) {
 					!url.protocol ||
 					!["http:", "https:"].includes(url.protocol)
 				) {
-					return reply.status(core.codes.badReq).send({
+					return reply.status(request.server.codes.badReq).send({
 						code: core.Utils.foldCodes.mirrorInvalidUrl,
 						message: "Invalid Mirror URL",
 					});
 				}
 
 				if (isIPHost(request.body.url)) {
-					return reply.status(core.codes.badReq).send({
+					return reply.status(request.server.codes.badReq).send({
 						code: core.Utils.foldCodes.mirrorInvalidUrl,
 						message: "Invalid Mirror URL",
 					});
@@ -165,20 +165,20 @@ function route(fastify: FastifyInstance, core: Core) {
 						error.message,
 					)
 				) {
-					return reply.status(core.codes.notAccepted).send({
+					return reply.status(request.server.codes.notAccepted).send({
 						code: core.Utils.foldCodes.mirrorReject,
 						message: "Mirror failed Validation",
 					});
 				}
 
-				return reply.status(core.codes.internalErr).send({
+				return reply.status(request.server.codes.internalErr).send({
 					code: core.Utils.foldCodes.unkownError,
 					message: "Something unknown happened.",
 				});
 			}
 
 			if (!r?.body) {
-				return reply.status(core.codes.notAccepted).send({
+				return reply.status(request.server.codes.notAccepted).send({
 					code: core.Utils.foldCodes.mirrorReject,
 					message: "Mirror failed Validation",
 				});
@@ -196,7 +196,7 @@ function route(fastify: FastifyInstance, core: Core) {
 						)
 					: false;
 			if (!valid) {
-				return reply.status(core.codes.notAccepted).send({
+				return reply.status(request.server.codes.notAccepted).send({
 					code: core.Utils.foldCodes.mirrorReject,
 					message: "Mirror failed Validation",
 				});
@@ -204,14 +204,14 @@ function route(fastify: FastifyInstance, core: Core) {
 
 			const result = await core.db.addMirror(auth.id, request.body.url);
 			if (!result) {
-				return reply.status(core.codes.conflict).send({
-					code: core.codes.ok,
+				return reply.status(request.server.codes.conflict).send({
+					code: request.server.utils.foldCodes.mirrorReject,
 					message: "Mirror domain already owned by another user",
 				});
 			}
 			return reply
-				.status(core.codes.ok)
-				.send({ code: core.codes.ok, message: "OK" });
+				.status(request.server.codes.ok)
+				.send({ code: request.server.codes.ok, message: "OK" });
 		},
 	});
 	fastify.log.info(`Initialized POST User Add Mirror at ${path}`);

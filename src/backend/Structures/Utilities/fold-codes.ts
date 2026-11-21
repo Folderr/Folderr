@@ -67,6 +67,7 @@ export type FoldCodesI = {
 	emailSent: number;
 	emailFailed: number;
 	signupsClosed: number;
+	mirrorTaken: number;
 };
 
 export const FoldCodes: FoldCodesI = {
@@ -134,4 +135,5 @@ export const FoldCodes: FoldCodesI = {
 	emailSent: 1061,
 	emailFailed: 1062,
 	signupsClosed: 1063,
+	mirrorTaken: 1064,
 };
