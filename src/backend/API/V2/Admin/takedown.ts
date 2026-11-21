@@ -132,20 +132,6 @@ function route(fastify: FastifyInstance, core: Core) {
 						code: { type: "number" },
 					},
 				},
-				500: {
-					examples: [
-						{
-							code: 1052,
-							message:
-								"Unknown error while taking down the content",
-						},
-					],
-					type: "object",
-					properties: {
-						message: { type: "string" },
-						code: { type: "number" },
-					},
-				},
 				200: {
 					examples: [{ code: 200, message: "OK" }],
 					type: "object",
@@ -168,19 +154,11 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			try {
-				const out =
-					request.params.type === "file"
-						? await takedownFile(core, request.params.id, request)
-						: await takedownLink(core, request.params.id, request);
-				return await reply.status(out.httpCode).send(out.msg);
-			} catch (error: unknown) {
-				fastify.log.error(error);
-				return reply.status(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.unkownError,
-					message: "Unknown error while taking down the content",
-				});
-			}
+			const out =
+				request.params.type === "file"
+					? await takedownFile(core, request.params.id, request)
+					: await takedownLink(core, request.params.id, request);
+			return reply.status(out.httpCode).send(out.msg);
 		},
 	});
 	fastify.log.info(`Initialized DELETE Admin Takedown at ${path}`);

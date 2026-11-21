@@ -52,10 +52,6 @@ function route(fastify: FastifyInstance, core: Core) {
 					examples: [
 						{ code: 401, message: "Authorization failed." },
 						{ code: 403, message: "Action forbidden" },
-						{
-							code: 1053,
-							message: "Unknown Error While Fetching Users",
-						},
 					],
 					type: "object",
 					properties: {
@@ -69,27 +65,19 @@ function route(fastify: FastifyInstance, core: Core) {
 		},
 		preHandler: fastify.policy.requireAdmin,
 		async handler(_request, reply) {
-			try {
-				const users = await core.db.listVerifies();
+			const users = await core.db.listVerifies();
 
-				if (users.length === 0) {
-					return await reply.code(core.codes.ok).send({
-						code: core.Utils.foldCodes.dbNotFound,
-						message: [],
-					});
-				}
-
-				return await reply.code(core.codes.ok).send({
-					code: core.codes.ok,
-					message: users,
-				});
-			} catch (error: unknown) {
-				fastify.log.error(error);
-				return reply.code(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.dbUnkownError,
-					message: "Unknown Error While Fetching Users",
+			if (users.length === 0) {
+				return reply.code(core.codes.ok).send({
+					code: core.Utils.foldCodes.dbNotFound,
+					message: [],
 				});
 			}
+
+			return reply.code(core.codes.ok).send({
+				code: core.codes.ok,
+				message: users,
+			});
 		},
 	});
 	fastify.log.info("Initializing GET Verifying Users");

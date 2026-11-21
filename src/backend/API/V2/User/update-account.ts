@@ -48,16 +48,7 @@ async function handlePassword(
 		return await hashPass(password);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) {
-			core.logger.debug(error);
-
-			return {
-				httpCode: core.codes.internalErr,
-				message: {
-					code: core.Utils.foldCodes.unkownError,
-					message:
-						"An unknown error occured with the handling of the password!",
-				},
-			};
+			throw error;
 		}
 
 		if (error.message.startsWith("[PSW1]")) {
@@ -94,15 +85,7 @@ async function handlePassword(
 			};
 		}
 
-		core.logger.error(`[Update Account - Password] - ${error.message}`);
-		return {
-			httpCode: core.codes.internalErr,
-			message: {
-				code: core.Utils.foldCodes.unkownError,
-				message:
-					"An unknown error occured with the handling of the password!",
-			},
-		};
+		throw error;
 	}
 }
 
@@ -282,11 +265,6 @@ function route(fastify: FastifyInstance, core: Core) {
 				"5xx": {
 					examples: [
 						{
-							code: 1053,
-							message:
-								"An unknown error encountered while updating your account",
-						},
-						{
 							code: 1059,
 							message:
 								"Emailer not configured. Unable to update email.",
@@ -454,16 +432,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 			}
 
-			try {
-				await core.db.updateUser(auth.id, update);
-			} catch (error: unknown) {
-				request.server.reportError(error, request, { user: auth });
-				return reply.status(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.dbUnkownError,
-					message:
-						"An unknown error encountered while updating your account",
-				});
-			}
+			await core.db.updateUser(auth.id, update);
 
 			return reply
 				.status(core.codes.ok)

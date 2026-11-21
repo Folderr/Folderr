@@ -47,20 +47,6 @@ function route(fastify: FastifyInstance, core: Core) {
 						code: { type: "number" },
 					},
 				},
-				500: {
-					examples: [
-						{
-							code: 1019,
-							message:
-								"Unknown error while looking up the content",
-						},
-					],
-					type: "object",
-					properties: {
-						message: { type: "string" },
-						code: { type: "number" },
-					},
-				},
 				200: {
 					examples: [
 						{
@@ -118,28 +104,20 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			try {
-				const out =
-					request.params.type === "file"
-						? await core.db.findFile({ id: request.params.id })
-						: await core.db.findLink({ id: request.params.id });
-				if (!out) {
-					return await reply.status(core.codes.notFound).send({
-						code: core.Utils.foldCodes.dbNotFound,
-						message: `${request.params.type === "file" ? "File" : "Link"} not found!`,
-					});
-				}
-
-				return await reply
-					.status(core.codes.ok)
-					.send({ code: core.codes.ok, message: out });
-			} catch (error: unknown) {
-				fastify.log.error(error);
-				return reply.status(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.dbError,
-					message: "Unknown error while looking up the content",
+			const out =
+				request.params.type === "file"
+					? await core.db.findFile({ id: request.params.id })
+					: await core.db.findLink({ id: request.params.id });
+			if (!out) {
+				return reply.status(core.codes.notFound).send({
+					code: core.Utils.foldCodes.dbNotFound,
+					message: `${request.params.type === "file" ? "File" : "Link"} not found!`,
 				});
 			}
+
+			return reply
+				.status(core.codes.ok)
+				.send({ code: core.codes.ok, message: out });
 		},
 	});
 	fastify.log.info(`Initialized GET Admin Lookup Content at ${path}`);
