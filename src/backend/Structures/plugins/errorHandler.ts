@@ -1,5 +1,4 @@
 import type {
-	FastifyError,
 	FastifyInstance,
 	FastifyPluginAsync,
 	FastifyRequest,
@@ -7,7 +6,6 @@ import type {
 } from "fastify";
 import fp from "fastify-plugin";
 import type { User } from "../Database/db-class.js";
-import { EmailError } from "../emailer.js";
 import type { FoldCodesI } from "../Utilities/fold-codes.js";
 
 // Unhandled errors a route can have before it's taken offline

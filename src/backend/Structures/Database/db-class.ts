@@ -19,7 +19,6 @@
  *
  */
 
-import { FastifyError } from "fastify";
 import type { Config } from "../../handlers/config-handler.js";
 import type { FoldCodesI } from "../Utilities/fold-codes.js";
 import codes from "../Utilities/status-codes.js";

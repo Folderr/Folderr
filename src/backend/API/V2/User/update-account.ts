@@ -2,7 +2,6 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
 import * as constants from "../../../Structures/constants/index.js";
 import {
-	DBConflictError,
 	normalizeInput,
 	type User,
 } from "../../../Structures/Database/db-class.js";

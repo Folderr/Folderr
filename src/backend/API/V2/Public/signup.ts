@@ -1,10 +1,8 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { NodemailerError } from "nodemailer";
 import type { Core } from "../../../internals";
 import * as constants from "../../../Structures/constants/index";
 import { EmailError } from "../../../Structures/emailer";
 import type { NeoRoute } from "../../../Structures/neo-route";
-import { FoldCodesI } from "../../../Structures/Utilities/fold-codes";
 import { genValidationToken } from "../../../security/verification";
 
 const path = "/signup";
