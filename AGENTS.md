@@ -95,7 +95,7 @@ fastify.route<RouteTypes>({
 - **Pass route types to `route<RouteTypes>()`.** Annotating only the handler's `request` breaks type inference once a `preHandler` is added.
 - **Read the signed-in user with `fastify.requestUser(request)`**, not `request.user!`. It throws, naming the route, if the policy hook is missing.
 - **Standard auth responses:** 401 `{ code: 401, message: "Authorization failed." }`, 403 `{ code: 403, message: "Action forbidden" }`. Keep the schema examples in sync.
-- **Errors:** let unexpected errors throw. The central error handler (`Structures/plugins/errorHandler.ts`) logs them, reports them to Sentry and returns 500. Five unhandled errors take a route offline, so don't turn expected failures (bad input, invalid token) into throws.
+- **Errors:** let unexpected errors throw. The central error handler (`Structures/plugins/errorHandler.ts`) logs them, reports them to Sentry and returns 500. Five unhandled errors take a route offline. However the central handler handles `4xx` errors and `FolderrErrors` marked as `expected`, throw those at-will. Client-triggered errors should always be expected and accounted for.
 - **Request shape validation goes in the route's JSON schema**, not in SecureCore.
 
 ## Database
@@ -126,7 +126,7 @@ fastify.route<RouteTypes>({
 - **Title:** the same style as commit subjects, e.g. `refactor(security): Move auth into Fastify policies`.
 - **Description:**
 
-      # What this PR does
+            # What this PR does
       - …the behaviour that changes, not a file list
 
       # What's left to do
