@@ -183,7 +183,7 @@ async function emailSignup(
 	request: FastifyRequest<RouteTypes>,
 	_response: FastifyReply,
 ): Promise<{
-	httpCode: 500 | 201;
+	httpCode: 201;
 	msg: {
 		message: string;
 		code: number;
@@ -235,7 +235,7 @@ async function noEmailSignup(
 	},
 	request: FastifyRequest,
 ): Promise<{
-	httpCode: 500 | 201;
+	httpCode: 201;
 	msg: { code: number; message: string };
 }> {
 	// The notification is saved with the pending user, and deleted when an admin verifies or denies them
