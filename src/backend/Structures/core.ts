@@ -52,6 +52,9 @@ import errorHandlerPlugin from "./plugins/errorHandler.js";
 import SentryPlugin from "./plugins/sentry.js";
 import { MAX_UPLOAD_BYTES } from "./Utilities/upload-types.js";
 
+// Paths served by Fastify rather than the frontend, matched as whole segments so "/login" still goes to the frontend
+const BACKEND_PATHS = /^\/(api|image|i|videos|v|file|f|link|l)(\/|$)/;
+
 const ee = new EventEmitter();
 ee.on("fail", (code: number) => {
 	setTimeout(() => {
@@ -598,16 +601,23 @@ export default class Core {
 	/**
 	 * @desc Answers unknown URLs: JSON for the API (or everything when Folderr is API-only),
 	 * otherwise the frontend's index.html so its own router can show the page.
+	 * Backend paths (a missing upload or short link) keep a real 404 status.
 	 */
 	private async notFound(
 		request: FastifyRequest,
 		reply: FastifyReply,
 	): Promise<FastifyReply> {
-		if (request.url.startsWith("/api") || this.config.apiOnly) {
+		const pathname = request.url.split("?", 1)[0];
+		if (this.config.apiOnly || /^\/api(\/|$)/.test(pathname)) {
 			return reply.status(404).send({
 				code: 404,
-				message: `${request.method}: ${request.url} Not Found`,
+				message: `${request.method}: ${pathname} Not Found`,
 			});
+		}
+
+		// sendFile keeps a status that's already set, so this is the frontend's 404 page with a 404 status
+		if (BACKEND_PATHS.test(pathname)) {
+			return reply.status(404).sendFile("index.html");
 		}
 
 		return reply.sendFile("index.html");
@@ -633,8 +643,6 @@ export default class Core {
 			envDir: process.cwd(),
 		});
 		const publicPaths = fs.readdirSync("./src/frontend/public");
-		// Paths served by Fastify, matched as whole segments so "/login" still goes to Vite
-		const backendPaths = /^\/(api|image|i|videos|v|file|f|link|l)(\/|$)/;
 		this.app.addHook("onRequest", (request, reply, done) => {
 			const { url } = request.raw;
 			if (!url) {
@@ -645,7 +653,7 @@ export default class Core {
 			const pathname = url.split("?", 1)[0];
 			if (
 				!publicPaths.includes(pathname.slice(1)) &&
-				backendPaths.test(pathname)
+				BACKEND_PATHS.test(pathname)
 			) {
 				done();
 				return;
