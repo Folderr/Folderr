@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
+import { FolderrError } from "../../../Structures/folderr-error.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 import { findVerifying } from "../../../security/verification.js";
 
@@ -115,9 +116,14 @@ function route(fastify: FastifyInstance, core: Core) {
 						core.config.url,
 					);
 				} catch (error: unknown) {
-					core.logger.error(
-						error,
-						"Failed to send the welcome email",
+					request.server.reportError(
+						new FolderrError("Failed to send a welcome email", {
+							cause: error,
+						}),
+						request,
+						{
+							count: false,
+						},
 					);
 				}
 			}

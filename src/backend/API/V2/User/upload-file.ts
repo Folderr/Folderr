@@ -64,17 +64,6 @@ function route(fastify: FastifyInstance, core: Core) {
 						code: { type: "number" },
 					},
 				},
-				500: {
-					examples: [
-						{ code: 1053, message: "The upload couldn't be saved" },
-						{ code: 500, message: "An internal error occurred" },
-					],
-					type: "object",
-					properties: {
-						message: { type: "string" },
-						code: { type: "number" },
-					},
-				},
 				200: {
 					examples: ["https://folderr.example.com/i/aB3xK9q.png"],
 					type: "string",
@@ -208,12 +197,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			} catch (error: unknown) {
 				// Without a record the link would never work, so don't keep the file
-				core.logger.error(error);
 				await discard(storedPath);
-				return reply.status(request.server.codes.internalErr).send({
-					code: core.Utils.foldCodes.dbUnkownError,
-					message: "The upload couldn't be saved",
-				});
+				throw error;
 			}
 
 			const responseURL = request.headers.responseurl;

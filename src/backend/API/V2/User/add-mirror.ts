@@ -1,7 +1,7 @@
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import type { Options, Response } from "got";
+import { type Options, RequestError, type Response } from "got";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 import { isIPHost, noPrivateDnsLookup } from "../../../security/url-safety.js";
@@ -69,17 +69,6 @@ function route(fastify: FastifyInstance, core: Core) {
 						},
 						{ code: 1050, message: "Invalid Mirror URL" },
 						{ code: 1049, message: "Mirror failed Validation" },
-					],
-					type: "object",
-					properties: {
-						message: { type: "string" },
-						code: { type: "number" },
-					},
-				},
-				"5xx": {
-					examples: [
-						{ code: 1052, message: "Something unknown happened." },
-						{ code: 500, message: "An internal error occurred" },
 					],
 					type: "object",
 					properties: {
@@ -156,24 +145,14 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				);
 			} catch (error: unknown) {
-				if (
-					error &&
-					error instanceof Error &&
-					error.message &&
-					/Not Found|\[FAIL]|URL DISALLOWED|ENOTFOUND|EBLOCKED|Invalid URL/.test(
-						error.message,
-					)
-				) {
+				if (error instanceof RequestError) {
 					return reply.status(request.server.codes.notAccepted).send({
 						code: core.Utils.foldCodes.mirrorReject,
 						message: "Mirror failed Validation",
 					});
 				}
 
-				return reply.status(request.server.codes.internalErr).send({
-					code: core.Utils.foldCodes.unkownError,
-					message: "Something unknown happened.",
-				});
+				throw error;
 			}
 
 			if (!r?.body) {

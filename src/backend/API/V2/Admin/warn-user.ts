@@ -54,7 +54,6 @@ function route(fastify: FastifyInstance, core: Core) {
 							message: "Requirements missing or invalid!",
 						},
 						{ code: 1054, message: "User not found!" },
-						{ code: 1052, message: "Warn failed" },
 					],
 					type: "object",
 					properties: {
@@ -93,26 +92,28 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			const id = core.Utils.genNotifyID();
-			const updated = await core.db.addNotification(request.params.id, {
+			// An insert either adds the row or throws, so there's no "not added" case to answer
+			await core.db.addNotification(request.params.id, {
 				id,
 				title: WARNING_TITLE,
 				content: `You were warned for: ${request.body.reason}`,
 			});
-			if (!updated) {
-				return reply.status(core.codes.notAccepted).send({
-					code: core.Utils.foldCodes.unkownError,
-					message: "Warn failed",
-				});
-			}
 
 			if (core.emailer.active) {
-				const url = await core.Utils.determineHomeURL(request);
-				await core.emailer.warnEmail(
-					user.email,
-					request.body.reason,
-					user.username,
-					url,
-				);
+				try {
+					const url = await core.Utils.determineHomeURL(request);
+					await core.emailer.warnEmail(
+						user.email,
+						request.body.reason,
+						user.username,
+						url,
+					);
+				} catch (error: unknown) {
+					request.server.reportError(error, request, {
+						user,
+						count: false,
+					});
+				}
 			}
 
 			return reply.status(core.codes.ok).send({

@@ -42,11 +42,15 @@ async function notifyOwner(
 		return;
 	}
 
-	const url = await core.Utils.determineHomeURL(request);
-	await core.emailer.takedown(
-		{ email: user.email, username: user.username, id, type },
-		url,
-	);
+	try {
+		const url = await core.Utils.determineHomeURL(request);
+		await core.emailer.takedown(
+			{ email: user.email, username: user.username, id, type },
+			url,
+		);
+	} catch (error: unknown) {
+		request.server.reportError(error, request, { count: false, user });
+	}
 }
 
 async function takedownFile(
