@@ -33,11 +33,15 @@ export class EmailError extends FolderrError {
 		options?: { cause?: unknown; foldCode?: keyof FoldCodesI },
 	) {
 		// Nodemailer names its failures with a string code, like "ETIMEDOUT" or "EAUTH"
-		const causeCode = (options?.cause as { code?: unknown } | undefined)
-			?.code;
-		const code = typeof causeCode === "string" ? causeCode : undefined;
-		// A slow mail server isn't a bug, so a timeout is answered as a 503 without being reported
-		const timedOut = code === "ETIMEDOUT";
+		const cause = options?.cause as
+			| { code?: unknown; originalCode?: unknown }
+			| undefined;
+		const code = typeof cause?.code === "string" ? cause.code : undefined;
+		// A slow mail server isn't a bug, so a timeout is answered as a 503 without being reported.
+		// Nodemailer's own timers report ETIMEDOUT; when the OS gives up connecting first, it reports
+		// ESOCKET and keeps the socket's ETIMEDOUT in originalCode
+		const timedOut =
+			code === "ETIMEDOUT" || cause?.originalCode === "ETIMEDOUT";
 		super(message, {
 			...options,
 			code,
@@ -104,6 +108,28 @@ export default class Emailer {
 		return this.#core.regexs.email.test(email);
 	}
 
+	/**
+	 * @desc Sends one email, or does nothing when the emailer isn't set up.
+	 * Nodemailer's failures become an EmailError, so every caller gets the same handling
+	 */
+	async #send(
+		mail: Mail.Options,
+		failure: string,
+	): Promise<null | SentMessageInfo> {
+		if (!this.email || !this.mailer) {
+			return null;
+		}
+
+		try {
+			return await this.mailer.sendMail({ from: this.email, ...mail });
+		} catch (error: unknown) {
+			throw new EmailError(failure, {
+				cause: error,
+				foldCode: "emailFailed",
+			});
+		}
+	}
+
 	async verifyConnection(): Promise<{
 		error: Error | undefined;
 		success: boolean;
@@ -136,19 +162,17 @@ export default class Emailer {
 		verifyLink: string,
 		username: string,
 	): Promise<null | SentMessageInfo> {
-		if (this.email && this.mailer) {
-			return this.mailer.sendMail({
-				from: this.email,
+		return this.#send(
+			{
 				to: email,
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.VERIFY,
 				text: constants.TEMPLATES.EMAILER_TEXTS.verify(
 					username,
 					verifyLink,
 				),
-			});
-		}
-
-		return null;
+			},
+			"Failed to send verification email",
+		);
 	}
 
 	async welcomeEmail(
@@ -156,19 +180,17 @@ export default class Emailer {
 		username: string,
 		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
-		if (this.email && this.mailer) {
-			return this.mailer.sendMail({
-				from: this.email,
+		return this.#send(
+			{
 				to: email,
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.WELCOME,
 				text: constants.TEMPLATES.EMAILER_TEXTS.welcome(
 					username,
 					instanceLink,
 				),
-			});
-		}
-
-		return null;
+			},
+			"Failed to send welcome email",
+		);
 	}
 
 	async forgotPasswordEmail(
@@ -177,9 +199,8 @@ export default class Emailer {
 		username: string,
 		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
-		if (this.email && this.mailer) {
-			return this.mailer.sendMail({
-				from: this.email,
+		return this.#send(
+			{
 				to: email,
 				subject:
 					constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.FORGOT_PASSWARD,
@@ -189,10 +210,9 @@ export default class Emailer {
 					forgotLink,
 				),
 				priority: "high",
-			});
-		}
-
-		return null;
+			},
+			"Failed to send password reset email",
+		);
 	}
 
 	async warnEmail(
@@ -201,9 +221,8 @@ export default class Emailer {
 		username: string,
 		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
-		if (this.email && this.mailer) {
-			return this.mailer.sendMail({
-				from: this.email,
+		return this.#send(
+			{
 				to: email,
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.WARN,
 				text: constants.TEMPLATES.EMAILER_TEXTS.warn(
@@ -212,10 +231,9 @@ export default class Emailer {
 					reason,
 				),
 				priority: "high",
-			});
-		}
-
-		return null;
+			},
+			"Failed to send warning email",
+		);
 	}
 
 	async banEmail(
@@ -224,9 +242,8 @@ export default class Emailer {
 		username: string,
 		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
-		if (this.email && this.mailer) {
-			return this.mailer.sendMail({
-				from: this.email,
+		return this.#send(
+			{
 				to: email,
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.BAN,
 				text: constants.TEMPLATES.EMAILER_TEXTS.ban(
@@ -235,10 +252,9 @@ export default class Emailer {
 					reason,
 				),
 				priority: "high",
-			});
-		}
-
-		return null;
+			},
+			"Failed to send ban email",
+		);
 	}
 
 	async changeEmail(
@@ -246,9 +262,8 @@ export default class Emailer {
 		confirmLink: string,
 		username: string,
 	): Promise<null | SentMessageInfo> {
-		if (this.email && this.mailer) {
-			return this.mailer.sendMail({
-				from: this.email,
+		return this.#send(
+			{
 				to: email,
 				subject:
 					constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.EMAIL_CHANGE,
@@ -257,10 +272,9 @@ export default class Emailer {
 					confirmLink,
 				),
 				priority: "low",
-			});
-		}
-
-		return null;
+			},
+			"Failed to send email change confirmation",
+		);
 	}
 
 	async takedown(
@@ -277,9 +291,8 @@ export default class Emailer {
 		},
 		instanceLink: string,
 	): Promise<null | SentMessageInfo> {
-		if (this.email && this.mailer) {
-			return this.mailer.sendMail({
-				from: this.email,
+		return this.#send(
+			{
 				to: email,
 				subject: constants.ENUMS.RESPONSES.EMAILER_SUBJECTS.TAKEDOWN,
 				text: constants.TEMPLATES.EMAILER_TEXTS.takedown(
@@ -289,9 +302,8 @@ export default class Emailer {
 					instanceLink,
 				),
 				priority: "low",
-			});
-		}
-
-		return null;
+			},
+			"Failed to send takedown email",
+		);
 	}
 }

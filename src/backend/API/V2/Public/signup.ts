@@ -1,7 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals";
 import * as constants from "../../../Structures/constants/index";
-import { EmailError } from "../../../Structures/emailer";
 import type { NeoRoute } from "../../../Structures/neo-route";
 import { genValidationToken } from "../../../security/verification";
 
@@ -207,10 +206,8 @@ async function emailSignup(
 	} catch (error: unknown) {
 		// Nobody can confirm a signup whose email never arrived, so don't let it hold the username and email
 		await request.server.db.denySelf(userInfo.id);
-		throw new EmailError("Failed to send verification email", {
-			cause: error,
-			foldCode: "emailFailed",
-		});
+		// Already an EmailError: the emailer wraps its own failures
+		throw error;
 	}
 
 	core.logger.info(
