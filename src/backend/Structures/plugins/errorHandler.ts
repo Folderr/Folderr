@@ -1,12 +1,12 @@
 import type {
+	FastifyError,
 	FastifyInstance,
 	FastifyPluginAsync,
 	FastifyRequest,
-	FastifySchemaValidationError,
 } from "fastify";
 import fp from "fastify-plugin";
 import type { User } from "../Database/db-class.js";
-import type { FoldCodesI } from "../Utilities/fold-codes.js";
+import { FolderrError } from "../folderr-error.js";
 
 // Unhandled errors a route can have before it's taken offline
 const MAX_ERRORS = 5;
@@ -97,32 +97,24 @@ const errorHandlerPlugin: FastifyPluginAsync = async (
 	// keep their 4xx; they aren't reported or counted, so bad requests can't take a route offline
 	instance.setErrorHandler(
 		async (
-			error: Error & {
-				statusCode?: number;
-				code?: string;
-				validation?: FastifySchemaValidationError[];
-				foldCode?: keyof FoldCodesI;
-				expected?: boolean;
-			},
+			error: FastifyError | FolderrError,
 			request: FastifyRequest,
 			reply,
 		) => {
-			let expected = false;
-			if (error.expected) {
-				expected = true;
-			}
-			const status =
-				error instanceof Error && error.statusCode
-					? error.statusCode
-					: 500;
-			if (
-				(error instanceof Error && error.validation) ||
-				(status >= 400 && status < 500) ||
-				expected
-			) {
+			// Fastify's own errors (bad JSON, body too large…) carry a statusCode too
+			const status = error.statusCode ?? 500;
+			const foldCode =
+				error instanceof FolderrError ? error.foldCode : undefined;
+
+			const toAnswerOrNotToAnswer =
+				(error instanceof FolderrError && error.expected) ||
+				(error as FastifyError).validation !== undefined ||
+				(400 <= status && status < 500);
+
+			if (toAnswerOrNotToAnswer) {
 				return reply.code(status).send({
-					code: error.foldCode
-						? instance.utils.foldCodes[error.foldCode]
+					code: foldCode
+						? instance.utils.foldCodes[foldCode]
 						: status,
 					message: error.message,
 				});

@@ -23,36 +23,28 @@ import nodemailer, { type SentMessageInfo } from "nodemailer";
 import type Mail from "nodemailer/lib/mailer";
 import type { Core } from "../internals.js";
 import * as constants from "./constants/index.js";
+import { FolderrError } from "./folderr-error.js";
 import type { FoldCodesI } from "./Utilities/fold-codes.js";
-import codes, { type Codes } from "./Utilities/status-codes.js";
+import codes from "./Utilities/status-codes.js";
 
-export class EmailError extends Error {
-	public readonly code?: string;
-
-	public readonly statusCode?: Codes[keyof Codes];
-
-	public readonly foldCode?: keyof FoldCodesI;
-
-	public readonly expected: boolean;
-
+export class EmailError extends FolderrError {
 	constructor(
 		message: string,
 		options?: { cause?: unknown; foldCode?: keyof FoldCodesI },
 	) {
-		super(message, options);
+		// Nodemailer names its failures with a string code, like "ETIMEDOUT" or "EAUTH"
+		const causeCode = (options?.cause as { code?: unknown } | undefined)
+			?.code;
+		const code = typeof causeCode === "string" ? causeCode : undefined;
+		// A slow mail server isn't a bug, so a timeout is answered as a 503 without being reported
+		const timedOut = code === "ETIMEDOUT";
+		super(message, {
+			...options,
+			code,
+			expected: timedOut,
+			statusCode: timedOut ? codes.serviceUnavailable : undefined,
+		});
 		this.name = "EmailError";
-		this.expected = false;
-		const cause = options?.cause as
-			| { code: string; message: string }
-			| undefined;
-		if (cause?.code) {
-			this.code = cause.code;
-			if (cause.code === "ETIMEDOUT") {
-				this.expected = true;
-				this.statusCode = codes.serviceUnavailable;
-			}
-		}
-		this.foldCode = options?.foldCode;
 	}
 }
 
