@@ -23,11 +23,19 @@ enum EMAILER_SUBJECTS {
 	TAKEDOWN = "Content Takedown",
 }
 
+enum TAKEN {
+	USERNAME = "Username taken!",
+	EMAIL = "Email taken!",
+	// Signup can't tell which one clashed, and this doesn't confirm which exists
+	USERNAME_OR_EMAIL = "Username or email taken!",
+}
+
 // Responses are considered as anything the end user will see.
 export const RESPONSES = {
 	EMAILER_SUBJECTS,
 	USERNAME,
 	PASSWORD,
+	TAKEN,
 };
 
 const ENUMS = {

@@ -49,7 +49,11 @@ function route(fastify: FastifyInstance, core: Core) {
 								"body must have required property 'reason'",
 						},
 						{ code: 400, message: "ID is not a valid Folderr ID" },
-						{ code: 1054, message: "User not found" },
+						{
+							code: 1054,
+							message:
+								'User not found, or the user was not found with role "admin"',
+						},
 					],
 					type: "object",
 					properties: {
@@ -75,8 +79,8 @@ function route(fastify: FastifyInstance, core: Core) {
 			const auth = fastify.requestUser(request);
 
 			if (!core.Utils.isValidFolderrId(request.params.id)) {
-				return reply.status(core.codes.badReq).send({
-					code: core.codes.badReq,
+				return reply.status(request.server.codes.badReq).send({
+					code: request.server.codes.badReq,
 					message: "ID is not a valid Folderr ID",
 				});
 			}
@@ -84,24 +88,18 @@ function route(fastify: FastifyInstance, core: Core) {
 			// Only finds a user who is an admin and isn't the owner
 			const user = await core.db.setAdmin(request.params.id, false);
 			if (!user) {
-				return reply.status(core.codes.notFound).send({
-					message: "User not found",
+				return reply.status(request.server.codes.notFound).send({
+					message:
+						'User not found, or the user was not found with role "admin"',
 					code: core.Utils.foldCodes.dbNotFound,
-				});
-			}
-
-			if (user.admin) {
-				return reply.status(core.codes.notAccepted).send({
-					message: "Demotion Failed",
-					code: core.Utils.foldCodes.dbUnkownError,
 				});
 			}
 
 			core.logger.info(
 				`Administrator removed for ${user.username} (${user.id}) by ${auth.username} (${auth.id})`,
 			);
-			return reply.status(core.codes.ok).send({
-				code: core.codes.ok,
+			return reply.status(request.server.codes.ok).send({
+				code: request.server.codes.ok,
 				message: "OK",
 			});
 		},

@@ -48,16 +48,7 @@ async function handlePassword(
 		return await hashPass(password);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) {
-			core.logger.debug(error);
-
-			return {
-				httpCode: core.codes.internalErr,
-				message: {
-					code: core.Utils.foldCodes.unkownError,
-					message:
-						"An unknown error occured with the handling of the password!",
-				},
-			};
+			throw error;
 		}
 
 		if (error.message.startsWith("[PSW1]")) {
@@ -94,15 +85,7 @@ async function handlePassword(
 			};
 		}
 
-		core.logger.error(`[Update Account - Password] - ${error.message}`);
-		return {
-			httpCode: core.codes.internalErr,
-			message: {
-				code: core.Utils.foldCodes.unkownError,
-				message:
-					"An unknown error occured with the handling of the password!",
-			},
-		};
+		throw error;
 	}
 }
 
@@ -129,9 +112,9 @@ async function handleEmailUpdate(
 
 	if (!core.emailer.validateEmail(email)) {
 		return {
-			httpCode: core.codes.badReq,
+			httpCode: request.server.codes.badReq,
 			message: {
-				code: core.codes.badReq,
+				code: request.server.codes.badReq,
 				message: "Invalid email",
 			},
 			accepted: false,
@@ -140,7 +123,7 @@ async function handleEmailUpdate(
 
 	if (await core.db.isBanned(email)) {
 		return {
-			httpCode: core.codes.forbidden,
+			httpCode: request.server.codes.forbidden,
 			message: {
 				code: core.Utils.foldCodes.bannedEmail,
 				message: "Email banned",
@@ -156,10 +139,10 @@ async function handleEmailUpdate(
 		(await core.db.isEmailTaken(email))
 	) {
 		return {
-			httpCode: core.codes.used,
+			httpCode: request.server.codes.conflict,
 			message: {
-				code: core.codes.used,
-				message: "Email used!",
+				code: request.server.utils.foldCodes.usernameOrEmailTaken,
+				message: constants.ENUMS.RESPONSES.TAKEN.EMAIL,
 			},
 			accepted: false,
 		};
@@ -212,10 +195,10 @@ async function handleUsername(
 
 	if (await core.db.isUsernameTaken(username)) {
 		return {
-			httpCode: core.codes.used,
+			httpCode: core.codes.conflict,
 			message: {
 				code: core.Utils.foldCodes.usernameOrEmailTaken,
-				message: "Username taken!",
+				message: constants.ENUMS.RESPONSES.TAKEN.USERNAME,
 			},
 		};
 	}
@@ -279,13 +262,25 @@ function route(fastify: FastifyInstance, core: Core) {
 						code: { type: "number" },
 					},
 				},
-				"5xx": {
+				"409": {
+					type: "object",
+					properties: {
+						message: { type: "string" },
+						code: { type: "number" },
+					},
 					examples: [
 						{
-							code: 1053,
-							message:
-								"An unknown error encountered while updating your account",
+							code: 1016,
+							message: constants.ENUMS.RESPONSES.TAKEN.USERNAME,
 						},
+						{
+							code: 1016,
+							message: constants.ENUMS.RESPONSES.TAKEN.EMAIL,
+						},
+					],
+				},
+				"5xx": {
+					examples: [
 						{
 							code: 1059,
 							message:
@@ -299,14 +294,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				},
 				"2xx": {
-					examples: [
-						{ code: 200, message: "OK" },
-						{
-							code: 1016,
-							message: "You already have this username",
-						},
-						{ code: 226, message: "Email used!" },
-					],
+					examples: [{ code: 200, message: "OK" }],
 					type: "object",
 					properties: {
 						message: { type: "string" },
@@ -344,19 +332,13 @@ function route(fastify: FastifyInstance, core: Core) {
 				reply: FastifyReply,
 			) => {
 				const user = request.server.requestUser(request);
+				// Asking for the email they already have changes nothing, so it needs no emailer
 				if (
-					request.body.username &&
-					request.body.username.toLowerCase() ===
-						user.username.toLowerCase()
+					request.body.email &&
+					request.body.email.toLowerCase() !==
+						user.email.toLowerCase() &&
+					!core.emailer.active
 				) {
-					// Is the user trying to set their username to... their username?
-					return reply.status(request.server.codes.used).send({
-						code: core.Utils.foldCodes.usernameOrEmailTaken,
-						message: "You already have this username!",
-					});
-				}
-
-				if (request.body.email && !core.emailer.active) {
 					// Can we even try to update their email?
 					return reply
 						.status(request.server.codes.notImplemented)
@@ -365,18 +347,6 @@ function route(fastify: FastifyInstance, core: Core) {
 							message:
 								"Emailer not configured. Unable to update email.",
 						});
-				}
-
-				if (
-					request.body.email &&
-					request.body.email.toLowerCase() ===
-						user.email.toLowerCase()
-				) {
-					// Are they already using the "new" email?
-					return reply.status(request.server.codes.notAccepted).send({
-						code: core.Utils.foldCodes.usernameOrEmailTaken,
-						message: "You already have this email!",
-					});
 				}
 			},
 		],
@@ -389,8 +359,8 @@ function route(fastify: FastifyInstance, core: Core) {
 				!body.email &&
 				typeof body.privacy?.dataCollection !== "boolean"
 			) {
-				return reply.status(core.codes.badReq).send({
-					code: core.codes.badReq,
+				return reply.status(request.server.codes.badReq).send({
+					code: request.server.codes.badReq,
 					message:
 						"BODY REQUIRES ONE OF password, username, privacy, OR email!",
 				});
@@ -422,8 +392,18 @@ function route(fastify: FastifyInstance, core: Core) {
 				update.password = passwd;
 			}
 
-			if (body.username) {
-				const newUsername = await handleUsername(core, body.username);
+			// Asking for what they already have is a no-op rather than a failure
+			const username =
+				body.username?.toLowerCase() === auth.username.toLowerCase()
+					? undefined
+					: body.username;
+			const email =
+				body.email?.toLowerCase() === auth.email.toLowerCase()
+					? undefined
+					: body.email;
+
+			if (username) {
+				const newUsername = await handleUsername(core, username);
 				if (typeof newUsername !== "string") {
 					return reply
 						.status(newUsername.httpCode)
@@ -433,7 +413,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				update.username = newUsername;
 			}
 
-			if (body.email) {
+			if (email) {
 				const emailUpdated = await handleEmailUpdate(
 					core,
 					request,
@@ -454,20 +434,13 @@ function route(fastify: FastifyInstance, core: Core) {
 				}
 			}
 
-			try {
+			if (Object.keys(update).length > 0) {
 				await core.db.updateUser(auth.id, update);
-			} catch (error: unknown) {
-				request.server.reportError(error, request, { user: auth });
-				return reply.status(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.dbUnkownError,
-					message:
-						"An unknown error encountered while updating your account",
-				});
 			}
 
 			return reply
-				.status(core.codes.ok)
-				.send({ code: core.codes.ok, message: "OK" });
+				.status(request.server.codes.ok)
+				.send({ code: request.server.codes.ok, message: "OK" });
 		},
 	});
 	fastify.log.info(`Initialized PATCH User Account at ${path}`);

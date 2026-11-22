@@ -20,6 +20,9 @@
  */
 
 import type { Config } from "../../handlers/config-handler.js";
+import { FolderrError, type FolderrErrorOptions } from "../folderr-error.js";
+import type { FoldCodesI } from "../Utilities/fold-codes.js";
+import codes from "../Utilities/status-codes.js";
 
 export interface Folderr {
 	publicKeyJWT: Buffer;
@@ -138,8 +141,8 @@ export type FileFilter = { id: string; owner?: string; ext?: string };
 /** A short link is always found by its ID; owner narrows it to a user's own link */
 export type LinkFilter = { id: string; owner?: string };
 
-export class DatabaseError extends Error {
-	constructor(message: string, options?: { cause?: unknown }) {
+export class DatabaseError extends FolderrError {
+	constructor(message: string, options?: FolderrErrorOptions) {
 		super(message, options);
 		this.name = "DatabaseError";
 	}
@@ -153,8 +156,15 @@ export class FolderrNotSetupError extends DatabaseError {
 }
 
 export class DBConflictError extends DatabaseError {
-	constructor(message: string, options?: { cause?: unknown }) {
-		super(message, options);
+	constructor(
+		message: string,
+		options?: { cause?: unknown; foldCode?: keyof FoldCodesI },
+	) {
+		super(message, {
+			...options,
+			statusCode: codes.conflict,
+			code: "DB_CONFLICT_ERROR",
+		});
 		this.name = "DBConflictError";
 	}
 }

@@ -9,15 +9,9 @@ const method = "DELETE";
 /**
  * @desc Marks the account as deleted in the database and throws its files to the deleter
  */
-async function deleteAccount(core: Core, id: string): Promise<boolean> {
-	try {
-		await core.db.markUserForDeletion(id);
-		core.addDeleter(id);
-		return true;
-	} catch (error: unknown) {
-		core.logger.error(error, "[SYSTEM ERROR] - Account deletion failure");
-		return false;
-	}
+async function deleteAccount(core: Core, id: string): Promise<void> {
+	await core.db.markUserForDeletion(id);
+	core.addDeleter(id);
 }
 
 type RouteTypes = {
@@ -67,16 +61,6 @@ function route(fastify: FastifyInstance, core: Core) {
 						code: { type: "number" },
 					},
 				},
-				500: {
-					examples: [
-						{ code: 500, message: "Account deletion failed" },
-					],
-					type: "object",
-					properties: {
-						message: { type: "string" },
-						code: { type: "number" },
-					},
-				},
 				200: {
 					examples: [{ code: 200, message: "Account deleted!" }],
 					type: "object",
@@ -102,11 +86,6 @@ function route(fastify: FastifyInstance, core: Core) {
 					message: "Action forbidden",
 				});
 			}
-
-			const failed = {
-				code: core.codes.internalErr,
-				message: "Account deletion failed",
-			};
 
 			if (needAdmin) {
 				if (!request.body?.reason) {
@@ -140,9 +119,7 @@ function route(fastify: FastifyInstance, core: Core) {
 					});
 				}
 
-				if (!(await deleteAccount(core, mem.id))) {
-					return reply.status(core.codes.internalErr).send(failed);
-				}
+				await deleteAccount(core, mem.id);
 
 				core.logger.info(
 					`Account ${mem.id} deleted by administrator (${auth.username} - ${auth.id}). Reason: ${request.body.reason}`,
@@ -161,9 +138,7 @@ function route(fastify: FastifyInstance, core: Core) {
 				});
 			}
 
-			if (!(await deleteAccount(core, auth.id))) {
-				return reply.status(core.codes.internalErr).send(failed);
-			}
+			await deleteAccount(core, auth.id);
 
 			core.logger.info(`Account ${auth.id} deleted`);
 			// The account's gone, so its login cookie is useless now

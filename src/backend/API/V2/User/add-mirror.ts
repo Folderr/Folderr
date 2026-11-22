@@ -1,7 +1,7 @@
 import type { JTDSchemaType } from "ajv/dist/jtd.js";
 import AJV from "ajv/dist/jtd.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import type { Options, Response } from "got";
+import { type Options, RequestError, type Response } from "got";
 import type { Core } from "../../../internals.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 import { isIPHost, noPrivateDnsLookup } from "../../../security/url-safety.js";
@@ -64,23 +64,11 @@ function route(fastify: FastifyInstance, core: Core) {
 							message: "body must have required property 'url'",
 						},
 						{
-							code: 409,
-							message:
-								"Mirror domain already owned by another user",
+							code: 1064,
+							message: "Mirror domain is already in use",
 						},
 						{ code: 1050, message: "Invalid Mirror URL" },
 						{ code: 1049, message: "Mirror failed Validation" },
-					],
-					type: "object",
-					properties: {
-						message: { type: "string" },
-						code: { type: "number" },
-					},
-				},
-				"5xx": {
-					examples: [
-						{ code: 1052, message: "Something unknown happened." },
-						{ code: 500, message: "An internal error occurred" },
 					],
 					type: "object",
 					properties: {
@@ -114,14 +102,14 @@ function route(fastify: FastifyInstance, core: Core) {
 					!url.protocol ||
 					!["http:", "https:"].includes(url.protocol)
 				) {
-					return reply.status(core.codes.badReq).send({
+					return reply.status(request.server.codes.badReq).send({
 						code: core.Utils.foldCodes.mirrorInvalidUrl,
 						message: "Invalid Mirror URL",
 					});
 				}
 
 				if (isIPHost(request.body.url)) {
-					return reply.status(core.codes.badReq).send({
+					return reply.status(request.server.codes.badReq).send({
 						code: core.Utils.foldCodes.mirrorInvalidUrl,
 						message: "Invalid Mirror URL",
 					});
@@ -157,28 +145,18 @@ function route(fastify: FastifyInstance, core: Core) {
 					},
 				);
 			} catch (error: unknown) {
-				if (
-					error &&
-					error instanceof Error &&
-					error.message &&
-					/Not Found|\[FAIL]|URL DISALLOWED|ENOTFOUND|EBLOCKED|Invalid URL/.test(
-						error.message,
-					)
-				) {
-					return reply.status(core.codes.notAccepted).send({
+				if (error instanceof RequestError) {
+					return reply.status(request.server.codes.notAccepted).send({
 						code: core.Utils.foldCodes.mirrorReject,
 						message: "Mirror failed Validation",
 					});
 				}
 
-				return reply.status(core.codes.internalErr).send({
-					code: core.Utils.foldCodes.unkownError,
-					message: "Something unknown happened.",
-				});
+				throw error;
 			}
 
 			if (!r?.body) {
-				return reply.status(core.codes.notAccepted).send({
+				return reply.status(request.server.codes.notAccepted).send({
 					code: core.Utils.foldCodes.mirrorReject,
 					message: "Mirror failed Validation",
 				});
@@ -196,7 +174,7 @@ function route(fastify: FastifyInstance, core: Core) {
 						)
 					: false;
 			if (!valid) {
-				return reply.status(core.codes.notAccepted).send({
+				return reply.status(request.server.codes.notAccepted).send({
 					code: core.Utils.foldCodes.mirrorReject,
 					message: "Mirror failed Validation",
 				});
@@ -204,14 +182,14 @@ function route(fastify: FastifyInstance, core: Core) {
 
 			const result = await core.db.addMirror(auth.id, request.body.url);
 			if (!result) {
-				return reply.status(core.codes.conflict).send({
-					code: core.codes.ok,
-					message: "Mirror domain already owned by another user",
+				return reply.status(request.server.codes.conflict).send({
+					code: request.server.utils.foldCodes.mirrorTaken,
+					message: "Mirror domain is already in use",
 				});
 			}
 			return reply
-				.status(core.codes.ok)
-				.send({ code: core.codes.ok, message: "OK" });
+				.status(request.server.codes.ok)
+				.send({ code: request.server.codes.ok, message: "OK" });
 		},
 	});
 	fastify.log.info(`Initialized POST User Add Mirror at ${path}`);

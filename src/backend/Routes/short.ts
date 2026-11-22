@@ -10,15 +10,19 @@ function route(fastify: FastifyInstance, core: Core) {
 		request: FastifyRequest<{ Params: { id: string } }>,
 		reply: FastifyReply,
 	) => {
+		// The app's not-found handler answers with the frontend's 404 page and a 404 status.
+		// callNotFound() sends asynchronously, so return the reply to tell Fastify it's handled
 		const short = await core.db.findLink({ id: request.params.id });
 		if (!short) {
-			return reply.status(core.codes.notFound).send("404 Not Found");
+			reply.callNotFound();
+			return reply;
 		}
 
 		const owner = await core.db.findUser({ id: short.owner });
 		if (!owner) {
 			core.addDeleter(short.owner);
-			return reply.status(core.codes.notFound).send("404 Not Found");
+			reply.callNotFound();
+			return reply;
 		}
 
 		return reply.redirect(short.link.trim());

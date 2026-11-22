@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Core } from "../../../internals.js";
+import { FolderrError } from "../../../Structures/folderr-error.js";
 import type { NeoRoute } from "../../../Structures/neo-route.js";
 import { findVerifying } from "../../../security/verification.js";
 
@@ -43,6 +44,11 @@ function route(fastify: FastifyInstance, core: Core) {
 						},
 						{ code: 1054, message: "User not found!" },
 						{ code: 1033, message: "Validation time expired." },
+						{
+							code: 1016,
+							message:
+								"User not accepted, try a different username or email after denying this one",
+						},
 					],
 					type: "object",
 					properties: {
@@ -90,8 +96,8 @@ function route(fastify: FastifyInstance, core: Core) {
 
 			const result = await core.db.verifySelf(verify.id);
 			if (!result) {
-				return await reply.status(core.codes.notAccepted).send({
-					code: core.codes.notAccepted,
+				return await reply.status(request.server.codes.conflict).send({
+					code: request.server.utils.foldCodes.usernameOrEmailTaken,
 					message:
 						"User not accepted, try a different username or email after denying this one",
 				});
@@ -110,9 +116,14 @@ function route(fastify: FastifyInstance, core: Core) {
 						core.config.url,
 					);
 				} catch (error: unknown) {
-					core.logger.error(
-						error,
-						"Failed to send the welcome email",
+					request.server.reportError(
+						new FolderrError("Failed to send a welcome email", {
+							cause: error,
+						}),
+						request,
+						{
+							count: false,
+						},
 					);
 				}
 			}

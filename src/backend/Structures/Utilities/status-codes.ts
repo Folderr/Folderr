@@ -34,12 +34,15 @@ const codes: Codes = {
 	forbidden: 403,
 	notFound: 404,
 	conflict: 409,
+	contentTooLarge: 413, // Ya too big
+	unprocessableContent: 422,
 	locked: 423,
 	tooManyReq: 429,
 	internalErr: 500,
 	notAccepted: 406,
 	accepted: 202,
 	notImplemented: 501,
+	serviceUnavailable: 503,
 };
 
 export interface Codes {
@@ -53,12 +56,15 @@ export interface Codes {
 	forbidden: 403;
 	notFound: 404;
 	conflict: 409;
+	contentTooLarge: 413;
+	unprocessableContent: 422;
 	locked: 423;
 	tooManyReq: 429;
 	internalErr: 500;
 	notAccepted: 406;
 	accepted: 202;
 	notImplemented: 501;
+	serviceUnavailable: 503;
 }
 
 export default codes;

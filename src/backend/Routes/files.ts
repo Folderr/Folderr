@@ -18,29 +18,33 @@ const path = [
 ];
 const method = "GET";
 
+type RouteTypes = { Params: { id: string } };
+
 function route(fastify: FastifyInstance, core: Core) {
 	const handler = async (
-		request: FastifyRequest<{ Params: { id: string } }>,
+		request: FastifyRequest<RouteTypes>,
 		reply: FastifyReply,
 	) => {
 		// The link names the file as <id>.<ext>, or just <id> when it has no extension
 		const { id, ext } = parseUploadName(request.params.id);
 		const upload = await core.db.findFile({ id, ext });
 		if (!upload) {
-			return reply.status(core.codes.notFound).send("404 Not Found");
+			reply.callNotFound();
+			return reply;
 		}
 
 		const owner = await core.db.findUser({ id: upload.owner });
 		if (!owner) {
 			core.addDeleter(upload.owner);
-			return reply.status(core.codes.notFound).send("404 Not Found");
+			reply.callNotFound();
+			return reply;
 		}
 
 		return sendUpload(reply, upload);
 	};
 
 	for (const url of path) {
-		fastify.route({
+		fastify.route<RouteTypes>({
 			method,
 			url,
 			schema: {
