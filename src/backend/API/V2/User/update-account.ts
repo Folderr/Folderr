@@ -436,24 +436,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			}
 
 			if (Object.keys(update).length > 0) {
-				try {
-					await core.db.updateUser(auth.id, update);
-				} catch (error: unknown) {
-					// Someone took the username between the check above and the save
-					if (error instanceof DBConflictError) {
-						return reply
-							.status(request.server.codes.conflict)
-							.send({
-								code: request.server.utils.foldCodes
-									.usernameOrEmailTaken,
-								message:
-									constants.ENUMS.RESPONSES.TAKEN
-										.USERNAME_OR_EMAIL,
-							});
-					}
-
-					throw error;
-				}
+				await core.db.updateUser(auth.id, update);
 			}
 
 			return reply

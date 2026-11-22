@@ -1,15 +1,28 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { NodemailerError } from "nodemailer";
 import type { Core } from "../../../internals";
 import * as constants from "../../../Structures/constants/index";
-import { DBConflictError } from "../../../Structures/Database/db-class";
+import { EmailError } from "../../../Structures/emailer";
 import type { NeoRoute } from "../../../Structures/neo-route";
+import { FoldCodesI } from "../../../Structures/Utilities/fold-codes";
 import { genValidationToken } from "../../../security/verification";
 
 const path = "/signup";
 const method = "POST";
 
+type RouteTypes = {
+	Body: {
+		email: string;
+		password: string;
+		username: string;
+	};
+	Headers: {
+		preferredURL?: string;
+	};
+};
+
 async function route(fastify: FastifyInstance, core: Core) {
-	fastify.route({
+	fastify.route<RouteTypes>({
 		method,
 		url: path,
 		schema: {
@@ -80,11 +93,9 @@ async function route(fastify: FastifyInstance, core: Core) {
 							message:
 								"Signups verify by email, but email isn't set up",
 						},
-						{ code: 1062, message: "Email failed to send" },
 						{
-							code: 1052,
-							message:
-								"An internal error occurred while signing up!",
+							code: 1062,
+							message: "Failed to send verification email",
 						},
 					],
 					type: "object",
@@ -96,16 +107,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 			},
 		},
 		async handler(
-			request: FastifyRequest<{
-				Body: {
-					email: string;
-					password: string;
-					username: string;
-				};
-				Headers: {
-					preferredURL?: string;
-				};
-			}>,
+			request: FastifyRequest<RouteTypes>,
 			response: FastifyReply,
 		) {
 			// 0 = closed, 1 = an admin approves each signup, 2 = verify by email.
@@ -131,12 +133,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 
 			// Check user input
 			const { email, username, password } = request.body;
-			const userInput = await checkUserInput(
-				core,
-				email,
-				username,
-				password,
-			);
+			const userInput = await checkUserInput(core, request);
 			if (typeof userInput !== "boolean") {
 				return response
 					.status(userInput.httpCode)
@@ -152,8 +149,8 @@ async function route(fastify: FastifyInstance, core: Core) {
 			const userInfo = {
 				username,
 				id: userId,
-				password: password,
-				email: email,
+				password,
+				email,
 			};
 
 			// The signup waits for either the user (by email) or an admin to verify it
@@ -166,13 +163,7 @@ async function route(fastify: FastifyInstance, core: Core) {
 							request,
 							response,
 						)
-					: await noEmailSignup(
-							core,
-							userInfo,
-							validationToken,
-							request,
-							response,
-						);
+					: await noEmailSignup(userInfo, validationToken, request);
 
 			return response.status(result.httpCode).send(result.msg);
 		},
@@ -192,48 +183,22 @@ async function emailSignup(
 		hash: string;
 		token: string;
 	},
-	request: FastifyRequest<{
-		Headers: {
-			preferredURL?: string;
-		};
-	}>,
+	request: FastifyRequest<RouteTypes>,
 	_response: FastifyReply,
 ): Promise<{
-	httpCode: 500 | 201 | 409;
+	httpCode: 500 | 201;
 	msg: {
 		message: string;
 		code: number;
 	};
 }> {
-	let url = await core.Utils.determineHomeURL(request);
+	let url = await request.server.utils.determineHomeURL(request);
 	if (!/http(s)?:\/\//.test(url)) {
 		url = `http://${url}`;
 	}
 
 	// Saved before the email goes out, so nobody gets a link to a signup that was never stored
-	try {
-		await core.db.makeVerify(userInfo, validationToken.hash);
-	} catch (error: unknown) {
-		if (error instanceof DBConflictError) {
-			return {
-				httpCode: request.server.codes.conflict,
-				msg: {
-					code: request.server.utils.foldCodes.usernameOrEmailTaken,
-					message: constants.ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
-				},
-			};
-		}
-
-		// Report only; the response is sent below
-		request.server.reportError(error, request);
-		return {
-			httpCode: request.server.codes.internalErr,
-			msg: {
-				code: core.Utils.foldCodes.unkownError,
-				message: "An internal error occurred while signing up!",
-			},
-		};
-	}
+	await request.server.db.makeVerify(userInfo, validationToken.hash); // Errors handled by Fastify handler
 
 	try {
 		await core.emailer.verifyEmail(
@@ -243,24 +208,11 @@ async function emailSignup(
 		);
 	} catch (error: unknown) {
 		// Nobody can confirm a signup whose email never arrived, so don't let it hold the username and email
-		await core.db.denySelf(userInfo.id);
-		// A timeout is the mail server being slow, not a bug, so it isn't reported
-		if (
-			!(
-				error instanceof Error &&
-				error.message.includes("Connection timeout")
-			)
-		) {
-			request.server.reportError(error, request);
-		}
-
-		return {
-			httpCode: request.server.codes.internalErr,
-			msg: {
-				code: core.Utils.foldCodes.emailFailed,
-				message: "Email failed to send",
-			},
-		};
+		await request.server.db.denySelf(userInfo.id);
+		throw new EmailError("Failed to send verification email", {
+			cause: error,
+			foldCode: "emailFailed",
+		});
 	}
 
 	core.logger.info(
@@ -269,14 +221,13 @@ async function emailSignup(
 	return {
 		httpCode: request.server.codes.created,
 		msg: {
-			code: core.Utils.foldCodes.emailSent,
+			code: request.server.utils.foldCodes.emailSent,
 			message: "OK",
 		},
 	};
 }
 
 async function noEmailSignup(
-	core: Core,
 	userInfo: {
 		username: string;
 		id: string;
@@ -288,44 +239,21 @@ async function noEmailSignup(
 		token: string;
 	},
 	request: FastifyRequest,
-	_response: FastifyReply,
 ): Promise<{
-	httpCode: 500 | 201 | 409;
+	httpCode: 500 | 201;
 	msg: { code: number; message: string };
 }> {
-	try {
-		// The notification is saved with the pending user, and deleted when an admin verifies or denies them
-		await core.db.makeVerify(userInfo, validationToken.hash, {
-			id: core.Utils.genNotifyID(),
-			title: "New user signup!",
-			content:
-				`Username: ${userInfo.username}\n` +
-				`User ID: ${userInfo.id}\n` +
-				`Validation Token: ${validationToken.token}`,
-		});
-	} catch (error: unknown) {
-		if (error instanceof DBConflictError) {
-			return {
-				httpCode: request.server.codes.conflict,
-				msg: {
-					code: request.server.utils.foldCodes.usernameOrEmailTaken,
-					message: constants.ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
-				},
-			};
-		}
+	// The notification is saved with the pending user, and deleted when an admin verifies or denies them
+	await request.server.db.makeVerify(userInfo, validationToken.hash, {
+		id: request.server.utils.genNotifyID(),
+		title: "New user signup!",
+		content:
+			`Username: ${userInfo.username}\n` +
+			`User ID: ${userInfo.id}\n` +
+			`Validation Token: ${validationToken.token}`,
+	});
 
-		// Report only; the response is sent below
-		request.server.reportError(error, request);
-		return {
-			httpCode: request.server.codes.internalErr,
-			msg: {
-				code: core.Utils.foldCodes.unkownError,
-				message: "An internal error occurred while signing up!",
-			},
-		};
-	}
-
-	core.logger.info(
+	request.log.info(
 		`New user (${userInfo.username} - ${userInfo.id}) signed up to Folderr`,
 	);
 	return {
@@ -336,12 +264,10 @@ async function noEmailSignup(
 
 async function checkUserInput(
 	core: Core,
-	email: string,
-	username: string,
-	password: string,
+	request: FastifyRequest<RouteTypes>,
 ): Promise<
 	| {
-			httpCode: number;
+			httpCode: 400 | 403 | 409;
 			response: {
 				code: number;
 				message: string;
@@ -350,15 +276,16 @@ async function checkUserInput(
 	| boolean
 > {
 	// Perform user input validation
+	const { email, username, password } = request.body;
 	const maxUsername = 12;
 	const minUsername = 3;
 	const uMatch = core.regexs.username.exec(username);
 	// If the username length does not match criteria
 	if (username.length > maxUsername || username.length < minUsername) {
 		return {
-			httpCode: core.codes.badReq,
+			httpCode: request.server.codes.badReq,
 			response: {
-				code: core.Utils.foldCodes.usernameSizeLimit,
+				code: request.server.utils.foldCodes.usernameSizeLimit,
 				message: constants.ENUMS.RESPONSES.USERNAME.USERNAME_LENGTH,
 			},
 		};
@@ -367,9 +294,9 @@ async function checkUserInput(
 	// If the username does not match our username pattern
 	if (!uMatch || (uMatch && username.length !== uMatch[0].length)) {
 		return {
-			httpCode: core.codes.badReq,
+			httpCode: request.server.codes.badReq,
 			response: {
-				code: core.Utils.foldCodes.illegalUsername,
+				code: request.server.utils.foldCodes.illegalUsername,
 				message:
 					constants.ENUMS.RESPONSES.USERNAME
 						.USERNAME_LETTER_REQUIREMENTS,
@@ -379,19 +306,19 @@ async function checkUserInput(
 
 	if (!core.emailer.validateEmail(email)) {
 		return {
-			httpCode: core.codes.badReq,
+			httpCode: request.server.codes.badReq,
 			response: {
-				code: core.Utils.foldCodes.badEmail,
+				code: request.server.utils.foldCodes.badEmail,
 				message: "Invalid or Unaccpetable Email!",
 			},
 		};
 	}
 
-	if (await core.db.isBanned(email)) {
+	if (await request.server.db.isBanned(email)) {
 		return {
-			httpCode: core.codes.forbidden,
+			httpCode: request.server.codes.forbidden,
 			response: {
-				code: core.Utils.foldCodes.bannedEmail,
+				code: request.server.utils.foldCodes.bannedEmail,
 				message: "Email banned!",
 			},
 		};
@@ -399,14 +326,14 @@ async function checkUserInput(
 
 	// Taken by an account or a pending signup, and for emails also an account's pending change
 	const [usernameTaken, emailTaken] = await Promise.all([
-		core.db.isUsernameTaken(username),
-		core.db.isEmailTaken(email),
+		request.server.db.isUsernameTaken(username),
+		request.server.db.isEmailTaken(email),
 	]);
 	if (usernameTaken || emailTaken) {
 		return {
-			httpCode: core.codes.conflict,
+			httpCode: request.server.codes.conflict,
 			response: {
-				code: core.Utils.foldCodes.usernameOrEmailTaken,
+				code: request.server.utils.foldCodes.usernameOrEmailTaken,
 				message: constants.ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
 			},
 		};
@@ -417,9 +344,9 @@ async function checkUserInput(
 	const match = core.regexs.password.exec(password);
 	if (!match || (match && match[0].length !== password.length)) {
 		return {
-			httpCode: core.codes.badReq,
+			httpCode: request.server.codes.badReq,
 			response: {
-				code: core.Utils.foldCodes.invalidPassword,
+				code: request.server.utils.foldCodes.invalidPassword,
 				message:
 					constants.ENUMS.RESPONSES.PASSWORD.PASSWORD_REQUIREMENTS,
 			},
@@ -429,9 +356,9 @@ async function checkUserInput(
 	// No NUL character
 	if (password.includes("\0")) {
 		return {
-			httpCode: core.codes.badReq,
+			httpCode: request.server.codes.badReq,
 			response: {
-				code: core.Utils.foldCodes.invalidPassword,
+				code: request.server.utils.foldCodes.invalidPassword,
 				message: constants.ENUMS.RESPONSES.PASSWORD.NO_NUL,
 			},
 		};

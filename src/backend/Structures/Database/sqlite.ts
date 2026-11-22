@@ -19,6 +19,7 @@ import process from "process";
 import { fileURLToPath } from "url";
 import type { Config } from "../../handlers/config-handler.js";
 import { TOKEN_EXPIRY_DAYS } from "../constants/database.js";
+import { ENUMS } from "../constants/index.js";
 import { WARNING_TITLE } from "../constants/notifications.js";
 import logger from "../logger.js";
 import { uploadPath } from "../Utilities/upload-types.js";
@@ -587,9 +588,13 @@ export default class SQLiteDB extends DBClass {
 			});
 		} catch (error: unknown) {
 			if (isDuplicateConstraintError(error)) {
-				throw new DBConflictError("Username or email already in use", {
-					cause: error,
-				});
+				throw new DBConflictError(
+					ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
+					{
+						cause: error,
+						foldCode: "usernameOrEmailTaken",
+					},
+				);
 			}
 			throw new DatabaseError(
 				"An unknown error occurred while updating the user",
@@ -832,9 +837,13 @@ export default class SQLiteDB extends DBClass {
 			});
 		} catch (error) {
 			if (isDuplicateConstraintError(error)) {
-				throw new DBConflictError("Username or email already in use", {
-					cause: error,
-				});
+				throw new DBConflictError(
+					ENUMS.RESPONSES.TAKEN.USERNAME_OR_EMAIL,
+					{
+						cause: error,
+						foldCode: "usernameOrEmailTaken",
+					},
+				);
 			}
 			throw new DatabaseError(
 				"An unknown error occurred while creating the signup",

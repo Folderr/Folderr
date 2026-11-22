@@ -32,7 +32,7 @@ function route(fastify: FastifyInstance, core: Core) {
 						{
 							code: 1054,
 							message:
-								'User not found, or the user was not found with role "admin"',
+								'User not found, or the user was not found with role "user"',
 						},
 					],
 					type: "object",

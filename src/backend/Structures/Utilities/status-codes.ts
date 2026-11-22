@@ -42,6 +42,7 @@ const codes: Codes = {
 	notAccepted: 406,
 	accepted: 202,
 	notImplemented: 501,
+	serviceUnavailable: 503,
 };
 
 export interface Codes {
@@ -63,6 +64,7 @@ export interface Codes {
 	notAccepted: 406;
 	accepted: 202;
 	notImplemented: 501;
+	serviceUnavailable: 503;
 }
 
 export default codes;

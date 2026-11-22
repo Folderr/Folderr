@@ -96,7 +96,7 @@ function route(fastify: FastifyInstance, core: Core) {
 			const result = await core.db.verifySelf(verify.id);
 			if (!result) {
 				return await reply.status(request.server.codes.conflict).send({
-					code: core.codes.notAccepted,
+					code: request.server.utils.foldCodes.usernameOrEmailTaken,
 					message:
 						"User not accepted, try a different username or email after denying this one",
 				});

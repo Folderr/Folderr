@@ -23,6 +23,38 @@ import nodemailer, { type SentMessageInfo } from "nodemailer";
 import type Mail from "nodemailer/lib/mailer";
 import type { Core } from "../internals.js";
 import * as constants from "./constants/index.js";
+import type { FoldCodesI } from "./Utilities/fold-codes.js";
+import codes, { type Codes } from "./Utilities/status-codes.js";
+
+export class EmailError extends Error {
+	public readonly code?: string;
+
+	public readonly statusCode?: Codes[keyof Codes];
+
+	public readonly foldCode?: keyof FoldCodesI;
+
+	public readonly expected: boolean;
+
+	constructor(
+		message: string,
+		options?: { cause?: unknown; foldCode?: keyof FoldCodesI },
+	) {
+		super(message, options);
+		this.name = "EmailError";
+		this.expected = false;
+		const cause = options?.cause as
+			| { code: string; message: string }
+			| undefined;
+		if (cause?.code) {
+			this.code = cause.code;
+			if (cause.code === "ETIMEDOUT") {
+				this.expected = true;
+				this.statusCode = codes.serviceUnavailable;
+			}
+		}
+		this.foldCode = options?.foldCode;
+	}
+}
 
 /**
  *

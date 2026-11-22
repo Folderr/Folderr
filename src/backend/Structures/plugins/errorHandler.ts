@@ -3,9 +3,12 @@ import type {
 	FastifyInstance,
 	FastifyPluginAsync,
 	FastifyRequest,
+	FastifySchemaValidationError,
 } from "fastify";
 import fp from "fastify-plugin";
 import type { User } from "../Database/db-class.js";
+import { EmailError } from "../emailer.js";
+import type { FoldCodesI } from "../Utilities/fold-codes.js";
 
 // Unhandled errors a route can have before it's taken offline
 const MAX_ERRORS = 5;
@@ -95,12 +98,36 @@ const errorHandlerPlugin: FastifyPluginAsync = async (
 	// The app's only error handler. Client mistakes (e.g. a request that fails its schema)
 	// keep their 4xx; they aren't reported or counted, so bad requests can't take a route offline
 	instance.setErrorHandler(
-		async (error: FastifyError, request: FastifyRequest, reply) => {
-			const status = error.statusCode ?? 500;
-			if (error.validation || (status >= 400 && status < 500)) {
-				return reply
-					.code(status)
-					.send({ code: status, message: error.message });
+		async (
+			error: Error & {
+				statusCode?: number;
+				code?: string;
+				validation?: FastifySchemaValidationError[];
+				foldCode?: keyof FoldCodesI;
+				expected?: boolean;
+			},
+			request: FastifyRequest,
+			reply,
+		) => {
+			let expected = false;
+			if (error.expected) {
+				expected = true;
+			}
+			const status =
+				error instanceof Error && error.statusCode
+					? error.statusCode
+					: 500;
+			if (
+				(error instanceof Error && error.validation) ||
+				(status >= 400 && status < 500) ||
+				expected
+			) {
+				return reply.code(status).send({
+					code: error.foldCode
+						? instance.utils.foldCodes[error.foldCode]
+						: status,
+					message: error.message,
+				});
 			}
 
 			reportError(error, request);

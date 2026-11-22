@@ -19,7 +19,10 @@
  *
  */
 
+import { FastifyError } from "fastify";
 import type { Config } from "../../handlers/config-handler.js";
+import type { FoldCodesI } from "../Utilities/fold-codes.js";
+import codes from "../Utilities/status-codes.js";
 
 export interface Folderr {
 	publicKeyJWT: Buffer;
@@ -153,9 +156,21 @@ export class FolderrNotSetupError extends DatabaseError {
 }
 
 export class DBConflictError extends DatabaseError {
-	constructor(message: string, options?: { cause?: unknown }) {
+	public readonly statusCode: number;
+
+	public readonly code: string;
+
+	public readonly foldCode?: keyof FoldCodesI;
+
+	constructor(
+		message: string,
+		options?: { cause?: unknown; foldCode?: keyof FoldCodesI },
+	) {
 		super(message, options);
 		this.name = "DBConflictError";
+		this.code = "DB_CONFLICT_ERROR";
+		this.statusCode = codes.conflict;
+		if (options?.foldCode) this.foldCode = options.foldCode;
 	}
 }
 
