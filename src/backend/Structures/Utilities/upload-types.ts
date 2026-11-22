@@ -27,7 +27,6 @@
  */
 
 import type { FastifyReply } from "fastify";
-import { createReadStream } from "fs";
 import { open, unlink } from "fs/promises";
 import { join } from "path";
 import process from "process";
@@ -136,15 +135,23 @@ export function sendUpload(
 			type === "text/plain" ? "text/plain; charset=utf-8" : type;
 	}
 
-	return reply
-		.status(200)
-		.header("Content-Type", contentType)
-		.header(
-			"Content-Disposition",
-			inline
-				? "inline"
-				: `attachment; filename="${uploadName(upload.id, upload.ext)}"`,
-		)
-		.header("X-Content-Type-Options", "nosniff")
-		.send(createReadStream(uploadPath(upload.id, upload.ext)));
+	return (
+		reply
+			.status(200)
+			.header("Content-Type", contentType)
+			.header(
+				"Content-Disposition",
+				inline
+					? "inline"
+					: `attachment; filename="${uploadName(upload.id, upload.ext)}"`,
+			)
+			.header("X-Content-Type-Options", "nosniff")
+			// sendFile takes a name relative to a root, not an absolute path.
+			// contentType: false keeps the Content-Type chosen above instead of guessing from the extension
+			.sendFile(uploadName(upload.id, upload.ext), FILES_DIR, {
+				contentType: false,
+				immutable: true,
+				maxAge: "3h",
+			})
+	);
 }
